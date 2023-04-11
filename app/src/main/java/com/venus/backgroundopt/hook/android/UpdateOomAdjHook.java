@@ -39,42 +39,14 @@ public class UpdateOomAdjHook extends MethodHook {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 super.beforeHookedMethod(param);
 
-                int pid = (int) param.args[0];
                 int uid = (int) param.args[1];
                 RunningInfo runningInfo = getRunningInfo();
                 AppInfo appInfo = runningInfo.getRunningAppInfo(uid);
 
                 if (appInfo != null) {  // 非系统重要进程
-                    int oomAdj = (int) param.args[2];
-                    // 更新的是主进程的oom_adj
-                    if (pid == appInfo.getmPid()) {
-                        // 主进程当前adj不为ProcessRecord.DEFAULT_MAIN_ADJ
-//                        if (appInfo.getMainProcCurAdj() != ProcessRecord.DEFAULT_MAIN_ADJ) {
-//                            param.args[2] = ProcessRecord.DEFAULT_MAIN_ADJ;
-//                            appInfo.setMainProcCurAdj(ProcessRecord.DEFAULT_MAIN_ADJ);
-//
-//                            getLogger().debug(
-//                                    "设置主进程[" + pid + "-" + appInfo.getPackageName() + "]adj: "
-//                                            + param.args[2]);
-//                        } else {    // 主进程已经设置为目标值, 则阻止新值的设置
-//                            param.setResult(null);
-//                        }
+                    int pid = (int) param.args[0];
 
-                        if (oomAdj <= ProcessRecord.DEFAULT_MAIN_ADJ) {
-                            appInfo.setMainProcCurAdj(oomAdj);
-                            getLogger().debug(
-                                    "设置主进程[" + pid + "-" + appInfo.getPackageName() + "]adj: "
-                                            + param.args[2]);
-                        } else {
-                            if (appInfo.getMainProcCurAdj() != ProcessRecord.DEFAULT_MAIN_ADJ) {
-                                param.args[2] = ProcessRecord.DEFAULT_MAIN_ADJ;
-                                appInfo.setMainProcCurAdj(ProcessRecord.DEFAULT_MAIN_ADJ);
-                            } else {
-                                param.setResult(null);
-                            }
-                        }
-                    } else {    // 子进程的处理
-//                        if (appInfo.getMainProcCurAdj() != ProcessList.FOREGROUND_APP_ADJ) {
+                    if (pid != appInfo.getmPid()) { // 子进程的处理
                         // 子进程信息尚未记录
                         if (!runningInfo.isSubProcessRunning(pid)) {
                             param.args[2] = ProcessRecord.SUB_PROC_ADJ;
@@ -85,6 +57,7 @@ public class UpdateOomAdjHook extends MethodHook {
                                             + param.args[2]);
                         } else {
                             int curAdj = runningInfo.getSubProcessAdj(pid);
+                            int oomAdj = (int) param.args[2];
                             /*
                                 新的adj大于已记录的adj 且 当前adj不为"不可能取值"(即 已收录当前pid的信息), 则只更新记录
                              */
@@ -94,26 +67,8 @@ public class UpdateOomAdjHook extends MethodHook {
                                 param.setResult(null);
                             }
                         }
-//                        }
-
-
-                        // 若子进程当前要设置的adj小于预定值, 则纠正
-//                        if (adj < ProcessRecord.SUB_PROC_ADJ) {
-//                            param.args[2] = ProcessRecord.SUB_PROC_ADJ;
-//                            getLogger().debug(
-//                                    "设置子进程[" + pid + "-" + appInfo.getPackageName() + "]adj: "
-//                                            + param.args[2]);
-//                        }
                     }
-                } /*else {    // 是系统重要进程
-                    // 若该进程信息尚未被记录
-                    if (!runningInfo.isImportantSysAppPidRunning(pid)) {
-                        param.args[2] = ProcessList.NATIVE_ADJ;
-                        runningInfo.setImportantSysAppAdj(pid, ProcessList.NATIVE_ADJ);
-                    } else {    // 若已经被记录, 则已经被调整值, 无需再次调整
-                        param.setResult(null);
-                    }
-                }*/
+                }
             }
         };
     }
