@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--这里是填入需要自动勾选的应用的包名，多个就是多个item-->
+    <string-array name="xposed_scope">
+        <item>android</item>
+        <item>com.miui.powerkeeper</item>
+    </string-array>
+</resources>
