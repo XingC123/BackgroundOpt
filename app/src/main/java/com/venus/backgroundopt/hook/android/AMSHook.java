@@ -39,7 +39,7 @@ public class AMSHook extends MethodHook {
 
                 ActivityManagerService ams = new ActivityManagerService(param.thisObject);
                 getRunningInfo().setActivityManagerService(ams);
-                getLogger().debug("拿到AMS");
+                debugLog(isDebugMode() && getLogger().debug("拿到AMS"));
             }
         };
     }

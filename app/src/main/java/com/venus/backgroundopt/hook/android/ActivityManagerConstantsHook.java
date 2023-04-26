@@ -66,7 +66,7 @@ public class ActivityManagerConstantsHook extends ConstructorHook {
         try {
             XposedHelpers.setObjectField(param.thisObject, field, value);
             if (Objects.equals(XposedHelpers.getObjectField(param.thisObject, field), value)) {
-                getLogger().debug(field + "设置成功");
+                debugLog(isDebugMode() && getLogger().debug(field + "设置成功"));
             } else {
                 getLogger().warn(field + "设置失败");
             }

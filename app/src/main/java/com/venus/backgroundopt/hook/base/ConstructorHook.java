@@ -31,9 +31,11 @@ public abstract class ConstructorHook extends MethodHook {
                     classLoader,
                     getArgs()
             );
-            getLogger().debug("[" + getTargetClass() + "构造器" + "]hook成功");
+            debugLog(isDebugMode() &&
+                    getLogger().debug("[" + getTargetClass() + "构造器" + "]hook成功"));
         } catch (Exception e) {
-            getLogger().debug("[" + getTargetClass() + "构造器" + "]hook失败", e);
+            debugLog(isDebugMode() &&
+                    getLogger().debug("[" + getTargetClass() + "构造器" + "]hook失败", e));
         }
     }
 }

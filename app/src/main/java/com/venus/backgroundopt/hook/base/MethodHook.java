@@ -13,6 +13,7 @@ public abstract class MethodHook extends AbstractHook {
     public MethodHook(ClassLoader classLoader) {
         this(classLoader, null);
     }
+
     public MethodHook(ClassLoader classLoader, RunningInfo runningInfo) {
         super(classLoader, runningInfo);
     }
@@ -26,9 +27,11 @@ public abstract class MethodHook extends AbstractHook {
 
             XposedHelpers.findAndHookMethod(getTargetClass(), classLoader,
                     getTargetMethod(), getArgs());
-            getLogger().debug("[" + getTargetClass() + "." + getTargetMethod() + "]hook成功");
+            debugLog(isDebugMode() &&
+                    getLogger().debug("[" + getTargetClass() + "." + getTargetMethod() + "]hook成功"));
         } catch (Exception e) {
-            getLogger().debug("[" + getTargetClass() + "." + getTargetMethod() + "]hook失败", e);
+            debugLog(isDebugMode() &&
+                    getLogger().debug("[" + getTargetClass() + "." + getTargetMethod() + "]hook失败", e));
         }
     }
 }

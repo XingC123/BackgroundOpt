@@ -50,9 +50,12 @@ public class UpdateOomAdjHook extends MethodHook {
                         if (appInfo.getMainProcCurAdj() != ProcessRecord.DEFAULT_MAIN_ADJ) {
                             param.args[2] = ProcessRecord.DEFAULT_MAIN_ADJ;
                             appInfo.setMainProcCurAdj(ProcessRecord.DEFAULT_MAIN_ADJ);
-                            getLogger().debug(
-                                    "设置主进程[" + pid + "-" + appInfo.getPackageName() + "]adj: "
-                                            + param.args[2]);
+
+                            debugLog(isDebugMode() &&
+                                    getLogger().debug(
+                                            "设置主进程[" + pid + "-" + appInfo.getPackageName() + "]adj: "
+                                                    + param.args[2])
+                            );
                         } else {
                             param.setResult(null);
                         }
@@ -62,9 +65,11 @@ public class UpdateOomAdjHook extends MethodHook {
                             param.args[2] = ProcessRecord.SUB_PROC_ADJ;
                             runningInfo.setSubProcessAdj(pid, ProcessRecord.SUB_PROC_ADJ);
 
-                            getLogger().debug(
-                                    "设置子进程[" + pid + "-" + appInfo.getPackageName() + "]adj: "
-                                            + param.args[2]);
+                            debugLog(isDebugMode() &&
+                                    getLogger().debug(
+                                            "设置子进程[" + pid + "-" + appInfo.getPackageName() + "]adj: "
+                                                    + param.args[2])
+                            );
                         } else {
                             int curAdj = runningInfo.getSubProcessAdj(pid);
                             int oomAdj = (int) param.args[2];

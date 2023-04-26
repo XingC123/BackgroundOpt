@@ -74,7 +74,8 @@ public class AppSwitchHook extends MethodHook {
 
                 runningInfo.lastAppInfo = appInfo;
 
-                getLogger().debug(appInfo.getPackageName() + " - isRunning: " + runningInfo.isAppRunning(appInfo));
+                debugLog(isDebugMode() &&
+                        getLogger().debug(appInfo.getPackageName() + " - isRunning: " + runningInfo.isAppRunning(appInfo)));
 
                 // 该程序第一次运行
                 if (!runningInfo.isAppRunning(appInfo)) {

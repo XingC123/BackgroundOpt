@@ -11,30 +11,30 @@ public interface Logger {
      * info                                                                    *
      *                                                                         *
      **************************************************************************/
-    void info(String msg);
-    void info(String msg, Throwable throwable);
+    boolean info(String msg);
+    boolean info(String msg, Throwable throwable);
 
     /* *************************************************************************
      *                                                                         *
      * error                                                                   *
      *                                                                         *
      **************************************************************************/
-    void error(String msg);
-    void error(String msg, Throwable throwable);
+    boolean error(String msg);
+    boolean error(String msg, Throwable throwable);
 
     /* *************************************************************************
      *                                                                         *
      * warning                                                                 *
      *                                                                         *
      **************************************************************************/
-    void warn(String msg);
-    void warn(String msg, Throwable throwable);
+    boolean warn(String msg);
+    boolean warn(String msg, Throwable throwable);
 
     /* *************************************************************************
      *                                                                         *
      * debug                                                                   *
      *                                                                         *
      **************************************************************************/
-    void debug(String msg);
-    void debug(String msg, Throwable throwable);
+    boolean debug(String msg);
+    boolean debug(String msg, Throwable throwable);
 }

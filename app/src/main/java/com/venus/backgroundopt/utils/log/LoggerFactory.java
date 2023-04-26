@@ -48,47 +48,57 @@ public class LoggerFactory {
         }
 
         @Override
-        public void info(String msg) {
+        public boolean info(String msg) {
             Log.i(getTAG(), getLogMessage(msg));
+            return true;
         }
 
         @Override
-        public void info(String msg, Throwable throwable) {
+        public boolean info(String msg, Throwable throwable) {
             Log.i(getTAG(), getLogMessage(msg), throwable);
+            return true;
         }
 
         @Override
-        public void error(String msg) {
+        public boolean error(String msg) {
             Log.e(getTAG(), getLogMessage(msg));
+            return true;
         }
 
         @Override
-        public void error(String msg, Throwable throwable) {
+        public boolean error(String msg, Throwable throwable) {
             Log.e(getTAG(), getLogMessage(msg), throwable);
+            return true;
         }
 
         @Override
-        public void warn(String msg) {
+        public boolean warn(String msg) {
             Log.w(getTAG(), getLogMessage(msg));
+            return true;
         }
 
         @Override
-        public void warn(String msg, Throwable throwable) {
+        public boolean warn(String msg, Throwable throwable) {
             Log.w(getTAG(), getLogMessage(msg), throwable);
+            return true;
         }
 
         @Override
-        public void debug(String msg) {
+        public boolean debug(String msg) {
             if (BuildConfig.DEBUG) {
                 Log.d(getTAG(), getLogMessage(msg));
             }
+
+            return true;
         }
 
         @Override
-        public void debug(String msg, Throwable throwable) {
+        public boolean debug(String msg, Throwable throwable) {
             if (BuildConfig.DEBUG) {
                 Log.d(getTAG(), msg, throwable);
             }
+
+            return true;
         }
     }
 }

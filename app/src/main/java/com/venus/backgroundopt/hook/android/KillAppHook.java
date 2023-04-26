@@ -53,10 +53,12 @@ public class KillAppHook extends MethodHook {
                      */
                     if (pid == appInfo.getmPid()) {
                         runningInfo.removeRunningApp(appInfo);
-                        getLogger().debug("kill: " + appInfo.getPackageName());
+                        debugLog(isDebugMode() &&
+                                getLogger().debug("kill: " + appInfo.getPackageName()));
                     } else {
                         runningInfo.removeSubProcessPid(pid, appInfo);
-                        getLogger().debug(appInfo.getPackageName() + " 的子进程被杀");
+                        debugLog(isDebugMode() &&
+                                getLogger().debug(appInfo.getPackageName() + " 的子进程被杀"));
                     }
                 } else {
                     runningInfo.removeImportantSysAppPid(pid);

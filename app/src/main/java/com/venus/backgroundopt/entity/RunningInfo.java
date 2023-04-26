@@ -188,7 +188,8 @@ public class RunningInfo implements ILogger {
             mProcessRecord.setDefaultMaxAdj();
             // 将主进程pid保存
             appInfo.setmPid(mProcessRecord.getPid());
-            getLogger().debug(appInfo.getPackageName() + " 的mpid = " + appInfo.getmPid());
+            debugLog(isDebugMode() &&
+                    getLogger().debug(appInfo.getPackageName() + " 的mpid = " + appInfo.getmPid()));
         }
         // 添加到运行列表
         runningApps.put(appInfo.getUid(), appInfo);
