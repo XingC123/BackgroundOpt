@@ -16,14 +16,15 @@ import de.robv.android.xposed.XposedHelpers;
  */
 public class ProcessRecord {
     // 默认的最大adj
-    public static final int DEFAULT_MAX_ADJ = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ;
+//    public static final int DEFAULT_MAX_ADJ = ProcessList.FOREGROUND_APP_ADJ;
+    public static final int DEFAULT_MAX_ADJ = ProcessList.VISIBLE_APP_ADJ;
     // 多进程app的最大adj
     public static final int MULTI_PROC_MAX_ADJ = ProcessList.PERSISTENT_PROC_ADJ;
     // 默认的主进程要设置的adj
 //    public static final int DEFAULT_MAIN_ADJ = ProcessList.NATIVE_ADJ;
 //    public static final int DEFAULT_MAIN_ADJ = ProcessList.SERVICE_ADJ;
 //    public static final int DEFAULT_MAIN_ADJ = ProcessRecord.DEFAULT_MAX_ADJ;
-    public static final int DEFAULT_MAIN_ADJ = ProcessList.VISIBLE_APP_ADJ;
+    public static final int DEFAULT_MAIN_ADJ = ProcessList.FOREGROUND_APP_ADJ;
     // 默认的子进程要设置的adj
     public static final int SUB_PROC_ADJ = ProcessList.PREVIOUS_APP_ADJ;
 

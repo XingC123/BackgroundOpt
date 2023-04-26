@@ -46,7 +46,17 @@ public class UpdateOomAdjHook extends MethodHook {
                 if (appInfo != null) {  // 非系统重要进程
                     int pid = (int) param.args[0];
 
-                    if (pid != appInfo.getmPid()) { // 子进程的处理
+                    if (pid == appInfo.getmPid()) { // 主进程
+                        if (appInfo.getMainProcCurAdj() != ProcessRecord.DEFAULT_MAIN_ADJ) {
+                            param.args[2] = ProcessRecord.DEFAULT_MAIN_ADJ;
+                            appInfo.setMainProcCurAdj(ProcessRecord.DEFAULT_MAIN_ADJ);
+                            getLogger().debug(
+                                    "设置主进程[" + pid + "-" + appInfo.getPackageName() + "]adj: "
+                                            + param.args[2]);
+                        } else {
+                            param.setResult(null);
+                        }
+                    } else { // 子进程的处理
                         // 子进程信息尚未记录
                         if (!runningInfo.isSubProcessRunning(pid)) {
                             param.args[2] = ProcessRecord.SUB_PROC_ADJ;

@@ -25,6 +25,9 @@ public interface MethodConstants {
     String setMaxAdj = "setMaxAdj";
     String getUidForPid = "getUidForPid";
     String getParentPid = "getParentPid";
+    String checkExcessivePowerUsageLPr = "checkExcessivePowerUsageLPr";
+    String trimPhantomProcessesIfNecessary = "trimPhantomProcessesIfNecessary";
+    String isInVisibleRange = "isInVisibleRange";
 
     /**
      * miui

@@ -17,4 +17,9 @@ public interface FieldConstants {
     String processName = "processName";
     String mState = "mState";
     String mMaxAdj = "mMaxAdj";
+    /**
+     *  {@link ClassConstants#ActivityManagerService}
+     */
+    String CUR_MAX_CACHED_PROCESSES = "CUR_MAX_CACHED_PROCESSES";
+    String mCustomizedMaxCachedProcesses = "mCustomizedMaxCachedProcesses";
 }

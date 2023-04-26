@@ -2,8 +2,12 @@ package com.venus.backgroundopt.hook.hook_handler;
 
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.android.AMSHook;
+import com.venus.backgroundopt.hook.android.ActivityManagerConstantsHook;
 import com.venus.backgroundopt.hook.android.AppSwitchHook;
 import com.venus.backgroundopt.hook.android.KillAppHook;
+import com.venus.backgroundopt.hook.android.PhantomProcessHook;
+import com.venus.backgroundopt.hook.android.PhantomProcessListHook;
+import com.venus.backgroundopt.hook.android.RecentTasksHook;
 import com.venus.backgroundopt.hook.android.UpdateOomAdjHook;
 import com.venus.backgroundopt.hook.base.PackageHook;
 
@@ -39,5 +43,16 @@ public class AndroidHookHandle extends PackageHook {
 
         // oom_adj更新hook
         new UpdateOomAdjHook(packageParam.classLoader, runningInfo);
+
+        /*
+            根据酷安(don`t kill)作者提供思路所写: https://www.coolapk.com/feed/43786372?shareKey=ZGMyOWJjNjZlZGRmNjQ0NzdkOTI~&shareFrom=com.coolapk.market_13.1.2
+         */
+        // 安卓虚进程处理hook
+        new PhantomProcessHook(packageParam.classLoader, runningInfo);
+        new PhantomProcessListHook(packageParam.classLoader, runningInfo);
+        new ActivityManagerConstantsHook(packageParam.classLoader, runningInfo);
+
+        // 最近任务可见性hook
+        new RecentTasksHook(packageParam.classLoader, runningInfo);
     }
 }

@@ -10,6 +10,10 @@ public interface ClassConstants {
      * 安卓
      */
     String ActivityManagerService = "com.android.server.am.ActivityManagerService";
+    String ActivityManagerConstants = "com.android.server.am.ActivityManagerConstants";
+    String PhantomProcessList = "com.android.server.am.PhantomProcessList";
+    String RecentTasks = "com.android.server.wm.RecentTasks";
+    String Task = "com.android.server.wm.Task";
     String ComponentName = "android.content.ComponentName";
     String IBinder = "android.os.IBinder";
     String Process = "android.os.Process";
