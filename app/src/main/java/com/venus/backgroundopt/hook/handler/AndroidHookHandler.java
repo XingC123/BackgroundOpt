@@ -1,4 +1,4 @@
-package com.venus.backgroundopt.hook.hook_handler;
+package com.venus.backgroundopt.hook.handler;
 
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.android.AMSHook;
@@ -18,8 +18,8 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
  * @version 1.0
  * @date 2023/2/17
  */
-public class AndroidHookHandle extends PackageHook {
-    public AndroidHookHandle(XC_LoadPackage.LoadPackageParam packageParam) {
+public class AndroidHookHandler extends PackageHook {
+    public AndroidHookHandler(XC_LoadPackage.LoadPackageParam packageParam) {
         super(packageParam);
     }
 

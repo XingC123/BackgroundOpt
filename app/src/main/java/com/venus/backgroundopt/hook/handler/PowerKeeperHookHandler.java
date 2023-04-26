@@ -1,4 +1,4 @@
-package com.venus.backgroundopt.hook.hook_handler;
+package com.venus.backgroundopt.hook.handler;
 
 import com.venus.backgroundopt.hook.base.PackageHook;
 import com.venus.backgroundopt.hook.miui.ClearAppHook;
