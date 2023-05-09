@@ -17,10 +17,12 @@ public interface ClassConstants {
     String ComponentName = "android.content.ComponentName";
     String IBinder = "android.os.IBinder";
     String Process = "android.os.Process";
+    String SystemProperties = "android.os.SystemProperties";
     String ProcessList = "com.android.server.am.ProcessList";
     String ProcessRecord = "com.android.server.am.ProcessRecord";
     String ProcessStateRecord = "com.android.server.am.ProcessStateRecord";
     String OomAdjuster = "com.android.server.am.OomAdjuster";
+    String DeviceConfig = "android.provider.DeviceConfig";
 
     /**
      * miui

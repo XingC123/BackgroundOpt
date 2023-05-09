@@ -18,8 +18,15 @@ public interface FieldConstants {
     String mState = "mState";
     String mMaxAdj = "mMaxAdj";
     /**
-     *  {@link ClassConstants#ActivityManagerService}
+     *  {@link ClassConstants#ActivityManagerConstants}
      */
     String CUR_MAX_CACHED_PROCESSES = "CUR_MAX_CACHED_PROCESSES";
+    String mOverrideMaxCachedProcesses = "mOverrideMaxCachedProcesses";
     String mCustomizedMaxCachedProcesses = "mCustomizedMaxCachedProcesses";
+    String DEFAULT_MAX_CACHED_PROCESSES = "DEFAULT_MAX_CACHED_PROCESSES";
+    String KEY_MAX_CACHED_PROCESSES = "KEY_MAX_CACHED_PROCESSES";
+    /**
+     * {@link ClassConstants#DeviceConfig}
+     */
+    String NAMESPACE_ACTIVITY_MANAGER = "NAMESPACE_ACTIVITY_MANAGER";
 }

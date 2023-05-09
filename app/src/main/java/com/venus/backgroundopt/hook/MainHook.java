@@ -15,8 +15,10 @@ public class MainHook implements IXposedHookLoadPackage {
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam loadPackageParam) throws Throwable {
-        new AndroidHookHandler(loadPackageParam);
-        // miui
-        new PowerKeeperHookHandler(loadPackageParam);
+        switch (loadPackageParam.packageName) {
+            case "android" -> new AndroidHookHandler(loadPackageParam);
+            // miui
+            case "com.miui.powerkeeper" -> new PowerKeeperHookHandler(loadPackageParam);
+        }
     }
 }

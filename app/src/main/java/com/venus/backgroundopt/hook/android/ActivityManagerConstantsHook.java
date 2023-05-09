@@ -20,12 +20,31 @@ import de.robv.android.xposed.XposedHelpers;
  * @date 2023/4/25
  */
 public class ActivityManagerConstantsHook extends ConstructorHook {
+    /**
+     * 退到一定时间, 允许使用的最大cpu占比
+     */
+    // <=5min
+    private static final int DEFAULT_POWER_CHECK_MAX_CPU_1 = 25;
+    // (5, 10]
+    private static final int DEFAULT_POWER_CHECK_MAX_CPU_2 = 25;
+    // (10, 15]
+    private static final int DEFAULT_POWER_CHECK_MAX_CPU_3 = 10;
+    // >15
+    private static final int DEFAULT_POWER_CHECK_MAX_CPU_4 = 2;
+
+    public static String KEY_MAX_CACHED_PROCESSES;
+
     public ActivityManagerConstantsHook(ClassLoader classLoader) {
         super(classLoader);
     }
 
     public ActivityManagerConstantsHook(ClassLoader classLoader, RunningInfo runningInfo) {
         super(classLoader, runningInfo);
+
+        KEY_MAX_CACHED_PROCESSES =
+                String.valueOf(XposedHelpers.getStaticObjectField(
+                        XposedHelpers.findClass(ClassConstants.ActivityManagerConstants, classLoader),
+                        FieldConstants.KEY_MAX_CACHED_PROCESSES));
     }
 
     @Override
@@ -42,6 +61,8 @@ public class ActivityManagerConstantsHook extends ConstructorHook {
 
                 setMCustomizedMaxCachedProcesses(param);
                 setCUR_MAX_CACHED_PROCESSES(param);
+                setDEFAULT_MAX_CACHED_PROCESSES(param);
+                setMOverrideMaxCachedProcesses(param);
             }
         };
     }
@@ -60,6 +81,14 @@ public class ActivityManagerConstantsHook extends ConstructorHook {
 
     private void setMCustomizedMaxCachedProcesses(MethodHookParam param) {
         setValue(param, FieldConstants.mCustomizedMaxCachedProcesses, Integer.MAX_VALUE);
+    }
+
+    private void setDEFAULT_MAX_CACHED_PROCESSES(MethodHookParam param) {
+        setValue(param, FieldConstants.DEFAULT_MAX_CACHED_PROCESSES, Integer.MAX_VALUE);
+    }
+
+    private void setMOverrideMaxCachedProcesses(MethodHookParam param) {
+        setValue(param, FieldConstants.mOverrideMaxCachedProcesses, Integer.MAX_VALUE);
     }
 
     private void setValue(MethodHookParam param, String field, Object value) {

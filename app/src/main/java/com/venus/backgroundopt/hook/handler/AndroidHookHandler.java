@@ -4,6 +4,7 @@ import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.android.AMSHook;
 import com.venus.backgroundopt.hook.android.ActivityManagerConstantsHook;
 import com.venus.backgroundopt.hook.android.AppSwitchHook;
+import com.venus.backgroundopt.hook.android.DeviceConfigHook;
 import com.venus.backgroundopt.hook.android.KillAppHook;
 import com.venus.backgroundopt.hook.android.PhantomProcessHook;
 import com.venus.backgroundopt.hook.android.PhantomProcessListHook;
@@ -54,5 +55,13 @@ public class AndroidHookHandler extends PackageHook {
 
         // 最近任务可见性hook
         new RecentTasksHook(packageParam.classLoader, runningInfo);
+
+        // hook获取
+        new DeviceConfigHook(packageParam.classLoader, runningInfo);
+
+        /*
+            对SystemProperties进行hook, 以动态更新值
+         */
+
     }
 }

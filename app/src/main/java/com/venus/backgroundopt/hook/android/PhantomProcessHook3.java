@@ -3,23 +3,20 @@ package com.venus.backgroundopt.hook.android;
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.MethodHook;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
-import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
-import com.venus.backgroundopt.server.ActivityManagerService;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
+import de.robv.android.xposed.XC_MethodReplacement;
 
 /**
- * 对ActivityManagerService的hook
+ * 对安卓虚进程的hook(安卓12引入)
  *
  * @author XingC
  * @version 1.0
- * @date 2023/2/8
+ * @date 2023/4/25
  */
-public class AMSHook extends MethodHook {
-
-    public AMSHook(ClassLoader classLoader, RunningInfo runningInfo) {
+public class PhantomProcessHook3 extends MethodHook {
+    public PhantomProcessHook3(ClassLoader classLoader, RunningInfo runningInfo) {
         super(classLoader, runningInfo);
     }
 
@@ -30,7 +27,7 @@ public class AMSHook extends MethodHook {
 
     @Override
     public String getTargetMethod() {
-        return MethodConstants.setSystemProcess;
+        return MethodConstants.setOverrideMaxCachedProcesses;
     }
 
     @Override
@@ -40,20 +37,13 @@ public class AMSHook extends MethodHook {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 super.beforeHookedMethod(param);
 
-                ActivityManagerService ams = new ActivityManagerService(param.thisObject);
-                getRunningInfo().setActivityManagerService(ams);
-                debugLog(isDebugMode() && getLogger().debug("拿到AMS"));
-
-                // 设置persist.sys.spc.enabled禁用小米的杀后台
-                XposedHelpers.callStaticMethod(
-                        XposedHelpers.findClass(ClassConstants.SystemProperties, classLoader),
-                        MethodConstants.set, "false");
+                param.args[0] = Integer.MAX_VALUE;
             }
         };
     }
 
     @Override
     public Object[] getTargetParam() {
-        return new Object[0];
+        return new Object[]{int.class};
     }
 }

@@ -15,8 +15,8 @@ import de.robv.android.xposed.XC_MethodReplacement;
  * @version 1.0
  * @date 2023/4/25
  */
-public class PhantomProcessHook extends MethodHook {
-    public PhantomProcessHook(ClassLoader classLoader, RunningInfo runningInfo) {
+public class PhantomProcessHook2 extends MethodHook {
+    public PhantomProcessHook2(ClassLoader classLoader, RunningInfo runningInfo) {
         super(classLoader, runningInfo);
     }
 
@@ -27,23 +27,15 @@ public class PhantomProcessHook extends MethodHook {
 
     @Override
     public String getTargetMethod() {
-        return MethodConstants.checkExcessivePowerUsageLPr;
+        return MethodConstants.checkExcessivePowerUsage;
     }
 
     @Override
     public XC_MethodHook getActionMethod() {
-//        return new XC_MethodHook() {
-//            @Override
-//            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-//                super.beforeHookedMethod(param);
-//
-//                param.setResult(false);
-//            }
-//        };
         return new XC_MethodReplacement() {
             @Override
             protected Object replaceHookedMethod(MethodHookParam methodHookParam) throws Throwable {
-                return false;
+                return null;
             }
         };
     }
