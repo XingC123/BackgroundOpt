@@ -47,7 +47,8 @@ public class AMSHook extends MethodHook {
                 // 设置persist.sys.spc.enabled禁用小米的杀后台
                 XposedHelpers.callStaticMethod(
                         XposedHelpers.findClass(ClassConstants.SystemProperties, classLoader),
-                        MethodConstants.set, "false");
+                        MethodConstants.set,
+                        "persist.sys.spc.enabled", "false");
             }
         };
     }
