@@ -32,14 +32,6 @@ public class PhantomProcessHook extends MethodHook {
 
     @Override
     public XC_MethodHook getActionMethod() {
-//        return new XC_MethodHook() {
-//            @Override
-//            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-//                super.beforeHookedMethod(param);
-//
-//                param.setResult(false);
-//            }
-//        };
         return new XC_MethodReplacement() {
             @Override
             protected Object replaceHookedMethod(MethodHookParam methodHookParam) throws Throwable {

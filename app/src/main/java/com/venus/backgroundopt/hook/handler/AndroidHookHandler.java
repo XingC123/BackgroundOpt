@@ -7,6 +7,8 @@ import com.venus.backgroundopt.hook.android.AppSwitchHook;
 import com.venus.backgroundopt.hook.android.DeviceConfigHook;
 import com.venus.backgroundopt.hook.android.KillAppHook;
 import com.venus.backgroundopt.hook.android.PhantomProcessHook;
+import com.venus.backgroundopt.hook.android.PhantomProcessHook2;
+import com.venus.backgroundopt.hook.android.PhantomProcessHook3;
 import com.venus.backgroundopt.hook.android.PhantomProcessListHook;
 import com.venus.backgroundopt.hook.android.RecentTasksHook;
 import com.venus.backgroundopt.hook.android.UpdateOomAdjHook;
@@ -59,9 +61,8 @@ public class AndroidHookHandler extends PackageHook {
         // hook获取
         new DeviceConfigHook(packageParam.classLoader, runningInfo);
 
-        /*
-            对SystemProperties进行hook, 以动态更新值
-         */
-
+        // 其他处理
+        new PhantomProcessHook2(packageParam.classLoader, runningInfo);
+        new PhantomProcessHook3(packageParam.classLoader, runningInfo);
     }
 }
