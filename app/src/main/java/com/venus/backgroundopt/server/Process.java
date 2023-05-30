@@ -14,7 +14,7 @@ public class Process {
     private Object process;
     private static Class<?> Process;
 
-    private static Class<?> getProcess(ClassLoader classLoader) {
+    public static Class<?> getProcess(ClassLoader classLoader) {
         if (Process == null) {
             Process = XposedHelpers.findClass(ClassConstants.Process, classLoader);
         }

@@ -3,7 +3,6 @@ package com.venus.backgroundopt.hook.android;
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.MethodHook;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
-import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.server.ActivityManagerService;
 

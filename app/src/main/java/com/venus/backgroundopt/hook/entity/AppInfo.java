@@ -30,7 +30,7 @@ public class AppInfo implements ILogger {
     private int mPid;   // 主进程的pid
     private int mainProcCurAdj = ProcessList.IMPOSSIBLE_ADJ;    // 主进程当前adj
     private int processCount;   // 当前app所运行的进程的数量
-    private int appSwitchEvent; // app切换事件
+    private int appSwitchEvent = Integer.MIN_VALUE; // app切换事件
     private Boolean isMultiProcessApp = null;  // 是否是多进程app
     private List<Integer> subProcessPids;   // 子进程pid记录表
 

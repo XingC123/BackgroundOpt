@@ -32,6 +32,13 @@ public interface MethodConstants {
     String set = "set";
     String setOverrideMaxCachedProcesses = "setOverrideMaxCachedProcesses";
     String getProperty = "getProperty";
+    String sendSignal = "sendSignal";
+    String getActiveLauncherPackageName = "getActiveLauncherPackageName";
+    String systemReady = "systemReady";
+    String startBootstrapServices = "startBootstrapServices";
+    String main = "main";
+    String getDefaultAppProvider = "getDefaultAppProvider";
+    String getDefaultHome = "getDefaultHome";
 
     /**
      * miui

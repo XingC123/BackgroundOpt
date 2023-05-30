@@ -23,6 +23,11 @@ public interface ClassConstants {
     String ProcessStateRecord = "com.android.server.am.ProcessStateRecord";
     String OomAdjuster = "com.android.server.am.OomAdjuster";
     String DeviceConfig = "android.provider.DeviceConfig";
+    String PackageManagerService = "com.android.server.pm.PackageManagerService";
+    String PackageManagerServiceInjector = "com.android.server.pm.PackageManagerServiceInjector";
+    String PackageManagerServiceTestParams = "com.android.server.pm.PackageManagerServiceTestParams";
+    String SystemServer = "com.android.server.SystemServer";
+    String TimingsTraceAndSlog = "com.android.server.utils.TimingsTraceAndSlog";
 
     /**
      * miui

@@ -2,6 +2,7 @@ package com.venus.backgroundopt.hook.handler;
 
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.android.AMSHook;
+import com.venus.backgroundopt.hook.android.ActiveLauncherHook;
 import com.venus.backgroundopt.hook.android.ActivityManagerConstantsHook;
 import com.venus.backgroundopt.hook.android.AppSwitchHook;
 import com.venus.backgroundopt.hook.android.DeviceConfigHook;
@@ -37,6 +38,9 @@ public class AndroidHookHandler extends PackageHook {
 
         // 抓取AMS
         new AMSHook(packageParam.classLoader, runningInfo);
+
+        // 默认桌面
+        new ActiveLauncherHook(packageParam.classLoader, runningInfo);
 
         // 前后台切换
         new AppSwitchHook(packageParam.classLoader, runningInfo);

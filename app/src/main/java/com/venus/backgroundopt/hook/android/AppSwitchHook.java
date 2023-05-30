@@ -8,8 +8,12 @@ import com.venus.backgroundopt.hook.base.MethodHook;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.hook.entity.AppInfo;
+import com.venus.backgroundopt.server.Process;
+
+import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedHelpers;
 
 /**
  * app切换的hook
@@ -27,6 +31,8 @@ public class AppSwitchHook extends MethodHook {
      * 进入后台.
      */
     public static final int ACTIVITY_PAUSED = UsageEvents.Event.ACTIVITY_PAUSED;
+
+    public static final int SIGNAL_10 = 10;
 
     public AppSwitchHook(ClassLoader classLoader, RunningInfo runningInfo) {
         super(classLoader, runningInfo);
@@ -62,28 +68,43 @@ public class AppSwitchHook extends MethodHook {
                 int userId = (int) args[1];
                 // 本次事件包名
                 String packageName = ((ComponentName) args[0]).getPackageName();
+//                getLogger().warn("event: " + event + ", packageName: " + packageName);
                 if (packageName == null) {
                     return;
                 }
 
                 RunningInfo runningInfo = getRunningInfo();
-                AppInfo appInfo = new AppInfo(userId, packageName);
-                if (appInfo.equals(runningInfo.lastAppInfo)) {
+                // 检查是否是系统重要进程
+                if (!runningInfo.isNormalApp(userId, packageName)) {
                     return;
                 }
 
-                runningInfo.lastAppInfo = appInfo;
+                // 第一次打开此app
+                boolean firstRunning = false;
+                AppInfo appInfo = runningInfo.getAppInfoFromRunningApps(userId, packageName);
 
-                debugLog(isDebugMode() &&
-                        getLogger().debug(appInfo.getPackageName() + " - isRunning: " + runningInfo.isAppRunning(appInfo)));
+                if (appInfo == null) {
+                    firstRunning = true;
 
-                // 该程序第一次运行
-                if (!runningInfo.isAppRunning(appInfo)) {
-                    if (runningInfo.isNormalApp(appInfo, userId)) { // 该程序不是系统重要进程
-                        appInfo.setUid(runningInfo.getNormalAppUid(appInfo, userId));
-                        runningInfo.addRunningApp(appInfo);
-                    }
+                    appInfo = new AppInfo(userId, packageName);
+                    appInfo.setUid(runningInfo.getNormalAppUid(appInfo));
                 }
+
+                // 若不是切换app
+                if (Objects.equals(appInfo, runningInfo.lastAppInfo)) {
+                    return;
+                }
+                debugLog(isDebugMode() &&
+                        getLogger().debug(
+                                appInfo.getPackageName() + " 初次运行: " + firstRunning));
+//                getLogger().warn("packageName: " + packageName + ", 初次运行: " + firstRunning);
+                if (firstRunning) {
+                    runningInfo.addRunningApp(appInfo);
+                } else {
+                    handleGC(runningInfo.lastAppInfo);
+                }
+
+                runningInfo.lastAppInfo = appInfo;
             }
         };
     }
@@ -92,5 +113,30 @@ public class AppSwitchHook extends MethodHook {
     public Object[] getTargetParam() {
         return new Object[]{ClassConstants.ComponentName, int.class, int.class,
                 ClassConstants.IBinder, ClassConstants.ComponentName};
+    }
+
+    /**
+     * 处理gc事件
+     *
+     * @param appInfo app信息
+     */
+    public void handleGC(AppInfo appInfo) {
+        if (Objects.equals(getRunningInfo().getActiveLaunchPackageName(), appInfo.getPackageName())) {
+//            getLogger().warn("当前gc的app为默认桌面, 不进行处理");
+            debugLog(isDebugMode() &&
+                    getLogger().debug("当前gc的app为默认桌面, 不进行处理"));
+            return;
+        }
+
+        // kill -10 pid
+        XposedHelpers.callStaticMethod(
+                Process.getProcess(classLoader),
+                MethodConstants.sendSignal,
+                appInfo.getmPid(),
+                SIGNAL_10
+        );
+
+        debugLog(isDebugMode() &&
+                getLogger().debug(appInfo.getPackageName() + " 触发gc, pid = " + appInfo.getmPid()));
     }
 }

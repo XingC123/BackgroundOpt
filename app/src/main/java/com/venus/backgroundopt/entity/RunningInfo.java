@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 运行信息
@@ -40,6 +41,7 @@ public class RunningInfo implements ILogger {
      *                                                                         *
      **************************************************************************/
     public AppInfo lastAppInfo;
+    public int lastEvent = Integer.MIN_VALUE;
     /**
      * 非系统重要进程记录
      * 包名, uid
@@ -47,17 +49,27 @@ public class RunningInfo implements ILogger {
     private final Map<String, Integer> normalApps = new ConcurrentHashMap<>();
     private final static Object checkNormalAppLockObj = new Object();
 
-    public boolean isNormalApp(AppInfo appInfo, int userID) {
-        boolean isNormalApp = normalApps.containsKey(appInfo.getPackageName());
+    /**
+     * 是否是普通app
+     *
+     * @param appInfo app信息
+     * @return 是 -> true
+     */
+    public boolean isNormalApp(AppInfo appInfo) {
+        return isNormalApp(appInfo.getUserId(), appInfo.getPackageName());
+    }
+
+    public boolean isNormalApp(int userId, String packageName) {
+        boolean isNormalApp = normalApps.containsKey(packageName);
         if (isNormalApp)
             return true;
         else {
             synchronized (checkNormalAppLockObj) {
-                isNormalApp = normalApps.containsKey(appInfo.getPackageName());
+                isNormalApp = normalApps.containsKey(packageName);
                 if (!isNormalApp) {
-                    isNormalApp = !isImportantSystemApp(appInfo.getPackageName());
+                    isNormalApp = !isImportantSystemApp(packageName);
                     if (isNormalApp)
-                        markNormalApp(appInfo, userID);
+                        markNormalApp(userId, packageName);
                 }
             }
 
@@ -65,14 +77,20 @@ public class RunningInfo implements ILogger {
         }
     }
 
-    private void markNormalApp(AppInfo appInfo, int userID) {
-        normalApps.put(appInfo.getPackageName(), getActivityManagerService().getAppUID(userID, appInfo.getPackageName()));
+    /**
+     * 标记为普通app
+     *
+     * @param userId      用户id
+     * @param packageName 包名
+     */
+    private void markNormalApp(int userId, String packageName) {
+        normalApps.put(packageName, getActivityManagerService().getAppUID(userId, packageName));
     }
 
-    public int getNormalAppUid(AppInfo appInfo, int userID) {
+    public int getNormalAppUid(AppInfo appInfo) {
         return Objects.requireNonNullElseGet(
                 normalApps.get(appInfo.getPackageName()),
-                () -> getActivityManagerService().getAppUID(userID, appInfo.getPackageName()));
+                () -> getActivityManagerService().getAppUID(appInfo.getUserId(), appInfo.getPackageName()));
     }
 
     /**
@@ -102,6 +120,18 @@ public class RunningInfo implements ILogger {
 
     public boolean isSubProcessRunning(int pid) {
         return subProcessAdjMap.containsKey(pid);
+    }
+
+    public AppInfo getAppInfoFromRunningApps(int userId, String packageName) {
+        AtomicReference<AppInfo> result = new AtomicReference<>();
+        runningAppsInfo.parallelStream()
+                .filter(appInfo ->
+                        Objects.equals(appInfo.getPackageName(), packageName)
+                                && Objects.equals(appInfo.getUserId(), userId))
+                .findAny()
+                .ifPresent(result::set);
+
+        return result.get();
     }
 
     /**
@@ -231,5 +261,20 @@ public class RunningInfo implements ILogger {
         appInfo.getSubProcessPids().parallelStream()
                 .forEach(subProcessAdjMap::remove);
         appInfo.clearSubProcessPids();
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 默认桌面                                                                  *
+     *                                                                         *
+     **************************************************************************/
+    private String activeLaunchPackageName = null;
+
+    public String getActiveLaunchPackageName() {
+        return activeLaunchPackageName;
+    }
+
+    public void setActiveLaunchPackageName(String activeLaunchPackageName) {
+        this.activeLaunchPackageName = activeLaunchPackageName;
     }
 }

@@ -29,4 +29,7 @@ public interface FieldConstants {
      * {@link ClassConstants#DeviceConfig}
      */
     String NAMESPACE_ACTIVITY_MANAGER = "NAMESPACE_ACTIVITY_MANAGER";
+
+    String mPackageManagerService = "mPackageManagerService";
+    String mDefaultAppProvider = "mDefaultAppProvider";
 }
