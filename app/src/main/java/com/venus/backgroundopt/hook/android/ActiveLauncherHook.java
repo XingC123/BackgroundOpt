@@ -10,6 +10,8 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 
 /**
+ * 获取当前激活的桌面
+ *
  * @author XingC
  * @version 1.0
  * @date 2023/5/30

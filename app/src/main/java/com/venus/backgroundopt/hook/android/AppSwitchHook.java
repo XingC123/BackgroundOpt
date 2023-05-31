@@ -68,7 +68,6 @@ public class AppSwitchHook extends MethodHook {
                 int userId = (int) args[1];
                 // 本次事件包名
                 String packageName = ((ComponentName) args[0]).getPackageName();
-//                getLogger().warn("event: " + event + ", packageName: " + packageName);
                 if (packageName == null) {
                     return;
                 }
@@ -97,7 +96,6 @@ public class AppSwitchHook extends MethodHook {
                 debugLog(isDebugMode() &&
                         getLogger().debug(
                                 appInfo.getPackageName() + " 初次运行: " + firstRunning));
-//                getLogger().warn("packageName: " + packageName + ", 初次运行: " + firstRunning);
                 if (firstRunning) {
                     runningInfo.addRunningApp(appInfo);
                 } else {
@@ -122,7 +120,6 @@ public class AppSwitchHook extends MethodHook {
      */
     public void handleGC(AppInfo appInfo) {
         if (Objects.equals(getRunningInfo().getActiveLaunchPackageName(), appInfo.getPackageName())) {
-//            getLogger().warn("当前gc的app为默认桌面, 不进行处理");
             debugLog(isDebugMode() &&
                     getLogger().debug("当前gc的app为默认桌面, 不进行处理"));
             return;
