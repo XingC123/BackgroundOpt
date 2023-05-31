@@ -21,7 +21,7 @@ public class PhantomProcessHook3 extends MethodHook {
 
     @Override
     public String getTargetClass() {
-        return ClassConstants.ActivityManagerService;
+        return ClassConstants.ActivityManagerConstants;
     }
 
     @Override

@@ -42,7 +42,8 @@ public class PhantomProcessHook2 extends MethodHook {
 
     @Override
     public Object[] getTargetParam() {
-        return new Object[]{long.class, boolean.class, long.class, String.class, String.class,
-                int.class, ClassConstants.ProcessRecord};
+//        return new Object[]{long.class, boolean.class, long.class, String.class, String.class,
+//                int.class, ClassConstants.ProcessRecord};
+        return new Object[0];
     }
 }
