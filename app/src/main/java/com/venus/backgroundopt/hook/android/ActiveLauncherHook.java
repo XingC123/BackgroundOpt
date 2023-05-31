@@ -42,6 +42,7 @@ public class ActiveLauncherHook extends MethodHook {
                     return;
                 }
 
+                // 若已获取默认桌面的包名, 则不进行任何操作
                 if (runningInfo.getActiveLaunchPackageName() != null) {
                     return;
                 }
