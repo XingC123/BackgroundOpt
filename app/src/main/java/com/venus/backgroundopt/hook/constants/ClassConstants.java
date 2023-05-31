@@ -28,6 +28,8 @@ public interface ClassConstants {
     String PackageManagerServiceTestParams = "com.android.server.pm.PackageManagerServiceTestParams";
     String SystemServer = "com.android.server.SystemServer";
     String TimingsTraceAndSlog = "com.android.server.utils.TimingsTraceAndSlog";
+    String SystemServerDexLoadReporter = "com.android.server.pm.dex.SystemServerDexLoadReporter";
+    String IPackageManager = "android.content.pm.IPackageManager";
 
     /**
      * miui

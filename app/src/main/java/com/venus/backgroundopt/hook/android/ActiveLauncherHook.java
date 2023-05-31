@@ -21,12 +21,12 @@ public class ActiveLauncherHook extends MethodHook {
 
     @Override
     public String getTargetClass() {
-        return ClassConstants.SystemServer;
+        return ClassConstants.PackageManagerService;
     }
 
     @Override
     public String getTargetMethod() {
-        return MethodConstants.startBootstrapServices;
+        return MethodConstants.isFirstBoot;
     }
 
     @Override
@@ -36,14 +36,21 @@ public class ActiveLauncherHook extends MethodHook {
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 super.afterHookedMethod(param);
 
-                Object SystemServer = param.thisObject;
-                Object mPackageManagerService = XposedHelpers.getObjectField(SystemServer, FieldConstants.mPackageManagerService);
+                RunningInfo runningInfo = getRunningInfo();
+                // 在ActivityManagerService加载完毕后再获取
+                if (runningInfo.getActivityManagerService() == null) {
+                    return;
+                }
 
-//                Object defaultAppProvider = XposedHelpers.callMethod(
-//                        mPackageManagerService,
-//                        MethodConstants.getDefaultAppProvider);
+                if (runningInfo.getActiveLaunchPackageName() != null) {
+                    return;
+                }
+
+                Object mPackageManagerService = param.thisObject;
+                Object mInjector =
+                        XposedHelpers.getObjectField(mPackageManagerService, FieldConstants.mInjector);
                 Object mDefaultAppProvider =
-                        XposedHelpers.getObjectField(mPackageManagerService, FieldConstants.mDefaultAppProvider);
+                        XposedHelpers.callMethod(mInjector, MethodConstants.getDefaultAppProvider);
 
                 String packageName = (String) XposedHelpers.callMethod(
                         mDefaultAppProvider,
@@ -53,13 +60,13 @@ public class ActiveLauncherHook extends MethodHook {
                 debugLog(isDebugMode() &&
                         getLogger().debug("默认启动器为: " + packageName));
 
-                getRunningInfo().setActiveLaunchPackageName(packageName);
+                runningInfo.setActiveLaunchPackageName(packageName);
             }
         };
     }
 
     @Override
     public Object[] getTargetParam() {
-        return new Object[]{ClassConstants.TimingsTraceAndSlog};
+        return new Object[0];
     }
 }

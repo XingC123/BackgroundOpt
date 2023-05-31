@@ -32,4 +32,5 @@ public interface FieldConstants {
 
     String mPackageManagerService = "mPackageManagerService";
     String mDefaultAppProvider = "mDefaultAppProvider";
+    String mInjector = "mInjector";
 }

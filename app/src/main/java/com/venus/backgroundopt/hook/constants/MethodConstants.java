@@ -39,6 +39,8 @@ public interface MethodConstants {
     String main = "main";
     String getDefaultAppProvider = "getDefaultAppProvider";
     String getDefaultHome = "getDefaultHome";
+    String configureSystemServerDexReporter = "configureSystemServerDexReporter";
+    String isFirstBoot = "isFirstBoot";
 
     /**
      * miui

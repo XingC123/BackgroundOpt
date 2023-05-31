@@ -25,7 +25,7 @@ public class RunningInfo implements ILogger {
      * 封装的activityManagerService                                             *
      *                                                                         *
      **************************************************************************/
-    private ActivityManagerService activityManagerService;
+    private ActivityManagerService activityManagerService = null;
 
     public ActivityManagerService getActivityManagerService() {
         return activityManagerService;
