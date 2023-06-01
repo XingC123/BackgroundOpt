@@ -1,4 +1,4 @@
-package com.venus.backgroundopt.server;
+package com.venus.backgroundopt.hook.handle.android.entity;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -7,7 +7,7 @@ import android.content.pm.PackageManager;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
-import com.venus.backgroundopt.hook.entity.AppInfo;
+import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.interfaces.ILogger;
 
 import java.lang.reflect.InvocationTargetException;

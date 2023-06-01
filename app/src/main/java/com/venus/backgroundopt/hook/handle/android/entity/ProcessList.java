@@ -1,8 +1,8 @@
-package com.venus.backgroundopt.server;
+package com.venus.backgroundopt.hook.handle.android.entity;
 
 import com.venus.backgroundopt.entity.ApplicationIdentity;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
-import com.venus.backgroundopt.hook.entity.AppInfo;
+import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.interfaces.ILogger;
 
 import java.util.ArrayList;
@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import de.robv.android.xposed.XposedHelpers;
 

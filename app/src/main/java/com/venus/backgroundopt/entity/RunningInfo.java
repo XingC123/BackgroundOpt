@@ -1,10 +1,9 @@
 package com.venus.backgroundopt.entity;
 
-import com.venus.backgroundopt.hook.entity.AppInfo;
 import com.venus.backgroundopt.interfaces.ILogger;
-import com.venus.backgroundopt.server.ActivityManagerService;
-import com.venus.backgroundopt.server.ProcessList;
-import com.venus.backgroundopt.server.ProcessRecord;
+import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 
 import java.util.Collection;
 import java.util.Map;
@@ -20,6 +19,26 @@ import java.util.concurrent.atomic.AtomicReference;
  * @date 2023/2/10
  */
 public class RunningInfo implements ILogger {
+    /**
+     * hook 次数
+     */
+    private static final Object infoLock = new Object();
+    private int hookTimes = Integer.MIN_VALUE;
+
+    public int getHookTimes() {
+        synchronized (infoLock) {
+            return hookTimes;
+        }
+    }
+
+    public void updateHookTimes() {
+        synchronized (infoLock) {
+            if (hookTimes == Integer.MAX_VALUE) {
+                hookTimes = Integer.MIN_VALUE;
+            }
+        }
+    }
+
     /* *************************************************************************
      *                                                                         *
      * 封装的activityManagerService                                             *

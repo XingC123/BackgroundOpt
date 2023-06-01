@@ -1,10 +1,9 @@
 package com.venus.backgroundopt.hook.handler;
 
 import com.venus.backgroundopt.hook.base.PackageHook;
-import com.venus.backgroundopt.hook.miui.ClearAppHook;
-import com.venus.backgroundopt.hook.miui.ClearAppWhenScreenOffTimeOutHook;
-import com.venus.backgroundopt.hook.miui.ClearAppWhenScreenOffTimeOutInNightHook;
-import com.venus.backgroundopt.hook.miui.ProcessManagerHook;
+import com.venus.backgroundopt.hook.handle.miui.PowerStateMachineHook;
+import com.venus.backgroundopt.hook.handle.miui.ProcessManagerHook;
+import com.venus.backgroundopt.hook.handle.miui.SleepModeControllerNewHook;
 
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
@@ -23,10 +22,9 @@ public class PowerKeeperHookHandler extends PackageHook {
     public void hook(XC_LoadPackage.LoadPackageParam packageParam) {
         ClassLoader classLoader = packageParam.classLoader;
 
-        new ClearAppWhenScreenOffTimeOutHook(classLoader);
-        new ClearAppWhenScreenOffTimeOutInNightHook(classLoader);
-        new ClearAppHook(classLoader);
+        new PowerStateMachineHook(classLoader);
         new ProcessManagerHook(classLoader);
+        new SleepModeControllerNewHook(classLoader);
     }
 
     @Override

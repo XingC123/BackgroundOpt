@@ -1,4 +1,4 @@
-package com.venus.backgroundopt.server;
+package com.venus.backgroundopt.hook.handle.android.entity;
 
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 

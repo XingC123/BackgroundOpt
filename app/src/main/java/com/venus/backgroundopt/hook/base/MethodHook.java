@@ -2,8 +2,6 @@ package com.venus.backgroundopt.hook.base;
 
 import com.venus.backgroundopt.entity.RunningInfo;
 
-import de.robv.android.xposed.XposedHelpers;
-
 /**
  * @author XingC
  * @version 1.0
@@ -14,24 +12,22 @@ public abstract class MethodHook extends AbstractHook {
         this(classLoader, null);
     }
 
-    public MethodHook(ClassLoader classLoader, RunningInfo runningInfo) {
-        super(classLoader, runningInfo);
+    public MethodHook(ClassLoader classLoader, RunningInfo hookInfo) {
+        super(classLoader, hookInfo);
     }
 
     @Override
     public void hook() {
-        try {
-//            // 处理hook方法的参数类型
-//            List<Object> params = new ArrayList<>(Arrays.asList(getTargetParam()));
-//            params.add(getActionMethod());  // 将动作方法添加到hook方法传参数类型中
-
-            XposedHelpers.findAndHookMethod(getTargetClass(), classLoader,
-                    getTargetMethod(), getArgs());
-            debugLog(isDebugMode() &&
-                    getLogger().debug("[" + getTargetClass() + "." + getTargetMethod() + "]hook成功"));
-        } catch (Exception e) {
-            debugLog(isDebugMode() &&
-                    getLogger().debug("[" + getTargetClass() + "." + getTargetMethod() + "]hook失败", e));
+        for (HookPoint hookPoint : getConstructorHookPoint()) {
+            hookPoint.hook(classLoader, HookPoint.MethodType.Constructor);
         }
+
+        for (HookPoint hookPoint : getHookPoint()) {
+            hookPoint.hook(classLoader, HookPoint.MethodType.Member);
+        }
+    }
+
+    public HookPoint[] getConstructorHookPoint() {
+        return new HookPoint[0];
     }
 }

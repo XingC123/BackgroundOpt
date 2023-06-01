@@ -1,4 +1,4 @@
-package com.venus.backgroundopt.server;
+package com.venus.backgroundopt.hook.handle.android.entity;
 
 import android.content.pm.ApplicationInfo;
 import android.os.Build;

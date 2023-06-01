@@ -1,12 +1,11 @@
-package com.venus.backgroundopt.hook.entity;
+package com.venus.backgroundopt.entity;
 
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
-import com.venus.backgroundopt.entity.ApplicationIdentity;
 import com.venus.backgroundopt.interfaces.ILogger;
-import com.venus.backgroundopt.server.ProcessList;
-import com.venus.backgroundopt.server.ProcessRecord;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 
 import java.util.Arrays;
 import java.util.Collection;
