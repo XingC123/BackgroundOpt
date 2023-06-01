@@ -8,12 +8,15 @@ import com.venus.backgroundopt.hook.base.MethodHook;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.hook.entity.AppInfo;
+import com.venus.backgroundopt.server.ActivityManagerService;
+import com.venus.backgroundopt.server.CachedAppOptimizer;
 import com.venus.backgroundopt.server.Process;
+import com.venus.backgroundopt.server.ProcessRecord;
 
+import java.util.List;
 import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
 
 /**
  * app切换的hook
@@ -32,6 +35,9 @@ public class AppSwitchHook extends MethodHook {
      */
     public static final int ACTIVITY_PAUSED = UsageEvents.Event.ACTIVITY_PAUSED;
 
+    /**
+     * {@link android.os.Process#SIGNAL_USR1}
+     */
     public static final int SIGNAL_10 = 10;
 
     public AppSwitchHook(ClassLoader classLoader, RunningInfo runningInfo) {
@@ -99,7 +105,7 @@ public class AppSwitchHook extends MethodHook {
                 if (firstRunning) {
                     runningInfo.addRunningApp(appInfo);
                 } else {
-                    handleGC(runningInfo.lastAppInfo);
+                    handleLastApp(runningInfo.lastAppInfo);
                 }
 
                 runningInfo.lastAppInfo = appInfo;
@@ -113,27 +119,55 @@ public class AppSwitchHook extends MethodHook {
                 ClassConstants.IBinder, ClassConstants.ComponentName};
     }
 
+    private void handleLastApp(AppInfo appInfo) {
+        if (Objects.equals(getRunningInfo().getActiveLaunchPackageName(), appInfo.getPackageName())) {
+            debugLog(isDebugMode() &&
+                    getLogger().debug("当前处理的app为默认桌面, 不进行处理"));
+            return;
+        }
+
+        handleGC(appInfo);
+        compactApp(appInfo);
+    }
+
     /**
      * 处理gc事件
      *
      * @param appInfo app信息
      */
-    public void handleGC(AppInfo appInfo) {
-        if (Objects.equals(getRunningInfo().getActiveLaunchPackageName(), appInfo.getPackageName())) {
-            debugLog(isDebugMode() &&
-                    getLogger().debug("当前gc的app为默认桌面, 不进行处理"));
-            return;
-        }
-
+    private void handleGC(AppInfo appInfo) {
         // kill -10 pid
-        XposedHelpers.callStaticMethod(
-                Process.getProcess(classLoader),
-                MethodConstants.sendSignal,
-                appInfo.getmPid(),
-                SIGNAL_10
-        );
+        Process.sendSignal(appInfo.getmPid(), SIGNAL_10);
 
         debugLog(isDebugMode() &&
                 getLogger().debug(appInfo.getPackageName() + " 触发gc, pid = " + appInfo.getmPid()));
+    }
+
+    /**
+     * 压缩app
+     *
+     * @param appInfo app信息
+     */
+    private void compactApp(AppInfo appInfo) {
+        ActivityManagerService activityManagerService = getRunningInfo().getActivityManagerService();
+
+        // 获取进程列表
+        List<ProcessRecord> processRecords = activityManagerService.getProcessList().getProcessRecords(appInfo);
+
+        if (processRecords.size() == 0) {
+            debugLog(isDebugMode() &&
+                    getLogger().warn(appInfo.getPackageName() + ": 未找到进程, 不执行压缩"));
+            return;
+        }
+
+        // 执行压缩
+        processRecords.forEach(processRecord -> {
+                    CachedAppOptimizer cachedAppOptimizer = activityManagerService.getOomAdjuster().getCachedAppOptimizer();
+                    cachedAppOptimizer.compactProcess(processRecord.getPid(), CachedAppOptimizer.COMPACT_ACTION_ANON);
+                }
+        );
+
+        debugLog(isDebugMode() &&
+                getLogger().debug(appInfo.getPackageName() + ": 压缩流程执行完毕"));
     }
 }

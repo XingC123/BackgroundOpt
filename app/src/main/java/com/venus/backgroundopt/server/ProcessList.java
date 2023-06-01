@@ -9,11 +9,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import de.robv.android.xposed.XposedHelpers;
 
 /**
+ * 封装了{@link com.venus.backgroundopt.hook.constants.ClassConstants#ProcessList}
+ *
  * @author XingC
  * @version 1.0
  * @date 2023/2/10
@@ -151,6 +155,24 @@ public class ProcessList implements ILogger {
         if (processRecords == null) {
             return new ArrayList<>();
         }
+        return processRecords;
+    }
+
+    /**
+     * 根据提供的app信息获取进程
+     *
+     * @param appInfo app信息
+     * @return 匹配的进程的列表
+     */
+    public List<ProcessRecord> getProcessRecords(AppInfo appInfo) {
+        List<ProcessRecord> processRecords = new ArrayList<>();
+
+        this.processRecordList.stream()
+                .filter(process ->
+                        Objects.equals(appInfo.getUserId(), ProcessRecord.getUserId(process))
+                                && Objects.equals(appInfo.getPackageName(), ProcessRecord.getPkgName(process)))
+                .forEach(process -> processRecords.add(new ProcessRecord(process)));
+
         return processRecords;
     }
 

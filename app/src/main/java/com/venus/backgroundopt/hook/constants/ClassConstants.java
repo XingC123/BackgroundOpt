@@ -30,6 +30,7 @@ public interface ClassConstants {
     String TimingsTraceAndSlog = "com.android.server.utils.TimingsTraceAndSlog";
     String SystemServerDexLoadReporter = "com.android.server.pm.dex.SystemServerDexLoadReporter";
     String IPackageManager = "android.content.pm.IPackageManager";
+    String CachedAppOptimizer = "com.android.server.am.CachedAppOptimizer";
 
     /**
      * miui

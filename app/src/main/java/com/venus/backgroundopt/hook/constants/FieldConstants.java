@@ -33,4 +33,9 @@ public interface FieldConstants {
     String mPackageManagerService = "mPackageManagerService";
     String mDefaultAppProvider = "mDefaultAppProvider";
     String mInjector = "mInjector";
+    String SIGNAL_QUIT = "SIGNAL_QUIT";
+    String SIGNAL_KILL = "SIGNAL_KILL";
+    String SIGNAL_USR1 = "SIGNAL_USR1";
+    String mOomAdjuster = "mOomAdjuster";
+    String mCachedAppOptimizer = "mCachedAppOptimizer";
 }

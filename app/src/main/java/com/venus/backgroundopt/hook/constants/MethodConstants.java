@@ -41,6 +41,14 @@ public interface MethodConstants {
     String getDefaultHome = "getDefaultHome";
     String configureSystemServerDexReporter = "configureSystemServerDexReporter";
     String isFirstBoot = "isFirstBoot";
+    String readProcLines = "readProcLines";
+    String getFreeMemory = "getFreeMemory";
+    String getTotalMemory = "getTotalMemory";
+    String setSwappiness = "setSwappiness";
+    String applyOomAdjLSP = "applyOomAdjLSP";
+    String compactApp = "compactApp";   // (ProcessRecord app, boolean force, String compactRequestType)
+    String compactAppFull = "compactAppFull";   // (ProcessRecord, boolean force)
+    String compactProcess = "compactProcess";
 
     /**
      * miui

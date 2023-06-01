@@ -3,6 +3,7 @@ package com.venus.backgroundopt.server;
 import android.content.pm.ApplicationInfo;
 import android.os.Build;
 
+import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.utils.PackageUtils;
@@ -10,6 +11,8 @@ import com.venus.backgroundopt.utils.PackageUtils;
 import de.robv.android.xposed.XposedHelpers;
 
 /**
+ * 封装了{@link ClassConstants#ProcessRecord}
+ *
  * @author XingC
  * @version 1.0
  * @date 2023/2/10
@@ -27,6 +30,20 @@ public class ProcessRecord {
     public static final int DEFAULT_MAIN_ADJ = ProcessList.FOREGROUND_APP_ADJ;
     // 默认的子进程要设置的adj
     public static final int SUB_PROC_ADJ = ProcessList.PREVIOUS_APP_ADJ;
+    /**
+     * 安卓的ProcessRecord类
+     */
+    private static Class<?> ProcessRecordClass;
+
+    public static Class<?> getProcessRecordClass(ClassLoader classLoader) {
+        if (ProcessRecordClass == null) {
+            ProcessRecordClass = XposedHelpers.findClass(
+                    ClassConstants.ProcessRecord,
+                    classLoader
+            );
+        }
+        return ProcessRecordClass;
+    }
 
     // 程序的uid
     private final int uid;
@@ -56,12 +73,21 @@ public class ProcessRecord {
         }
         this.uid = XposedHelpers.getIntField(processRecord, FieldConstants.uid);
 
-        this.userId = XposedHelpers.getIntField(processRecord, FieldConstants.userId);
+        this.userId = getUserId(processRecord);
         this.applicationInfo = (ApplicationInfo) XposedHelpers.getObjectField(processRecord, FieldConstants.info);
         this.packageName = applicationInfo.packageName;
         String processName = (String) XposedHelpers.getObjectField(processRecord, FieldConstants.processName);
         this.processName = PackageUtils.absoluteProcessName(packageName, processName);
         this.processStateRecord = XposedHelpers.getObjectField(processRecord, FieldConstants.mState);
+    }
+
+    /**
+     * 获取进程的用户id
+     *
+     * @param processRecord 安卓的进程记录
+     */
+    public static int getUserId(Object processRecord) {
+        return XposedHelpers.getIntField(processRecord, FieldConstants.userId);
     }
 
     /**
