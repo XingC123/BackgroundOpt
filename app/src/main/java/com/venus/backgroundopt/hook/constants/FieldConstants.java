@@ -38,4 +38,5 @@ public interface FieldConstants {
     String SIGNAL_USR1 = "SIGNAL_USR1";
     String mOomAdjuster = "mOomAdjuster";
     String mCachedAppOptimizer = "mCachedAppOptimizer";
+    String mThread = "mThread";
 }

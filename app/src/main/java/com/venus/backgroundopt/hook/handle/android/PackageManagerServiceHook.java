@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.hook.handle.android;
 
+import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
@@ -58,8 +59,9 @@ public class PackageManagerServiceHook extends MethodHook {
                 MethodConstants.getDefaultHome,
                 0);
 
-        debugLog(isDebugMode() &&
-                getLogger().debug("默认启动器为: " + packageName));
+        if (BuildConfig.DEBUG) {
+            getLogger().debug("默认启动器为: " + packageName);
+        }
 
         runningInfo.setActiveLaunchPackageName(packageName);
 

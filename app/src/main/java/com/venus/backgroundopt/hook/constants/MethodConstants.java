@@ -49,6 +49,9 @@ public interface MethodConstants {
     String compactApp = "compactApp";   // (ProcessRecord app, boolean force, String compactRequestType)
     String compactAppFull = "compactAppFull";   // (ProcessRecord, boolean force)
     String compactProcess = "compactProcess";
+    String scheduleTrimMemory = "scheduleTrimMemory";
+    String findProcessLOSP = "findProcessLOSP";
+    String getThread = "getThread";
 
     /**
      * miui

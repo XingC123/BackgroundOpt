@@ -4,6 +4,7 @@ import com.venus.backgroundopt.entity.ApplicationIdentity;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.interfaces.ILogger;
+import com.venus.backgroundopt.utils.reference.ObjectReference;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import de.robv.android.xposed.XposedHelpers;
 
@@ -159,18 +161,27 @@ public class ProcessList implements ILogger {
 
     /**
      * 根据提供的app信息获取进程
+     * app主进程会被放在0号位
      *
      * @param appInfo app信息
      * @return 匹配的进程的列表
      */
     public List<ProcessRecord> getProcessRecords(AppInfo appInfo) {
-        List<ProcessRecord> processRecords = new ArrayList<>();
+        List<ProcessRecord> processRecords = new CopyOnWriteArrayList<>();
 
         this.processRecordList.stream()
                 .filter(process ->
                         Objects.equals(appInfo.getUserId(), ProcessRecord.getUserId(process))
                                 && Objects.equals(appInfo.getPackageName(), ProcessRecord.getPkgName(process)))
-                .forEach(process -> processRecords.add(new ProcessRecord(process)));
+                .forEach(process -> {
+                    ProcessRecord processRecord = new ProcessRecord(process);
+
+                    if (ProcessRecord.isProcNameSame(appInfo.getPackageName(), process)) {
+                        processRecords.add(0, processRecord);
+                    } else {
+                        processRecords.add(processRecord);
+                    }
+                });
 
         return processRecords;
     }
@@ -212,5 +223,20 @@ public class ProcessList implements ILogger {
             }
         }
         return null;
+    }
+
+    /**
+     * 获取指定pid的进程记录器
+     *
+     * @param pid 进程pid
+     */
+    public ProcessRecord getTargetProcessRecord(int pid) {
+        ObjectReference<ProcessRecord> processRecord = new ObjectReference<>();
+        processRecordList.stream()
+                .filter(process -> Objects.equals(ProcessRecord.getPid(process), pid))
+                .findAny()
+                .ifPresent(process -> processRecord.set(new ProcessRecord(processRecord)));
+
+        return processRecord.get();
     }
 }

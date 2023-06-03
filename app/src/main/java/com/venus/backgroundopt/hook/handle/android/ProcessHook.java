@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.hook.handle.android;
 
+import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
@@ -52,16 +53,21 @@ public class ProcessHook extends MethodHook {
                      */
             if (pid == appInfo.getmPid()) {
                 runningInfo.removeRunningApp(appInfo);
-                debugLog(isDebugMode() &&
-                        getLogger().debug("kill: " + appInfo.getPackageName()));
+
+                if (BuildConfig.DEBUG) {
+                    getLogger().debug("kill: " + appInfo.getPackageName());
+                }
             } else {
                 runningInfo.removeSubProcessPid(pid, appInfo);
-                debugLog(isDebugMode() &&
-                        getLogger().debug(appInfo.getPackageName() + " 的子进程被杀"));
+                appInfo.removeProcessRecord(pid);
+
+                if (BuildConfig.DEBUG) {
+                    getLogger().debug(appInfo.getPackageName() + " 的子进程被杀");
+                }
             }
-        } else {
+        } /*else {
             runningInfo.removeImportantSysAppPid(pid);
-        }
+        }*/
 //                String pkgName = (String) param.args[0];
 //                getRunningInfo().removeRunningApp(pkgName);
 //                getLogger().info("kill " + pkgName);

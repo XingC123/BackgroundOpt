@@ -3,15 +3,18 @@ package com.venus.backgroundopt.entity;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
-import com.venus.backgroundopt.interfaces.ILogger;
+import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
+import com.venus.backgroundopt.interfaces.ILogger;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -22,9 +25,27 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @date 2023/2/8
  */
 public class AppInfo implements ILogger {
+    /* *************************************************************************
+     *                                                                         *
+     * app基本信息                                                               *
+     *                                                                         *
+     **************************************************************************/
     private int uid;
     private String packageName;
     private int userId;
+
+    public AppInfo(int userId, String packageName, RunningInfo runningInfo) {
+        this.userId = userId;
+        this.packageName = packageName;
+        this.runningInfo = runningInfo;
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * app进程信息                                                               *
+     *                                                                         *
+     **************************************************************************/
+    private RunningInfo runningInfo;
     private ProcessRecord mProcessRecord;   // 主进程记录
     private int mPid;   // 主进程的pid
     private int mainProcCurAdj = ProcessList.IMPOSSIBLE_ADJ;    // 主进程当前adj
@@ -33,9 +54,68 @@ public class AppInfo implements ILogger {
     private Boolean isMultiProcessApp = null;  // 是否是多进程app
     private List<Integer> subProcessPids;   // 子进程pid记录表
 
-    public AppInfo(int userId, String packageName) {
-        this.userId = userId;
-        this.packageName = packageName;
+    /**
+     * app所有进程的信息
+     */
+    private Map<Integer, ProcessRecord> processRecordMap;
+
+    public Collection<ProcessRecord> getProcessRecordList() {
+        return processRecordMap.values();
+    }
+
+    /**
+     * 将所给列表转换为进程信息映射
+     */
+    public void setProcessRecordMap(List<ProcessRecord> processRecordList) {
+        if (this.processRecordMap == null) {
+            this.processRecordMap = new ConcurrentHashMap<>();
+        }
+
+        processRecordList.parallelStream()
+                .forEach(processRecord -> processRecordMap.put(processRecord.getPid(), processRecord));
+    }
+
+    /**
+     * 添加进程
+     */
+    public void addProcessRecord(ProcessRecord processRecord) {
+        if (this.processRecordMap == null) {
+            this.processRecordMap = new ConcurrentHashMap<>();
+        }
+        this.processRecordMap.put(processRecord.getPid(), processRecord);
+    }
+
+    /**
+     * 修改进程oom得分
+     *
+     * @param pid         进程pid
+     * @param oomAdjScore oom得分
+     */
+    public void modifyProcessRecordedOomAdjScore(int pid, int oomAdjScore) {
+        ProcessRecord processRecord;
+        if (processRecordMap.containsKey(pid)) {
+            processRecord = processRecordMap.get(pid);
+        } else {
+            processRecord = runningInfo.getTargetProcessRecord(pid);
+        }
+
+        if (processRecord == null) {
+            return;
+        }
+
+        processRecord.setOomAdjScore(oomAdjScore);
+        if (oomAdjScore > ProcessList.HOME_APP_ADJ) {
+            runningInfo.getProcessManager().compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL);
+        }
+    }
+
+    /**
+     * 移除进程
+     *
+     * @param pid 进程pid
+     */
+    public void removeProcessRecord(int pid) {
+        processRecordMap.remove(pid);
     }
 
     /**

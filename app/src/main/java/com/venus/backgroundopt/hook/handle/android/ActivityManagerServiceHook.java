@@ -3,6 +3,8 @@ package com.venus.backgroundopt.hook.handle.android;
 import android.app.usage.UsageEvents;
 import android.content.ComponentName;
 
+import com.venus.backgroundopt.BuildConfig;
+import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
@@ -11,13 +13,15 @@ import com.venus.backgroundopt.hook.base.action.HookAction;
 import com.venus.backgroundopt.hook.base.action.ReplacementHookAction;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
-import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
+import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
+import com.venus.backgroundopt.service.ProcessManager;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -97,8 +101,12 @@ public class ActivityManagerServiceHook extends MethodHook {
      * 获取AMS对象
      */
     private Object getAMSObj(XC_MethodHook.MethodHookParam param) {
+        RunningInfo runningInfo = getRunningInfo();
         ActivityManagerService ams = new ActivityManagerService(param.thisObject);
-        getRunningInfo().setActivityManagerService(ams);
+
+        runningInfo.setActivityManagerService(ams);
+        runningInfo.initProcessManager();
+
         debugLog(isDebugMode() && getLogger().debug("拿到AMS"));
 
         // 设置persist.sys.spc.enabled禁用小米的杀后台
@@ -144,7 +152,7 @@ public class ActivityManagerServiceHook extends MethodHook {
         if (appInfo == null) {
             firstRunning = true;
 
-            appInfo = new AppInfo(userId, packageName);
+            appInfo = new AppInfo(userId, packageName, runningInfo);
             appInfo.setUid(runningInfo.getNormalAppUid(appInfo));
         }
 
@@ -152,9 +160,11 @@ public class ActivityManagerServiceHook extends MethodHook {
         if (Objects.equals(appInfo, runningInfo.lastAppInfo)) {
             return null;
         }
-        debugLog(isDebugMode() &&
-                getLogger().debug(
-                        appInfo.getPackageName() + " 初次运行: " + firstRunning));
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(
+                    appInfo.getPackageName() + " 初次运行: " + firstRunning);
+        }
         if (firstRunning) {
             runningInfo.addRunningApp(appInfo);
         } else {
@@ -168,13 +178,15 @@ public class ActivityManagerServiceHook extends MethodHook {
 
     private void handleLastApp(AppInfo appInfo) {
         if (Objects.equals(getRunningInfo().getActiveLaunchPackageName(), appInfo.getPackageName())) {
-            debugLog(isDebugMode() &&
-                    getLogger().debug("当前处理的app为默认桌面, 不进行处理"));
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("当前处理的app为默认桌面, 不进行处理");
+            }
             return;
         }
 
+        scheduleTrimMemory(appInfo);
         handleGC(appInfo);
-        compactApp(appInfo);
+//        compactApp(appInfo);
     }
 
     /**
@@ -186,41 +198,62 @@ public class ActivityManagerServiceHook extends MethodHook {
         // kill -10 pid
         Process.sendSignal(appInfo.getmPid(), SIGNAL_10);
 
-        debugLog(isDebugMode() &&
-                getLogger().debug(appInfo.getPackageName() + " 触发gc, pid = " + appInfo.getmPid()));
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(appInfo.getPackageName() + " 触发gc, pid = " + appInfo.getmPid());
+        }
     }
 
     /**
-     * 压缩app
+     * app进程压缩
      *
      * @param appInfo app信息
      */
     private void compactApp(AppInfo appInfo) {
-        ActivityManagerService activityManagerService = getRunningInfo().getActivityManagerService();
+        /*
+            遍历app的进程信息。
+            对oomAdj大于指定数值的进程进行压缩
+         */
+        ProcessManager processManager = getRunningInfo().getProcessManager();
+        Collection<ProcessRecord> processInfoList = appInfo.getProcessRecordList();
 
-        // 获取进程列表
-        List<ProcessRecord> processRecords = activityManagerService.getProcessList().getProcessRecords(appInfo);
-
-        if (processRecords.size() == 0) {
+        if (processInfoList.size() == 0) {
             debugLog(isDebugMode() &&
                     getLogger().warn(appInfo.getPackageName() + ": 未找到进程, 不执行压缩"));
             return;
         }
 
-        // 执行压缩
-        processRecords.forEach(processRecord -> {
-                    CachedAppOptimizer cachedAppOptimizer = activityManagerService.getOomAdjuster().getCachedAppOptimizer();
-                    cachedAppOptimizer.compactProcess(processRecord.getPid(), CachedAppOptimizer.COMPACT_ACTION_ANON);
-                }
-        );
+        processInfoList.stream()
+                .filter(processRecord -> processRecord.getOomAdjScore() > ProcessList.HOME_APP_ADJ)
+                .forEach(processInfo -> processManager.compactApp(
+                        processInfo.getPid(),
+                        CachedAppOptimizer.COMPACT_ACTION_FULL)
+                );
 
-        debugLog(isDebugMode() &&
-                getLogger().debug(appInfo.getPackageName() + ": 压缩流程执行完毕"));
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(appInfo.getPackageName() + ": 压缩流程执行完毕");
+        }
+    }
+
+    /**
+     * 设置内存回收等级
+     * 参考: <a href="https://blog.csdn.net/omnispace/article/details/73320955">Android系统中的进程管理：内存的回收</a>
+     *
+     * @param appInfo app信息
+     */
+    private void scheduleTrimMemory(AppInfo appInfo) {
+        appInfo.getmProcessRecord().scheduleTrimMemory(ComponentCallbacks2.TRIM_MEMORY_MODERATE);
+//        appInfo.getProcessRecordList().forEach(processRecord ->
+//                processRecord.scheduleTrimMemory(ComponentCallbacks2.TRIM_MEMORY_MODERATE));
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(appInfo.getPackageName() + ": 设置TrimMemory ->>> " + ComponentCallbacks2.TRIM_MEMORY_MODERATE);
+        }
     }
 
     private Object handleCheckExcessivePowerUsageLPr(XC_MethodHook.MethodHookParam param) {
         return false;
     }
+
     private Object handleCheckExcessivePowerUsage(XC_MethodHook.MethodHookParam param) {
         return false;
     }

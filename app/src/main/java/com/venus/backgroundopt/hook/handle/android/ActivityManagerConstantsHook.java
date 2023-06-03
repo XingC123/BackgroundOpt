@@ -3,6 +3,7 @@ package com.venus.backgroundopt.hook.handle.android;
 import android.content.Context;
 import android.os.Handler;
 
+import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
@@ -108,7 +109,9 @@ public class ActivityManagerConstantsHook extends MethodHook {
         try {
             XposedHelpers.setObjectField(param.thisObject, field, value);
             if (Objects.equals(XposedHelpers.getObjectField(param.thisObject, field), value)) {
-                debugLog(isDebugMode() && getLogger().debug(field + "设置成功"));
+                if (BuildConfig.DEBUG) {
+                    getLogger().debug(field + "设置成功");
+                }
             } else {
                 getLogger().warn(field + "设置失败");
             }

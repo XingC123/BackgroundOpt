@@ -31,6 +31,7 @@ public interface ClassConstants {
     String SystemServerDexLoadReporter = "com.android.server.pm.dex.SystemServerDexLoadReporter";
     String IPackageManager = "android.content.pm.IPackageManager";
     String CachedAppOptimizer = "com.android.server.am.CachedAppOptimizer";
+    String ComponentCallbacks2 = "android.content.ComponentCallbacks2";
 
     /**
      * miui

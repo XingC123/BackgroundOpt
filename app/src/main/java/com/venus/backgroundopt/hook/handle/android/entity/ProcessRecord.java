@@ -57,19 +57,22 @@ public class ProcessRecord {
     private final ApplicationInfo applicationInfo;
     // 进程所在的程序的包名
     private final String packageName;
+    // 进程的oom_score
+    private int oomAdjScore;
     // 反射拿到的安卓的processRecord对象
     private Object processRecord;
     // 反射拿到的安卓的processStateRecord对象
     private Object processStateRecord;
     // 自定义的进程最大adj
     private int mMaxAdj;
+    private Object mThread;
 
     public ProcessRecord(Object processRecord) {
         this.processRecord = processRecord;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             this.pid = XposedHelpers.getIntField(processRecord, FieldConstants.mPid);
         } else {
-            this.pid = XposedHelpers.getIntField(processRecord, FieldConstants.pid);
+            this.pid = getPid(processRecord);
         }
         this.uid = XposedHelpers.getIntField(processRecord, FieldConstants.uid);
 
@@ -79,6 +82,7 @@ public class ProcessRecord {
         String processName = (String) XposedHelpers.getObjectField(processRecord, FieldConstants.processName);
         this.processName = PackageUtils.absoluteProcessName(packageName, processName);
         this.processStateRecord = XposedHelpers.getObjectField(processRecord, FieldConstants.mState);
+//        this.mThread = XposedHelpers.getObjectField(processRecord, FieldConstants.mThread);
     }
 
     /**
@@ -172,6 +176,24 @@ public class ProcessRecord {
     }
 
     /**
+     * 获取pid
+     *
+     * @param processRecord 安卓ProcessRecord
+     */
+    public static int getPid(Object processRecord) {
+        return XposedHelpers.getIntField(processRecord, FieldConstants.pid);
+    }
+
+    public void scheduleTrimMemory(int level) {
+//        XposedHelpers.callMethod(mThread, MethodConstants.scheduleTrimMemory, level);
+        Object thread = XposedHelpers.callMethod(processRecord, MethodConstants.getThread);
+        if (thread == null) {
+            return;
+        }
+        XposedHelpers.callMethod(thread, MethodConstants.scheduleTrimMemory, level);
+    }
+
+    /**
      * 是否需要调整最大adj
      *
      * @return 若已设置的最大adj!=当前所使用的最大adj => true
@@ -218,5 +240,13 @@ public class ProcessRecord {
 
     public void setProcessStateRecord(Object processStateRecord) {
         this.processStateRecord = processStateRecord;
+    }
+
+    public int getOomAdjScore() {
+        return oomAdjScore;
+    }
+
+    public void setOomAdjScore(int oomAdjScore) {
+        this.oomAdjScore = oomAdjScore;
     }
 }

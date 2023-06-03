@@ -85,18 +85,14 @@ public class LoggerFactory {
 
         @Override
         public boolean debug(String msg) {
-            if (BuildConfig.DEBUG) {
-                Log.d(getTAG(), getLogMessage(msg));
-            }
+            Log.d(getTAG(), getLogMessage(msg));
 
             return true;
         }
 
         @Override
         public boolean debug(String msg, Throwable throwable) {
-            if (BuildConfig.DEBUG) {
-                Log.d(getTAG(), msg, throwable);
-            }
+            Log.d(getTAG(), msg, throwable);
 
             return true;
         }

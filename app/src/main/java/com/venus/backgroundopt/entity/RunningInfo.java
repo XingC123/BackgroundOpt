@@ -1,11 +1,16 @@
 package com.venus.backgroundopt.entity;
 
-import com.venus.backgroundopt.interfaces.ILogger;
+import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
+import com.venus.backgroundopt.interfaces.ILogger;
+import com.venus.backgroundopt.service.ProcessDaemonService;
+import com.venus.backgroundopt.service.ProcessManager;
 
+import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -230,16 +235,23 @@ public class RunningInfo implements ILogger {
      * @param appInfo app信息
      */
     public void addRunningApp(AppInfo appInfo) {
+        List<ProcessRecord> processRecordList = getActivityManagerService().getProcessList().getProcessRecords(appInfo);
         // 找到主进程进行必要设置
-        ProcessRecord mProcessRecord = getActivityManagerService().getProcessList().getMProcessRecord(appInfo);
+        ProcessRecord mProcessRecord = processRecordList.get(0);
         if (mProcessRecord != null) {
             // 设置主进程的最大adj(保活)
             mProcessRecord.setDefaultMaxAdj();
             // 将主进程pid保存
             appInfo.setmPid(mProcessRecord.getPid());
-            debugLog(isDebugMode() &&
-                    getLogger().debug(appInfo.getPackageName() + " 的mpid = " + appInfo.getmPid()));
+            // 保存主进程
+            appInfo.setmProcessRecord(mProcessRecord);
+
+            if (BuildConfig.DEBUG) {
+                getLogger().debug(appInfo.getPackageName() + " 的mpid = " + appInfo.getmPid());
+            }
         }
+
+        appInfo.setProcessRecordMap(processRecordList);
         // 添加到运行列表
         runningApps.put(appInfo.getUid(), appInfo);
     }
@@ -253,6 +265,10 @@ public class RunningInfo implements ILogger {
     public ProcessRecord getMProcessRecord(AppInfo appInfo) {
         return getActivityManagerService().getProcessList().getMProcessRecord(appInfo);
 //        return appInfo.getmProcessRecord();
+    }
+
+    public ProcessRecord getTargetProcessRecord(int pid) {
+        return getActivityManagerService().getProcessList().getTargetProcessRecord(pid);
     }
 
     /**
@@ -295,5 +311,40 @@ public class RunningInfo implements ILogger {
 
     public void setActiveLaunchPackageName(String activeLaunchPackageName) {
         this.activeLaunchPackageName = activeLaunchPackageName;
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * process_daemon_service                                                  *
+     *                                                                         *
+     **************************************************************************/
+    ProcessDaemonService processDaemonService;
+
+    public ProcessDaemonService getProcessDaemonService() {
+        return processDaemonService;
+    }
+
+    public void initProcessDaemonService() {
+        try {
+            this.processDaemonService = new ProcessDaemonService();
+            this.processDaemonService.initPds();
+        } catch (IOException e) {
+            getLogger().error("process_daemon_service加载失败", e);
+        }
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * process_manager                                                         *
+     *                                                                         *
+     **************************************************************************/
+    private ProcessManager processManager;
+
+    public ProcessManager getProcessManager() {
+        return processManager;
+    }
+
+    public void initProcessManager() {
+        processManager = new ProcessManager(this.activityManagerService);
     }
 }

@@ -2,6 +2,7 @@ package com.venus.backgroundopt.hook.base;
 
 import androidx.annotation.NonNull;
 
+import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.base.action.AfterHookAction;
 import com.venus.backgroundopt.hook.base.action.BeforeHookAction;
 import com.venus.backgroundopt.hook.base.action.HookAction;
@@ -83,11 +84,13 @@ public class HookPoint implements ILogger {
                 );
             }
 
-            debugLog(isDebugMode() &&
-                    getLogger().debug("[" + hookClassName + "." + hookMethodName + "]hook成功"));
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("[" + hookClassName + "." + hookMethodName + "]hook成功");
+            }
         } catch (Exception e) {
-            debugLog(isDebugMode() &&
-                    getLogger().debug("[" + hookClassName + "." + hookMethodName + "]hook失败", e));
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("[" + hookClassName + "." + hookMethodName + "]hook失败", e);
+            }
         }
     }
 

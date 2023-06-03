@@ -4,10 +4,10 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 
+import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
-import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.interfaces.ILogger;
 
 import java.lang.reflect.InvocationTargetException;
@@ -126,4 +126,31 @@ public class ActivityManagerService implements ILogger {
         return new ProcessRecord(androProcessRecord);
     }
 
+    private ProcessRecord findProcessLOSP(String process, int userId, String callName) {
+        Object processRecord = XposedHelpers.callMethod(
+                activityManagerService,
+                MethodConstants.findProcessLOSP,
+                process,
+                userId,
+                callName
+        );
+
+        return new ProcessRecord(processRecord);
+    }
+
+    /**
+     * <pre>
+     *     ...
+     *     final ProcessRecord app = findProcessLOSP(process, userId, "setProcessMemoryTrimLevel");
+     *     ...
+     * </pre>
+     * 详见: {@link ClassConstants#ActivityManagerService#setProcessMemoryTrimLevel(String, int, int)}
+     *
+     * @param process pid字符串
+     * @param userId  用户id
+     * @param level   等级
+     */
+    public boolean setProcessMemoryTrimLevel(String process, int userId, int level) {
+        return false;
+    }
 }
