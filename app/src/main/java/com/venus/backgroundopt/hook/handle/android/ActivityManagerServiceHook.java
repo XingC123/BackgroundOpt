@@ -211,7 +211,7 @@ public class ActivityManagerServiceHook extends MethodHook {
     private void compactApp(AppInfo appInfo) {
         /*
             遍历app的进程信息。
-            对oomAdj大于指定数值的进程进行压缩
+            对真实oomAdj(本模块保后台依靠调整oom, 但同时也记录了系统原生的oom值)大于指定数值的进程进行压缩
          */
         ProcessManager processManager = getRunningInfo().getProcessManager();
         Collection<ProcessRecord> processInfoList = appInfo.getProcessRecordList();
@@ -241,12 +241,22 @@ public class ActivityManagerServiceHook extends MethodHook {
      * @param appInfo app信息
      */
     private void scheduleTrimMemory(AppInfo appInfo) {
-        appInfo.getmProcessRecord().scheduleTrimMemory(ComponentCallbacks2.TRIM_MEMORY_MODERATE);
+        boolean result =
+                appInfo.getmProcessRecord().scheduleTrimMemory(ComponentCallbacks2.TRIM_MEMORY_MODERATE);
 //        appInfo.getProcessRecordList().forEach(processRecord ->
 //                processRecord.scheduleTrimMemory(ComponentCallbacks2.TRIM_MEMORY_MODERATE));
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + ": 设置TrimMemory ->>> " + ComponentCallbacks2.TRIM_MEMORY_MODERATE);
+            String s = null;
+            if (result) {
+                s = "成功";
+            } else {
+                // 若调用scheduleTrimMemory()后目标进程被终结(kill), 则会得到此结果
+                s = "失败或未执行";
+            }
+
+            getLogger().debug(appInfo.getPackageName() + ": 设置TrimMemory ->>> " +
+                    ComponentCallbacks2.TRIM_MEMORY_MODERATE + " " + s);
         }
     }
 
