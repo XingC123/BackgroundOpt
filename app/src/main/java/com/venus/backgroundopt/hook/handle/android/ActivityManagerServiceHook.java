@@ -265,6 +265,6 @@ public class ActivityManagerServiceHook extends MethodHook {
     }
 
     private Object handleCheckExcessivePowerUsage(XC_MethodHook.MethodHookParam param) {
-        return false;
+        return null;
     }
 }
