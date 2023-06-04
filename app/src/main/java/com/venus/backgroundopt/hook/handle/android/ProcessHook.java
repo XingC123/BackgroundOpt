@@ -1,6 +1,7 @@
 package com.venus.backgroundopt.hook.handle.android;
 
 import com.venus.backgroundopt.BuildConfig;
+import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
@@ -8,7 +9,6 @@ import com.venus.backgroundopt.hook.base.action.BeforeHookAction;
 import com.venus.backgroundopt.hook.base.action.HookAction;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
-import com.venus.backgroundopt.entity.AppInfo;
 
 import de.robv.android.xposed.XC_MethodHook;
 
@@ -53,13 +53,16 @@ public class ProcessHook extends MethodHook {
                      */
             if (pid == appInfo.getmPid()) {
                 runningInfo.removeRunningApp(appInfo);
+                // 移除TrimMemoryTask
+                runningInfo.getProcessManager().removeTrimTask(appInfo.getmProcessRecord());
 
                 if (BuildConfig.DEBUG) {
                     getLogger().debug("kill: " + appInfo.getPackageName());
                 }
             } else {
                 runningInfo.removeSubProcessPid(pid, appInfo);
-                appInfo.removeProcessRecord(pid);
+                // 移除进程记录
+                appInfo.removeProcessInfo(pid);
 
                 if (BuildConfig.DEBUG) {
                     getLogger().debug(appInfo.getPackageName() + " 的子进程被杀");

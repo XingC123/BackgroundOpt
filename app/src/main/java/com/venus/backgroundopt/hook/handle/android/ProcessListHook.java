@@ -87,7 +87,7 @@ public class ProcessListHook extends MethodHook {
                 }
             }
 
-//            appInfo.modifyProcessRecordedOomAdjScore(pid, oomAdjScore);
+            appInfo.modifyProcessInfoAndAddIfNull(pid, oomAdjScore);
         }
 
         return null;

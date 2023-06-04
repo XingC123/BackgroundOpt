@@ -115,8 +115,47 @@ public class AppInfo implements ILogger {
      *
      * @param pid 进程pid
      */
-    public void removeProcessRecord(int pid) {
-        processRecordMap.remove(pid);
+    public ProcessRecord removeProcessRecord(int pid) {
+        ProcessRecord processRecord = null;
+        if (processRecordMap.containsKey(pid)) {
+            processRecord = processRecordMap.get(pid);
+            processRecordMap.remove(pid);
+        }
+
+        return processRecord;
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * app进程信息(简单)                                                         *
+     *                                                                         *
+     **************************************************************************/
+    private final Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
+
+    public void addProcessInfo(int pid, int oomAdjScore) {
+        processInfoMap.put(pid, new ProcessInfo(pid, oomAdjScore));
+    }
+
+    public void modifyProcessInfoAndAddIfNull(int pid, int oomAdjScore) {
+        if (processInfoMap.containsKey(pid)) {
+            ProcessInfo processInfo = processInfoMap.get(pid);
+            processInfo.setOomAdjScore(oomAdjScore);
+        } else {
+            addProcessInfo(pid, oomAdjScore);
+        }
+
+        // 当进程实际oomAdjScore大于指定等级。则进行一次压缩
+        if (oomAdjScore > ProcessList.SERVICE_B_ADJ) {
+            runningInfo.getProcessManager().compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL);
+
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("compactApp: " + packageName + "." + pid + " ->>> " + CachedAppOptimizer.COMPACT_ACTION_FULL);
+            }
+        }
+    }
+
+    public void removeProcessInfo(int pid) {
+        processInfoMap.remove(pid);
     }
 
     /**

@@ -5,7 +5,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.interfaces.ILogger;
 import com.venus.backgroundopt.service.ProcessDaemonService;
-import com.venus.backgroundopt.service.ProcessManager;
+import com.venus.backgroundopt.manager.ProcessManager;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -234,9 +234,8 @@ public class RunningInfo implements ILogger {
      * @param appInfo app信息
      */
     public void addRunningApp(AppInfo appInfo) {
-        List<ProcessRecord> processRecordList = getActivityManagerService().getProcessList().getProcessRecords(appInfo);
         // 找到主进程进行必要设置
-        ProcessRecord mProcessRecord = processRecordList.get(0);
+        ProcessRecord mProcessRecord = getActivityManagerService().getProcessList().getMProcessRecord(appInfo);
         if (mProcessRecord != null) {
             // 设置主进程的最大adj(保活)
             mProcessRecord.setDefaultMaxAdj();
@@ -246,7 +245,6 @@ public class RunningInfo implements ILogger {
             appInfo.setmProcessRecord(mProcessRecord);
         }
 
-        appInfo.setProcessRecordMap(processRecordList);
         // 添加到运行列表
         runningApps.put(appInfo.getUid(), appInfo);
     }

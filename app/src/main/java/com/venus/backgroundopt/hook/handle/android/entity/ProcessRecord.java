@@ -8,6 +8,8 @@ import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.utils.PackageUtils;
 
+import java.util.Objects;
+
 import de.robv.android.xposed.XposedHelpers;
 
 /**
@@ -214,6 +216,19 @@ public class ProcessRecord {
      */
     public boolean isNeedAdjustMaxAdj() {
         return getMaxAdj() != this.mMaxAdj;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ProcessRecord that = (ProcessRecord) o;
+        return uid == that.uid && pid == that.pid && userId == that.userId && Objects.equals(processName, that.processName) && Objects.equals(packageName, that.packageName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(uid, pid, processName, userId, packageName);
     }
 
     public int getUid() {

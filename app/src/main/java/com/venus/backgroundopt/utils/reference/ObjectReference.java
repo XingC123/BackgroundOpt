@@ -2,6 +2,8 @@ package com.venus.backgroundopt.utils.reference;
 
 import androidx.annotation.NonNull;
 
+import java.util.Objects;
+
 /**
  * @author XingC
  * @version 1.0
@@ -29,5 +31,18 @@ public class ObjectReference<T> {
     @Override
     public String toString() {
         return value.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ObjectReference<?> that = (ObjectReference<?>) o;
+        return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
     }
 }

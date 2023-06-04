@@ -15,11 +15,10 @@ import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
-import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
-import com.venus.backgroundopt.service.ProcessManager;
+import com.venus.backgroundopt.manager.ProcessManager;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -168,6 +167,7 @@ public class ActivityManagerServiceHook extends MethodHook {
         if (firstRunning) {
             runningInfo.addRunningApp(appInfo);
         } else {
+            handleCurApp(appInfo);
             handleLastApp(runningInfo.lastAppInfo);
         }
 
@@ -176,10 +176,15 @@ public class ActivityManagerServiceHook extends MethodHook {
         return null;
     }
 
+    private void handleCurApp(AppInfo appInfo) {
+        // 移除TrimMemory计时任务
+        getRunningInfo().getProcessManager().removeTrimTask(appInfo.getmProcessRecord());
+    }
+
     private void handleLastApp(AppInfo appInfo) {
         if (Objects.equals(getRunningInfo().getActiveLaunchPackageName(), appInfo.getPackageName())) {
             if (BuildConfig.DEBUG) {
-                getLogger().debug("当前处理的app为默认桌面, 不进行处理");
+                getLogger().debug("当前操作的app为默认桌面, 不进行处理");
             }
             return;
         }
@@ -241,23 +246,7 @@ public class ActivityManagerServiceHook extends MethodHook {
      * @param appInfo app信息
      */
     private void scheduleTrimMemory(AppInfo appInfo) {
-        boolean result =
-                appInfo.getmProcessRecord().scheduleTrimMemory(ComponentCallbacks2.TRIM_MEMORY_MODERATE);
-//        appInfo.getProcessRecordList().forEach(processRecord ->
-//                processRecord.scheduleTrimMemory(ComponentCallbacks2.TRIM_MEMORY_MODERATE));
-
-        if (BuildConfig.DEBUG) {
-            String s = null;
-            if (result) {
-                s = "成功";
-            } else {
-                // 若调用scheduleTrimMemory()后目标进程被终结(kill), 则会得到此结果
-                s = "失败或未执行";
-            }
-
-            getLogger().debug(appInfo.getPackageName() + ": 设置TrimMemory ->>> " +
-                    ComponentCallbacks2.TRIM_MEMORY_MODERATE + " " + s);
-        }
+        getRunningInfo().getProcessManager().startTrimTask(appInfo.getmProcessRecord());
     }
 
     private Object handleCheckExcessivePowerUsageLPr(XC_MethodHook.MethodHookParam param) {
