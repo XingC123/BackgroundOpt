@@ -186,12 +186,19 @@ public class ProcessRecord {
 
     /**
      * 设置trim
+     *
      * @param level trim级别({@link ComponentCallbacks2})
      * @return 成功设置 -> true
      */
     public boolean scheduleTrimMemory(int level) {
 //        XposedHelpers.callMethod(mThread, MethodConstants.scheduleTrimMemory, level);
-        Object thread = XposedHelpers.callMethod(processRecord, MethodConstants.getThread);
+        Object thread = null;
+
+        try {
+            thread = XposedHelpers.callMethod(processRecord, MethodConstants.getThread);
+        } catch (Exception ignore) {
+        }
+
         if (thread == null) {
             return false;
         }

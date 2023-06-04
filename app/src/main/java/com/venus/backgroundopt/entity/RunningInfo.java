@@ -1,6 +1,5 @@
 package com.venus.backgroundopt.entity;
 
-import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
@@ -245,10 +244,6 @@ public class RunningInfo implements ILogger {
             appInfo.setmPid(mProcessRecord.getPid());
             // 保存主进程
             appInfo.setmProcessRecord(mProcessRecord);
-
-            if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + " 的mpid = " + appInfo.getmPid());
-            }
         }
 
         appInfo.setProcessRecordMap(processRecordList);

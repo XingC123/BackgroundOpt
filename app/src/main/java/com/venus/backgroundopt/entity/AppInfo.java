@@ -3,6 +3,7 @@ package com.venus.backgroundopt.entity;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
+import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
@@ -45,7 +46,7 @@ public class AppInfo implements ILogger {
      * app进程信息                                                               *
      *                                                                         *
      **************************************************************************/
-    private RunningInfo runningInfo;
+    private final RunningInfo runningInfo;
     private ProcessRecord mProcessRecord;   // 主进程记录
     private int mPid;   // 主进程的pid
     private int mainProcCurAdj = ProcessList.IMPOSSIBLE_ADJ;    // 主进程当前adj
@@ -197,8 +198,11 @@ public class AppInfo implements ILogger {
 
     public void setMultiProcessApp(Collection<?> collection) {
         isMultiProcessApp = collection.size() > 1;
-        getLogger().debug(packageName + "注册的进程数: " + collection.size());
-        getLogger().debug(packageName + "注册的进程为: " + collection);
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(packageName + "注册的进程数: " + collection.size());
+            getLogger().debug(packageName + "注册的进程为: " + collection);
+        }
     }
 
     public void setDefaultMaxAdj() {
@@ -291,6 +295,10 @@ public class AppInfo implements ILogger {
 
     public void setmPid(int mPid) {
         this.mPid = mPid;
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(getPackageName() + " 的mpid = " + getmPid());
+        }
     }
 
     public int getAppSwitchEvent() {
@@ -315,6 +323,5 @@ public class AppInfo implements ILogger {
 
     public void setmProcessRecord(ProcessRecord mProcessRecord) {
         this.mProcessRecord = mProcessRecord;
-        getLogger().debug("mPid = " + mProcessRecord.getPid());
     }
 }
