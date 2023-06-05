@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.entity;
 
+import android.os.PowerManager;
+
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
@@ -278,7 +280,7 @@ public class RunningInfo implements ILogger {
 
         activeAppGroup.remove(appInfo);
         tmpAppGroup.remove(appInfo);
-        removeFromIdleAppGroup(appInfo);
+        handleRemoveFromIdleAppGroup(appInfo);
 
         // 清理AppInfo。也许有助于gc
         appInfo.clearAppInfo();
@@ -305,12 +307,11 @@ public class RunningInfo implements ILogger {
             // 添加到运行app列表
             addRunningApp(appInfo);
         } else {
-            // 从后台组移除
             if (tmpAppGroup.remove(appInfo)) {  // app: Activity切换
                 handlePutInfoActiveAppGroup(appInfo);
-            } else if (idleAppGroup.remove(appInfo)) {
+            } else if (idleAppGroup.remove(appInfo)) {  // 从后台组移除
                 handlePutInfoActiveAppGroup(appInfo);
-                putIntoIdleAppGroup(appInfo);
+                handleRemoveFromIdleAppGroup(appInfo);
             }
         }
         // 设置内存紧张级别
@@ -342,7 +343,7 @@ public class RunningInfo implements ILogger {
             if (tmp.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED) {
                 // 从后台分组移除
                 idleIterator.remove();
-                removeFromIdleAppGroup(tmp);
+                handleRemoveFromIdleAppGroup(tmp);
 
                 handlePutInfoActiveAppGroup(appInfo);
             }
@@ -366,6 +367,13 @@ public class RunningInfo implements ILogger {
         activeAppGroup.remove(appInfo);
 //        idleAppGroup.remove(appInfo); // 没有app在后台也能进入这个方法吧
 
+        // 息屏触发的 UsageEvents.Event.ACTIVITY_PAUSED 事件。对当前app按照进入后台处理
+        // boolean isScreenOn = pm.isInteractive();
+        // 如果isScreenOn值为true，屏幕状态为亮屏或者亮屏未解锁，反之为黑屏。
+        if (!getPowerManager().isInteractive()) {
+            putIntoIdleAppGroup(appInfo);
+        }
+
         if (BuildConfig.DEBUG) {
             getLogger().debug("处理 " + appInfo.getPackageName() + " 的tmp事件");
         }
@@ -376,9 +384,13 @@ public class RunningInfo implements ILogger {
         handleLastApp(appInfo);
 
         idleAppGroup.add(appInfo);
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(appInfo.getPackageName() + " 加入appIdle分组");
+        }
     }
 
-    private void removeFromIdleAppGroup(AppInfo appInfo) {
+    private void handleRemoveFromIdleAppGroup(AppInfo appInfo) {
         // 移除某些定时
         processManager.removeTrimTask(appInfo.getmProcessRecord());
     }
@@ -481,5 +493,20 @@ public class RunningInfo implements ILogger {
 
     public void initProcessManager() {
         processManager = new ProcessManager(this.activityManagerService);
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 电源管理                                                                  *
+     *                                                                         *
+     **************************************************************************/
+    private PowerManager powerManager;
+
+    public PowerManager getPowerManager() {
+        if (powerManager == null) {
+            powerManager = activityManagerService.getContext().getSystemService(PowerManager.class);
+        }
+
+        return powerManager;
     }
 }

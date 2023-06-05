@@ -54,6 +54,10 @@ public class ActivityManagerService implements ILogger {
 
     private final Context context;
 
+    public Context getContext() {
+        return context;
+    }
+
     public PackageManager getPackageManager() {
         return this.context.getPackageManager();
     }
