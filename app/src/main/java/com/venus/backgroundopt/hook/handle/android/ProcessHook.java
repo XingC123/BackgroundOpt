@@ -45,22 +45,32 @@ public class ProcessHook extends MethodHook {
         AppInfo appInfo = runningInfo.getRunningAppInfo(uid);
         if (appInfo != null) {
             // 有问题。有时候会只杀主进程，但子进程仍然存在，且oom_adj=-1000
-                    /*
-                        分析: 主进程被杀导致runningInfo.removeRunningApp(appInfo);
-                        使得UpdateOomAdjHook: if (appInfo == null) 从而设置为-1000
-                        问题: 为什么主进程被杀而子进程无事。目标应该是内存不足时杀子进程以保留更多主进程
-                        后续(23.3.6): 设置进程最大adj之后解决
-                     */
-            if (pid == appInfo.getmPid()) {
+            /*
+                分析: 主进程被杀导致runningInfo.removeRunningApp(appInfo);
+                使得UpdateOomAdjHook: if (appInfo == null) 从而设置为-1000
+                问题: 为什么主进程被杀而子进程无事。目标应该是内存不足时杀子进程以保留更多主进程
+                后续(23.3.6): 设置进程最大adj之后解决
+             */
+            int mPid = Integer.MIN_VALUE;
+
+            try {
+                mPid = appInfo.getmPid();
+            } catch (Exception e) {
+                // app已清理过一次后台
                 runningInfo.removeRunningApp(appInfo);
-                // 移除TrimMemoryTask
-                runningInfo.getProcessManager().removeTrimTask(appInfo.getmProcessRecord());
+            }
+
+            if (pid == mPid) {
+                runningInfo.removeRunningApp(appInfo);
 
                 if (BuildConfig.DEBUG) {
                     getLogger().debug("kill: " + appInfo.getPackageName());
                 }
+            } else if (mPid == Integer.MIN_VALUE) {
+                if (BuildConfig.DEBUG) {
+                    getLogger().warn("再次kill: " + appInfo.getPackageName());
+                }
             } else {
-                runningInfo.removeSubProcessPid(pid, appInfo);
                 // 移除进程记录
                 appInfo.removeProcessInfo(pid);
 

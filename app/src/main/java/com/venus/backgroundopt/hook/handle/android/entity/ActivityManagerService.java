@@ -121,11 +121,26 @@ public class ActivityManagerService implements ILogger {
         return true;
     }
 
+    public boolean isAppForeground(int uid) {
+        return (boolean) XposedHelpers.callMethod(
+                activityManagerService,
+                MethodConstants.isAppForeground,
+                uid
+        );
+    }
+
     public ProcessRecord getTopApp() {
         Object androProcessRecord = XposedHelpers.callMethod(getActivityManagerService(), MethodConstants.getTopApp);
         return new ProcessRecord(androProcessRecord);
     }
 
+    /**
+     * 查找进程
+     *
+     * @param process  pid字符串
+     * @param userId   用户id
+     * @param callName 调用方名字
+     */
     private ProcessRecord findProcessLOSP(String process, int userId, String callName) {
         Object processRecord = XposedHelpers.callMethod(
                 activityManagerService,

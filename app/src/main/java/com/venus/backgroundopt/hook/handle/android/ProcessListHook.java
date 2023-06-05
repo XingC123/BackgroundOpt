@@ -2,6 +2,7 @@ package com.venus.backgroundopt.hook.handle.android;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.AppInfo;
+import com.venus.backgroundopt.entity.ProcessInfo;
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
@@ -49,11 +50,38 @@ public class ProcessListHook extends MethodHook {
         if (appInfo != null) {  // 非系统重要进程
             int pid = (int) param.args[0];
             int oomAdjScore = (int) param.args[2];
+            ProcessInfo processInfo;
 
-            if (pid == appInfo.getmPid()) { // 主进程
+//            if (appInfo.isAppInfoCleaned()) {
+////                // 如果被清理了还能进入这里, 说明执行时机出现问题。再次清理
+////                runningInfo.removeRunningApp(appInfo);
+//                if (BuildConfig.DEBUG) {
+//                    getLogger().warn(appInfo.getPackageName() + " 已被清理, 不该更新oom");
+//                }
+//
+//                return null;
+//            }
+
+            int mPid;
+
+            try {
+                mPid = appInfo.getmPid();
+            } catch (Exception e) {
+                if (BuildConfig.DEBUG) {
+                    getLogger().error("获取: " + appInfo.getPackageName() + " 的mPid出错", e);
+                }
+
+                return null;
+            }
+
+            if (pid == mPid) { // 主进程
                 if (appInfo.getMainProcCurAdj() != ProcessRecord.DEFAULT_MAIN_ADJ) {    // 第一次打开app
                     param.args[2] = ProcessRecord.DEFAULT_MAIN_ADJ;
-                    appInfo.setMainProcCurAdj(ProcessRecord.DEFAULT_MAIN_ADJ);
+
+                    processInfo = appInfo.getmProcessInfo();
+                    processInfo.setFixedOomAdjScore(ProcessRecord.DEFAULT_MAIN_ADJ);
+                    processInfo.setOomAdjScore(oomAdjScore);
+                    appInfo.addProcessInfo(processInfo);
 
                     if (BuildConfig.DEBUG) {
                         getLogger().debug(
@@ -62,12 +90,16 @@ public class ProcessListHook extends MethodHook {
                     }
                 } else {
                     param.setResult(null);
+                    appInfo.modifyProcessInfoAndAddIfNull(pid, oomAdjScore);
                 }
             } else { // 子进程的处理
                 // 子进程信息尚未记录
-                if (!runningInfo.isSubProcessRunning(pid)) {
+                if (!appInfo.isRecordedProcessInfo(pid)) {
                     param.args[2] = ProcessRecord.SUB_PROC_ADJ;
-                    runningInfo.setSubProcessAdj(pid, ProcessRecord.SUB_PROC_ADJ);
+
+                    processInfo = new ProcessInfo(uid, pid, oomAdjScore);
+                    processInfo.setFixedOomAdjScore(ProcessRecord.SUB_PROC_ADJ);
+                    appInfo.addProcessInfo(processInfo);
 
                     if (BuildConfig.DEBUG) {
                         getLogger().debug(
@@ -75,19 +107,20 @@ public class ProcessListHook extends MethodHook {
                                         + param.args[2]);
                     }
                 } else {
-                    int curAdj = runningInfo.getSubProcessAdj(pid);
-                            /*
-                                新的adj大于已记录的adj 且 当前adj不为"不可能取值"(即 已收录当前pid的信息), 则只更新记录
-                             */
+                    ProcessInfo subProcessInfo = appInfo.getProcessInfo(pid);
+                    int curAdj = subProcessInfo.getFixedOomAdjScore();
+                    /*
+                        新的adj大于已记录的adj 且 当前adj不为"不可能取值"(即 已收录当前pid的信息), 则只更新记录
+                     */
                     if (oomAdjScore > curAdj && curAdj != ProcessList.IMPOSSIBLE_ADJ) {
-                        runningInfo.setSubProcessAdj(pid, oomAdjScore);
+                        subProcessInfo.setFixedOomAdjScore(oomAdjScore);
                     } else {
                         param.setResult(null);
                     }
+
+                    appInfo.modifyProcessInfoAndAddIfNull(pid, oomAdjScore);
                 }
             }
-
-            appInfo.modifyProcessInfoAndAddIfNull(pid, oomAdjScore);
         }
 
         return null;

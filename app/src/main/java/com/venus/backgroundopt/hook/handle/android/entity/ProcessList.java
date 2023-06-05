@@ -122,6 +122,18 @@ public class ProcessList implements ILogger {
     // don't have an oom adj assigned by the system).
     public static final int NATIVE_ADJ = -1000;
 
+    // Activity manager's version of Process.THREAD_GROUP_BACKGROUND
+    public static final int SCHED_GROUP_BACKGROUND = 0;
+    // Activity manager's version of Process.THREAD_GROUP_RESTRICTED
+    public static final int SCHED_GROUP_RESTRICTED = 1;
+    // Activity manager's version of Process.THREAD_GROUP_DEFAULT
+    public static final int SCHED_GROUP_DEFAULT = 2;
+    // Activity manager's version of Process.THREAD_GROUP_TOP_APP
+    public static final int SCHED_GROUP_TOP_APP = 3;
+    // Activity manager's version of Process.THREAD_GROUP_TOP_APP
+    // Disambiguate between actual top app and processes bound to the top app
+    public static final int SCHED_GROUP_TOP_APP_BOUND = 4;
+
     private final Object processList;
     // 系统进程列表
     private final List<?> processRecordList;
@@ -208,8 +220,9 @@ public class ProcessList implements ILogger {
         return null;
     }
 
+    private final Object getMProcessRecordLock = new Object();
     public ProcessRecord getMProcessRecordLocked(AppInfo appInfo) {
-        synchronized (this.processList) {
+        synchronized (this.getMProcessRecordLock) {
             try {
                 Optional<ProcessRecord> processRecord = this.processRecordList.parallelStream()
                         .filter(proc -> ProcessRecord.isProcNameSame(appInfo.getPackageName(), proc))

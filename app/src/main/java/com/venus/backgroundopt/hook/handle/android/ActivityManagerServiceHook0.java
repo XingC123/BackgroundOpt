@@ -31,7 +31,7 @@ import de.robv.android.xposed.XposedHelpers;
  * @version 1.0
  * @date 2023/6/1
  */
-public class ActivityManagerServiceHook extends MethodHook {
+public class ActivityManagerServiceHook0 extends MethodHook {
     /**
      * 进入前台.
      */
@@ -46,7 +46,7 @@ public class ActivityManagerServiceHook extends MethodHook {
      */
     public static final int SIGNAL_10 = 10;
 
-    public ActivityManagerServiceHook(ClassLoader classLoader, RunningInfo hookInfo) {
+    public ActivityManagerServiceHook0(ClassLoader classLoader, RunningInfo hookInfo) {
         super(classLoader, hookInfo);
     }
 
@@ -171,14 +171,38 @@ public class ActivityManagerServiceHook extends MethodHook {
             appInfo.setUid(runningInfo.getNormalAppUid(appInfo));
         }
 
-        // 更新app的切换状态
+//        ActivityManagerService activityManagerService = runningInfo.getActivityManagerService();
+//        boolean appForeground = activityManagerService.isAppForeground(appInfo.getUid());
+//        appInfo.setAppForeground(appForeground);
+//        getLogger().debug(packageName + " 是否在前台: " + appForeground);  // 与预期结果相反(前台->false), 且桌面进程始终为true
+        // 更新app状态
+        if (event == ACTIVITY_PAUSED && !firstRunning) {
+            runningInfo.putSwitchEventAppInfo(appInfo);
+        } else if (event == ACTIVITY_RESUMED) {
+            runningInfo.removeSwitchEventAppInfo(appInfo);
+        }
+
+        // 更新app切换状态
         appInfo.setAppSwitchEvent(event);
 
-        if (event == ACTIVITY_RESUMED) {
-            runningInfo.putIntoActiveAppGroup(appInfo, firstRunning);
-        } else {
-            runningInfo.putIntoTmpAppGroup(appInfo);
+        // 若不是切换app
+        if (Objects.equals(appInfo, runningInfo.lastAppInfo)) {
+            return null;
         }
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(
+                    appInfo.getPackageName() + " 初次运行: " + firstRunning);
+        }
+        if (firstRunning) {
+            runningInfo.addRunningApp(appInfo);
+        } else {
+            handleCurApp(appInfo);
+        }
+
+        runningInfo.getSwitchEventAppInfos().forEach(this::handleLastApp);
+
+        runningInfo.lastAppInfo = appInfo;
 
         return null;
     }

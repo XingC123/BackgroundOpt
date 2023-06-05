@@ -1,8 +1,10 @@
 package com.venus.backgroundopt.manager;
 
 import com.venus.backgroundopt.BuildConfig;
+import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
+import com.venus.backgroundopt.hook.handle.android.entity.Process;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.interfaces.ILogger;
 
@@ -12,6 +14,11 @@ import com.venus.backgroundopt.interfaces.ILogger;
  * @date 2023/6/3
  */
 public class ProcessManager implements ILogger {
+    /**
+     * {@link android.os.Process#SIGNAL_USR1}
+     */
+    public static final int SIGNAL_10 = 10;
+
     public ProcessManager(ActivityManagerService activityManagerService) {
         this.cachedAppOptimizer = activityManagerService.getOomAdjuster().getCachedAppOptimizer();
     }
@@ -58,5 +65,33 @@ public class ProcessManager implements ILogger {
 
     public void removeTrimTask(ProcessRecord processRecord) {
         appMemoryTrimManager.removeTrimTask(processRecord);
+    }
+
+    /**
+     * 处理gc
+     *
+     * @param appInfo app信息
+     */
+    public void handleGC(AppInfo appInfo) {
+        ProcessRecord processRecord = appInfo.getmProcessRecord();
+        if (processRecord == null) {
+            if (BuildConfig.DEBUG) {
+                getLogger().warn(appInfo.getPackageName() + " processRecord为空设置个屁的gc");
+            }
+
+            return;
+        }
+        // kill -10 pid
+        try {
+            Process.sendSignal(appInfo.getmPid(), SIGNAL_10);
+
+            if (BuildConfig.DEBUG) {
+                getLogger().debug(appInfo.getPackageName() + " 触发gc, pid = " + appInfo.getmPid());
+            }
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
+                getLogger().error(appInfo.getPackageName() + " 存在问题, 无法执行gc", e);
+            }
+        }
     }
 }

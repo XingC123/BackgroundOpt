@@ -1,17 +1,23 @@
 package com.venus.backgroundopt.entity;
 
+import com.venus.backgroundopt.BuildConfig;
+import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.interfaces.ILogger;
-import com.venus.backgroundopt.service.ProcessDaemonService;
 import com.venus.backgroundopt.manager.ProcessManager;
+import com.venus.backgroundopt.service.ProcessDaemonService;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -63,8 +69,7 @@ public class RunningInfo implements ILogger {
      * 运行的进程                                                                *
      *                                                                         *
      **************************************************************************/
-    public AppInfo lastAppInfo;
-    public int lastEvent = Integer.MIN_VALUE;
+    public volatile AppInfo lastAppInfo;
     /**
      * 非系统重要进程记录
      * 包名, uid
@@ -119,40 +124,22 @@ public class RunningInfo implements ILogger {
     /**
      * 只有非重要系统进程才能放置于此
      * uid, AppInfo
+     * 对此map的访问应加锁
      */
-    private final Map<Integer, AppInfo> runningApps = new ConcurrentHashMap<>();
+    private final Map<Integer, AppInfo> runningApps = new HashMap<>();
     private final Collection<AppInfo> runningAppsInfo = runningApps.values();
-    /**
-     * 子进程的 pid-adj 映射
-     * pid, adj
-     */
-    private final Map<Integer, Integer> subProcessAdjMap = new ConcurrentHashMap<>();
-
-    public void setSubProcessAdj(int pid, int adj) {
-        subProcessAdjMap.put(pid, adj);
-    }
-
-    public int getSubProcessAdj(int pid) {
-        return Objects.requireNonNullElse(subProcessAdjMap.get(pid), ProcessList.IMPOSSIBLE_ADJ);
-    }
-
-    public void removeSubProcessPid(int pid, AppInfo appInfo) {
-        subProcessAdjMap.remove(pid);
-        appInfo.removeSubProcessPid(pid);
-    }
-
-    public boolean isSubProcessRunning(int pid) {
-        return subProcessAdjMap.containsKey(pid);
-    }
 
     public AppInfo getAppInfoFromRunningApps(int userId, String packageName) {
         AtomicReference<AppInfo> result = new AtomicReference<>();
-        runningAppsInfo.parallelStream()
-                .filter(appInfo ->
-                        Objects.equals(appInfo.getPackageName(), packageName)
-                                && Objects.equals(appInfo.getUserId(), userId))
-                .findAny()
-                .ifPresent(result::set);
+
+        synchronized (runningApps) {
+            runningAppsInfo.parallelStream()
+                    .filter(appInfo ->
+                            Objects.equals(appInfo.getPackageName(), packageName)
+                                    && Objects.equals(appInfo.getUserId(), userId))
+                    .findAny()
+                    .ifPresent(result::set);
+        }
 
         return result.get();
     }
@@ -239,14 +226,16 @@ public class RunningInfo implements ILogger {
         if (mProcessRecord != null) {
             // 设置主进程的最大adj(保活)
             mProcessRecord.setDefaultMaxAdj();
-            // 将主进程pid保存
-            appInfo.setmPid(mProcessRecord.getPid());
+            // 保存进程信息
+            appInfo.setmProcessInfo(mProcessRecord);
             // 保存主进程
             appInfo.setmProcessRecord(mProcessRecord);
         }
 
         // 添加到运行列表
-        runningApps.put(appInfo.getUid(), appInfo);
+        synchronized (runningApps) {
+            runningApps.put(appInfo.getUid(), appInfo);
+        }
     }
 
     /**
@@ -265,30 +254,175 @@ public class RunningInfo implements ILogger {
     }
 
     /**
-     * 设置主进程的最大Adj
-     *
-     * @param appInfo app信息
-     */
-    public void setMProcessMaxAdj(AppInfo appInfo) {
-        ProcessRecord mProcessRecord = getMProcessRecord(appInfo);
-        if (mProcessRecord != null) {
-            // 设置主进程的最大adj(保活)
-            mProcessRecord.setDefaultMaxAdj();
-            // 将主进程记录器保存
-            appInfo.setmPid(mProcessRecord.getPid());
-        }
-    }
-
-    /**
      * 根据{@link AppInfo}从运行列表中移除
      *
      * @param appInfo app信息
      */
     public void removeRunningApp(AppInfo appInfo) {
-        runningApps.remove(appInfo.getUid());
-        appInfo.getSubProcessPids().parallelStream()
-                .forEach(subProcessAdjMap::remove);
-        appInfo.clearSubProcessPids();
+        if (Objects.equals(appInfo, lastAppInfo)) {
+            lastAppInfo = null;
+        }
+
+        // 从运行列表移除
+        synchronized (runningApps) {
+            AppInfo remove = runningApps.remove(appInfo.getUid());
+
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("移除: " + (remove == null ? "未找到包名" : remove.getPackageName()));
+            }
+
+            // 从待处理列表中移除
+            removeSwitchEventAppInfo(appInfo);
+        }
+
+        activeAppGroup.remove(appInfo);
+        tmpAppGroup.remove(appInfo);
+        removeFromIdleAppGroup(appInfo);
+
+        // 清理AppInfo。也许有助于gc
+        appInfo.clearAppInfo();
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * app切换待处理队列                                                          *
+     *                                                                         *
+     **************************************************************************/
+    // 活跃分组
+    private final Set<AppInfo> activeAppGroup = Collections.synchronizedSet(new HashSet<>());
+    // 缓存分组
+    private final Set<AppInfo> tmpAppGroup = Collections.synchronizedSet(new HashSet<>());
+    // 后台分组
+    private final Set<AppInfo> idleAppGroup = Collections.synchronizedSet(new HashSet<>());
+
+    public void putIntoActiveAppGroup(AppInfo appInfo, boolean firstRunning) {
+        // 处理当前元素
+        if (firstRunning) { // 第一次运行直接添加
+            handlePutInfoActiveAppGroup(appInfo);
+            // 添加到运行app列表
+            addRunningApp(appInfo);
+        } else {
+            // 从后台组移除
+            if (tmpAppGroup.remove(appInfo)) {  // app: Activity切换
+                handlePutInfoActiveAppGroup(appInfo);
+            } else if (idleAppGroup.remove(appInfo)) {
+                handlePutInfoActiveAppGroup(appInfo);
+                putIntoIdleAppGroup(appInfo);
+            }
+        }
+
+        // 检查缓存分组
+        Iterator<AppInfo> tmpIterator = tmpAppGroup.iterator();
+        AppInfo tmp;
+        while (tmpIterator.hasNext()) {
+            tmp = tmpIterator.next();
+
+            if (tmp.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_PAUSED) {
+                putIntoIdleAppGroup(tmp);
+            } else {
+                handlePutInfoActiveAppGroup(appInfo);
+            }
+
+            tmpIterator.remove();
+        }
+
+        // 检查后台分组
+        Iterator<AppInfo> idleIterator = idleAppGroup.iterator();
+        while (idleIterator.hasNext()) {
+            tmp = tmpIterator.next();
+
+            if (tmp.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED) {
+                // 从后台分组移除
+                idleIterator.remove();
+                removeFromIdleAppGroup(tmp);
+
+                handlePutInfoActiveAppGroup(appInfo);
+            }
+        }
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug("处理 " + appInfo.getPackageName() + " 的active事件");
+        }
+    }
+
+    private void handlePutInfoActiveAppGroup(AppInfo appInfo) {
+        processManager.removeTrimTask(appInfo.getmProcessRecord());
+
+        appInfo.setSwitchEventHandled(false);
+
+        activeAppGroup.add(appInfo);
+    }
+
+    public void putIntoTmpAppGroup(AppInfo appInfo) {
+        tmpAppGroup.add(appInfo);
+        activeAppGroup.remove(appInfo);
+//        idleAppGroup.remove(appInfo); // 没有app在后台也能进入这个方法吧
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug("处理 " + appInfo.getPackageName() + " 的tmp事件");
+        }
+    }
+
+    private void putIntoIdleAppGroup(AppInfo appInfo) {
+        // 做app清理工作
+        handleLastApp(appInfo);
+
+        tmpAppGroup.add(appInfo);
+    }
+
+    private void removeFromIdleAppGroup(AppInfo appInfo) {
+        // 移除某些定时
+        processManager.removeTrimTask(appInfo.getmProcessRecord());
+    }
+
+    private void handleLastApp(AppInfo appInfo) {
+        if (appInfo == null) {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("待执行app已被杀死, 不执行处理");
+            }
+
+            return;
+        }
+
+        if (Objects.equals(getActiveLaunchPackageName(), appInfo.getPackageName())) {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("当前操作的app为默认桌面, 不进行处理");
+            }
+            return;
+        }
+
+        if (appInfo.isSwitchEventHandled()) {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug(appInfo.getPackageName() + " 的切换事件已经处理过");
+            }
+            return;
+        }
+
+        processManager.startTrimTask(appInfo.getmProcessRecord());
+        processManager.handleGC(appInfo);
+//        compactApp(appInfo);
+
+        appInfo.setSwitchEventHandled(true);
+    }
+
+    private final HashSet<AppInfo> switchEventAppInfos = new HashSet<>();
+
+    public void putSwitchEventAppInfo(AppInfo appInfo) {
+        // 放到后台, 重置处理状态
+        synchronized (switchEventAppInfos) {
+            appInfo.setSwitchEventHandled(false);
+            switchEventAppInfos.add(appInfo);
+        }
+    }
+
+    public void removeSwitchEventAppInfo(AppInfo appInfo) {
+        synchronized (switchEventAppInfos) {
+            switchEventAppInfos.remove(appInfo);
+        }
+    }
+
+    public Set<AppInfo> getSwitchEventAppInfos() {
+        return switchEventAppInfos;
     }
 
     /* *************************************************************************

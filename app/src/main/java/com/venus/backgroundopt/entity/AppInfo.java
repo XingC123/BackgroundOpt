@@ -4,6 +4,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
 import com.venus.backgroundopt.BuildConfig;
+import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
@@ -47,13 +48,36 @@ public class AppInfo implements ILogger {
      *                                                                         *
      **************************************************************************/
     private final RunningInfo runningInfo;
-    private ProcessRecord mProcessRecord;   // 主进程记录
-    private int mPid;   // 主进程的pid
-    private int mainProcCurAdj = ProcessList.IMPOSSIBLE_ADJ;    // 主进程当前adj
+    private volatile ProcessRecord mProcessRecord;   // 主进程记录
+
+    private volatile ProcessInfo mProcessInfo;   // 主进程信息
+
     private int processCount;   // 当前app所运行的进程的数量
-    private int appSwitchEvent = Integer.MIN_VALUE; // app切换事件
+    private volatile int appSwitchEvent = Integer.MIN_VALUE; // app切换事件
     private Boolean isMultiProcessApp = null;  // 是否是多进程app
     private List<Integer> subProcessPids;   // 子进程pid记录表
+    /**
+     * app是否在前台
+     */
+    private boolean appForeground;
+
+    public boolean isAppForeground() {
+        return appForeground;
+    }
+
+    public void setAppForeground(boolean appForeground) {
+        this.appForeground = appForeground;
+    }
+
+    private volatile boolean switchEventHandled = false;
+
+    public boolean isSwitchEventHandled() {
+        return switchEventHandled;
+    }
+
+    public void setSwitchEventHandled(boolean switchEventHandled) {
+        this.switchEventHandled = switchEventHandled;
+    }
 
     /**
      * app所有进程的信息
@@ -130,10 +154,19 @@ public class AppInfo implements ILogger {
      * app进程信息(简单)                                                         *
      *                                                                         *
      **************************************************************************/
+    // <pid, ProcessInfo>
     private final Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
 
     public void addProcessInfo(int pid, int oomAdjScore) {
-        processInfoMap.put(pid, new ProcessInfo(pid, oomAdjScore));
+        processInfoMap.put(pid, new ProcessInfo(uid, pid, oomAdjScore));
+    }
+
+    public void addProcessInfo(ProcessInfo processInfo) {
+        processInfoMap.put(processInfo.getPid(), processInfo);
+    }
+
+    public ProcessInfo getProcessInfo(int pid) {
+        return processInfoMap.get(pid);
     }
 
     public void modifyProcessInfoAndAddIfNull(int pid, int oomAdjScore) {
@@ -145,13 +178,22 @@ public class AppInfo implements ILogger {
         }
 
         // 当进程实际oomAdjScore大于指定等级。则进行一次压缩
-        if (oomAdjScore > ProcessList.SERVICE_B_ADJ) {
+        if (appSwitchEvent == ActivityManagerServiceHook.ACTIVITY_PAUSED && oomAdjScore > ProcessList.SERVICE_B_ADJ
+                && !Objects.equals(packageName, runningInfo.getActiveLaunchPackageName())) {
             runningInfo.getProcessManager().compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL);
 
             if (BuildConfig.DEBUG) {
                 getLogger().debug("compactApp: " + packageName + "." + pid + " ->>> " + CachedAppOptimizer.COMPACT_ACTION_FULL);
             }
-        }
+        } /*else {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug(packageName + " 不执行压缩: appSwitchEvent: " + appSwitchEvent + ", oomAdjScore: " + oomAdjScore + ", 默认桌面: " + runningInfo.getActiveLaunchPackageName());
+            }
+        }*/
+    }
+
+    public boolean isRecordedProcessInfo(int pid) {
+        return processInfoMap.containsKey(pid);
     }
 
     public void removeProcessInfo(int pid) {
@@ -227,13 +269,17 @@ public class AppInfo implements ILogger {
      * @return 主进程当前记录的adj
      */
     public int getMainProcCurAdj() {
-        return mainProcCurAdj;
+        return this.mProcessInfo.getFixedOomAdjScore();
     }
 
-    public void setMainProcCurAdj(int mainProcCurAdj) {
-        this.mainProcCurAdj = mainProcCurAdj;
+    public void setmProcessInfo(ProcessRecord processRecord) {
+        this.mProcessInfo = new ProcessInfo(processRecord);
+        addProcessInfo(mProcessInfo);
     }
 
+    public ProcessInfo getmProcessInfo() {
+        return mProcessInfo;
+    }
 
     public void setMultiProcessApp(Collection<?> collection) {
         isMultiProcessApp = collection.size() > 1;
@@ -289,12 +335,38 @@ public class AppInfo implements ILogger {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AppInfo appInfo = (AppInfo) o;
-        return userId == appInfo.userId && Objects.equals(packageName, appInfo.packageName);
+        return uid == appInfo.uid && userId == appInfo.userId && Objects.equals(packageName, appInfo.packageName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(packageName, userId);
+        return Objects.hash(uid, packageName, userId);
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 当前appInfo清理状态                                                       *
+     *                                                                         *
+     **************************************************************************/
+    private volatile boolean appInfoCleaned = false;
+
+    public boolean isAppInfoCleaned() {
+        return appInfoCleaned;
+    }
+
+    public void clearAppInfo() {
+        try {
+            mProcessRecord = null;
+            mProcessInfo = null;
+            if (processRecordMap != null) {
+                processRecordMap.clear();
+            }
+
+            processInfoMap.clear();
+
+            appInfoCleaned = true;
+        } catch (Exception ignore) {
+        }
     }
 
     /* *************************************************************************
@@ -328,16 +400,8 @@ public class AppInfo implements ILogger {
     }
 
     public int getmPid() {
-//        return this.mProcessRecord.getPid();
-        return this.mPid;
-    }
-
-    public void setmPid(int mPid) {
-        this.mPid = mPid;
-
-        if (BuildConfig.DEBUG) {
-            getLogger().debug(getPackageName() + " 的mpid = " + getmPid());
-        }
+        return this.mProcessRecord.getPid();
+//        return this.mProcessInfo.getPid();
     }
 
     public int getAppSwitchEvent() {
@@ -346,6 +410,10 @@ public class AppInfo implements ILogger {
 
     public void setAppSwitchEvent(int appSwitchEvent) {
         this.appSwitchEvent = appSwitchEvent;
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(packageName + " 切换状态 ->>> " + appSwitchEvent);
+        }
     }
 
     public Boolean getMultiProcessApp() {
