@@ -15,7 +15,6 @@ import com.venus.backgroundopt.service.ProcessDaemonService;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -129,20 +128,19 @@ public class RunningInfo implements ILogger {
      * uid, AppInfo
      * 对此map的访问应加锁
      */
-    private final Map<Integer, AppInfo> runningApps = new HashMap<>();
+    private final Map<Integer, AppInfo> runningApps = new ConcurrentHashMap<>();
     private final Collection<AppInfo> runningAppsInfo = runningApps.values();
 
     public AppInfo getAppInfoFromRunningApps(int userId, String packageName) {
         AtomicReference<AppInfo> result = new AtomicReference<>();
 
-        synchronized (runningApps) {
-            runningAppsInfo.parallelStream()
-                    .filter(appInfo ->
-                            Objects.equals(appInfo.getPackageName(), packageName)
-                                    && Objects.equals(appInfo.getUserId(), userId))
-                    .findAny()
-                    .ifPresent(result::set);
-        }
+        runningAppsInfo.parallelStream()
+                .filter(appInfo ->
+                        Objects.equals(appInfo.getPackageName(), packageName)
+                                && Objects.equals(appInfo.getUserId(), userId))
+                .findAny()
+                .ifPresent(result::set);
+
 
         return result.get();
     }
@@ -236,9 +234,8 @@ public class RunningInfo implements ILogger {
         }
 
         // 添加到运行列表
-        synchronized (runningApps) {
-            runningApps.put(appInfo.getUid(), appInfo);
-        }
+        runningApps.put(appInfo.getUid(), appInfo);
+
     }
 
     /**
@@ -267,16 +264,14 @@ public class RunningInfo implements ILogger {
         }
 
         // 从运行列表移除
-        synchronized (runningApps) {
-            AppInfo remove = runningApps.remove(appInfo.getUid());
+        AppInfo remove = runningApps.remove(appInfo.getUid());
 
-            if (BuildConfig.DEBUG) {
-                getLogger().debug("移除: " + (remove == null ? "未找到包名" : remove.getPackageName()));
-            }
-
-            // 从待处理列表中移除
-            removeSwitchEventAppInfo(appInfo);
+        if (BuildConfig.DEBUG) {
+            getLogger().debug("移除: " + (remove == null ? "未找到包名" : remove.getPackageName()));
         }
+
+        // 从待处理列表中移除
+        removeSwitchEventAppInfo(appInfo);
 
         activeAppGroup.remove(appInfo);
         tmpAppGroup.remove(appInfo);

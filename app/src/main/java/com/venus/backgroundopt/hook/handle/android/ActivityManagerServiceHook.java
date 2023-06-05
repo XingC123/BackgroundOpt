@@ -116,7 +116,9 @@ public class ActivityManagerServiceHook extends MethodHook {
         runningInfo.setActivityManagerService(ams);
         runningInfo.initProcessManager();
 
-        debugLog(isDebugMode() && getLogger().debug("拿到AMS"));
+        if (BuildConfig.DEBUG) {
+            getLogger().debug("拿到AMS");
+        }
 
         // 设置persist.sys.spc.enabled禁用小米的杀后台
         XposedHelpers.callStaticMethod(
