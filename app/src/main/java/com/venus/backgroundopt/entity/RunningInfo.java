@@ -367,7 +367,7 @@ public class RunningInfo implements ILogger {
         // 做app清理工作
         handleLastApp(appInfo);
 
-        tmpAppGroup.add(appInfo);
+        idleAppGroup.add(appInfo);
     }
 
     private void removeFromIdleAppGroup(AppInfo appInfo) {
