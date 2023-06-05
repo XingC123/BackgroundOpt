@@ -3,6 +3,7 @@ package com.venus.backgroundopt.entity;
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
+import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.interfaces.ILogger;
@@ -296,7 +297,9 @@ public class RunningInfo implements ILogger {
     private final Set<AppInfo> idleAppGroup = Collections.synchronizedSet(new HashSet<>());
 
     public void putIntoActiveAppGroup(AppInfo appInfo, boolean firstRunning) {
-        // 处理当前元素
+        /*
+            处理当前元素
+         */
         if (firstRunning) { // 第一次运行直接添加
             handlePutInfoActiveAppGroup(appInfo);
             // 添加到运行app列表
@@ -310,7 +313,12 @@ public class RunningInfo implements ILogger {
                 putIntoIdleAppGroup(appInfo);
             }
         }
+        // 设置内存紧张级别
+        appInfo.getmProcessRecord().scheduleTrimMemory(ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN);
 
+        /*
+            处理其他分组
+         */
         // 检查缓存分组
         Iterator<AppInfo> tmpIterator = tmpAppGroup.iterator();
         AppInfo tmp;
@@ -329,7 +337,7 @@ public class RunningInfo implements ILogger {
         // 检查后台分组
         Iterator<AppInfo> idleIterator = idleAppGroup.iterator();
         while (idleIterator.hasNext()) {
-            tmp = tmpIterator.next();
+            tmp = idleIterator.next();
 
             if (tmp.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED) {
                 // 从后台分组移除
