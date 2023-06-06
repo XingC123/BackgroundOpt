@@ -294,6 +294,7 @@ public class RunningInfo implements ILogger {
     private final Set<AppInfo> idleAppGroup = Collections.synchronizedSet(new HashSet<>());
 
     public void putIntoActiveAppGroup(AppInfo appInfo, boolean firstRunning) {
+        boolean checkIdleGroup = true;  // 检查idle分组
         /*
             处理当前元素
          */
@@ -304,9 +305,10 @@ public class RunningInfo implements ILogger {
         } else {
             if (tmpAppGroup.remove(appInfo)) {  // app: Activity切换
                 handlePutInfoActiveAppGroup(appInfo);
+                checkIdleGroup = false;
             } else if (idleAppGroup.remove(appInfo)) {  // 从后台组移除
-                handlePutInfoActiveAppGroup(appInfo);
                 handleRemoveFromIdleAppGroup(appInfo);
+                handlePutInfoActiveAppGroup(appInfo);   // 此行可以抽取。但为了保持逻辑清晰, 依然放在此处
             }
         }
         // 设置内存紧张级别
@@ -330,17 +332,19 @@ public class RunningInfo implements ILogger {
             tmpIterator.remove();
         }
 
-        // 检查后台分组
-        Iterator<AppInfo> idleIterator = idleAppGroup.iterator();
-        while (idleIterator.hasNext()) {
-            tmp = idleIterator.next();
+        // 检查后台分组(宗旨是在切换后台时执行)
+        if (checkIdleGroup) {
+            Iterator<AppInfo> idleIterator = idleAppGroup.iterator();
+            while (idleIterator.hasNext()) {
+                tmp = idleIterator.next();
 
-            if (tmp.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED) {
-                // 从后台分组移除
-                idleIterator.remove();
-                handleRemoveFromIdleAppGroup(tmp);
+                if (tmp.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED) {
+                    // 从后台分组移除
+                    idleIterator.remove();
+                    handleRemoveFromIdleAppGroup(tmp);
 
-                handlePutInfoActiveAppGroup(appInfo);
+                    handlePutInfoActiveAppGroup(appInfo);
+                }
             }
         }
 
@@ -350,8 +354,7 @@ public class RunningInfo implements ILogger {
     }
 
     private void handlePutInfoActiveAppGroup(AppInfo appInfo) {
-        processManager.removeTrimTask(appInfo.getmProcessRecord());
-
+        // 重置切换事件
         appInfo.setSwitchEventHandled(false);
 
         activeAppGroup.add(appInfo);
@@ -362,9 +365,11 @@ public class RunningInfo implements ILogger {
         activeAppGroup.remove(appInfo);
 //        idleAppGroup.remove(appInfo); // 没有app在后台也能进入这个方法吧
 
-        // 息屏触发的 UsageEvents.Event.ACTIVITY_PAUSED 事件。对当前app按照进入后台处理
-        // boolean isScreenOn = pm.isInteractive();
-        // 如果isScreenOn值为true，屏幕状态为亮屏或者亮屏未解锁，反之为黑屏。
+        /*
+            息屏触发的 UsageEvents.Event.ACTIVITY_PAUSED 事件。对当前app按照进入后台处理
+            boolean isScreenOn = pm.isInteractive();
+            如果isScreenOn值为true，屏幕状态为亮屏或者亮屏未解锁，反之为黑屏。
+         */
         if (!getPowerManager().isInteractive()) {
             putIntoIdleAppGroup(appInfo);
         }
