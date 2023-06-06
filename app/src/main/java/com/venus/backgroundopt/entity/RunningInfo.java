@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.entity;
 
+import android.content.pm.ApplicationInfo;
 import android.os.PowerManager;
 
 import com.venus.backgroundopt.BuildConfig;
@@ -74,10 +75,10 @@ public class RunningInfo implements ILogger {
     public volatile AppInfo lastAppInfo;
     /**
      * 非系统重要进程记录
-     * 包名, uid
+     * 包名, ApplicationInfo
      */
-    private final Map<String, Integer> normalApps = new ConcurrentHashMap<>();
-    private final static Object checkNormalAppLockObj = new Object();
+    private final Map<String, ApplicationInfo> normalApps = new ConcurrentHashMap<>();
+    private final Object checkNormalAppLockObj = new Object();
 
     /**
      * 是否是普通app
@@ -86,41 +87,74 @@ public class RunningInfo implements ILogger {
      * @return 是 -> true
      */
     public boolean isNormalApp(AppInfo appInfo) {
-        return isNormalApp(appInfo.getUserId(), appInfo.getPackageName());
+        return isNormalApp(appInfo.getPackageName()).isNormalApp();
     }
 
-    public boolean isNormalApp(int userId, String packageName) {
+    public NormalAppResult isNormalApp(String packageName) {
+        NormalAppResult normalAppResult = new NormalAppResult();
+
         boolean isNormalApp = normalApps.containsKey(packageName);
-        if (isNormalApp)
-            return true;
-        else {
+        if (isNormalApp) {
+            normalAppResult.setNormalApp(true);
+            normalAppResult.setApplicationInfo(normalApps.get(packageName));
+        } else {
             synchronized (checkNormalAppLockObj) {
                 isNormalApp = normalApps.containsKey(packageName);
-                if (!isNormalApp) {
-                    isNormalApp = !isImportantSystemApp(packageName);
-                    if (isNormalApp)
-                        markNormalApp(userId, packageName);
+                if (isNormalApp) {
+                    normalAppResult.setNormalApp(true);
+                    normalAppResult.setApplicationInfo(normalApps.get(packageName));
+                } else {
+                    normalAppResult = isImportantSystemApp(packageName);
+                    if (normalAppResult.isNormalApp())
+                        markNormalApp(packageName, normalAppResult.getApplicationInfo());
                 }
             }
+        }
 
+        return normalAppResult;
+    }
+
+    /**
+     * 普通app查找结果
+     */
+    public static class NormalAppResult {
+        private boolean isNormalApp = false;
+        private ApplicationInfo applicationInfo;
+
+        public boolean isNormalApp() {
             return isNormalApp;
+        }
+
+        public void setNormalApp(boolean normalApp) {
+            isNormalApp = normalApp;
+        }
+
+        public ApplicationInfo getApplicationInfo() {
+            return applicationInfo;
+        }
+
+        public void setApplicationInfo(ApplicationInfo applicationInfo) {
+            this.applicationInfo = applicationInfo;
         }
     }
 
     /**
      * 标记为普通app
      *
-     * @param userId      用户id
-     * @param packageName 包名
+     * @param packageName     包名
+     * @param applicationInfo 应用信息
      */
-    private void markNormalApp(int userId, String packageName) {
-        normalApps.put(packageName, getActivityManagerService().getAppUID(userId, packageName));
+    private void markNormalApp(String packageName, ApplicationInfo applicationInfo) {
+        normalApps.put(packageName, applicationInfo);
     }
 
     public int getNormalAppUid(AppInfo appInfo) {
-        return Objects.requireNonNullElseGet(
-                normalApps.get(appInfo.getPackageName()),
-                () -> getActivityManagerService().getAppUID(appInfo.getUserId(), appInfo.getPackageName()));
+        ApplicationInfo applicationInfo = normalApps.get(appInfo.getPackageName());
+        if (applicationInfo == null) {
+            return getActivityManagerService().getAppUID(appInfo.getUserId(), appInfo.getPackageName());
+        } else {
+            return applicationInfo.uid;
+        }
     }
 
     /**
@@ -143,6 +177,10 @@ public class RunningInfo implements ILogger {
 
 
         return result.get();
+    }
+
+    public AppInfo getAppInfoFromRunningApps(AppInfo appInfo) {
+        return runningApps.get(appInfo.getUid());
     }
 
     /**
@@ -183,7 +221,7 @@ public class RunningInfo implements ILogger {
      * @return 是 => true
      */
     public boolean isImportantSystemApp(AppInfo appInfo) {
-        return isImportantSystemApp(appInfo.getPackageName());
+        return isImportantSystemApp(appInfo.getPackageName()).isNormalApp();
     }
 
     /**
@@ -192,7 +230,7 @@ public class RunningInfo implements ILogger {
      * @param packageName 包名
      * @return 是 => true
      */
-    public boolean isImportantSystemApp(String packageName) {
+    public NormalAppResult isImportantSystemApp(String packageName) {
         return getActivityManagerService().isImportantSystemApp(packageName);
     }
 

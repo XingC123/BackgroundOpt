@@ -1,8 +1,8 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
+import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.ApplicationIdentity;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
-import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.interfaces.ILogger;
 import com.venus.backgroundopt.utils.reference.ObjectReference;
 
@@ -140,26 +140,31 @@ public class ProcessList implements ILogger {
 
     public ProcessList(Object processList) {
         this.processList = processList;
+
         this.processRecordList = (List<?>) XposedHelpers.getObjectField(processList, FieldConstants.mLruProcesses);
+    }
+
+    private List<?> getProcList() {
+        return new CopyOnWriteArrayList<>(processRecordList);
     }
 
     public Map<ApplicationIdentity, List<ProcessRecord>> getProcessMap() {
         Map<ApplicationIdentity, List<ProcessRecord>> processMap = new HashMap<>();
-        synchronized (processList) {
-            try {
-                ProcessRecord processRecord;
-                ApplicationIdentity applicationIdentity;
-                List<ProcessRecord> list;
-                for (Object proc : this.processRecordList) {
-                    processRecord = new ProcessRecord(proc);
-                    applicationIdentity = new ApplicationIdentity(processRecord.getUserId(), processRecord.getPackageName());
-                    list = processMap.computeIfAbsent(applicationIdentity, k -> new ArrayList<>());
-                    list.add(processRecord);
-                }
-            } catch (Exception e) {
-                getLogger().error("进程列表获取失败", e);
+        List<?> procList = getProcList();
+        try {
+            ProcessRecord processRecord;
+            ApplicationIdentity applicationIdentity;
+            List<ProcessRecord> list;
+            for (Object proc : procList) {
+                processRecord = new ProcessRecord(proc);
+                applicationIdentity = new ApplicationIdentity(processRecord.getUserId(), processRecord.getPackageName());
+                list = processMap.computeIfAbsent(applicationIdentity, k -> new ArrayList<>());
+                list.add(processRecord);
             }
+        } catch (Exception e) {
+            getLogger().error("进程列表获取失败", e);
         }
+
         return processMap;
     }
 
@@ -180,8 +185,9 @@ public class ProcessList implements ILogger {
      */
     public List<ProcessRecord> getProcessRecords(AppInfo appInfo) {
         List<ProcessRecord> processRecords = new CopyOnWriteArrayList<>();
+        List<?> procList = getProcList();
 
-        this.processRecordList.stream()
+        procList.stream()
                 .filter(process ->
                         Objects.equals(appInfo.getUserId(), ProcessRecord.getUserId(process))
                                 && Objects.equals(appInfo.getPackageName(), ProcessRecord.getPkgName(process)))
@@ -205,8 +211,9 @@ public class ProcessList implements ILogger {
      * @return 主进程
      */
     public ProcessRecord getMProcessRecord(AppInfo appInfo) {
+        List<?> procList = getProcList();
         try {
-            Optional<ProcessRecord> processRecord = this.processRecordList.parallelStream()
+            Optional<ProcessRecord> processRecord = procList.parallelStream()
                     .filter(proc -> ProcessRecord.isProcNameSame(appInfo.getPackageName(), proc))
                     .findAny()
                     .map(ProcessRecord::new);
@@ -214,27 +221,9 @@ public class ProcessList implements ILogger {
                 return processRecord.get();
             }
         } catch (Exception e) {
-            return getMProcessRecordLocked(appInfo);
+            getLogger().error(appInfo.getPackageName() + "进程列表获取失败", e);
         }
 
-        return null;
-    }
-
-    private final Object getMProcessRecordLock = new Object();
-    public ProcessRecord getMProcessRecordLocked(AppInfo appInfo) {
-        synchronized (this.getMProcessRecordLock) {
-            try {
-                Optional<ProcessRecord> processRecord = this.processRecordList.parallelStream()
-                        .filter(proc -> ProcessRecord.isProcNameSame(appInfo.getPackageName(), proc))
-                        .findAny()
-                        .map(ProcessRecord::new);
-                if (processRecord.isPresent()) {
-                    return processRecord.get();
-                }
-            } catch (Exception e) {
-                getLogger().error(appInfo.getPackageName() + "进程列表获取失败", e);
-            }
-        }
         return null;
     }
 
@@ -245,7 +234,9 @@ public class ProcessList implements ILogger {
      */
     public ProcessRecord getTargetProcessRecord(int pid) {
         ObjectReference<ProcessRecord> processRecord = new ObjectReference<>();
-        processRecordList.stream()
+        List<?> procList = getProcList();
+
+        procList.stream()
                 .filter(process -> Objects.equals(ProcessRecord.getPid(process), pid))
                 .findAny()
                 .ifPresent(process -> processRecord.set(new ProcessRecord(processRecord)));

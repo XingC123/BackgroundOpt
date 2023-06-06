@@ -379,8 +379,10 @@ public class AppInfo implements ILogger {
         return uid;
     }
 
-    public void setUid(int uid) {
+    public AppInfo setUid(int uid) {
         this.uid = uid;
+
+        return this;
     }
 
     public String getPackageName() {

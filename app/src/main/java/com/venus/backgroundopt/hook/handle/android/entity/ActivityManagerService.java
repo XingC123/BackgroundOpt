@@ -5,6 +5,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 
 import com.venus.backgroundopt.entity.AppInfo;
+import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
@@ -62,12 +63,21 @@ public class ActivityManagerService implements ILogger {
         return this.context.getPackageManager();
     }
 
-    public boolean isImportantSystemApp(String packageName) {
+    public RunningInfo.NormalAppResult isImportantSystemApp(String packageName) {
+        RunningInfo.NormalAppResult normalAppResult = new RunningInfo.NormalAppResult();
         ApplicationInfo applicationInfo = getApplicationInfo(MAIN_USER, packageName);
+
         if (applicationInfo == null) {
-            return true;
+            normalAppResult.setNormalApp(false);
+        } else {
+            boolean importantSystemApp = applicationInfo.uid < 10000;
+            if (!importantSystemApp) {
+                normalAppResult.setNormalApp(true);
+                normalAppResult.setApplicationInfo(applicationInfo);
+            }
         }
-        return applicationInfo.uid < 10000;
+
+        return normalAppResult;
     }
 
     public ApplicationInfo getApplicationInfo(AppInfo appInfo) {
@@ -92,7 +102,7 @@ public class ActivityManagerService implements ILogger {
                 return (ApplicationInfo) applicationInfoAsUser;
             }
         } catch (Throwable throwable) {
-            getLogger().warn(packageName, throwable);
+            getLogger().warn("获取应用信息失败: [userId = " + userId + ", packageName = " + packageName, throwable);
         }
         return null;
     }

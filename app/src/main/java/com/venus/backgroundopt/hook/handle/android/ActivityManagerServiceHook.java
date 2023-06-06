@@ -158,19 +158,19 @@ public class ActivityManagerServiceHook extends MethodHook {
 
         RunningInfo runningInfo = getRunningInfo();
         // 检查是否是系统重要进程
-        if (!runningInfo.isNormalApp(userId, packageName)) {
+        RunningInfo.NormalAppResult normalAppResult = runningInfo.isNormalApp(packageName);
+        if (!normalAppResult.isNormalApp()) {
             return null;
         }
 
         // 第一次打开此app
         boolean firstRunning = false;
-        AppInfo appInfo = runningInfo.getAppInfoFromRunningApps(userId, packageName);
+        AppInfo tmpInfo = new AppInfo(userId, packageName, runningInfo).setUid(normalAppResult.getApplicationInfo().uid);
+        AppInfo appInfo = runningInfo.getAppInfoFromRunningApps(tmpInfo);
 
         if (appInfo == null) {
             firstRunning = true;
-
-            appInfo = new AppInfo(userId, packageName, runningInfo);
-            appInfo.setUid(runningInfo.getNormalAppUid(appInfo));
+            appInfo = tmpInfo;
         }
 
         // 更新app的切换状态
