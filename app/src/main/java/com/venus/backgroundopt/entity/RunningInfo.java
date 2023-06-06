@@ -175,7 +175,6 @@ public class RunningInfo implements ILogger {
                 .findAny()
                 .ifPresent(result::set);
 
-
         return result.get();
     }
 
@@ -325,11 +324,11 @@ public class RunningInfo implements ILogger {
      *                                                                         *
      **************************************************************************/
     // 活跃分组
-    private final Set<AppInfo> activeAppGroup = Collections.synchronizedSet(new HashSet<>());
+    private final Set<AppInfo> activeAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
     // 缓存分组
-    private final Set<AppInfo> tmpAppGroup = Collections.synchronizedSet(new HashSet<>());
+    private final Set<AppInfo> tmpAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
     // 后台分组
-    private final Set<AppInfo> idleAppGroup = Collections.synchronizedSet(new HashSet<>());
+    private final Set<AppInfo> idleAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public void putIntoActiveAppGroup(AppInfo appInfo, boolean firstRunning) {
         boolean checkIdleGroup = true;  // 检查idle分组
