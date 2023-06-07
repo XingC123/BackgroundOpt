@@ -30,6 +30,8 @@ public interface MethodConstants {
     String trimPhantomProcessesIfNecessary = "trimPhantomProcessesIfNecessary";
     String isInVisibleRange = "isInVisibleRange";
     String set = "set";
+
+    String get = "get";
     String setOverrideMaxCachedProcesses = "setOverrideMaxCachedProcesses";
     String getProperty = "getProperty";
     String sendSignal = "sendSignal";
@@ -52,6 +54,7 @@ public interface MethodConstants {
     String scheduleTrimMemory = "scheduleTrimMemory";
     String findProcessLOSP = "findProcessLOSP";
     String getThread = "getThread";
+    String getProcessRecordLocked = "getProcessRecordLocked";
 
     /**
      * miui

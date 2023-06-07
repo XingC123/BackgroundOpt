@@ -39,6 +39,7 @@ public class ActivityManagerService implements ILogger {
         this.context = (Context) XposedHelpers.getObjectField(activityManagerService, FieldConstants.mContext);
         this.oomAdjuster = new OomAdjuster(
                 XposedHelpers.getObjectField(activityManagerService, FieldConstants.mOomAdjuster));
+        this.mPidsSelfLocked = XposedHelpers.getObjectField(activityManagerService, FieldConstants.mPidsSelfLocked);
     }
 
     private final OomAdjuster oomAdjuster;
@@ -57,6 +58,13 @@ public class ActivityManagerService implements ILogger {
 
     public Context getContext() {
         return context;
+    }
+
+    private final Object mPidsSelfLocked; // PidMap
+
+    public ProcessRecord getProcessRecord(int pid) {
+        Object process = XposedHelpers.callMethod(mPidsSelfLocked, MethodConstants.get, pid);
+        return new ProcessRecord(process);
     }
 
     public PackageManager getPackageManager() {
@@ -155,7 +163,7 @@ public class ActivityManagerService implements ILogger {
      * @param userId   用户id
      * @param callName 调用方名字
      */
-    private ProcessRecord findProcessLOSP(String process, int userId, String callName) {
+    public ProcessRecord findProcessLOSP(String process, int userId, String callName) {
         Object processRecord = XposedHelpers.callMethod(
                 activityManagerService,
                 MethodConstants.findProcessLOSP,
@@ -165,6 +173,10 @@ public class ActivityManagerService implements ILogger {
         );
 
         return new ProcessRecord(processRecord);
+    }
+
+    public ProcessRecord findProcessLOSP(String process, int userId) {
+        return findProcessLOSP(process, userId, "setProcessMemoryTrimLevel");
     }
 
     /**
@@ -181,5 +193,22 @@ public class ActivityManagerService implements ILogger {
      */
     public boolean setProcessMemoryTrimLevel(String process, int userId, int level) {
         return false;
+    }
+
+    /**
+     * 根据进程名和uid获取ProcessRecord
+     *
+     * @param processName 进程名
+     * @param uid         uid
+     * @return 封装后的ProcessRecord
+     */
+    public ProcessRecord getProcessRecordLocked(String processName, int uid) {
+        Object process = XposedHelpers.callMethod(
+                activityManagerService,
+                MethodConstants.getProcessRecordLocked,
+                processName,
+                uid
+        );
+        return new ProcessRecord(process);
     }
 }

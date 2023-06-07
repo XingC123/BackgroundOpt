@@ -39,4 +39,5 @@ public interface FieldConstants {
     String mOomAdjuster = "mOomAdjuster";
     String mCachedAppOptimizer = "mCachedAppOptimizer";
     String mThread = "mThread";
+    String mPidsSelfLocked = "mPidsSelfLocked";
 }

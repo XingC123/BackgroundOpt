@@ -67,24 +67,18 @@ public class ProcessRecord {
     private Object processStateRecord;
     // 自定义的进程最大adj
     private int mMaxAdj;
-    private Object mThread;
 
     public ProcessRecord(Object processRecord) {
         this.processRecord = processRecord;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            this.pid = XposedHelpers.getIntField(processRecord, FieldConstants.mPid);
-        } else {
-            this.pid = getPid(processRecord);
-        }
-        this.uid = XposedHelpers.getIntField(processRecord, FieldConstants.uid);
+        this.pid = getPid(processRecord);
+//        this.uid = XposedHelpers.getIntField(processRecord, FieldConstants.uid);
 
         this.userId = getUserId(processRecord);
         this.applicationInfo = (ApplicationInfo) XposedHelpers.getObjectField(processRecord, FieldConstants.info);
         this.packageName = applicationInfo.packageName;
-        String processName = (String) XposedHelpers.getObjectField(processRecord, FieldConstants.processName);
-        this.processName = PackageUtils.absoluteProcessName(packageName, processName);
+        this.uid = applicationInfo.uid;
+        this.processName = getProcessName(packageName, processRecord);
         this.processStateRecord = XposedHelpers.getObjectField(processRecord, FieldConstants.mState);
-//        this.mThread = XposedHelpers.getObjectField(processRecord, FieldConstants.mThread);
     }
 
     /**
@@ -183,7 +177,11 @@ public class ProcessRecord {
      * @param processRecord 安卓ProcessRecord
      */
     public static int getPid(Object processRecord) {
-        return XposedHelpers.getIntField(processRecord, FieldConstants.pid);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            return XposedHelpers.getIntField(processRecord, FieldConstants.mPid);
+        } else {
+            return XposedHelpers.getIntField(processRecord, FieldConstants.pid);
+        }
     }
 
     /**

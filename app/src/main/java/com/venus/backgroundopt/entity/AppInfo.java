@@ -170,6 +170,13 @@ public class AppInfo implements ILogger {
     }
 
     public void modifyProcessInfoAndAddIfNull(int pid, int oomAdjScore) {
+//        if (pid == Integer.MIN_VALUE) {
+//            if (BuildConfig.DEBUG) {
+//                getLogger().warn("pid = " + pid + " 不符合规范, 无法添加至进程列表");
+//            }
+//            return;
+//        }
+
         if (processInfoMap.containsKey(pid)) {
             ProcessInfo processInfo = processInfoMap.get(pid);
             processInfo.setOomAdjScore(oomAdjScore);
@@ -404,6 +411,11 @@ public class AppInfo implements ILogger {
     public int getmPid() {
         return this.mProcessRecord.getPid();
 //        return this.mProcessInfo.getPid();
+//        if (this.mProcessRecord == null) {
+//            return Integer.MIN_VALUE;
+//        } else {
+//            return this.mProcessRecord.getPid();
+//        }
     }
 
     public int getAppSwitchEvent() {
@@ -432,5 +444,9 @@ public class AppInfo implements ILogger {
 
     public void setmProcessRecord(ProcessRecord mProcessRecord) {
         this.mProcessRecord = mProcessRecord;
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug("设置ProcessRecord(" + mProcessRecord.getPackageName() + "-" + mProcessRecord.getPid());
+        }
     }
 }

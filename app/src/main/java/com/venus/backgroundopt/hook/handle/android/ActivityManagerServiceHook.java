@@ -165,12 +165,12 @@ public class ActivityManagerServiceHook extends MethodHook {
 
         // 第一次打开此app
         boolean firstRunning = false;
-        AppInfo tmpInfo = new AppInfo(userId, packageName, runningInfo).setUid(normalAppResult.getApplicationInfo().uid);
-        AppInfo appInfo = runningInfo.getAppInfoFromRunningApps(tmpInfo);
+        int uid = normalAppResult.getApplicationInfo().uid;
+        AppInfo appInfo = runningInfo.getAppInfoFromRunningApps(uid);
 
         if (appInfo == null) {
             firstRunning = true;
-            appInfo = tmpInfo;
+            appInfo = new AppInfo(userId, packageName, runningInfo).setUid(uid);
         }
 
         // 更新app的切换状态

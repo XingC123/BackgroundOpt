@@ -16,7 +16,6 @@ import com.venus.backgroundopt.service.ProcessDaemonService;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -167,18 +166,17 @@ public class RunningInfo implements ILogger {
     public AppInfo getAppInfoFromRunningApps(int userId, String packageName) {
         AtomicReference<AppInfo> result = new AtomicReference<>();
 
-        runningAppsInfo.parallelStream()
-                .filter(appInfo ->
-                        Objects.equals(appInfo.getPackageName(), packageName)
-                                && Objects.equals(appInfo.getUserId(), userId))
-                .findAny()
-                .ifPresent(result::set);
+        runningAppsInfo.parallelStream().filter(appInfo -> Objects.equals(appInfo.getPackageName(), packageName) && Objects.equals(appInfo.getUserId(), userId)).findAny().ifPresent(result::set);
 
         return result.get();
     }
 
     public AppInfo getAppInfoFromRunningApps(AppInfo appInfo) {
-        return runningApps.get(appInfo.getUid());
+        return getAppInfoFromRunningApps(appInfo.getUid());
+    }
+
+    public AppInfo getAppInfoFromRunningApps(int uid) {
+        return getRunningAppInfo(uid);
     }
 
     /**
@@ -259,7 +257,9 @@ public class RunningInfo implements ILogger {
      */
     public void addRunningApp(AppInfo appInfo) {
         // 找到主进程进行必要设置
-        ProcessRecord mProcessRecord = getActivityManagerService().getProcessList().getMProcessRecord(appInfo);
+//        ProcessRecord mProcessRecord = getActivityManagerService().getProcessList().getMProcessRecord(appInfo);
+        ProcessRecord mProcessRecord =
+                getActivityManagerService().getProcessRecordLocked(appInfo.getPackageName(), appInfo.getUid());
         if (mProcessRecord != null) {
             // 设置主进程的最大adj(保活)
             mProcessRecord.setDefaultMaxAdj();
@@ -353,34 +353,52 @@ public class RunningInfo implements ILogger {
             处理其他分组
          */
         // 检查缓存分组
-        Iterator<AppInfo> tmpIterator = tmpAppGroup.iterator();
-        AppInfo tmp;
-        while (tmpIterator.hasNext()) {
-            tmp = tmpIterator.next();
-
-            if (tmp.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_PAUSED) {
-                putIntoIdleAppGroup(tmp);
+        tmpAppGroup.parallelStream().forEach(app -> {
+            if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_PAUSED) {
+                tmpAppGroup.remove(app);
+                putIntoIdleAppGroup(app);
             } else {
+                tmpAppGroup.remove(app);
                 handlePutInfoActiveAppGroup(appInfo);
             }
-
-            tmpIterator.remove();
-        }
+        });
+//        Iterator<AppInfo> tmpIterator = tmpAppGroup.iterator();
+//        AppInfo tmp;
+//        while (tmpIterator.hasNext()) {
+//            tmp = tmpIterator.next();
+//
+//            if (tmp.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_PAUSED) {
+//                putIntoIdleAppGroup(tmp);
+//            } else {
+//                handlePutInfoActiveAppGroup(appInfo);
+//            }
+//
+//            tmpIterator.remove();   // 没放错位置吧？
+//        }
 
         // 检查后台分组(宗旨是在切换后台时执行)
         if (checkIdleGroup) {
-            Iterator<AppInfo> idleIterator = idleAppGroup.iterator();
-            while (idleIterator.hasNext()) {
-                tmp = idleIterator.next();
-
-                if (tmp.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED) {
+//            Iterator<AppInfo> idleIterator = idleAppGroup.iterator();
+//            while (idleIterator.hasNext()) {
+//                tmp = idleIterator.next();
+//
+//                if (tmp.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED) {
+//                    // 从后台分组移除
+//                    idleIterator.remove();
+//                    handleRemoveFromIdleAppGroup(tmp);
+//
+//                    handlePutInfoActiveAppGroup(appInfo);
+//                }
+//            }
+            idleAppGroup.parallelStream().forEach(app -> {
+                if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED) {
                     // 从后台分组移除
-                    idleIterator.remove();
-                    handleRemoveFromIdleAppGroup(tmp);
+                    idleAppGroup.remove(app);
+                    handleRemoveFromIdleAppGroup(app);
 
                     handlePutInfoActiveAppGroup(appInfo);
                 }
-            }
+            });
         }
 
         if (BuildConfig.DEBUG) {
@@ -389,7 +407,7 @@ public class RunningInfo implements ILogger {
     }
 
     private void handlePutInfoActiveAppGroup(AppInfo appInfo) {
-        // 重置切换事件
+        // 重置切换事件处理状态
         appInfo.setSwitchEventHandled(false);
 
         activeAppGroup.add(appInfo);
@@ -479,8 +497,7 @@ public class RunningInfo implements ILogger {
      *                                                                         *
      * process_daemon_service                                                  *
      *                                                                         *
-     **************************************************************************/
-    ProcessDaemonService processDaemonService;
+     **************************************************************************/ ProcessDaemonService processDaemonService;
 
     public ProcessDaemonService getProcessDaemonService() {
         return processDaemonService;
