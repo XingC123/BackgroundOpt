@@ -41,25 +41,26 @@ public class AppMemoryTrimManager implements ILogger {
             boolean result =
                     processRecord.scheduleTrimMemory(ComponentCallbacks2.TRIM_MEMORY_MODERATE);
 
-            if (BuildConfig.DEBUG) {
-                String s;
-                if (result) {
-                    s = "成功";
-                } else {
-                    // 若调用scheduleTrimMemory()后目标进程被终结(kill), 则会得到此结果
-                    s = "失败或未执行";
-
-                    // 失败则移除此任务
-                    removeTrimTask(processRecord);
+            if (result) {
+                if (BuildConfig.DEBUG) {
+                    getLogger().debug(processRecord.getPackageName() + ": 设置TrimMemoryTask ->>> " +
+                            ComponentCallbacks2.TRIM_MEMORY_MODERATE + " 成功");
                 }
+            } else {    // 若调用scheduleTrimMemory()后目标进程被终结(kill), 则会得到此结果
+                // 失败则移除此任务
+                removeTrimTask(processRecord);
 
-                getLogger().debug(processRecord.getPackageName() + ": 设置TrimMemoryTask ->>> " +
-                        ComponentCallbacks2.TRIM_MEMORY_MODERATE + " " + s);
+                getLogger().warn(processRecord.getPackageName() + ": 设置TrimMemoryTask ->>> " +
+                        ComponentCallbacks2.TRIM_MEMORY_MODERATE + " 失败或未执行");
             }
         };
 
         // 立即执行。每隔3分钟执行
         ScheduledFuture<?> scheduledFuture = executor.scheduleAtFixedRate(runnable, 0, 10, TimeUnit.MINUTES);
+
+        // 移除原有任务
+        removeTrimTask(processRecord);  // 移除原有的以充分保持轮循间隔
+
         // 添加 进程-trim任务 映射
         processRecordScheduledFutureMap.put(processRecord, scheduledFuture);
     }
@@ -67,7 +68,7 @@ public class AppMemoryTrimManager implements ILogger {
     public void removeTrimTask(ProcessRecord processRecord) {
         if (processRecord == null) {
             if (BuildConfig.DEBUG) {
-                getLogger().warn("processRecord为空设置个屁");
+                getLogger().warn("processRecord为空移除个屁");
             }
             return;
         }
@@ -77,11 +78,18 @@ public class AppMemoryTrimManager implements ILogger {
         }
 
         ScheduledFuture<?> scheduledFuture = processRecordScheduledFutureMap.get(processRecord);
-        scheduledFuture.cancel(true);
-        processRecordScheduledFutureMap.remove(processRecord);
 
-        if (BuildConfig.DEBUG) {
-            getLogger().debug("移除TrimMemoryTask ->>> " + processRecord.getPackageName());
+        if (scheduledFuture != null) {
+            scheduledFuture.cancel(true);
+            processRecordScheduledFutureMap.remove(processRecord);
+
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("移除TrimMemoryTask ->>> " + processRecord.getPackageName());
+            }
+        } else {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("移除TrimMemoryTask ->>> " + processRecord.getPackageName() + ": 无需移除");
+            }
         }
     }
 }

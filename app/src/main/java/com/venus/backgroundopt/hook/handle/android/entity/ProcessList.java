@@ -145,6 +145,10 @@ public class ProcessList implements ILogger {
     }
 
     private List<?> getProcList() {
+        return new ArrayList<>(processRecordList);
+    }
+
+    private List<?> getCopyOnWriteProcList() {
         return new CopyOnWriteArrayList<>(processRecordList);
     }
 

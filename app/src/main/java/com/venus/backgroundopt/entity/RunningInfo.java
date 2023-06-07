@@ -16,7 +16,6 @@ import com.venus.backgroundopt.service.ProcessDaemonService;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -308,10 +307,9 @@ public class RunningInfo implements ILogger {
         }
 
         // 从待处理列表中移除
-        removeSwitchEventAppInfo(appInfo);
-
         activeAppGroup.remove(appInfo);
         tmpAppGroup.remove(appInfo);
+        idleAppGroup.remove(appInfo);
         handleRemoveFromIdleAppGroup(appInfo);
 
         // 清理AppInfo。也许有助于gc
@@ -386,7 +384,7 @@ public class RunningInfo implements ILogger {
         }
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug("处理 " + appInfo.getPackageName() + " 的active事件");
+            getLogger().debug(appInfo.getPackageName() + " 的active事件处理完毕");
         }
     }
 
@@ -412,7 +410,7 @@ public class RunningInfo implements ILogger {
         }
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug("处理 " + appInfo.getPackageName() + " 的tmp事件");
+            getLogger().debug(appInfo.getPackageName() + " 的tmp事件处理完毕");
         }
     }
 
@@ -460,26 +458,6 @@ public class RunningInfo implements ILogger {
 //        compactApp(appInfo);
 
         appInfo.setSwitchEventHandled(true);
-    }
-
-    private final HashSet<AppInfo> switchEventAppInfos = new HashSet<>();
-
-    public void putSwitchEventAppInfo(AppInfo appInfo) {
-        // 放到后台, 重置处理状态
-        synchronized (switchEventAppInfos) {
-            appInfo.setSwitchEventHandled(false);
-            switchEventAppInfos.add(appInfo);
-        }
-    }
-
-    public void removeSwitchEventAppInfo(AppInfo appInfo) {
-        synchronized (switchEventAppInfos) {
-            switchEventAppInfos.remove(appInfo);
-        }
-    }
-
-    public Set<AppInfo> getSwitchEventAppInfos() {
-        return switchEventAppInfos;
     }
 
     /* *************************************************************************
