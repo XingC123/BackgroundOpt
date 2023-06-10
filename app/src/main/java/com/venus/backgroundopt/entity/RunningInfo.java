@@ -7,7 +7,6 @@ import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.interfaces.ILogger;
 import com.venus.backgroundopt.manager.ProcessManager;
@@ -30,6 +29,15 @@ import java.util.concurrent.atomic.AtomicReference;
  * @date 2023/2/10
  */
 public class RunningInfo implements ILogger {
+    private ClassLoader classLoader;
+
+    public RunningInfo() {
+    }
+
+    public RunningInfo(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
+
     /**
      * hook 次数
      */
@@ -166,7 +174,12 @@ public class RunningInfo implements ILogger {
     public AppInfo getAppInfoFromRunningApps(int userId, String packageName) {
         AtomicReference<AppInfo> result = new AtomicReference<>();
 
-        runningAppsInfo.parallelStream().filter(appInfo -> Objects.equals(appInfo.getPackageName(), packageName) && Objects.equals(appInfo.getUserId(), userId)).findAny().ifPresent(result::set);
+        runningAppsInfo.parallelStream()
+                .filter(appInfo ->
+                        Objects.equals(appInfo.getPackageName(), packageName) &&
+                                Objects.equals(appInfo.getUserId(), userId))
+                .findAny()
+                .ifPresent(result::set);
 
         return result.get();
     }
@@ -177,27 +190,6 @@ public class RunningInfo implements ILogger {
 
     public AppInfo getAppInfoFromRunningApps(int uid) {
         return getRunningAppInfo(uid);
-    }
-
-    /**
-     * 运行中的重要系统进程(pid, adj)
-     */
-    private final Map<Integer, Integer> runningImportantSystemApps = new ConcurrentHashMap<>();
-
-    public void setImportantSysAppAdj(int pid, int adj) {
-        runningImportantSystemApps.put(pid, adj);
-    }
-
-    public int getImportantSysAppAdj(int pid) {
-        return Objects.requireNonNullElse(runningImportantSystemApps.get(pid), ProcessList.IMPOSSIBLE_ADJ);
-    }
-
-    public void removeImportantSysAppPid(int pid) {
-        runningImportantSystemApps.remove(pid);
-    }
-
-    public boolean isImportantSysAppPidRunning(int pid) {
-        return runningImportantSystemApps.containsKey(pid);
     }
 
     /**
@@ -257,9 +249,8 @@ public class RunningInfo implements ILogger {
      */
     public void addRunningApp(AppInfo appInfo) {
         // 找到主进程进行必要设置
-//        ProcessRecord mProcessRecord = getActivityManagerService().getProcessList().getMProcessRecord(appInfo);
-        ProcessRecord mProcessRecord =
-                getActivityManagerService().getProcessRecordLocked(appInfo.getPackageName(), appInfo.getUid());
+        ProcessRecord mProcessRecord = findMProcessRecord(appInfo);
+
         if (mProcessRecord != null) {
             // 设置主进程的最大adj(保活)
             mProcessRecord.setDefaultMaxAdj();
@@ -267,11 +258,14 @@ public class RunningInfo implements ILogger {
             appInfo.setmProcessInfo(mProcessRecord);
             // 保存主进程
             appInfo.setmProcessRecord(mProcessRecord);
+        } else {
+            if (BuildConfig.DEBUG) {
+                getLogger().warn(appInfo.getPackageName() + " 的mProcessRecord为空");
+            }
         }
 
         // 添加到运行列表
-        runningApps.put(appInfo.getUid(), appInfo);
-
+        runningApps.put(appInfo.getFixedUid(), appInfo);
     }
 
     /**
@@ -280,9 +274,8 @@ public class RunningInfo implements ILogger {
      * @param appInfo app信息
      * @return 主进程的记录
      */
-    public ProcessRecord getMProcessRecord(AppInfo appInfo) {
-        return getActivityManagerService().getProcessList().getMProcessRecord(appInfo);
-//        return appInfo.getmProcessRecord();
+    public ProcessRecord findMProcessRecord(AppInfo appInfo) {
+        return activityManagerService.findMProcessRecord(appInfo);
     }
 
     public ProcessRecord getTargetProcessRecord(int pid) {
@@ -300,7 +293,7 @@ public class RunningInfo implements ILogger {
         }
 
         // 从运行列表移除
-        AppInfo remove = runningApps.remove(appInfo.getUid());
+        AppInfo remove = runningApps.remove(appInfo.getFixedUid());
 
         if (BuildConfig.DEBUG) {
             getLogger().debug("移除: " + (remove == null ? "未找到包名" : remove.getPackageName()));
@@ -335,8 +328,6 @@ public class RunningInfo implements ILogger {
          */
         if (firstRunning) { // 第一次运行直接添加
             handlePutInfoActiveAppGroup(appInfo);
-            // 添加到运行app列表
-            addRunningApp(appInfo);
         } else {
             if (tmpAppGroup.remove(appInfo)) {  // app: Activity切换
                 handlePutInfoActiveAppGroup(appInfo);
@@ -419,7 +410,7 @@ public class RunningInfo implements ILogger {
 //        idleAppGroup.remove(appInfo); // 没有app在后台也能进入这个方法吧
 
         /*
-            息屏触发的 UsageEvents.Event.ACTIVITY_PAUSED 事件。对当前app按照进入后台处理
+            息屏触发 UsageEvents.Event.ACTIVITY_PAUSED 事件。则对当前app按照进入后台处理
             boolean isScreenOn = pm.isInteractive();
             如果isScreenOn值为true，屏幕状态为亮屏或者亮屏未解锁，反之为黑屏。
          */

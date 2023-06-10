@@ -30,7 +30,7 @@ public class AndroidHookHandler extends PackageHook {
 
     @Override
     public void hook(XC_LoadPackage.LoadPackageParam packageParam) {
-        RunningInfo runningInfo = new RunningInfo();
+        RunningInfo runningInfo = new RunningInfo(packageParam.classLoader);
 
         // 抓取AMS, 前后台切换
         new ActivityManagerServiceHook(packageParam.classLoader, runningInfo);

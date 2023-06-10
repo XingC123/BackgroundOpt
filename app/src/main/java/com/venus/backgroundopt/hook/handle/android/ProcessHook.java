@@ -78,9 +78,7 @@ public class ProcessHook extends MethodHook {
                     getLogger().debug(appInfo.getPackageName() + " 的子进程被杀");
                 }
             }
-        } /*else {
-            runningInfo.removeImportantSysAppPid(pid);
-        }*/
+        }
 //                String pkgName = (String) param.args[0];
 //                getRunningInfo().removeRunningApp(pkgName);
 //                getLogger().info("kill " + pkgName);

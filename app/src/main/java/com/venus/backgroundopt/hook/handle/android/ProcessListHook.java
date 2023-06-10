@@ -52,26 +52,11 @@ public class ProcessListHook extends MethodHook {
             int oomAdjScore = (int) param.args[2];
             ProcessInfo processInfo;
 
-//            if (appInfo.isAppInfoCleaned()) {
-////                // 如果被清理了还能进入这里, 说明执行时机出现问题。再次清理
-////                runningInfo.removeRunningApp(appInfo);
-//                if (BuildConfig.DEBUG) {
-//                    getLogger().warn(appInfo.getPackageName() + " 已被清理, 不该更新oom");
-//                }
-//
-//                return null;
-//            }
-
             int mPid = Integer.MIN_VALUE;
-
             try {
                 mPid = appInfo.getmPid();
             } catch (Exception e) {
-                if (BuildConfig.DEBUG) {
-                    getLogger().error("获取: " + appInfo.getPackageName() + " 的mPid出错", e);
-                }
-
-                return null;
+                getLogger().error("获取: " + appInfo.getPackageName() + " 的mPid出错", e);
             }
 
             if (pid == mPid) { // 主进程
@@ -81,7 +66,6 @@ public class ProcessListHook extends MethodHook {
                     processInfo = appInfo.getmProcessInfo();
                     processInfo.setFixedOomAdjScore(ProcessRecord.DEFAULT_MAIN_ADJ);
                     processInfo.setOomAdjScore(oomAdjScore);
-                    appInfo.addProcessInfo(processInfo);
 
                     if (BuildConfig.DEBUG) {
                         getLogger().debug(
@@ -94,7 +78,7 @@ public class ProcessListHook extends MethodHook {
                 }
             } else if (pid == Integer.MIN_VALUE) {
                 if (BuildConfig.DEBUG) {
-                    getLogger().warn("pid = " + pid + " 不符合规范, 无法添加至进程列表");
+                    getLogger().warn(appInfo.getPackageName() + " 的pid = " + pid + " 不符合规范, 无法添加至进程列表");
                 }
 
                 return null;
@@ -105,6 +89,7 @@ public class ProcessListHook extends MethodHook {
 
                     processInfo = new ProcessInfo(uid, pid, oomAdjScore);
                     processInfo.setFixedOomAdjScore(ProcessRecord.SUB_PROC_ADJ);
+                    processInfo.setOomAdjScore(ProcessRecord.SUB_PROC_ADJ);
                     appInfo.addProcessInfo(processInfo);
 
                     if (BuildConfig.DEBUG) {
@@ -122,13 +107,9 @@ public class ProcessListHook extends MethodHook {
                         return null;
                     }
 
-                    int curAdj = subProcessInfo.getOomAdjScore();
-                    /*
-                        新的adj大于已记录的adj 且 当前adj不为"不可能取值"(即 已收录当前pid的信息), 则只更新记录
-                     */
-                    if (oomAdjScore > curAdj && curAdj != ProcessList.IMPOSSIBLE_ADJ) {
-                        subProcessInfo.setOomAdjScore(oomAdjScore);
-                    } else {
+                    int fixedOomAdjScore = subProcessInfo.getFixedOomAdjScore();
+                    // 新的oomAdj小于修正过的adj 或 修正过的adj为不可能取值
+                    if (oomAdjScore < fixedOomAdjScore || fixedOomAdjScore == ProcessList.IMPOSSIBLE_ADJ) {
                         param.setResult(null);
                     }
 

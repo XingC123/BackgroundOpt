@@ -77,7 +77,7 @@ public class ProcessRecord {
         this.applicationInfo = (ApplicationInfo) XposedHelpers.getObjectField(processRecord, FieldConstants.info);
         this.packageName = applicationInfo.packageName;
         this.uid = applicationInfo.uid;
-        this.processName = getProcessName(packageName, processRecord);
+        this.processName = getAbsoluteProcessName(packageName, processRecord);
         this.processStateRecord = XposedHelpers.getObjectField(processRecord, FieldConstants.mState);
     }
 
@@ -106,18 +106,29 @@ public class ProcessRecord {
      * @param processRecord 安卓源码中进程记录器
      * @return 进程名
      */
-    public static String getProcessName(Object processRecord) {
+    public static String getAbsoluteProcessName(Object processRecord) {
         return PackageUtils.absoluteProcessName(
                 getPkgName(processRecord),
                 (String) XposedHelpers.getObjectField(processRecord, FieldConstants.processName)
         );
     }
 
-    public static String getProcessName(String packageName, Object processRecord) {
-        return PackageUtils.absoluteProcessName(
-                packageName,
-                (String) XposedHelpers.getObjectField(processRecord, FieldConstants.processName)
-        );
+    public static String getAbsoluteProcessName(String packageName, Object processRecord) {
+        return PackageUtils.absoluteProcessName(packageName, getProcessName(processRecord));
+    }
+
+    public String getAbsoluteProcessName() {
+        return PackageUtils.absoluteProcessName(packageName, processName);
+    }
+
+    /**
+     * 获取进程名
+     *
+     * @param processRecord 安卓的ProcessRecord 对象
+     * @return 进程名
+     */
+    public static String getProcessName(Object processRecord) {
+        return (String) XposedHelpers.getObjectField(processRecord, FieldConstants.processName);
     }
 
     /**
@@ -127,10 +138,14 @@ public class ProcessRecord {
      * @param processRecord  要比较的、安卓的ProcessRecord
      * @return 相同 -> true
      */
-    public static boolean isProcNameSame(String expectProcName, Object processRecord) {
+    public static boolean isProcessAbsoluteNameSame(String expectProcName, Object processRecord) {
 //        String packageName = getPkgName(processRecord);
 //        return packageName.contains(expectProcName) &&
-//                expectProcName.equals(getProcessName(packageName, processRecord));
+//                expectProcName.equals(getAbsoluteProcessName(packageName, processRecord));
+        return expectProcName.equals(getAbsoluteProcessName(processRecord));
+    }
+
+    public static boolean isProcessNameSame(String expectProcName, Object processRecord) {
         return expectProcName.equals(getProcessName(processRecord));
     }
 

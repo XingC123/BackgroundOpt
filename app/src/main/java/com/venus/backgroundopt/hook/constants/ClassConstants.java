@@ -32,6 +32,7 @@ public interface ClassConstants {
     String IPackageManager = "android.content.pm.IPackageManager";
     String CachedAppOptimizer = "com.android.server.am.CachedAppOptimizer";
     String ComponentCallbacks2 = "android.content.ComponentCallbacks2";
+    String UidRecord = "com.android.server.am.UidRecord";
 
     /**
      * miui

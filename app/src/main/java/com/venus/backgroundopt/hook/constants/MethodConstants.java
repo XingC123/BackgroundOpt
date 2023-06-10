@@ -55,6 +55,7 @@ public interface MethodConstants {
     String findProcessLOSP = "findProcessLOSP";
     String getThread = "getThread";
     String getProcessRecordLocked = "getProcessRecordLocked";
+    String getProcessInPackage = "getProcessInPackage";
 
     /**
      * miui

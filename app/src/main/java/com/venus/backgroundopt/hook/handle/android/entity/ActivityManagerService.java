@@ -35,11 +35,14 @@ public class ActivityManagerService implements ILogger {
 
     public ActivityManagerService(Object activityManagerService) {
         this.activityManagerService = activityManagerService;
-        this.processList = new ProcessList(XposedHelpers.getObjectField(activityManagerService, FieldConstants.mProcessList));
+        this.processList = new ProcessList(
+                XposedHelpers.getObjectField(activityManagerService, FieldConstants.mProcessList),
+                this);
         this.context = (Context) XposedHelpers.getObjectField(activityManagerService, FieldConstants.mContext);
         this.oomAdjuster = new OomAdjuster(
                 XposedHelpers.getObjectField(activityManagerService, FieldConstants.mOomAdjuster));
         this.mPidsSelfLocked = XposedHelpers.getObjectField(activityManagerService, FieldConstants.mPidsSelfLocked);
+        this.mProcLock = XposedHelpers.getObjectField(activityManagerService, FieldConstants.mProcLock);
     }
 
     private final OomAdjuster oomAdjuster;
@@ -65,6 +68,12 @@ public class ActivityManagerService implements ILogger {
     public ProcessRecord getProcessRecord(int pid) {
         Object process = XposedHelpers.callMethod(mPidsSelfLocked, MethodConstants.get, pid);
         return new ProcessRecord(process);
+    }
+
+    private Object mProcLock;
+
+    public Object getmProcLock() {
+        return mProcLock;
     }
 
     public PackageManager getPackageManager() {
@@ -209,6 +218,35 @@ public class ActivityManagerService implements ILogger {
                 processName,
                 uid
         );
+
+        if (process == null) {
+            return null;
+        }
         return new ProcessRecord(process);
+    }
+
+    /**
+     * 根据{@link AppInfo}找到其主进程
+     *
+     * @param appInfo app信息
+     * @return 主进程的记录
+     */
+    public ProcessRecord findMProcessRecord(AppInfo appInfo) {
+        ProcessRecord mProcessRecord = getProcessRecordLocked(appInfo.getPackageName(), appInfo.getUid());
+
+        if (mProcessRecord == null) {   // 目前已知, 双开的app必走这里
+//            Object uidRecord = XposedHelpers.newInstance(
+//                    UidRecord.getUidRecordClass(classLoader),
+//                    uid,
+//                    activityManagerService.getActivityManagerService());
+//            Object process = XposedHelpers.callMethod(uidRecord, MethodConstants.getProcessInPackage, packageName);
+//            if (process != null) {
+//                mProcessRecord = new ProcessRecord(process);
+//            } else {
+            mProcessRecord = processList.getMProcessRecordLockedWhenThrowException(appInfo);
+//            }
+        }
+
+        return mProcessRecord;
     }
 }

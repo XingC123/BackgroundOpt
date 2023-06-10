@@ -7,12 +7,14 @@ import com.venus.backgroundopt.interfaces.ILogger;
 import com.venus.backgroundopt.utils.reference.ObjectReference;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 import de.robv.android.xposed.XposedHelpers;
 
@@ -138,8 +140,11 @@ public class ProcessList implements ILogger {
     // 系统进程列表
     private final List<?> processRecordList;
 
-    public ProcessList(Object processList) {
+    private ActivityManagerService activityManagerService;
+
+    public ProcessList(Object processList, ActivityManagerService activityManagerService) {
         this.processList = processList;
+        this.activityManagerService = activityManagerService;
 
         this.processRecordList = (List<?>) XposedHelpers.getObjectField(processList, FieldConstants.mLruProcesses);
     }
@@ -173,11 +178,12 @@ public class ProcessList implements ILogger {
     }
 
     public List<ProcessRecord> getProcessList(AppInfo appInfo) {
-        List<ProcessRecord> processRecords = getProcessMap().get(appInfo.getApplicationIdentity());
-        if (processRecords == null) {
-            return new ArrayList<>();
-        }
-        return processRecords;
+        List<?> procList = getProcList();
+
+        return procList.parallelStream()
+                .filter(process -> Objects.equals(ProcessRecord.getPkgName(process), appInfo.getPackageName()))
+                .map(ProcessRecord::new)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -188,7 +194,7 @@ public class ProcessList implements ILogger {
      * @return 匹配的进程的列表
      */
     public List<ProcessRecord> getProcessRecords(AppInfo appInfo) {
-        List<ProcessRecord> processRecords = new CopyOnWriteArrayList<>();
+        List<ProcessRecord> processRecords = new ArrayList<>();
         List<?> procList = getProcList();
 
         procList.stream()
@@ -198,7 +204,7 @@ public class ProcessList implements ILogger {
                 .forEach(process -> {
                     ProcessRecord processRecord = new ProcessRecord(process);
 
-                    if (ProcessRecord.isProcNameSame(appInfo.getPackageName(), process)) {
+                    if (ProcessRecord.isProcessNameSame(appInfo.getPackageName(), process)) {
                         processRecords.add(0, processRecord);
                     } else {
                         processRecords.add(processRecord);
@@ -214,20 +220,24 @@ public class ProcessList implements ILogger {
      * @param appInfo app信息
      * @return 主进程
      */
-    public ProcessRecord getMProcessRecord(AppInfo appInfo) {
-        List<?> procList = getProcList();
-        try {
-            Optional<ProcessRecord> processRecord = procList.parallelStream()
-                    .filter(proc -> ProcessRecord.isProcNameSame(appInfo.getPackageName(), proc))
-                    .findAny()
-                    .map(ProcessRecord::new);
-            if (processRecord.isPresent()) {
-                return processRecord.get();
+    private ProcessRecord getMProcessRecord(AppInfo appInfo) {
+        Optional<ProcessRecord> processRecord = processRecordList.parallelStream()
+                .filter(proc -> ProcessRecord.isProcessNameSame(appInfo.getPackageName(), proc))
+                .findAny()
+                .map(ProcessRecord::new);
+        return processRecord.orElse(null);
+    }
+
+    public ProcessRecord getMProcessRecordLockedWhenThrowException(AppInfo appInfo) {
+        try {   // 先不使用锁来获取
+            return getMProcessRecord(appInfo);
+        } catch (ConcurrentModificationException e) {   // 出现异常, 加锁获取
+            synchronized (activityManagerService.getmProcLock()) {
+                return getMProcessRecord(appInfo);
             }
         } catch (Exception e) {
             getLogger().error(appInfo.getPackageName() + "进程列表获取失败", e);
         }
-
         return null;
     }
 

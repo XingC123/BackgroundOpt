@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
+import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
@@ -32,9 +33,15 @@ public class AppInfo implements ILogger {
      * app基本信息                                                               *
      *                                                                         *
      **************************************************************************/
-    private int uid;
+    private int uid = Integer.MIN_VALUE;
+    /**
+     * 多开uid:
+     * miui: 99910435 = 用户id+真正uid
+     * 安卓13原生: 1010207 = 用户id+真正uid
+     */
+    private int fixedUid = Integer.MIN_VALUE;
     private String packageName;
-    private int userId;
+    private int userId = Integer.MIN_VALUE;
 
     public AppInfo(int userId, String packageName, RunningInfo runningInfo) {
         this.userId = userId;
@@ -158,10 +165,13 @@ public class AppInfo implements ILogger {
     private final Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
 
     public void addProcessInfo(int pid, int oomAdjScore) {
-        processInfoMap.put(pid, new ProcessInfo(uid, pid, oomAdjScore));
+        processInfoMap.put(pid, new ProcessInfo(fixedUid, pid, oomAdjScore));
     }
 
     public void addProcessInfo(ProcessInfo processInfo) {
+        // 纠正processInfo的uid
+        processInfo.setFixedUid(fixedUid);
+        // 添加
         processInfoMap.put(processInfo.getPid(), processInfo);
     }
 
@@ -342,12 +352,12 @@ public class AppInfo implements ILogger {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AppInfo appInfo = (AppInfo) o;
-        return uid == appInfo.uid && userId == appInfo.userId && Objects.equals(packageName, appInfo.packageName);
+        return fixedUid == appInfo.fixedUid && userId == appInfo.userId && Objects.equals(packageName, appInfo.packageName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(uid, packageName, userId);
+        return Objects.hash(fixedUid, packageName, userId);
     }
 
     /* *************************************************************************
@@ -381,7 +391,6 @@ public class AppInfo implements ILogger {
      * getter/setter                                                           *
      *                                                                         *
      **************************************************************************/
-
     public int getUid() {
         return uid;
     }
@@ -389,7 +398,33 @@ public class AppInfo implements ILogger {
     public AppInfo setUid(int uid) {
         this.uid = uid;
 
+        setFixedUid(getFixedUid(this));
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(packageName + " 的uid = " + uid + ", fixedUid = " + fixedUid);
+        }
+
         return this;
+    }
+
+    public static int getFixedUid(AppInfo appInfo) {
+        return getFixedUid(appInfo.userId, appInfo.uid);
+    }
+
+    public static int getFixedUid(int userId, int uid) {
+        if (userId == ActivityManagerService.MAIN_USER) {
+            return uid;
+        } else {
+            return Integer.parseInt(String.valueOf(userId) + uid);
+        }
+    }
+
+    public int getFixedUid() {
+        return fixedUid;
+    }
+
+    public void setFixedUid(int fixedUid) {
+        this.fixedUid = fixedUid;
     }
 
     public String getPackageName() {
@@ -446,7 +481,7 @@ public class AppInfo implements ILogger {
         this.mProcessRecord = mProcessRecord;
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug("设置ProcessRecord(" + mProcessRecord.getPackageName() + "-" + mProcessRecord.getPid());
+            getLogger().debug("设置ProcessRecord(" + mProcessRecord.getPackageName() + "-" + mProcessRecord.getPid() + ")");
         }
     }
 }

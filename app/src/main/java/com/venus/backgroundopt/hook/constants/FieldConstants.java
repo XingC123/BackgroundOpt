@@ -40,4 +40,5 @@ public interface FieldConstants {
     String mCachedAppOptimizer = "mCachedAppOptimizer";
     String mThread = "mThread";
     String mPidsSelfLocked = "mPidsSelfLocked";
+    String mProcLock = "mProcLock";
 }
