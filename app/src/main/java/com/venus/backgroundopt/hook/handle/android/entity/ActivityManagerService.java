@@ -87,6 +87,15 @@ public class ActivityManagerService implements ILogger {
         if (applicationInfo == null) {
             normalAppResult.setNormalApp(false);
         } else {
+            // 安卓源码ActivityManagerService.java判断方式:
+//            final boolean isSystemApp = process == null ||
+//                                      (process.info.flags & (ApplicationInfo.FLAG_SYSTEM |
+//                                                             ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0;
+//            final boolean isSystemApp = (
+//                    applicationInfo.flags & (
+//                            ApplicationInfo.FLAG_SYSTEM |
+//                                    ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0;
+
             boolean importantSystemApp = applicationInfo.uid < 10000;
             if (!importantSystemApp) {
                 normalAppResult.setNormalApp(true);

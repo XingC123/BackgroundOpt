@@ -1,4 +1,4 @@
-package com.venus.backgroundopt.manager;
+package com.venus.backgroundopt.manager.process;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.AppInfo;
@@ -57,14 +57,30 @@ public class ProcessManager implements ILogger {
      * app内存回收管理                                                           *
      *                                                                         *
      **************************************************************************/
-    AppMemoryTrimManager appMemoryTrimManager = new AppMemoryTrimManager();
+    private final AppMemoryTrimManager backgroundAppMemoryTrimManager = new BackgroundAppMemoryTrimManager();
 
-    public void startTrimTask(ProcessRecord processRecord) {
-        appMemoryTrimManager.startTrimTask(processRecord);
+    public void startBackgroundAppTrimTask(ProcessRecord processRecord) {
+        // 移除前台任务
+        removeForegroundAppTrimTask(processRecord);
+
+        backgroundAppMemoryTrimManager.startTrimTask(processRecord);
     }
 
-    public void removeTrimTask(ProcessRecord processRecord) {
-        appMemoryTrimManager.removeTrimTask(processRecord);
+    public void removeBackgroundAppTrimTask(ProcessRecord processRecord) {
+        backgroundAppMemoryTrimManager.removeTrimTask(processRecord);
+    }
+
+    private final AppMemoryTrimManager foregroundAppMemoryTrimManager = new ForegroundAppMemoryTrimManager();
+
+    public void startForegroundAppTrimTask(ProcessRecord processRecord) {
+        // 移除后台任务
+        removeBackgroundAppTrimTask(processRecord);
+
+        foregroundAppMemoryTrimManager.startTrimTask(processRecord);
+    }
+
+    public void removeForegroundAppTrimTask(ProcessRecord processRecord) {
+        foregroundAppMemoryTrimManager.removeTrimTask(processRecord);
     }
 
     /**

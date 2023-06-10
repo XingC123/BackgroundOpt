@@ -9,7 +9,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.interfaces.ILogger;
-import com.venus.backgroundopt.manager.ProcessManager;
+import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.service.ProcessDaemonService;
 
 import java.io.IOException;
@@ -303,6 +303,7 @@ public class RunningInfo implements ILogger {
         activeAppGroup.remove(appInfo);
         tmpAppGroup.remove(appInfo);
         idleAppGroup.remove(appInfo);
+        handleRemoveFromActiveAppGroup(appInfo);
         handleRemoveFromIdleAppGroup(appInfo);
 
         // 清理AppInfo。也许有助于gc
@@ -401,7 +402,29 @@ public class RunningInfo implements ILogger {
         // 重置切换事件处理状态
         appInfo.setSwitchEventHandled(false);
 
+        handleCurApp(appInfo);
+
         activeAppGroup.add(appInfo);
+    }
+
+    private void handleCurApp(AppInfo appInfo) {
+        if (appInfo == null) {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("前台app已被杀死, 不执行处理");
+            }
+
+            return;
+        }
+
+        if (Objects.equals(getActiveLaunchPackageName(), appInfo.getPackageName())) {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("前台app为默认桌面, 不进行处理");
+            }
+            return;
+        }
+
+        // 启动MemoryTrimTask任务
+        processManager.startForegroundAppTrimTask(appInfo.getmProcessRecord());
     }
 
     public void putIntoTmpAppGroup(AppInfo appInfo) {
@@ -424,6 +447,7 @@ public class RunningInfo implements ILogger {
     }
 
     private void putIntoIdleAppGroup(AppInfo appInfo) {
+        handleRemoveFromActiveAppGroup(appInfo);
         // 做app清理工作
         handleLastApp(appInfo);
 
@@ -434,9 +458,14 @@ public class RunningInfo implements ILogger {
         }
     }
 
+    private void handleRemoveFromActiveAppGroup(AppInfo appInfo) {
+        // 移除某些定时
+        processManager.removeForegroundAppTrimTask(appInfo.getmProcessRecord());
+    }
+
     private void handleRemoveFromIdleAppGroup(AppInfo appInfo) {
         // 移除某些定时
-        processManager.removeTrimTask(appInfo.getmProcessRecord());
+        processManager.removeBackgroundAppTrimTask(appInfo.getmProcessRecord());
     }
 
     private void handleLastApp(AppInfo appInfo) {
@@ -462,7 +491,7 @@ public class RunningInfo implements ILogger {
             return;
         }
 
-        processManager.startTrimTask(appInfo.getmProcessRecord());
+        processManager.startBackgroundAppTrimTask(appInfo.getmProcessRecord());
         processManager.handleGC(appInfo);
 //        compactApp(appInfo);
 

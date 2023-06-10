@@ -18,7 +18,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
-import com.venus.backgroundopt.manager.ProcessManager;
+import com.venus.backgroundopt.manager.process.ProcessManager;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -166,7 +166,8 @@ public class ActivityManagerServiceHook extends MethodHook {
         // 第一次打开此app
         boolean firstRunning = false;
         int uid = normalAppResult.getApplicationInfo().uid;
-        AppInfo appInfo = runningInfo.getAppInfoFromRunningApps(AppInfo.getFixedUid(userId, uid));
+        int fixedUid = AppInfo.getFixedUid(userId, uid);
+        AppInfo appInfo = runningInfo.getAppInfoFromRunningApps(fixedUid);
 
         if (appInfo == null) {
             if (BuildConfig.DEBUG) {
@@ -174,7 +175,7 @@ public class ActivityManagerServiceHook extends MethodHook {
             }
 
             firstRunning = true;
-            appInfo = new AppInfo(userId, packageName, runningInfo).setUid(uid);
+            appInfo = new AppInfo(userId, packageName, runningInfo).setFixedUid(fixedUid);
 
             // 添加到运行app列表
             runningInfo.addRunningApp(appInfo);
@@ -194,7 +195,7 @@ public class ActivityManagerServiceHook extends MethodHook {
 
     private void handleCurApp(AppInfo appInfo) {
         // 移除TrimMemory计时任务
-        getRunningInfo().getProcessManager().removeTrimTask(appInfo.getmProcessRecord());
+        getRunningInfo().getProcessManager().removeBackgroundAppTrimTask(appInfo.getmProcessRecord());
     }
 
     private void handleLastApp(AppInfo appInfo) {
@@ -291,7 +292,7 @@ public class ActivityManagerServiceHook extends MethodHook {
             return;
         }
 
-        getRunningInfo().getProcessManager().startTrimTask(appInfo.getmProcessRecord());
+        getRunningInfo().getProcessManager().startBackgroundAppTrimTask(appInfo.getmProcessRecord());
     }
 
     /* *************************************************************************

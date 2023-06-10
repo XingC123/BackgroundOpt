@@ -3,6 +3,7 @@ package com.venus.backgroundopt.entity;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 进程信息
@@ -23,6 +24,10 @@ public class ProcessInfo {
      */
     private int fixedOomAdjScore = Integer.MIN_VALUE;
 
+    private long lastCompactTime = Long.MIN_VALUE;
+
+    private long compactInterval = Long.MIN_VALUE;
+
     public ProcessInfo() {
     }
 
@@ -39,6 +44,8 @@ public class ProcessInfo {
         this.pid = pid;
         this.oomAdjScore = oomAdjScore;
         this.fixedOomAdjScore = fixedOomAdjScore;
+
+        this.compactInterval = TimeUnit.MINUTES.toMillis(1);
     }
 
     @Override
@@ -84,5 +91,17 @@ public class ProcessInfo {
 
     public void setFixedUid(int fixedUid) {
         this.fixedUid = fixedUid;
+    }
+
+    public long getLastCompactTime() {
+        return lastCompactTime;
+    }
+
+    public void setLastCompactTime(long lastCompactTime) {
+        this.lastCompactTime = lastCompactTime;
+    }
+
+    public long getCompactInterval() {
+        return compactInterval;
     }
 }

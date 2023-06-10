@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * app信息
@@ -164,8 +165,11 @@ public class AppInfo implements ILogger {
     // <pid, ProcessInfo>
     private final Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
 
-    public void addProcessInfo(int pid, int oomAdjScore) {
-        processInfoMap.put(pid, new ProcessInfo(fixedUid, pid, oomAdjScore));
+    public ProcessInfo addProcessInfo(int pid, int oomAdjScore) {
+        ProcessInfo processInfo = new ProcessInfo(fixedUid, pid, oomAdjScore);
+        processInfoMap.put(pid, processInfo);
+
+        return processInfo;
     }
 
     public void addProcessInfo(ProcessInfo processInfo) {
@@ -187,20 +191,35 @@ public class AppInfo implements ILogger {
 //            return;
 //        }
 
+        ProcessInfo processInfo;
         if (processInfoMap.containsKey(pid)) {
-            ProcessInfo processInfo = processInfoMap.get(pid);
+            processInfo = processInfoMap.get(pid);
             processInfo.setOomAdjScore(oomAdjScore);
         } else {
-            addProcessInfo(pid, oomAdjScore);
+            processInfo = addProcessInfo(pid, oomAdjScore);
         }
 
         // 当进程实际oomAdjScore大于指定等级。则进行一次压缩
         if (appSwitchEvent == ActivityManagerServiceHook.ACTIVITY_PAUSED && oomAdjScore > ProcessList.SERVICE_B_ADJ
                 && !Objects.equals(packageName, runningInfo.getActiveLaunchPackageName())) {
-            runningInfo.getProcessManager().compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL);
+
+            boolean executed = false;
+            long currentTimeMillis = System.currentTimeMillis();
+            if (currentTimeMillis - processInfo.getLastCompactTime() > processInfo.getCompactInterval()) {
+                runningInfo.getProcessManager().compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL);
+                executed = true;
+                processInfo.setLastCompactTime(currentTimeMillis);
+            }
 
             if (BuildConfig.DEBUG) {
-                getLogger().debug("compactApp: " + packageName + "." + pid + " ->>> " + CachedAppOptimizer.COMPACT_ACTION_FULL);
+                String s;
+                if (executed) {
+                    s = " 成功";
+                } else {
+                    s = " 未执行";
+                }
+                getLogger().debug("compactApp: " + packageName + "." + pid
+                        + " ->>> " + CachedAppOptimizer.COMPACT_ACTION_FULL + s);
             }
         } /*else {
             if (BuildConfig.DEBUG) {
@@ -423,8 +442,10 @@ public class AppInfo implements ILogger {
         return fixedUid;
     }
 
-    public void setFixedUid(int fixedUid) {
+    public AppInfo setFixedUid(int fixedUid) {
         this.fixedUid = fixedUid;
+
+        return this;
     }
 
     public String getPackageName() {
