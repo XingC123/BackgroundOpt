@@ -81,7 +81,7 @@ public class RunningInfo implements ILogger {
     public volatile AppInfo lastAppInfo;
     /**
      * 非系统重要进程记录
-     * 包名, ApplicationInfo
+     * userId包名, ApplicationInfo
      */
     private final Map<String, ApplicationInfo> normalApps = new ConcurrentHashMap<>();
     private final Object checkNormalAppLockObj = new Object();
@@ -93,26 +93,27 @@ public class RunningInfo implements ILogger {
      * @return 是 -> true
      */
     public boolean isNormalApp(AppInfo appInfo) {
-        return isNormalApp(appInfo.getPackageName()).isNormalApp();
+        return isNormalApp(appInfo.getUserId(), appInfo.getPackageName()).isNormalApp();
     }
 
-    public NormalAppResult isNormalApp(String packageName) {
+    public NormalAppResult isNormalApp(int userId, String packageName) {
         NormalAppResult normalAppResult = new NormalAppResult();
+        String userIdAndPackageName = userId + packageName;
 
-        boolean isNormalApp = normalApps.containsKey(packageName);
+        boolean isNormalApp = normalApps.containsKey(userIdAndPackageName);
         if (isNormalApp) {
             normalAppResult.setNormalApp(true);
-            normalAppResult.setApplicationInfo(normalApps.get(packageName));
+            normalAppResult.setApplicationInfo(normalApps.get(userIdAndPackageName));
         } else {
             synchronized (checkNormalAppLockObj) {
-                isNormalApp = normalApps.containsKey(packageName);
+                isNormalApp = normalApps.containsKey(userIdAndPackageName);
                 if (isNormalApp) {
                     normalAppResult.setNormalApp(true);
-                    normalAppResult.setApplicationInfo(normalApps.get(packageName));
+                    normalAppResult.setApplicationInfo(normalApps.get(userIdAndPackageName));
                 } else {
                     normalAppResult = isImportantSystemApp(packageName);
                     if (normalAppResult.isNormalApp())
-                        markNormalApp(packageName, normalAppResult.getApplicationInfo());
+                        markNormalApp(userIdAndPackageName, normalAppResult.getApplicationInfo());
                 }
             }
         }
@@ -147,11 +148,11 @@ public class RunningInfo implements ILogger {
     /**
      * 标记为普通app
      *
-     * @param packageName     包名
-     * @param applicationInfo 应用信息
+     * @param userIdAndPackageName userId包名
+     * @param applicationInfo      应用信息
      */
-    private void markNormalApp(String packageName, ApplicationInfo applicationInfo) {
-        normalApps.put(packageName, applicationInfo);
+    private void markNormalApp(String userIdAndPackageName, ApplicationInfo applicationInfo) {
+        normalApps.put(userIdAndPackageName, applicationInfo);
     }
 
     public int getNormalAppUid(AppInfo appInfo) {

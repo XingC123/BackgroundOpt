@@ -158,7 +158,7 @@ public class ActivityManagerServiceHook extends MethodHook {
 
         RunningInfo runningInfo = getRunningInfo();
         // 检查是否是系统重要进程
-        RunningInfo.NormalAppResult normalAppResult = runningInfo.isNormalApp(packageName);
+        RunningInfo.NormalAppResult normalAppResult = runningInfo.isNormalApp(userId, packageName);
         if (!normalAppResult.isNormalApp()) {
             return null;
         }
