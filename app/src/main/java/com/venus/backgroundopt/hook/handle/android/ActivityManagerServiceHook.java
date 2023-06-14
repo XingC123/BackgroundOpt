@@ -165,8 +165,7 @@ public class ActivityManagerServiceHook extends MethodHook {
 
         // 第一次打开此app
         boolean firstRunning = false;
-        int uid = normalAppResult.getApplicationInfo().uid;
-        int fixedUid = AppInfo.getFixedUid(userId, uid);
+        int fixedUid = normalAppResult.getApplicationInfo().getFixedUid();
         AppInfo appInfo = runningInfo.getAppInfoFromRunningApps(fixedUid);
 
         if (appInfo == null) {

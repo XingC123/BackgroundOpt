@@ -11,6 +11,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.interfaces.ILogger;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -19,7 +20,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
 
 /**
  * app信息
@@ -55,7 +55,7 @@ public class AppInfo implements ILogger {
      * app进程信息                                                               *
      *                                                                         *
      **************************************************************************/
-    private final RunningInfo runningInfo;
+    private RunningInfo runningInfo;
     private volatile ProcessRecord mProcessRecord;   // 主进程记录
 
     private volatile ProcessInfo mProcessInfo;   // 主进程信息
@@ -162,8 +162,11 @@ public class AppInfo implements ILogger {
      * app进程信息(简单)                                                         *
      *                                                                         *
      **************************************************************************/
-    // <pid, ProcessInfo>
-    private final Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
+    /**
+     * 进程信息映射<pid, ProcessInfo>
+     * 没有设置为 final, 因为在{@link AppInfo#clearAppInfo()}中需要反射来置空
+     */
+    private Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
 
     public ProcessInfo addProcessInfo(int pid, int oomAdjScore) {
         ProcessInfo processInfo = new ProcessInfo(fixedUid, pid, oomAdjScore);
@@ -384,23 +387,37 @@ public class AppInfo implements ILogger {
      * 当前appInfo清理状态                                                       *
      *                                                                         *
      **************************************************************************/
-    private volatile boolean appInfoCleaned = false;
+    private static Class<? extends AppInfo> appInfoClass;
 
-    public boolean isAppInfoCleaned() {
-        return appInfoCleaned;
+    public static Class<? extends AppInfo> getAppInfoClass(AppInfo appInfo) {
+        if (appInfoClass == null) {
+            appInfoClass = appInfo.getClass();
+        }
+        return appInfoClass;
     }
 
     public void clearAppInfo() {
         try {
+            runningInfo = null;
             mProcessRecord = null;
             mProcessInfo = null;
-            if (processRecordMap != null) {
-                processRecordMap.clear();
+
+            try {
+                Class<? extends AppInfo> aClass = getAppInfoClass(this);
+                Field[] fields = aClass.getDeclaredFields();
+                Object obj;
+                for (Field field : fields) {
+                    obj = field.get(this);
+                    if (obj instanceof Map<?, ?>) {
+                        ((Map<?, ?>) obj).clear();
+                        field.set(this, null);
+                    }
+                }
+            } catch (IllegalAccessException | IllegalArgumentException e) {
+                if (BuildConfig.DEBUG) {
+                    getLogger().error("AppInfo的map清理失败", e);
+                }
             }
-
-            processInfoMap.clear();
-
-            appInfoCleaned = true;
         } catch (Exception ignore) {
         }
     }

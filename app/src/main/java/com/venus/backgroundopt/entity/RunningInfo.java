@@ -1,12 +1,11 @@
 package com.venus.backgroundopt.entity;
 
-import android.content.pm.ApplicationInfo;
 import android.os.PowerManager;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
-import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2;
+import com.venus.backgroundopt.hook.handle.android.entity.ApplicationInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.interfaces.ILogger;
 import com.venus.backgroundopt.manager.process.ProcessManager;
@@ -324,23 +323,21 @@ public class RunningInfo implements ILogger {
     private final Set<AppInfo> idleAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public void putIntoActiveAppGroup(AppInfo appInfo, boolean firstRunning) {
-        boolean checkIdleGroup = true;  // 检查idle分组
+        boolean switchActivity = false;  // 是否是应用内activity的切换
         /*
             处理当前元素
          */
         if (firstRunning) { // 第一次运行直接添加
-            handlePutInfoActiveAppGroup(appInfo);
+            handlePutInfoActiveAppGroup(appInfo, true);
         } else {
             if (tmpAppGroup.remove(appInfo)) {  // app: Activity切换
-                handlePutInfoActiveAppGroup(appInfo);
-                checkIdleGroup = false;
+                handlePutInfoActiveAppGroup(appInfo, false);
+                switchActivity = true;
             } else if (idleAppGroup.remove(appInfo)) {  // 从后台组移除
                 handleRemoveFromIdleAppGroup(appInfo);
-                handlePutInfoActiveAppGroup(appInfo);   // 此行可以抽取。但为了保持逻辑清晰, 依然放在此处
+                handlePutInfoActiveAppGroup(appInfo, true);   // 此行可以抽取。但为了保持逻辑清晰, 依然放在此处
             }
         }
-        // 设置内存紧张级别
-        appInfo.getmProcessRecord().scheduleTrimMemory(ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN);
 
         /*
             处理其他分组
@@ -352,7 +349,7 @@ public class RunningInfo implements ILogger {
                 putIntoIdleAppGroup(app);
             } else {
                 tmpAppGroup.remove(app);
-                handlePutInfoActiveAppGroup(appInfo);
+                handlePutInfoActiveAppGroup(appInfo, false);
             }
         });
 //        Iterator<AppInfo> tmpIterator = tmpAppGroup.iterator();
@@ -370,7 +367,7 @@ public class RunningInfo implements ILogger {
 //        }
 
         // 检查后台分组(宗旨是在切换后台时执行)
-        if (checkIdleGroup) {
+        if (!switchActivity) {
 //            Iterator<AppInfo> idleIterator = idleAppGroup.iterator();
 //            while (idleIterator.hasNext()) {
 //                tmp = idleIterator.next();
@@ -389,7 +386,7 @@ public class RunningInfo implements ILogger {
                     idleAppGroup.remove(app);
                     handleRemoveFromIdleAppGroup(app);
 
-                    handlePutInfoActiveAppGroup(appInfo);
+                    handlePutInfoActiveAppGroup(appInfo, true);
                 }
             });
         }
@@ -399,11 +396,13 @@ public class RunningInfo implements ILogger {
         }
     }
 
-    private void handlePutInfoActiveAppGroup(AppInfo appInfo) {
+    private void handlePutInfoActiveAppGroup(AppInfo appInfo, boolean needHandleCurApp) {
         // 重置切换事件处理状态
         appInfo.setSwitchEventHandled(false);
 
-        handleCurApp(appInfo);
+        if (needHandleCurApp) {
+            handleCurApp(appInfo);
+        }
 
         activeAppGroup.add(appInfo);
     }

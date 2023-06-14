@@ -1,7 +1,6 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 
 import com.venus.backgroundopt.entity.AppInfo;
@@ -120,12 +119,14 @@ public class ActivityManagerService implements ILogger {
     public ApplicationInfo getApplicationInfo(int userId, String packageName) {
         try {
             PackageManager packageManager = getPackageManager();
-            Object applicationInfoAsUser =
-                    XposedHelpers.callMethod(
+            android.content.pm.ApplicationInfo applicationInfoAsUser =
+                    (android.content.pm.ApplicationInfo) XposedHelpers.callMethod(
                             packageManager, MethodConstants.getApplicationInfoAsUser,
                             packageName, PackageManager.MATCH_UNINSTALLED_PACKAGES, userId);
             if (applicationInfoAsUser != null) {
-                return (ApplicationInfo) applicationInfoAsUser;
+                return
+                        new ApplicationInfo(applicationInfoAsUser)
+                                .setFixedUid(AppInfo.getFixedUid(userId, applicationInfoAsUser.uid));
             }
         } catch (Throwable throwable) {
             getLogger().warn("获取应用信息失败: [userId = " + userId + ", packageName = " + packageName, throwable);
