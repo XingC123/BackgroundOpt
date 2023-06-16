@@ -342,44 +342,19 @@ public class RunningInfo implements ILogger {
         /*
             处理其他分组
          */
-        // 检查缓存分组
-        tmpAppGroup.parallelStream().forEach(app -> {
-            if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_PAUSED) {
-                tmpAppGroup.remove(app);
-                putIntoIdleAppGroup(app);
-            } else {
-                tmpAppGroup.remove(app);
-                handlePutInfoActiveAppGroup(appInfo, false);
-            }
-        });
-//        Iterator<AppInfo> tmpIterator = tmpAppGroup.iterator();
-//        AppInfo tmp;
-//        while (tmpIterator.hasNext()) {
-//            tmp = tmpIterator.next();
-//
-//            if (tmp.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_PAUSED) {
-//                putIntoIdleAppGroup(tmp);
-//            } else {
-//                handlePutInfoActiveAppGroup(appInfo);
-//            }
-//
-//            tmpIterator.remove();   // 没放错位置吧？
-//        }
-
-        // 检查后台分组(宗旨是在切换后台时执行)
         if (!switchActivity) {
-//            Iterator<AppInfo> idleIterator = idleAppGroup.iterator();
-//            while (idleIterator.hasNext()) {
-//                tmp = idleIterator.next();
-//
-//                if (tmp.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED) {
-//                    // 从后台分组移除
-//                    idleIterator.remove();
-//                    handleRemoveFromIdleAppGroup(tmp);
-//
-//                    handlePutInfoActiveAppGroup(appInfo);
-//                }
-//            }
+            // 检查缓存分组
+            tmpAppGroup.parallelStream().forEach(app -> {
+                if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_PAUSED) {
+                    tmpAppGroup.remove(app);
+                    putIntoIdleAppGroup(app);
+                } else {
+                    tmpAppGroup.remove(app);
+                    handlePutInfoActiveAppGroup(appInfo, false);
+                }
+            });
+
+            // 检查后台分组(宗旨是在切换后台时执行)
             idleAppGroup.parallelStream().forEach(app -> {
                 if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED) {
                     // 从后台分组移除
@@ -425,6 +400,10 @@ public class RunningInfo implements ILogger {
 
         // 启动MemoryTrimTask任务
         processManager.startForegroundAppTrimTask(appInfo.getmProcessRecord());
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(appInfo.getPackageName() + " 被放入ActiveGroup");
+        }
     }
 
     public void putIntoTmpAppGroup(AppInfo appInfo) {
@@ -442,7 +421,7 @@ public class RunningInfo implements ILogger {
         }
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + " 的tmp事件处理完毕");
+            getLogger().debug(appInfo.getPackageName() + " 被放入TmpGroup");
         }
     }
 
@@ -454,7 +433,7 @@ public class RunningInfo implements ILogger {
         idleAppGroup.add(appInfo);
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + " 加入appIdle分组");
+            getLogger().debug(appInfo.getPackageName() + "  被放入IdleGroup");
         }
     }
 
