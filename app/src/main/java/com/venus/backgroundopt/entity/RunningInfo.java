@@ -335,7 +335,7 @@ public class RunningInfo implements ILogger {
                 switchActivity = true;
             } else if (idleAppGroup.remove(appInfo)) {  // 从后台组移除
                 handleRemoveFromIdleAppGroup(appInfo);
-                handlePutInfoActiveAppGroup(appInfo, true);   // 此行可以抽取。但为了保持逻辑清晰, 依然放在此处
+                handlePutInfoActiveAppGroup(appInfo, true);
             }
         }
 
