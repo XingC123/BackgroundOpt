@@ -1,7 +1,6 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
 import android.content.pm.ApplicationInfo;
-import android.os.Build;
 
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
@@ -192,11 +191,7 @@ public class ProcessRecord {
      * @param processRecord 安卓ProcessRecord
      */
     public static int getPid(Object processRecord) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            return XposedHelpers.getIntField(processRecord, FieldConstants.mPid);
-        } else {
-            return XposedHelpers.getIntField(processRecord, FieldConstants.pid);
-        }
+        return XposedHelpers.getIntField(processRecord, FieldConstants.mPid);
     }
 
     /**
