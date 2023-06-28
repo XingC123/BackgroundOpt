@@ -83,7 +83,7 @@ android {
 
     defaultConfig {
         applicationId "com.venus.backgroundopt"
-        minSdk 30
+        minSdk 31
         targetSdk 33
         versionCode generateVersionCode()
         versionName generateVersionName()
