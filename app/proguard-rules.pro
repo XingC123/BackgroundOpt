@@ -20,8 +20,9 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-#-keep class com.venus.backgroundopt.** {*;}
--keep class com.venus.backgroundopt.hook.MainHook {*;}
+-keep class com.venus.backgroundopt.hook.MainHook {
+    *;
+}
 
 #==================================【基本配置】==================================
 # 代码混淆压缩比，在0~7之间，默认为5,一般不下需要修改
@@ -75,9 +76,9 @@
 #-keep public class * extends android.view.View
 #-keep public class * extends android.database.sqlite.SQLiteOpenHelper{*;}
 # 如果有引用android-support-v4.jar包，可以添加下面这行
--keep public class com.null.test.ui.fragment.** {*;}
+#-keep public class com.null.test.ui.fragment.** {*;}
 #如果引用了v4或者v7包
--dontwarn android.support.**
+#-dontwarn android.support.**
 # 保留Activity中的方法参数是view的方法，
 # 从而我们在layout里面编写onClick就不会影响
 #-keepclassmembers class * extends android.app.Activity {
@@ -118,92 +119,13 @@
 -keepclassmembers class * {
     void *(**On*Event);
 }
-#实体类
--keep class guoxin.app.android.bean.** { *; }
 #内部方法
 -keepattributes EnclosingMethod
-#==================================【三方配置】==================================
-#环信混淆--------------------------------------------
--keep class com.easemob.** {*;}
--keep class org.jivesoftware.** {*;}
--keep class org.apache.** {*;}
--dontwarn  com.easemob.**
-#另外，demo中发送表情的时候使用到反射，需要keep SmileUtils
-#-keep class com.easemob.chatuidemo.utils.SmileUtils {*;}
-#注意前面的包名，如果把这个类复制到自己的项目底下，比如放在com.example.utils底下，应该这么写（实际要去掉#）
-#-keep class com.example.utils.SmileUtils {*;}
-#如果使用EaseUI库，需要这么写
-#-keep class com.easemob.easeui.utils.EaseSmileUtils {*;}
-#2.0.9后加入语音通话功能，如需使用此功能的API，加入以下keep
--dontwarn ch.imvs.**
--dontwarn org.slf4j.**
--keep class org.ice4j.** {*;}
--keep class net.java.sip.** {*;}
--keep class org.webrtc.voiceengine.** {*;}
--keep class org.bitlet.** {*;}
--keep class org.slf4j.** {*;}
--keep class ch.imvs.** {*;}
--keep class com.hyphenate.** {*;}
--dontwarn  com.hyphenate.**
-#okhttp
--keep class com.squareup.okhttp.** { *;}
--dontwarn okio.**
--keepclassmembers class **.R$* {
-    public static <fields>;
-}
 #eventbus
 -keepattributes *Annotation*
-#-keepclassmembers class ** {
-#    @org.greenrobot.eventbus.Subscribe <methods>;
-#}
-#-keep enum org.greenrobot.eventbus.ThreadMode { *; }
-## Only required if you use AsyncExecutor
-#-keepclassmembers class * extends org.greenrobot.eventbus.util.ThrowableFailureEvent {
-#    <init>(java.lang.Throwable);
-#}
-#友盟分享
- -dontwarn com.google.android.maps.**
- -dontwarn android.webkit.WebView
- -dontwarn com.umeng.**
- -dontwarn com.tencent.weibo.sdk.**
- -dontwarn com.facebook.**
- -keep public class javax.**
- -keep public class android.webkit.**
- -dontwarn android.support.v4.**
- -keep class android.support.** {*;}
- -keep enum com.facebook.**
- -keepattributes Exceptions,InnerClasses,Signature
- -keepattributes *Annotation*
- -keepattributes SourceFile,LineNumberTable
- -keep public interface com.facebook.**
- -keep public interface com.tencent.**
- -keep public interface com.umeng.socialize.**
- -keep public interface com.umeng.socialize.sensor.**
- -keep public interface com.umeng.scrshot.**
-#视频直播混淆
--dontwarn com.gensee.**
--keep  class  com.gensee.**{*;}
--dontwarn com.tictactec.ta.**
-#fastjson
--dontwarn com.alibaba.fastjson.**
--keep class com.alibaba.fastjson.** { *; }
-# fresco
-#-keep,allowobfuscation @interface com.facebook.common.internal.DoNotStrip
-#-keep @com.facebook.common.internal.DoNotStrip class *
-#-keepclassmembers class * {@com.facebook.common.internal.DoNotStrip *;}
-#-keep class com.facebook.imagepipeline.animated.factory.AnimatedFactoryImpl {
-#    public AnimatedFactoryImpl(com.facebook.imagepipeline.bitmaps.PlatformBitmapFactory, com.facebook.imagepipeline.core.ExecutorSupplier);
-#}
-#-keep class com.facebook.animated.gif.** {*;}
 #-dontwarn javax.annotation.**
 #保留混淆mapping文件
 -printmapping build/outputs/mapping/release/mapping.txt
-
-#growingio统计
--keep class com.growingio.android.sdk.** {
-    *;
-}
--dontwarn com.growingio.android.sdk.**
 
 #-keepnames class * extends android.view.View
 #-keep class * extends android.app.Fragment {
