@@ -12,10 +12,10 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
  * @version 1.0
  * @date 2023/2/17
  */
+//@HookPackageName("com.miui.powerkeeper")
 public class PowerKeeperHookHandler extends PackageHook {
     public PowerKeeperHookHandler(XC_LoadPackage.LoadPackageParam packageParam) {
         super(packageParam);
-
     }
 
     @Override
@@ -25,10 +25,5 @@ public class PowerKeeperHookHandler extends PackageHook {
         new PowerStateMachineHook(classLoader);
         new ProcessManagerHook(classLoader);
         new SleepModeControllerNewHook(classLoader);
-    }
-
-    @Override
-    public String getTargetPackageName() {
-        return "com.miui.powerkeeper";
     }
 }

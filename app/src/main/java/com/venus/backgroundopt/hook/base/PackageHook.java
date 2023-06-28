@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.hook.base;
 
+import com.venus.backgroundopt.annotation.HookPackageName;
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.environment.SystemProperties;
 
@@ -11,24 +12,31 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
  * @date 2023/2/8
  */
 public abstract class PackageHook {
-    private RunningInfo runningInfo;
+    private final RunningInfo runningInfo;
 
     public PackageHook(XC_LoadPackage.LoadPackageParam packageParam) {
-        if (packageParam.packageName.equals(getTargetPackageName())) {
-            this.runningInfo = new RunningInfo();
+        this.runningInfo = new RunningInfo();
 
-            // 更新RunningInfo内的hook次数
-            this.runningInfo.updateHookTimes();
+        // 更新RunningInfo内的hook次数
+        this.runningInfo.updateHookTimes();
 
-            // 环境
-            SystemProperties.loadSystemPropertiesClazz(packageParam.classLoader);
+        // 环境
+        SystemProperties.loadSystemPropertiesClazz(packageParam.classLoader);
 
-            // hook
-            hook(packageParam);
-        }
+        // hook
+        hook(packageParam);
     }
 
-    public abstract String getTargetPackageName();
+    public static String getTargetPackageName(Class<?> aClass) {
+        HookPackageName annotation = aClass.getAnnotation(HookPackageName.class);
+        String hookPackageName;
+
+        if (annotation == null || "".equals(hookPackageName = annotation.value())) {
+            return aClass.getCanonicalName();
+        }
+
+        return hookPackageName;
+    }
 
     public abstract void hook(XC_LoadPackage.LoadPackageParam packageParam);
 

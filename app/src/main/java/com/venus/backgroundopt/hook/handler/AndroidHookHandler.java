@@ -18,14 +18,10 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
  * @version 1.0
  * @date 2023/2/17
  */
+//@HookPackageName("android")
 public class AndroidHookHandler extends PackageHook {
     public AndroidHookHandler(XC_LoadPackage.LoadPackageParam packageParam) {
         super(packageParam);
-    }
-
-    @Override
-    public String getTargetPackageName() {
-        return "android";
     }
 
     @Override
