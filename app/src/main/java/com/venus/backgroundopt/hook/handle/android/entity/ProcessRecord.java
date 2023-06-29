@@ -70,12 +70,11 @@ public class ProcessRecord {
     public ProcessRecord(Object processRecord) {
         this.processRecord = processRecord;
         this.pid = getPid(processRecord);
-//        this.uid = XposedHelpers.getIntField(processRecord, FieldConstants.uid);
+        this.uid = XposedHelpers.getIntField(processRecord, FieldConstants.uid);
 
         this.userId = getUserId(processRecord);
         this.applicationInfo = (ApplicationInfo) XposedHelpers.getObjectField(processRecord, FieldConstants.info);
         this.packageName = applicationInfo.packageName;
-        this.uid = applicationInfo.uid;
         this.processName = getAbsoluteProcessName(packageName, processRecord);
         this.processStateRecord = XposedHelpers.getObjectField(processRecord, FieldConstants.mState);
     }

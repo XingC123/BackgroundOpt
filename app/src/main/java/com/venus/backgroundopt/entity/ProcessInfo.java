@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2023/6/3
  */
 public class ProcessInfo {
-    private int fixedUid = Integer.MIN_VALUE;
+    private int repairedUid = Integer.MIN_VALUE;
     private int pid = Integer.MIN_VALUE;
     private int oomAdjScore = Integer.MIN_VALUE;
 
@@ -35,12 +35,12 @@ public class ProcessInfo {
         this(processRecord.getUid(), processRecord.getPid(), Integer.MIN_VALUE);
     }
 
-    public ProcessInfo(int fixedUid, int pid, int oomAdjScore) {
-        this(fixedUid, pid, oomAdjScore, Integer.MIN_VALUE);
+    public ProcessInfo(int repairedUid, int pid, int oomAdjScore) {
+        this(repairedUid, pid, oomAdjScore, Integer.MIN_VALUE);
     }
 
-    public ProcessInfo(int fixedUid, int pid, int oomAdjScore, int fixedOomAdjScore) {
-        this.fixedUid = fixedUid;
+    public ProcessInfo(int repairedUid, int pid, int oomAdjScore, int fixedOomAdjScore) {
+        this.repairedUid = repairedUid;
         this.pid = pid;
         this.oomAdjScore = oomAdjScore;
         this.fixedOomAdjScore = fixedOomAdjScore;
@@ -53,12 +53,12 @@ public class ProcessInfo {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ProcessInfo that = (ProcessInfo) o;
-        return fixedUid == that.fixedUid && pid == that.pid;
+        return repairedUid == that.repairedUid && pid == that.pid;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fixedUid, pid);
+        return Objects.hash(repairedUid, pid);
     }
 
     public int getPid() {
@@ -85,12 +85,12 @@ public class ProcessInfo {
         this.fixedOomAdjScore = fixedOomAdjScore;
     }
 
-    public int getFixedUid() {
-        return fixedUid;
+    public int getRepairedUid() {
+        return repairedUid;
     }
 
-    public void setFixedUid(int fixedUid) {
-        this.fixedUid = fixedUid;
+    public void setRepairedUid(int repairedUid) {
+        this.repairedUid = repairedUid;
     }
 
     public long getLastCompactTime() {

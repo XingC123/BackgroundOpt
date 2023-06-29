@@ -8,14 +8,14 @@ package com.venus.backgroundopt.hook.handle.android.entity;
  * @date 2023/6/14
  */
 public class ApplicationInfo {
-    private int fixedUid;
+    private int repairedUid;
 
-    public int getFixedUid() {
-        return fixedUid;
+    public int getRepairedUid() {
+        return repairedUid;
     }
 
-    public ApplicationInfo setFixedUid(int fixedUid) {
-        this.fixedUid = fixedUid;
+    public ApplicationInfo setRepairedUid(int repairedUid) {
+        this.repairedUid = repairedUid;
 
         return this;
     }

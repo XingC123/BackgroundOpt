@@ -126,7 +126,7 @@ public class ActivityManagerService implements ILogger {
             if (applicationInfoAsUser != null) {
                 return
                         new ApplicationInfo(applicationInfoAsUser)
-                                .setFixedUid(AppInfo.getFixedUid(userId, applicationInfoAsUser.uid));
+                                .setRepairedUid(AppInfo.getRepairedUid(userId, applicationInfoAsUser.uid));
             }
         } catch (Throwable throwable) {
             getLogger().warn("获取应用信息失败: [userId = " + userId + ", packageName = " + packageName, throwable);

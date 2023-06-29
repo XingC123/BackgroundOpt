@@ -40,7 +40,7 @@ public class AppInfo implements ILogger {
      * miui: 99910435 = 用户id+真正uid
      * 安卓13原生: 1010207 = 用户id+真正uid
      */
-    private int fixedUid = Integer.MIN_VALUE;
+    private int repairedUid = Integer.MIN_VALUE;
     private String packageName;
     private int userId = Integer.MIN_VALUE;
 
@@ -169,7 +169,7 @@ public class AppInfo implements ILogger {
     private Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
 
     public ProcessInfo addProcessInfo(int pid, int oomAdjScore) {
-        ProcessInfo processInfo = new ProcessInfo(fixedUid, pid, oomAdjScore);
+        ProcessInfo processInfo = new ProcessInfo(repairedUid, pid, oomAdjScore);
         processInfoMap.put(pid, processInfo);
 
         return processInfo;
@@ -177,7 +177,7 @@ public class AppInfo implements ILogger {
 
     public void addProcessInfo(ProcessInfo processInfo) {
         // 纠正processInfo的uid
-        processInfo.setFixedUid(fixedUid);
+        processInfo.setRepairedUid(repairedUid);
         // 添加
         processInfoMap.put(processInfo.getPid(), processInfo);
     }
@@ -374,12 +374,12 @@ public class AppInfo implements ILogger {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AppInfo appInfo = (AppInfo) o;
-        return fixedUid == appInfo.fixedUid && userId == appInfo.userId && Objects.equals(packageName, appInfo.packageName);
+        return repairedUid == appInfo.repairedUid && userId == appInfo.userId && Objects.equals(packageName, appInfo.packageName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fixedUid, packageName, userId);
+        return Objects.hash(repairedUid, packageName, userId);
     }
 
     /* *************************************************************************
@@ -434,20 +434,20 @@ public class AppInfo implements ILogger {
     public AppInfo setUid(int uid) {
         this.uid = uid;
 
-        setFixedUid(getFixedUid(this));
+        setRepairedUid(getRepairedUid(this));
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug(packageName + " 的uid = " + uid + ", fixedUid = " + fixedUid);
+            getLogger().debug(packageName + " 的uid = " + uid + ", repairedUid = " + repairedUid);
         }
 
         return this;
     }
 
-    public static int getFixedUid(AppInfo appInfo) {
-        return getFixedUid(appInfo.userId, appInfo.uid);
+    public static int getRepairedUid(AppInfo appInfo) {
+        return getRepairedUid(appInfo.userId, appInfo.uid);
     }
 
-    public static int getFixedUid(int userId, int uid) {
+    public static int getRepairedUid(int userId, int uid) {
         if (userId == ActivityManagerService.MAIN_USER) {
             return uid;
         } else {
@@ -455,12 +455,12 @@ public class AppInfo implements ILogger {
         }
     }
 
-    public int getFixedUid() {
-        return fixedUid;
+    public int getRepairedUid() {
+        return repairedUid;
     }
 
-    public AppInfo setFixedUid(int fixedUid) {
-        this.fixedUid = fixedUid;
+    public AppInfo setRepairedUid(int repairedUid) {
+        this.repairedUid = repairedUid;
 
         return this;
     }

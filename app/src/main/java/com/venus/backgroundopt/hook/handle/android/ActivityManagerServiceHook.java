@@ -165,8 +165,8 @@ public class ActivityManagerServiceHook extends MethodHook {
 
         // 第一次打开此app
         boolean firstRunning = false;
-        int fixedUid = normalAppResult.getApplicationInfo().getFixedUid();
-        AppInfo appInfo = runningInfo.getAppInfoFromRunningApps(fixedUid);
+        int repairedUid = normalAppResult.getApplicationInfo().getRepairedUid();
+        AppInfo appInfo = runningInfo.getAppInfoFromRunningApps(repairedUid);
 
         if (appInfo == null) {
             if (BuildConfig.DEBUG) {
@@ -174,7 +174,7 @@ public class ActivityManagerServiceHook extends MethodHook {
             }
 
             firstRunning = true;
-            appInfo = new AppInfo(userId, packageName, runningInfo).setFixedUid(fixedUid);
+            appInfo = new AppInfo(userId, packageName, runningInfo).setRepairedUid(repairedUid);
 
             // 添加到运行app列表
             runningInfo.addRunningApp(appInfo);
