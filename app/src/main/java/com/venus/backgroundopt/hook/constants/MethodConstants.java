@@ -23,6 +23,7 @@ public interface MethodConstants {
     String isAppForeground = "isAppForeground";
     String getTopApp = "getTopApp";
     String setMaxAdj = "setMaxAdj";
+    String getMaxAdj = "getMaxAdj";
     String getUidForPid = "getUidForPid";
     String getParentPid = "getParentPid";
     String checkExcessivePowerUsage = "checkExcessivePowerUsage";

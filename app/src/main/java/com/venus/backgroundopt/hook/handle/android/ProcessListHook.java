@@ -73,6 +73,9 @@ public class ProcessListHook extends MethodHook {
                                         + param.args[2]);
                     }
                 } else {
+//                    ProcessRecord mProcessRecord = appInfo.getmProcessRecord();
+//                    mProcessRecord.adjustMaxAdjIfNeed();
+
                     param.setResult(null);
                     appInfo.modifyProcessInfoAndAddIfNull(pid, oomAdjScore);
                 }

@@ -64,8 +64,8 @@ public class ProcessRecord {
     private Object processRecord;
     // 反射拿到的安卓的processStateRecord对象
     private Object processStateRecord;
-    // 自定义的进程最大adj
-    private int mMaxAdj;
+    // 当前ProcessRecord已记录的最大adj
+    private int recordMaxAdj;
 
     public ProcessRecord(Object processRecord) {
         this.processRecord = processRecord;
@@ -171,7 +171,8 @@ public class ProcessRecord {
         } catch (Exception e) {
             XposedHelpers.setIntField(this.processStateRecord, FieldConstants.mMaxAdj, maxAdj);
         } finally {
-            this.mMaxAdj = maxAdj;
+            // 更新记录的最大adj
+            this.recordMaxAdj = maxAdj;
         }
     }
 
@@ -181,7 +182,18 @@ public class ProcessRecord {
      * @return 进程的最大adj
      */
     public int getMaxAdj() {
-        return XposedHelpers.getIntField(this.processStateRecord, FieldConstants.mMaxAdj);
+        try {
+            return (int) XposedHelpers.callMethod(this.processStateRecord, MethodConstants.getMaxAdj);
+        } catch (Exception e) {
+            return XposedHelpers.getIntField(this.processStateRecord, FieldConstants.mMaxAdj);
+        }
+    }
+
+    /**
+     * 获取已记录的最大adj
+     */
+    public int getRecordMaxAdj() {
+        return this.recordMaxAdj;
     }
 
     /**
@@ -222,7 +234,16 @@ public class ProcessRecord {
      * @return 若已设置的最大adj!=当前所使用的最大adj => true
      */
     public boolean isNeedAdjustMaxAdj() {
-        return getMaxAdj() != this.mMaxAdj;
+        return getMaxAdj() != this.recordMaxAdj;
+    }
+
+    /**
+     * 如果当前最大adj不等于已记录的最大adj, 则进行调整
+     */
+    public void adjustMaxAdjIfNeed() {
+        if (isNeedAdjustMaxAdj()) {
+            setMaxAdj(this.recordMaxAdj);
+        }
     }
 
     @Override
