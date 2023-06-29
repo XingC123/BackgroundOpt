@@ -80,11 +80,21 @@ public class RunningInfo implements ILogger {
     public volatile AppInfo lastAppInfo;
     /**
      * 非系统重要进程记录
-     * userId包名, ApplicationInfo
+     * userId包名, NormalAppResult
      * userId包名 -> userId = 10999, 包名=com.venus.aaa -> 10999com.venus.aaa
      */
-    private final Map<String, ApplicationInfo> normalApps = new ConcurrentHashMap<>();
-    private final Object checkNormalAppLockObj = new Object();
+    private final Map<String, NormalAppResult> normalApps = new ConcurrentHashMap<>();
+
+    /**
+     * 获取放进{@link #normalApps}的key
+     *
+     * @param userId      用户id
+     * @param packageName 包名
+     * @return key
+     */
+    public String getNormalAppKey(int userId, String packageName) {
+        return userId + packageName;
+    }
 
     /**
      * 是否是普通app
@@ -97,26 +107,10 @@ public class RunningInfo implements ILogger {
     }
 
     public NormalAppResult isNormalApp(int userId, String packageName) {
-        NormalAppResult normalAppResult = new NormalAppResult();
-        String userIdAndPackageName = userId + packageName;
+        NormalAppResult normalAppResult;
+        String userIdAndPackageName = getNormalAppKey(userId, packageName);
 
-        boolean isNormalApp = normalApps.containsKey(userIdAndPackageName);
-        if (isNormalApp) {
-            normalAppResult.setNormalApp(true);
-            normalAppResult.setApplicationInfo(normalApps.get(userIdAndPackageName));
-        } else {
-            synchronized (checkNormalAppLockObj) {
-                isNormalApp = normalApps.containsKey(userIdAndPackageName);
-                if (isNormalApp) {
-                    normalAppResult.setNormalApp(true);
-                    normalAppResult.setApplicationInfo(normalApps.get(userIdAndPackageName));
-                } else {
-                    normalAppResult = isImportantSystemApp(packageName);
-                    if (normalAppResult.isNormalApp())
-                        markNormalApp(userIdAndPackageName, normalAppResult.getApplicationInfo());
-                }
-            }
-        }
+        normalAppResult = normalApps.computeIfAbsent(userIdAndPackageName, key -> isImportantSystemApp(packageName));
 
         return normalAppResult;
     }
@@ -132,8 +126,10 @@ public class RunningInfo implements ILogger {
             return isNormalApp;
         }
 
-        public void setNormalApp(boolean normalApp) {
+        public NormalAppResult setNormalApp(boolean normalApp) {
             isNormalApp = normalApp;
+
+            return this;
         }
 
         public ApplicationInfo getApplicationInfo() {
@@ -142,25 +138,6 @@ public class RunningInfo implements ILogger {
 
         public void setApplicationInfo(ApplicationInfo applicationInfo) {
             this.applicationInfo = applicationInfo;
-        }
-    }
-
-    /**
-     * 标记为普通app
-     *
-     * @param userIdAndPackageName userId包名
-     * @param applicationInfo      应用信息
-     */
-    private void markNormalApp(String userIdAndPackageName, ApplicationInfo applicationInfo) {
-        normalApps.put(userIdAndPackageName, applicationInfo);
-    }
-
-    public int getNormalAppUid(AppInfo appInfo) {
-        ApplicationInfo applicationInfo = normalApps.get(appInfo.getPackageName());
-        if (applicationInfo == null) {
-            return getActivityManagerService().getAppUID(appInfo.getUserId(), appInfo.getPackageName());
-        } else {
-            return applicationInfo.uid;
         }
     }
 
@@ -186,21 +163,11 @@ public class RunningInfo implements ILogger {
     }
 
     public AppInfo getAppInfoFromRunningApps(AppInfo appInfo) {
-        return getAppInfoFromRunningApps(appInfo.getUid());
+        return getAppInfoFromRunningApps(appInfo.getRepairedUid());
     }
 
     public AppInfo getAppInfoFromRunningApps(int repairedUid) {
         return getRunningAppInfo(repairedUid);
-    }
-
-    /**
-     * 根据uid判断是否是系统重要app
-     *
-     * @param uid uid
-     * @return 是 => true
-     */
-    public boolean isImportantSystemApp(int uid) {
-        return runningApps.get(uid) == null;
     }
 
     /**

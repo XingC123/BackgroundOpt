@@ -14,14 +14,6 @@ import com.venus.backgroundopt.hook.base.action.ReplacementHookAction;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
-import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
-import com.venus.backgroundopt.hook.handle.android.entity.Process;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
-import com.venus.backgroundopt.manager.process.ProcessManager;
-
-import java.util.Collection;
-import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
@@ -72,16 +64,6 @@ public class ActivityManagerServiceHook extends MethodHook {
                         ClassConstants.IBinder, /* appToken ActivityRecord's appToken */
                         ClassConstants.ComponentName    /* taskRoot Task's root */
                 ),
-//                new HookPoint(  /* 未执行 */
-//                        ClassConstants.ActivityManagerService,
-//                        MethodConstants.updateActivityUsageStats,
-//                        new HookAction[]{
-//                                (BeforeHookAction) this::handlePackageSwitch
-//                        },
-//                        String.class,   /* packageName */
-//                        int.class,  /* userId */
-//                        int.class   /* event */
-//                ),
                 new HookPoint(
                         ClassConstants.ActivityManagerService,
                         MethodConstants.checkExcessivePowerUsageLPr,
@@ -188,125 +170,6 @@ public class ActivityManagerServiceHook extends MethodHook {
         } else {
             runningInfo.putIntoTmpAppGroup(appInfo);
         }
-
-        return null;
-    }
-
-    private void handleCurApp(AppInfo appInfo) {
-        // 移除TrimMemory计时任务
-        getRunningInfo().getProcessManager().removeBackgroundAppTrimTask(appInfo.getmProcessRecord());
-    }
-
-    private void handleLastApp(AppInfo appInfo) {
-        if (appInfo == null) {
-            if (BuildConfig.DEBUG) {
-                getLogger().debug("待执行app已被杀死, 不执行处理");
-            }
-
-            return;
-        }
-
-        if (Objects.equals(getRunningInfo().getActiveLaunchPackageName(), appInfo.getPackageName())) {
-            if (BuildConfig.DEBUG) {
-                getLogger().debug("当前操作的app为默认桌面, 不进行处理");
-            }
-            return;
-        }
-
-        if (appInfo.isSwitchEventHandled()) {
-            if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + " 的切换事件已经处理过");
-            }
-            return;
-        }
-
-        scheduleTrimMemory(appInfo);
-        handleGC(appInfo);
-//        compactApp(appInfo);
-
-        appInfo.setSwitchEventHandled(true);
-    }
-
-    /**
-     * 处理gc事件
-     *
-     * @param appInfo app信息
-     */
-    private void handleGC(AppInfo appInfo) {
-        // kill -10 pid
-        try {
-            Process.sendSignal(appInfo.getmPid(), SIGNAL_10);
-
-            if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + " 触发gc, pid = " + appInfo.getmPid());
-            }
-        } catch (Exception e) {
-            if (BuildConfig.DEBUG) {
-                getLogger().error(appInfo.getPackageName() + " 存在问题, 无法执行gc");
-            }
-        }
-    }
-
-    /**
-     * app进程压缩
-     *
-     * @param appInfo app信息
-     */
-    private void compactApp(AppInfo appInfo) {
-        /*
-            遍历app的进程信息。
-            对真实oomAdj(本模块保后台依靠调整oom, 但同时也记录了系统原生的oom值)大于指定数值的进程进行压缩
-         */
-        ProcessManager processManager = getRunningInfo().getProcessManager();
-        Collection<ProcessRecord> processInfoList = appInfo.getProcessRecordList();
-
-        if (processInfoList.size() == 0) {
-            debugLog(isDebugMode() &&
-                    getLogger().warn(appInfo.getPackageName() + ": 未找到进程, 不执行压缩"));
-            return;
-        }
-
-        processInfoList.stream()
-                .filter(processRecord -> processRecord.getOomAdjScore() > ProcessList.HOME_APP_ADJ)
-                .forEach(processInfo -> processManager.compactApp(
-                        processInfo.getPid(),
-                        CachedAppOptimizer.COMPACT_ACTION_FULL)
-                );
-
-        if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + ": 压缩流程执行完毕");
-        }
-    }
-
-    /**
-     * 设置内存回收等级
-     * 参考: <a href="https://blog.csdn.net/omnispace/article/details/73320955">Android系统中的进程管理：内存的回收</a>
-     *
-     * @param appInfo app信息
-     */
-    private void scheduleTrimMemory(AppInfo appInfo) {
-        ProcessRecord processRecord = appInfo.getmProcessRecord();
-        // 当上个app被关闭后, 会执行Appinfo.clearAppInfo()，清空属性值
-        if (processRecord == null) {
-            return;
-        }
-
-        getRunningInfo().getProcessManager().startBackgroundAppTrimTask(appInfo.getmProcessRecord());
-    }
-
-    /* *************************************************************************
-     *                                                                         *
-     * app切换事件2                                                              *
-     *                                                                         *
-     **************************************************************************/
-    private Object handlePackageSwitch(XC_MethodHook.MethodHookParam param) {
-        Object[] args = param.args;
-
-        String packageName = (String) args[0];
-        int userId = (int) args[1];
-        int event = (int) args[2];
-
-        getLogger().debug("packageName: " + packageName + ", userId: " + userId + ", event: " + event);
 
         return null;
     }

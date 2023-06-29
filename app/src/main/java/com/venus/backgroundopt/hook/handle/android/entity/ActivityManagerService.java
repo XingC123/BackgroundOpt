@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
+import static com.venus.backgroundopt.entity.RunningInfo.NormalAppResult;
+
 import android.content.Context;
 import android.content.pm.PackageManager;
 
@@ -79,14 +81,12 @@ public class ActivityManagerService implements ILogger {
         return this.context.getPackageManager();
     }
 
+    private final NormalAppResult notNormalAppResult = new NormalAppResult().setNormalApp(false);
+
     public RunningInfo.NormalAppResult isImportantSystemApp(String packageName) {
-        RunningInfo.NormalAppResult normalAppResult = new RunningInfo.NormalAppResult();
         ApplicationInfo applicationInfo = getApplicationInfo(MAIN_USER, packageName);
 
-        if (applicationInfo == null) {
-            normalAppResult.setNormalApp(false);
-        } else {
-            // 安卓源码ActivityManagerService.java判断方式:
+        // 安卓源码ActivityManagerService.java判断方式:
 //            final boolean isSystemApp = process == null ||
 //                                      (process.info.flags & (ApplicationInfo.FLAG_SYSTEM |
 //                                                             ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0;
@@ -94,15 +94,15 @@ public class ActivityManagerService implements ILogger {
 //                    applicationInfo.flags & (
 //                            ApplicationInfo.FLAG_SYSTEM |
 //                                    ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0;
+        if (applicationInfo == null || applicationInfo.uid < 10000) {
+            return notNormalAppResult;
+        } else {
+            NormalAppResult normalAppResult = new NormalAppResult();
+            normalAppResult.setNormalApp(true);
+            normalAppResult.setApplicationInfo(applicationInfo);
 
-            boolean importantSystemApp = applicationInfo.uid < 10000;
-            if (!importantSystemApp) {
-                normalAppResult.setNormalApp(true);
-                normalAppResult.setApplicationInfo(applicationInfo);
-            }
+            return normalAppResult;
         }
-
-        return normalAppResult;
     }
 
     public ApplicationInfo getApplicationInfo(AppInfo appInfo) {
@@ -242,7 +242,7 @@ public class ActivityManagerService implements ILogger {
      * @return 主进程的记录
      */
     public ProcessRecord findMProcessRecord(AppInfo appInfo) {
-        ProcessRecord mProcessRecord = getProcessRecordLocked(appInfo.getPackageName(), appInfo.getUid());
+        ProcessRecord mProcessRecord = getProcessRecordLocked(appInfo.getPackageName(), appInfo.getRepairedUid());
 
         if (mProcessRecord == null) {   // 目前已知, 双开的app必走这里
 //            Object uidRecord = XposedHelpers.newInstance(
