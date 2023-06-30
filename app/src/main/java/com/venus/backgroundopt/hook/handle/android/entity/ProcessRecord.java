@@ -20,17 +20,12 @@ import de.robv.android.xposed.XposedHelpers;
  */
 public class ProcessRecord {
     // 默认的最大adj
-//    public static final int DEFAULT_MAX_ADJ = ProcessList.FOREGROUND_APP_ADJ;
     public static final int DEFAULT_MAX_ADJ = ProcessList.VISIBLE_APP_ADJ;
-    // 多进程app的最大adj
-    public static final int MULTI_PROC_MAX_ADJ = ProcessList.PERSISTENT_PROC_ADJ;
     // 默认的主进程要设置的adj
-//    public static final int DEFAULT_MAIN_ADJ = ProcessList.NATIVE_ADJ;
-//    public static final int DEFAULT_MAIN_ADJ = ProcessList.SERVICE_ADJ;
-//    public static final int DEFAULT_MAIN_ADJ = ProcessRecord.DEFAULT_MAX_ADJ;
     public static final int DEFAULT_MAIN_ADJ = ProcessList.FOREGROUND_APP_ADJ;
     // 默认的子进程要设置的adj
     public static final int SUB_PROC_ADJ = ProcessList.PREVIOUS_APP_ADJ;
+
     /**
      * 安卓的ProcessRecord类
      */
@@ -47,23 +42,19 @@ public class ProcessRecord {
     }
 
     // 程序的uid
-    private final int uid;
+    private final int uid;  // uid of process; may be different from 'info' if isolated
     // 该进程对应的pid
     private final int pid;
     // 进程名称
     private final String processName;
     // 进程所属程序的用户id
     private final int userId;
-    // 进程所在的程序的信息
-    private final ApplicationInfo applicationInfo;
     // 进程所在的程序的包名
     private final String packageName;
-    // 进程的oom_score
-    private int oomAdjScore;
     // 反射拿到的安卓的processRecord对象
-    private Object processRecord;
+    private final Object processRecord;
     // 反射拿到的安卓的processStateRecord对象
-    private Object processStateRecord;
+    private final Object processStateRecord;
     // 当前ProcessRecord已记录的最大adj
     private int recordMaxAdj;
 
@@ -71,10 +62,11 @@ public class ProcessRecord {
         this.processRecord = processRecord;
         this.pid = getPid(processRecord);
         this.uid = XposedHelpers.getIntField(processRecord, FieldConstants.uid);
-
         this.userId = getUserId(processRecord);
-        this.applicationInfo = (ApplicationInfo) XposedHelpers.getObjectField(processRecord, FieldConstants.info);
+
+        ApplicationInfo applicationInfo = (ApplicationInfo) XposedHelpers.getObjectField(processRecord, FieldConstants.info);
         this.packageName = applicationInfo.packageName;
+
         this.processName = getAbsoluteProcessName(packageName, processRecord);
         this.processStateRecord = XposedHelpers.getObjectField(processRecord, FieldConstants.mState);
     }
@@ -275,10 +267,6 @@ public class ProcessRecord {
         return userId;
     }
 
-    public ApplicationInfo getApplicationInfo() {
-        return applicationInfo;
-    }
-
     public String getPackageName() {
         return packageName;
     }
@@ -287,23 +275,7 @@ public class ProcessRecord {
         return processRecord;
     }
 
-    public void setProcessRecord(Object processRecord) {
-        this.processRecord = processRecord;
-    }
-
     public Object getProcessStateRecord() {
         return processStateRecord;
-    }
-
-    public void setProcessStateRecord(Object processStateRecord) {
-        this.processStateRecord = processStateRecord;
-    }
-
-    public int getOomAdjScore() {
-        return oomAdjScore;
-    }
-
-    public void setOomAdjScore(int oomAdjScore) {
-        this.oomAdjScore = oomAdjScore;
     }
 }
