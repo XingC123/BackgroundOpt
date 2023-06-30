@@ -158,14 +158,19 @@ public class ProcessRecord {
      * @param maxAdj 最大adj的值
      */
     public void setMaxAdj(int maxAdj) {
+        boolean setSucceed = false;
         try {
             XposedHelpers.callMethod(this.processStateRecord, MethodConstants.setMaxAdj, maxAdj);
+            setSucceed = true;
         } catch (Exception e) {
-            XposedHelpers.setIntField(this.processStateRecord, FieldConstants.mMaxAdj, maxAdj);
-        } finally {
-            // 更新记录的最大adj
-            this.recordMaxAdj = maxAdj;
+            try {
+                XposedHelpers.setIntField(this.processStateRecord, FieldConstants.mMaxAdj, maxAdj);
+                setSucceed = true;
+            } catch (Exception ignore) {
+            }
         }
+
+        this.recordMaxAdj = setSucceed ? maxAdj : ProcessList.UNKNOWN_ADJ;
     }
 
     /**
@@ -177,7 +182,11 @@ public class ProcessRecord {
         try {
             return (int) XposedHelpers.callMethod(this.processStateRecord, MethodConstants.getMaxAdj);
         } catch (Exception e) {
-            return XposedHelpers.getIntField(this.processStateRecord, FieldConstants.mMaxAdj);
+            try {
+                return XposedHelpers.getIntField(this.processStateRecord, FieldConstants.mMaxAdj);
+            } catch (Exception ex) {
+                return ProcessList.UNKNOWN_ADJ;
+            }
         }
     }
 
