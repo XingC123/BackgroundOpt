@@ -1,11 +1,14 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
 import android.content.pm.ApplicationInfo;
+import android.os.Build;
 
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.utils.PackageUtils;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -56,7 +59,7 @@ public class ProcessRecord {
     // 反射拿到的安卓的processStateRecord对象
     private final Object processStateRecord;
     // 当前ProcessRecord已记录的最大adj
-    private int recordMaxAdj;
+    private int recordMaxAdj = ProcessList.UNKNOWN_ADJ;
 
     public ProcessRecord(Object processRecord) {
         this.processRecord = processRecord;
@@ -158,14 +161,48 @@ public class ProcessRecord {
      * @param maxAdj 最大adj的值
      */
     public void setMaxAdj(int maxAdj) {
-        try {
-            XposedHelpers.callMethod(this.processStateRecord, MethodConstants.setMaxAdj, maxAdj);
-        } catch (Exception e) {
-            XposedHelpers.setIntField(this.processStateRecord, FieldConstants.mMaxAdj, maxAdj);
-        } finally {
+        int sdkInt = Build.VERSION.SDK_INT;
+        Object obj;
+        String methodName;
+        String fieldName;
+
+        if (sdkInt >= Build.VERSION_CODES.S) {
+            obj = this.processStateRecord;
+            methodName = MethodConstants.setMaxAdj;
+            fieldName = FieldConstants.mMaxAdj;
+        } else {
+            obj = this.processRecord;
+            methodName = null;
+            fieldName = FieldConstants.maxAdj;
+        }
+
+        if (setMaxAdjImpl(obj, methodName, fieldName, maxAdj)) {
             // 更新记录的最大adj
             this.recordMaxAdj = maxAdj;
+        } else {
+            this.recordMaxAdj = ProcessList.UNKNOWN_ADJ;
         }
+    }
+
+    private boolean setMaxAdjImpl(Object obj, @Nullable String methodName, String fieldName, int maxAdj) {
+        boolean setSucceed = false;
+
+        try {
+            if (methodName == null) {
+                throw new NullPointerException();
+            }
+
+            XposedHelpers.callMethod(obj, methodName, maxAdj);
+            setSucceed = true;
+        } catch (Exception e) {
+            try {
+                XposedHelpers.setIntField(obj, fieldName, maxAdj);
+                setSucceed = true;
+            } catch (Exception ignore) {
+            }
+        }
+
+        return setSucceed;
     }
 
     /**
@@ -174,10 +211,37 @@ public class ProcessRecord {
      * @return 进程的最大adj
      */
     public int getMaxAdj() {
+        int sdkInt = Build.VERSION.SDK_INT;
+        Object obj;
+        String methodName;
+        String fieldName;
+
+        if (sdkInt >= Build.VERSION_CODES.S) {
+            obj = this.processStateRecord;
+            methodName = MethodConstants.getMaxAdj;
+            fieldName = FieldConstants.mMaxAdj;
+        } else {
+            obj = this.processRecord;
+            methodName = null;
+            fieldName = FieldConstants.maxAdj;
+        }
+
+        return getMaxAdjImpl(obj, methodName, fieldName);
+    }
+
+    private int getMaxAdjImpl(Object obj, @Nullable String methodName, String fieldName) {
         try {
-            return (int) XposedHelpers.callMethod(this.processStateRecord, MethodConstants.getMaxAdj);
+            if (methodName == null) {
+                throw new NullPointerException();
+            }
+
+            return (int) XposedHelpers.callMethod(obj, methodName);
         } catch (Exception e) {
-            return XposedHelpers.getIntField(this.processStateRecord, FieldConstants.mMaxAdj);
+            try {
+                return XposedHelpers.getIntField(obj, fieldName);
+            } catch (Exception ex) {
+                return ProcessList.UNKNOWN_ADJ;
+            }
         }
     }
 
@@ -194,7 +258,11 @@ public class ProcessRecord {
      * @param processRecord 安卓ProcessRecord
      */
     public static int getPid(Object processRecord) {
-        return XposedHelpers.getIntField(processRecord, FieldConstants.mPid);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            return XposedHelpers.getIntField(processRecord, FieldConstants.mPid);
+        } else {
+            return XposedHelpers.getIntField(processRecord, FieldConstants.pid);
+        }
     }
 
     /**

@@ -17,6 +17,7 @@ public interface FieldConstants {
     String processName = "processName";
     String mState = "mState";
     String mMaxAdj = "mMaxAdj";
+    String maxAdj = "maxAdj";
     /**
      *  {@link ClassConstants#ActivityManagerConstants}
      */
