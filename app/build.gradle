@@ -131,7 +131,7 @@ android {
         variant ->
             variant.outputs.all {
                 //这里修改apk文件名
-                outputFileName = "backgroundOpt_v${defaultConfig.versionName}(${defaultConfig.versionCode})" + generateSuffix() + "_" + releaseTime() + ".apk"
+                outputFileName = "backgroundOpt_v${defaultConfig.versionName}.'${defaultConfig.versionCode}'" + generateSuffix() + "_" + releaseTime() + ".apk"
             }
     }
 }
