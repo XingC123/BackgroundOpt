@@ -271,8 +271,7 @@ public class RunningInfo implements ILogger {
         activeAppGroup.remove(appInfo);
         tmpAppGroup.remove(appInfo);
         idleAppGroup.remove(appInfo);
-        handleRemoveFromActiveAppGroup(appInfo);
-        handleRemoveFromIdleAppGroup(appInfo);
+        processManager.removeAllAppMemoryTrimTask(appInfo);
 
         // 清理AppInfo。也许有助于gc
         appInfo.clearAppInfo();
@@ -407,12 +406,12 @@ public class RunningInfo implements ILogger {
 
     private void handleRemoveFromActiveAppGroup(AppInfo appInfo) {
         // 移除某些定时
-        processManager.removeForegroundAppTrimTask(appInfo.getmProcessRecord());
+//        processManager.cancelForegroundScheduledFuture(appInfo.getmProcessRecord());
     }
 
     private void handleRemoveFromIdleAppGroup(AppInfo appInfo) {
         // 移除某些定时
-        processManager.removeBackgroundAppTrimTask(appInfo.getmProcessRecord());
+//        processManager.cancelBackgroundScheduledFuture(appInfo.getmProcessRecord());
     }
 
     private void handleLastApp(AppInfo appInfo) {
