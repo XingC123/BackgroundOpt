@@ -61,26 +61,31 @@ public class ProcessManager implements ILogger {
 
     public void startBackgroundAppTrimTask(ProcessRecord processRecord) {
         // 移除前台任务
-        removeForegroundAppTrimTask(processRecord);
+        cancelForegroundScheduledFuture(processRecord);
 
         backgroundAppMemoryTrimManager.startTrimTask(processRecord);
-    }
-
-    public void removeBackgroundAppTrimTask(ProcessRecord processRecord) {
-        backgroundAppMemoryTrimManager.removeTrimTask(processRecord);
     }
 
     private final AppMemoryTrimManager foregroundAppMemoryTrimManager = new ForegroundAppMemoryTrimManager();
 
     public void startForegroundAppTrimTask(ProcessRecord processRecord) {
         // 移除后台任务
-        removeBackgroundAppTrimTask(processRecord);
+        cancelBackgroundScheduledFuture(processRecord);
 
         foregroundAppMemoryTrimManager.startTrimTask(processRecord);
     }
 
-    public void removeForegroundAppTrimTask(ProcessRecord processRecord) {
-        foregroundAppMemoryTrimManager.removeTrimTask(processRecord);
+    public void cancelForegroundScheduledFuture(ProcessRecord processRecord) {
+        foregroundAppMemoryTrimManager.cancelScheduledFuture(processRecord);
+    }
+
+    public void cancelBackgroundScheduledFuture(ProcessRecord processRecord) {
+        backgroundAppMemoryTrimManager.cancelScheduledFuture(processRecord);
+    }
+
+    public void removeAllAppMemoryTrimTask(AppInfo appInfo) {
+        foregroundAppMemoryTrimManager.removeTrimTask(appInfo.getmProcessRecord());
+        backgroundAppMemoryTrimManager.removeTrimTask(appInfo.getmProcessRecord());
     }
 
     /**

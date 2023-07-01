@@ -28,13 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @date 2023/2/10
  */
 public class RunningInfo implements ILogger {
-    private ClassLoader classLoader;
-
     public RunningInfo() {
-    }
-
-    public RunningInfo(ClassLoader classLoader) {
-        this.classLoader = classLoader;
     }
 
     /**
@@ -222,10 +216,7 @@ public class RunningInfo implements ILogger {
         if (mProcessRecord != null) {
             // 设置主进程的最大adj(保活)
             mProcessRecord.setDefaultMaxAdj();
-            // 保存进程信息
-            appInfo.setmProcessInfo(mProcessRecord);
-            // 保存主进程
-            appInfo.setmProcessRecord(mProcessRecord);
+            appInfo.setMProcessInfoAndMProcessRecord(mProcessRecord);
         } else {
             if (BuildConfig.DEBUG) {
                 getLogger().warn(appInfo.getPackageName() + " 的mProcessRecord为空");
@@ -271,8 +262,7 @@ public class RunningInfo implements ILogger {
         activeAppGroup.remove(appInfo);
         tmpAppGroup.remove(appInfo);
         idleAppGroup.remove(appInfo);
-        handleRemoveFromActiveAppGroup(appInfo);
-        handleRemoveFromIdleAppGroup(appInfo);
+        processManager.removeAllAppMemoryTrimTask(appInfo);
 
         // 清理AppInfo。也许有助于gc
         appInfo.clearAppInfo();
@@ -407,12 +397,12 @@ public class RunningInfo implements ILogger {
 
     private void handleRemoveFromActiveAppGroup(AppInfo appInfo) {
         // 移除某些定时
-        processManager.removeForegroundAppTrimTask(appInfo.getmProcessRecord());
+//        processManager.cancelForegroundScheduledFuture(appInfo.getmProcessRecord());
     }
 
     private void handleRemoveFromIdleAppGroup(AppInfo appInfo) {
         // 移除某些定时
-        processManager.removeBackgroundAppTrimTask(appInfo.getmProcessRecord());
+//        processManager.cancelBackgroundScheduledFuture(appInfo.getmProcessRecord());
     }
 
     private void handleLastApp(AppInfo appInfo) {

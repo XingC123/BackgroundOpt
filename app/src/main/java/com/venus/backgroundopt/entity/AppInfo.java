@@ -166,6 +166,16 @@ public class AppInfo implements ILogger {
         return mProcessInfo;
     }
 
+    /**
+     * 设置主进程信息
+     */
+    public void setMProcessInfoAndMProcessRecord(ProcessRecord processRecord) {
+        // 保存进程信息
+        setmProcessInfo(processRecord);
+        // 保存主进程
+        setmProcessRecord(processRecord);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -184,15 +194,6 @@ public class AppInfo implements ILogger {
      * 当前appInfo清理状态                                                       *
      *                                                                         *
      **************************************************************************/
-    private static Class<? extends AppInfo> appInfoClass;
-
-    public static Class<? extends AppInfo> getAppInfoClass(AppInfo appInfo) {
-        if (appInfoClass == null) {
-            appInfoClass = appInfo.getClass();
-        }
-        return appInfoClass;
-    }
-
     public void clearAppInfo() {
         try {
             runningInfo = null;
@@ -200,13 +201,12 @@ public class AppInfo implements ILogger {
             mProcessInfo = null;
 
             try {
-                Class<? extends AppInfo> aClass = getAppInfoClass(this);
-                Field[] fields = aClass.getDeclaredFields();
+                Field[] fields = AppInfo.class.getDeclaredFields();
                 Object obj;
                 for (Field field : fields) {
                     obj = field.get(this);
-                    if (obj instanceof Map<?, ?>) {
-                        ((Map<?, ?>) obj).clear();
+                    if (obj instanceof Map<?, ?> map) {
+                        map.clear();
                         field.set(this, null);
                     }
                 }

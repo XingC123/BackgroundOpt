@@ -86,7 +86,8 @@ android {
         minSdk 31
         targetSdk 33
         versionCode generateVersionCode()
-        versionName generateVersionName()
+//        versionName generateVersionName()
+        versionName generateVersionName()+"_vc${versionCode}"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -131,7 +132,8 @@ android {
         variant ->
             variant.outputs.all {
                 //这里修改apk文件名
-                outputFileName = "backgroundOpt_v${defaultConfig.versionName}_vc${defaultConfig.versionCode}" + generateSuffix() + "_" + releaseTime() + ".apk"
+//                outputFileName = "backgroundOpt_v${defaultConfig.versionName}_vc${defaultConfig.versionCode}" + generateSuffix() + "_" + releaseTime() + ".apk"
+                outputFileName = "backgroundOpt_v${defaultConfig.versionName}" + generateSuffix() + "_" + releaseTime() + ".apk"
             }
     }
 }
