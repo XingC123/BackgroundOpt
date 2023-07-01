@@ -56,24 +56,18 @@ public class ProcessListHook extends MethodHook {
             try {
                 mPid = appInfo.getmPid();
             } catch (Exception e) {
-                boolean getMPidSucceed = false;
-                ProcessRecord processRecord = runningInfo.getActivityManagerService().findMProcessRecord(appInfo);
-                if (processRecord != null) {
-                    appInfo.setMProcessInfoAndMProcessRecord(processRecord);
+                runningInfo.addRunningApp(appInfo);
 
-                    try {
-                        mPid = appInfo.getmPid();
-                        getMPidSucceed = true;
+                try {
+                    mPid = appInfo.getmPid();
 
-                        if (BuildConfig.DEBUG) {
-                            getLogger().debug(appInfo.getPackageName() + "的主进程信息补全完毕");
-                        }
-                    } catch (Exception ignore) {
+                    if (BuildConfig.DEBUG) {
+                        getLogger().debug(appInfo.getPackageName() + "的主进程信息补全完毕");
                     }
-                }
-
-                if (!getMPidSucceed) {
-                    getLogger().warn("获取: " + appInfo.getPackageName() + " 的mPid出错", e);
+                } catch (Exception ex) {
+                    if (BuildConfig.DEBUG) {
+                        getLogger().warn("获取: " + appInfo.getPackageName() + " 的mPid出错", ex);
+                    }
                 }
             }
 
