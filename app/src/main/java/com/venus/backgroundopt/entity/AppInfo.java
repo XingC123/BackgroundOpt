@@ -184,15 +184,6 @@ public class AppInfo implements ILogger {
      * 当前appInfo清理状态                                                       *
      *                                                                         *
      **************************************************************************/
-    private static Class<? extends AppInfo> appInfoClass;
-
-    public static Class<? extends AppInfo> getAppInfoClass(AppInfo appInfo) {
-        if (appInfoClass == null) {
-            appInfoClass = appInfo.getClass();
-        }
-        return appInfoClass;
-    }
-
     public void clearAppInfo() {
         try {
             runningInfo = null;
@@ -200,13 +191,12 @@ public class AppInfo implements ILogger {
             mProcessInfo = null;
 
             try {
-                Class<? extends AppInfo> aClass = getAppInfoClass(this);
-                Field[] fields = aClass.getDeclaredFields();
+                Field[] fields = AppInfo.class.getDeclaredFields();
                 Object obj;
                 for (Field field : fields) {
                     obj = field.get(this);
-                    if (obj instanceof Map<?, ?>) {
-                        ((Map<?, ?>) obj).clear();
+                    if (obj instanceof Map<?, ?> map) {
+                        map.clear();
                         field.set(this, null);
                     }
                 }
