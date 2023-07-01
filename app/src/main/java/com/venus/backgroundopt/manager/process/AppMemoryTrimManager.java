@@ -101,11 +101,10 @@ public abstract class AppMemoryTrimManager implements ILogger {
             return;
         }
 
-        ScheduledFuture<?> scheduledFuture = processRecordScheduledFutureMap.get(processRecord);
+        ScheduledFuture<?> scheduledFuture = processRecordScheduledFutureMap.remove(processRecord);
 
         if (scheduledFuture != null) {
             scheduledFuture.cancel(true);
-            processRecordScheduledFutureMap.remove(processRecord);
 
             if (BuildConfig.DEBUG) {
                 getLogger().debug(getMemoryTrimManagerNameImpl() + "移除TrimMemoryTask ->>> "
