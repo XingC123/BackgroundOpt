@@ -430,6 +430,7 @@ public class RunningInfo implements ILogger {
 
         processManager.startBackgroundAppTrimTask(appInfo.getmProcessRecord());
         processManager.handleGC(appInfo);
+        processManager.setProcessGroup(appInfo);
 //        compactApp(appInfo);
 
         appInfo.setSwitchEventHandled(true);
@@ -454,7 +455,8 @@ public class RunningInfo implements ILogger {
      *                                                                         *
      * process_daemon_service                                                  *
      *                                                                         *
-     **************************************************************************/ ProcessDaemonService processDaemonService;
+     **************************************************************************/
+    ProcessDaemonService processDaemonService;
 
     public ProcessDaemonService getProcessDaemonService() {
         return processDaemonService;

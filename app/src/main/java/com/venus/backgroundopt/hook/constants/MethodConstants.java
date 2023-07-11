@@ -57,6 +57,7 @@ public interface MethodConstants {
     String getThread = "getThread";
     String getProcessRecordLocked = "getProcessRecordLocked";
     String getProcessInPackage = "getProcessInPackage";
+    String setProcessGroup = "setProcessGroup";
 
     /**
      * miui

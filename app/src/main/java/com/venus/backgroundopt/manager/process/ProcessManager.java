@@ -5,8 +5,11 @@ import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.interfaces.ILogger;
+
+import java.util.Set;
 
 /**
  * @author XingC
@@ -113,6 +116,21 @@ public class ProcessManager implements ILogger {
             if (BuildConfig.DEBUG) {
                 getLogger().error(appInfo.getPackageName() + " 存在问题, 无法执行gc", e);
             }
+        }
+    }
+
+    /**
+     * 设置进程组
+     * @param appInfo app信息
+     */
+    public void setProcessGroup(AppInfo appInfo) {
+        Set<Integer> processInfoPids = appInfo.getProcessInfoPids();
+
+        processInfoPids.parallelStream()
+                .forEach(pid -> Process.setProcessGroup(pid, ProcessList.SCHED_GROUP_BACKGROUND));
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(appInfo.getPackageName() + " 进行进程组设置 >>> SCHED_GROUP_BACKGROUND");
         }
     }
 }

@@ -11,6 +11,7 @@ import com.venus.backgroundopt.interfaces.ILogger;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -142,6 +143,10 @@ public class AppInfo implements ILogger {
 
     public void removeProcessInfo(int pid) {
         processInfoMap.remove(pid);
+    }
+
+    public Set<Integer> getProcessInfoPids() {
+        return processInfoMap.keySet();
     }
 
     public ApplicationIdentity getApplicationIdentity() {
