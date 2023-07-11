@@ -273,6 +273,11 @@ public class RunningInfo implements ILogger {
      * app切换待处理队列                                                          *
      *                                                                         *
      **************************************************************************/
+    public enum AppGroupEnum {
+        ACTIVE,
+        TMP,
+        IDLE
+    }
     // 活跃分组
     private final Set<AppInfo> activeAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
     // 缓存分组
@@ -338,6 +343,7 @@ public class RunningInfo implements ILogger {
         }
 
         activeAppGroup.add(appInfo);
+        appInfo.appGroupEnum = AppGroupEnum.ACTIVE;
     }
 
     private void handleCurApp(AppInfo appInfo) {
@@ -369,6 +375,8 @@ public class RunningInfo implements ILogger {
         activeAppGroup.remove(appInfo);
 //        idleAppGroup.remove(appInfo); // 没有app在后台也能进入这个方法吧
 
+        appInfo.appGroupEnum = AppGroupEnum.TMP;
+
         /*
             息屏触发 UsageEvents.Event.ACTIVITY_PAUSED 事件。则对当前app按照进入后台处理
             boolean isScreenOn = pm.isInteractive();
@@ -389,6 +397,7 @@ public class RunningInfo implements ILogger {
         handleLastApp(appInfo);
 
         idleAppGroup.add(appInfo);
+        appInfo.appGroupEnum = AppGroupEnum.IDLE;
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + "  被放入IdleGroup");

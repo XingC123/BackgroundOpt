@@ -54,21 +54,23 @@ public class ProcessRecord {
     // 反射拿到的安卓的processRecord对象
     private final Object processRecord;
     // 反射拿到的安卓的processStateRecord对象
-    private final Object processStateRecord;
+//    private final Object processStateRecord;
+    private final ProcessStateRecord processStateRecord;
     // 当前ProcessRecord已记录的最大adj
     private int recordMaxAdj;
 
     public ProcessRecord(Object processRecord) {
         this.processRecord = processRecord;
         this.pid = getPid(processRecord);
-        this.uid = XposedHelpers.getIntField(processRecord, FieldConstants.uid);
+        this.uid = getUID(processRecord);
         this.userId = getUserId(processRecord);
 
         ApplicationInfo applicationInfo = (ApplicationInfo) XposedHelpers.getObjectField(processRecord, FieldConstants.info);
         this.packageName = applicationInfo.packageName;
 
         this.processName = getAbsoluteProcessName(packageName, processRecord);
-        this.processStateRecord = XposedHelpers.getObjectField(processRecord, FieldConstants.mState);
+//        this.processStateRecord = XposedHelpers.getObjectField(processRecord, FieldConstants.mState);
+        this.processStateRecord = new ProcessStateRecord(XposedHelpers.getObjectField(processRecord, FieldConstants.mState));
     }
 
     /**
@@ -139,6 +141,10 @@ public class ProcessRecord {
         return expectProcName.equals(getProcessName(processRecord));
     }
 
+    public static int getUID(Object processRecord) {
+        return XposedHelpers.getIntField(processRecord, FieldConstants.uid);
+    }
+
     /**
      * 设置默认的最大adj
      */
@@ -160,11 +166,14 @@ public class ProcessRecord {
     public void setMaxAdj(int maxAdj) {
         boolean setSucceed = false;
         try {
-            XposedHelpers.callMethod(this.processStateRecord, MethodConstants.setMaxAdj, maxAdj);
+            this.processStateRecord.setMaxAdj(maxAdj);
             setSucceed = true;
         } catch (Exception e) {
             try {
-                XposedHelpers.setIntField(this.processStateRecord, FieldConstants.mMaxAdj, maxAdj);
+                XposedHelpers.setIntField(
+                        this.processStateRecord.getProcessStateRecord(),
+                        FieldConstants.mMaxAdj,
+                        maxAdj);
                 setSucceed = true;
             } catch (Exception ignore) {
             }
@@ -180,10 +189,11 @@ public class ProcessRecord {
      */
     public int getMaxAdj() {
         try {
-            return (int) XposedHelpers.callMethod(this.processStateRecord, MethodConstants.getMaxAdj);
+            return this.processStateRecord.getMaxAdj();
         } catch (Exception e) {
             try {
-                return XposedHelpers.getIntField(this.processStateRecord, FieldConstants.mMaxAdj);
+                return XposedHelpers.getIntField(
+                        this.processStateRecord.getProcessStateRecord(), FieldConstants.mMaxAdj);
             } catch (Exception ex) {
                 return ProcessList.UNKNOWN_ADJ;
             }
@@ -284,7 +294,7 @@ public class ProcessRecord {
         return processRecord;
     }
 
-    public Object getProcessStateRecord() {
+    public ProcessStateRecord getProcessStateRecord() {
         return processStateRecord;
     }
 }
