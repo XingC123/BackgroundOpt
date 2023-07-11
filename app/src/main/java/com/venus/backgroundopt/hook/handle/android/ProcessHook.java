@@ -9,6 +9,8 @@ import com.venus.backgroundopt.hook.base.action.BeforeHookAction;
 import com.venus.backgroundopt.hook.base.action.HookAction;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
+import com.venus.backgroundopt.hook.handle.android.entity.Process;
+import com.venus.backgroundopt.manager.process.ProcessManager;
 
 import de.robv.android.xposed.XC_MethodHook;
 
@@ -31,6 +33,16 @@ public class ProcessHook extends MethodHook {
                         new HookAction[]{
                                 (BeforeHookAction) this::handleKillApp
                         },
+                        int.class,
+                        int.class
+                ),
+                new HookPoint(
+                        ClassConstants.Process,
+                        MethodConstants.setProcessGroup,
+                        new HookAction[]{
+                                (BeforeHookAction) this::handleSetProcessGroup
+                        },
+                        /* pid, group */
                         int.class,
                         int.class
                 ),
@@ -82,6 +94,44 @@ public class ProcessHook extends MethodHook {
 //                String pkgName = (String) param.args[0];
 //                getRunningInfo().removeRunningApp(pkgName);
 //                getLogger().info("kill " + pkgName);
+
+        return null;
+    }
+
+    private Object handleSetProcessGroup(XC_MethodHook.MethodHookParam param) {
+        Object[] args = param.args;
+//        RunningInfo runningInfo = getRunningInfo();
+
+//        int pid = (int) args[0];
+//        int uid = Process.getUidForPid(pid);
+//        AppInfo appInfo = runningInfo.getRunningAppInfo(uid);
+//
+//        if (appInfo != null && appInfo.appGroupEnum == RunningInfo.AppGroupEnum.IDLE) {
+//            args[1] = Process.THREAD_GROUP_BACKGROUND;
+//
+//            if (BuildConfig.DEBUG) {
+//                getLogger().debug(appInfo.getPackageName() + "的pid=" + pid + "设置ProcessGroup: " + args[1]);
+//            }
+//        }
+
+        int pid = (int) args[0];
+        int group = (int) args[1];
+
+        if (group > Process.THREAD_GROUP_RESTRICTED) {  //若是模块控制的行为, 则直接处理
+            args[1] = group - ProcessManager.THREAD_GROUP_LEVEL_OFFSET;
+            if (BuildConfig.DEBUG) {
+                getLogger().debug(pid + "设置ProcessGroup >>> " + args[1]);
+            }
+        } else {    // 系统调用
+            RunningInfo runningInfo = getRunningInfo();
+            int uid = Process.getUidForPid(pid);
+            AppInfo appInfo = runningInfo.getRunningAppInfo(uid);
+
+            // 若此次行为发生时, app已进入后台, 则不执行(模块已经处理过)
+            if (appInfo != null && appInfo.appGroupEnum == RunningInfo.AppGroupEnum.IDLE) {
+                param.setResult(null);
+            }
+        }
 
         return null;
     }

@@ -5,7 +5,6 @@ import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.interfaces.ILogger;
 
@@ -21,6 +20,21 @@ public class ProcessManager implements ILogger {
      * {@link android.os.Process#SIGNAL_USR1}
      */
     public static final int SIGNAL_10 = 10;
+
+    /* *************************************************************************
+     *                                                                         *
+     * thread group                                                            *
+     *                                                                         *
+     **************************************************************************/
+    /**
+     * 偏移量
+     */
+    public static final int THREAD_GROUP_LEVEL_OFFSET = 2 * Process.THREAD_GROUP_RESTRICTED;
+
+    /**
+     * 后台组
+     */
+    public static final int THREAD_GROUP_BACKGROUND = Process.THREAD_GROUP_BACKGROUND + THREAD_GROUP_LEVEL_OFFSET;
 
     public ProcessManager(ActivityManagerService activityManagerService) {
         this.cachedAppOptimizer = activityManagerService.getOomAdjuster().getCachedAppOptimizer();
@@ -121,16 +135,24 @@ public class ProcessManager implements ILogger {
 
     /**
      * 设置进程组
+     *
      * @param appInfo app信息
      */
     public void setProcessGroup(AppInfo appInfo) {
         Set<Integer> processInfoPids = appInfo.getProcessInfoPids();
-
+//
         processInfoPids.parallelStream()
-                .forEach(pid -> Process.setProcessGroup(pid, ProcessList.SCHED_GROUP_BACKGROUND));
+                .forEach(pid -> {
+                    int processGroup = Process.getProcessGroup(pid);
+                    if (processGroup == Process.THREAD_GROUP_AUDIO_APP ||
+                            processGroup == Process.THREAD_GROUP_AUDIO_SYS) {
+                        return;
+                    }
+                    Process.setProcessGroup(pid, THREAD_GROUP_BACKGROUND);
+                });
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + " 进行进程组设置 >>> SCHED_GROUP_BACKGROUND");
+            getLogger().debug(appInfo.getPackageName() + " 进行进程组设置 >>> THREAD_GROUP_BACKGROUND");
         }
     }
 }

@@ -10,6 +10,66 @@ import de.robv.android.xposed.XposedHelpers;
  * @date 2023/2/20
  */
 public class Process {
+    // Keep in sync with SP_* constants of enum type SchedPolicy
+    // declared in system/core/include/cutils/sched_policy.h,
+    // except THREAD_GROUP_DEFAULT does not correspond to any SP_* value.
+
+    /**
+     * Default thread group -
+     * has meaning with setProcessGroup() only, cannot be used with setThreadGroup().
+     * When used with setProcessGroup(), the group of each thread in the process
+     * is conditionally changed based on that thread's current priority, as follows:
+     * threads with priority numerically less than THREAD_PRIORITY_BACKGROUND
+     * are moved to foreground thread group.  All other threads are left unchanged.
+     */
+    public static final int THREAD_GROUP_DEFAULT = -1;
+
+    /**
+     * Background thread group - All threads in
+     * this group are scheduled with a reduced share of the CPU.
+     * Value is same as constant SP_BACKGROUND of enum SchedPolicy.
+     */
+    public static final int THREAD_GROUP_BACKGROUND = 0;
+
+    /**
+     * Foreground thread group - All threads in
+     * this group are scheduled with a normal share of the CPU.
+     * Value is same as constant SP_FOREGROUND of enum SchedPolicy.
+     * Not used at this level.
+     **/
+    private static final int THREAD_GROUP_FOREGROUND = 1;
+
+    /**
+     * System thread group.
+     **/
+    public static final int THREAD_GROUP_SYSTEM = 2;
+
+    /**
+     * Application audio thread group.
+     **/
+    public static final int THREAD_GROUP_AUDIO_APP = 3;
+
+    /**
+     * System audio thread group.
+     **/
+    public static final int THREAD_GROUP_AUDIO_SYS = 4;
+
+    /**
+     * Thread group for top foreground app.
+     **/
+    public static final int THREAD_GROUP_TOP_APP = 5;
+
+    /**
+     * Thread group for RT app.
+     **/
+    public static final int THREAD_GROUP_RT_APP = 6;
+
+    /**
+     * Thread group for bound foreground services that should
+     * have additional CPU restrictions during screen off
+     **/
+    public static final int THREAD_GROUP_RESTRICTED = 7;
+
     private Object process;
 
     public static Class<?> getProcess() {
@@ -107,6 +167,37 @@ public class Process {
                 getProcess(),
                 MethodConstants.setProcessGroup,
                 pid,
+                group
+        );
+    }
+
+    /**
+     * Return the scheduling group of requested process.
+     */
+    public static int getProcessGroup(int pid) {
+        return (int) XposedHelpers.callStaticMethod(
+                getProcess(),
+                MethodConstants.getProcessGroup,
+                pid
+        );
+    }
+
+    /**
+     * Sets the scheduling group and the corresponding cpuset group
+     *
+     * @param tid   The identifier of the thread to change.
+     * @param group The target group for this thread from THREAD_GROUP_*.
+     * @throws IllegalArgumentException Throws IllegalArgumentException if
+     *                                  <var>tid</var> does not exist.
+     * @throws SecurityException        Throws SecurityException if your process does
+     *                                  not have permission to modify the given thread, or to use the given
+     *                                  priority.
+     */
+    public static void setThreadGroupAndCpuset(int tid, int group) {
+        XposedHelpers.callStaticMethod(
+                getProcess(),
+                MethodConstants.setThreadGroupAndCpuset,
+                tid,
                 group
         );
     }
