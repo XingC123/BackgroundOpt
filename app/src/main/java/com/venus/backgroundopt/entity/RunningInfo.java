@@ -71,7 +71,6 @@ public class RunningInfo implements ILogger {
      * 运行的进程                                                                *
      *                                                                         *
      **************************************************************************/
-    public volatile AppInfo lastAppInfo;
     /**
      * 非系统重要进程记录
      * userId包名, NormalAppResult
@@ -247,10 +246,6 @@ public class RunningInfo implements ILogger {
      * @param appInfo app信息
      */
     public void removeRunningApp(AppInfo appInfo) {
-        if (Objects.equals(appInfo, lastAppInfo)) {
-            lastAppInfo = null;
-        }
-
         // 从运行列表移除
         AppInfo remove = runningApps.remove(appInfo.getRepairedUid());
 

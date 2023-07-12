@@ -237,7 +237,15 @@ public class AppInfo implements ILogger {
         if (userId == ActivityManagerService.MAIN_USER) {
             return uid;
         } else {
-            return Integer.parseInt(String.valueOf(userId) + uid);
+            int compute = uid / ActivityManagerService.USER_APP_UID_START_NUM;
+
+            // 0: 系统应用, 1: 用户程序
+            // 位数不够需要补0(测试于: MIUI13 22.7.8 安卓12)
+            if (compute == 0) {
+                return Integer.parseInt(userId + String.valueOf(0) + uid);
+            } else {
+                return Integer.parseInt(String.valueOf(userId) + uid);
+            }
         }
     }
 
