@@ -23,6 +23,8 @@ import de.robv.android.xposed.XposedHelpers;
  */
 public class ActivityManagerService implements ILogger {
     public final static int MAIN_USER = 0;
+    // 用户安装的app的uid大于10000
+    public final static int USER_APP_UID_START_NUM = 10000;
     /* *************************************************************************
      *                                                                         *
      * 系统activityManagerService                                               *
@@ -94,7 +96,13 @@ public class ActivityManagerService implements ILogger {
 //                    applicationInfo.flags & (
 //                            ApplicationInfo.FLAG_SYSTEM |
 //                                    ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0;
-        if (applicationInfo == null || applicationInfo.uid < 10000) {
+        /*
+            ① app的uid/100000（10000还是100000）计算为userid填到u0处
+            ② app的uid减去10000填到axx处
+            例如某个app的uid是10022，则计算出来ps打印得到uid字串就是u0_a22
+         */
+        //  普通应用程序的UID 都是从 10000开始的
+        if (applicationInfo == null || applicationInfo.uid < USER_APP_UID_START_NUM) {
             return notNormalAppResult;
         } else {
             NormalAppResult normalAppResult = new NormalAppResult();
