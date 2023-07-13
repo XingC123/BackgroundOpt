@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.manager.process;
 
+import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
+
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
@@ -134,25 +136,43 @@ public class ProcessManager implements ILogger {
     }
 
     /**
-     * 设置进程组
+     * 设置app到后台进程组
      *
      * @param appInfo app信息
      */
-    public void setProcessGroup(AppInfo appInfo) {
+    public void setAppToBackgroundProcessGroup(AppInfo appInfo) {
         Set<Integer> processInfoPids = appInfo.getProcessInfoPids();
-//
-        processInfoPids.parallelStream()
-                .forEach(pid -> {
-                    int processGroup = Process.getProcessGroup(pid);
-                    if (processGroup == Process.THREAD_GROUP_AUDIO_APP ||
-                            processGroup == Process.THREAD_GROUP_AUDIO_SYS) {
-                        return;
-                    }
-                    Process.setProcessGroup(pid, THREAD_GROUP_BACKGROUND);
-                });
+
+        processInfoPids.parallelStream().forEach(this::setPidToBackgroundProcessGroup);
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + " 进行进程组设置 >>> THREAD_GROUP_BACKGROUND");
+        }
+    }
+
+    /**
+     * 设置给定pid到后台进程组
+     *
+     * @param pid 要设置的pid
+     */
+    public void setPidToBackgroundProcessGroup(int pid) {
+        int processGroup = Process.getProcessGroup(pid);
+        if (processGroup == Process.THREAD_GROUP_AUDIO_APP ||
+                processGroup == Process.THREAD_GROUP_AUDIO_SYS) {
+            return;
+        }
+        Process.setProcessGroup(pid, THREAD_GROUP_BACKGROUND);
+    }
+
+    /**
+     * 当appInfo处于tmp或idle分组时, 设置给定pid到后台进程组
+     *
+     * @param pid     要设置的pid
+     * @param appInfo pid所属app
+     */
+    public void setPidToBackgroundProcessGroup(int pid, AppInfo appInfo) {
+        if (appInfo != null && appInfo.getAppGroupEnum() == AppGroupEnum.IDLE) {
+            setPidToBackgroundProcessGroup(pid);
         }
     }
 }

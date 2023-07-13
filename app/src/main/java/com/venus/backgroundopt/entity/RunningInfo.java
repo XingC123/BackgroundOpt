@@ -338,7 +338,7 @@ public class RunningInfo implements ILogger {
         }
 
         activeAppGroup.add(appInfo);
-        appInfo.appGroupEnum = AppGroupEnum.ACTIVE;
+        appInfo.setAppGroupEnum(AppGroupEnum.ACTIVE);
     }
 
     private void handleCurApp(AppInfo appInfo) {
@@ -370,7 +370,7 @@ public class RunningInfo implements ILogger {
         activeAppGroup.remove(appInfo);
 //        idleAppGroup.remove(appInfo); // 没有app在后台也能进入这个方法吧
 
-        appInfo.appGroupEnum = AppGroupEnum.TMP;
+        appInfo.setAppGroupEnum(AppGroupEnum.TMP);
 
         /*
             息屏触发 UsageEvents.Event.ACTIVITY_PAUSED 事件。则对当前app按照进入后台处理
@@ -392,7 +392,7 @@ public class RunningInfo implements ILogger {
         handleLastApp(appInfo);
 
         idleAppGroup.add(appInfo);
-        appInfo.appGroupEnum = AppGroupEnum.IDLE;
+        appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + "  被放入IdleGroup");
@@ -434,7 +434,7 @@ public class RunningInfo implements ILogger {
 
         processManager.startBackgroundAppTrimTask(appInfo.getmProcessRecord());
         processManager.handleGC(appInfo);
-        processManager.setProcessGroup(appInfo);
+        processManager.setAppToBackgroundProcessGroup(appInfo);
 //        compactApp(appInfo);
 
         appInfo.setSwitchEventHandled(true);
