@@ -36,14 +36,14 @@ public class ActivityManagerService implements ILogger {
         return activityManagerService;
     }
 
-    public ActivityManagerService(Object activityManagerService) {
+    public ActivityManagerService(Object activityManagerService, ClassLoader classLoader) {
         this.activityManagerService = activityManagerService;
         this.processList = new ProcessList(
                 XposedHelpers.getObjectField(activityManagerService, FieldConstants.mProcessList),
                 this);
         this.context = (Context) XposedHelpers.getObjectField(activityManagerService, FieldConstants.mContext);
         this.oomAdjuster = new OomAdjuster(
-                XposedHelpers.getObjectField(activityManagerService, FieldConstants.mOomAdjuster));
+                XposedHelpers.getObjectField(activityManagerService, FieldConstants.mOomAdjuster), classLoader);
         this.mPidsSelfLocked = XposedHelpers.getObjectField(activityManagerService, FieldConstants.mPidsSelfLocked);
         this.mProcLock = XposedHelpers.getObjectField(activityManagerService, FieldConstants.mProcLock);
     }

@@ -12,6 +12,8 @@ public interface ClassConstants {
     String ActivityManagerService = "com.android.server.am.ActivityManagerService";
     String ActivityManagerConstants = "com.android.server.am.ActivityManagerConstants";
     String PhantomProcessList = "com.android.server.am.PhantomProcessList";
+    String ProcessCachedOptimizerRecord = "com.android.server.am.ProcessCachedOptimizerRecord";
+    String ActivityManagerShellCommand = "com.android.server.am.ActivityManagerShellCommand";
     String RecentTasks = "com.android.server.wm.RecentTasks";
     String Task = "com.android.server.wm.Task";
     String ComponentName = "android.content.ComponentName";
@@ -31,6 +33,7 @@ public interface ClassConstants {
     String SystemServerDexLoadReporter = "com.android.server.pm.dex.SystemServerDexLoadReporter";
     String IPackageManager = "android.content.pm.IPackageManager";
     String CachedAppOptimizer = "com.android.server.am.CachedAppOptimizer";
+    String MemCompactionHandler = "com.android.server.am.CachedAppOptimizer.MemCompactionHandler";
     String ComponentCallbacks2 = "android.content.ComponentCallbacks2";
     String UidRecord = "com.android.server.am.UidRecord";
 

@@ -102,10 +102,9 @@ public class ProcessListHook extends MethodHook {
                 if (!appInfo.isRecordedProcessInfo(pid)) {
                     param.args[2] = ProcessRecord.SUB_PROC_ADJ;
 
-                    processInfo = new ProcessInfo(uid, pid, oomAdjScore);
+                    processInfo = appInfo.addProcessInfo(pid, oomAdjScore);
                     processInfo.setFixedOomAdjScore(ProcessRecord.SUB_PROC_ADJ);
                     processInfo.setOomAdjScore(ProcessRecord.SUB_PROC_ADJ);
-                    appInfo.addProcessInfo(processInfo);
 
                     runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, appInfo);
 

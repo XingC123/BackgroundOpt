@@ -24,11 +24,12 @@ public class OomAdjuster {
         return cachedAppOptimizer;
     }
 
-    public OomAdjuster(Object oomAdjuster) {
+    public OomAdjuster(Object oomAdjuster, ClassLoader classLoader) {
         this.oomAdjuster = oomAdjuster;
 
         cachedAppOptimizer = new CachedAppOptimizer(
-                XposedHelpers.getObjectField(oomAdjuster, FieldConstants.mCachedAppOptimizer)
+                XposedHelpers.getObjectField(oomAdjuster, FieldConstants.mCachedAppOptimizer),
+                classLoader
         );
     }
 }
