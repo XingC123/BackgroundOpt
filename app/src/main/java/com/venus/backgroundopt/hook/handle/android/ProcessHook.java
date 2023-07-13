@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.hook.handle.android;
 
+import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
+
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.RunningInfo;
@@ -126,9 +128,12 @@ public class ProcessHook extends MethodHook {
             RunningInfo runningInfo = getRunningInfo();
             int uid = Process.getUidForPid(pid);
             AppInfo appInfo = runningInfo.getRunningAppInfo(uid);
+            AppGroupEnum appGroupEnum;
 
-            // 若此次行为发生时, app已进入后台, 则不执行(模块已经处理过)
-            if (appInfo != null && appInfo.appGroupEnum == RunningInfo.AppGroupEnum.IDLE) {
+            // 若此次行为发生时, app已进入后台(模块已经处理过)或处于tmp分组(模块会处理), 则不执行
+            if (appInfo != null && (
+                    (appGroupEnum = appInfo.getAppGroupEnum()) == AppGroupEnum.IDLE ||
+                            appGroupEnum == AppGroupEnum.TMP)) {
                 param.setResult(null);
             }
         }

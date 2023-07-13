@@ -107,6 +107,8 @@ public class ProcessListHook extends MethodHook {
                     processInfo.setOomAdjScore(ProcessRecord.SUB_PROC_ADJ);
                     appInfo.addProcessInfo(processInfo);
 
+                    runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, appInfo);
+
                     if (BuildConfig.DEBUG) {
                         getLogger().debug(
                                 "设置子进程[" + pid + "-" + appInfo.getPackageName() + "]adj: "

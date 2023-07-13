@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * app信息
@@ -71,7 +72,16 @@ public class AppInfo implements ILogger {
      *                                                                         *
      **************************************************************************/
     // 当前app在本模块内的内存分组
-    public volatile AppGroupEnum appGroupEnum;
+    private AtomicReference<AppGroupEnum> appGroupEnumAtomicReference = new AtomicReference<>();
+
+    public void setAppGroupEnum(AppGroupEnum appGroupEnum) {
+        appGroupEnumAtomicReference.set(appGroupEnum);
+    }
+
+    public AppGroupEnum getAppGroupEnum() {
+        return appGroupEnumAtomicReference.get();
+    }
+
     /**
      * 进程信息映射<pid, ProcessInfo>
      * 没有设置为 final, 因为在{@link AppInfo#clearAppInfo()}中需要反射来置空
@@ -110,6 +120,8 @@ public class AppInfo implements ILogger {
             processInfo.setOomAdjScore(oomAdjScore);
         } else {
             processInfo = addProcessInfo(pid, oomAdjScore);
+
+            runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, this);
         }
 
         // 当进程实际oomAdjScore大于指定等级。则进行一次压缩
@@ -216,6 +228,9 @@ public class AppInfo implements ILogger {
                     obj = field.get(this);
                     if (obj instanceof Map<?, ?> map) {
                         map.clear();
+                        field.set(this, null);
+                    } else if (obj instanceof AtomicReference<?> ap) {
+                        ap.set(null);
                         field.set(this, null);
                     }
                 }
