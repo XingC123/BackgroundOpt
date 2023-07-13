@@ -17,6 +17,12 @@ public interface FieldConstants {
     String processName = "processName";
     String mState = "mState";
     String mMaxAdj = "mMaxAdj";
+    String mCompactThrottleMinOomAdj = "mCompactThrottleMinOomAdj";
+    String mCompactThrottleMaxOomAdj = "mCompactThrottleMaxOomAdj";
+    String mFullCompactRequest = "mFullCompactRequest";
+    String mOptRecord = "mOptRecord";
+    String mCompactionHandler = "mCompactionHandler";
+    String mUseCompaction = "mUseCompaction";
     /**
      *  {@link ClassConstants#ActivityManagerConstants}
      */

@@ -3,10 +3,7 @@ package com.venus.backgroundopt.entity;
 import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 
 import com.venus.backgroundopt.BuildConfig;
-import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
-import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.interfaces.ILogger;
 
@@ -72,7 +69,7 @@ public class AppInfo implements ILogger {
      *                                                                         *
      **************************************************************************/
     // 当前app在本模块内的内存分组
-    private AtomicReference<AppGroupEnum> appGroupEnumAtomicReference = new AtomicReference<>();
+    private final AtomicReference<AppGroupEnum> appGroupEnumAtomicReference = new AtomicReference<>();
 
     public void setAppGroupEnum(AppGroupEnum appGroupEnum) {
         appGroupEnumAtomicReference.set(appGroupEnum);
@@ -125,32 +122,14 @@ public class AppInfo implements ILogger {
         }
 
         // 当进程实际oomAdjScore大于指定等级。则进行一次压缩
-        if (appSwitchEvent == ActivityManagerServiceHook.ACTIVITY_PAUSED && oomAdjScore > ProcessList.SERVICE_B_ADJ
-                && !Objects.equals(packageName, runningInfo.getActiveLaunchPackageName())) {
+        if (getAppGroupEnum() == AppGroupEnum.IDLE &&
+                !Objects.equals(packageName, runningInfo.getActiveLaunchPackageName())) {
+            runningInfo.getProcessManager().compactAppFull(processInfo, oomAdjScore);
 
-            boolean executed = false;
-            long currentTimeMillis = System.currentTimeMillis();
-            if (currentTimeMillis - processInfo.getLastCompactTime() > processInfo.getCompactInterval()) {
-                runningInfo.getProcessManager().compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL);
-                executed = true;
-                processInfo.setLastCompactTime(currentTimeMillis);
+            if(BuildConfig.DEBUG) {
+                getLogger().debug("包名: " + packageName + "的pid: " + pid + " >>> 因oom_score而内存压缩");
             }
-
-            if (BuildConfig.DEBUG) {
-                String s;
-                if (executed) {
-                    s = " 成功";
-                } else {
-                    s = " 未执行";
-                }
-                getLogger().debug("compactApp: " + packageName + "." + pid
-                        + " ->>> " + CachedAppOptimizer.COMPACT_ACTION_FULL + s);
-            }
-        } /*else {
-            if (BuildConfig.DEBUG) {
-                getLogger().debug(packageName + " 不执行压缩: appSwitchEvent: " + appSwitchEvent + ", oomAdjScore: " + oomAdjScore + ", 默认桌面: " + runningInfo.getActiveLaunchPackageName());
-            }
-        }*/
+        }
     }
 
     public boolean isRecordedProcessInfo(int pid) {
@@ -162,6 +141,9 @@ public class AppInfo implements ILogger {
     }
 
     public Set<Integer> getProcessInfoPids() {
+        if (processInfoMap == null) {
+            return null;
+        }
         return processInfoMap.keySet();
     }
 
@@ -231,7 +213,6 @@ public class AppInfo implements ILogger {
                         field.set(this, null);
                     } else if (obj instanceof AtomicReference<?> ap) {
                         ap.set(null);
-                        field.set(this, null);
                     }
                 }
             } catch (IllegalAccessException | IllegalArgumentException e) {

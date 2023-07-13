@@ -63,6 +63,9 @@ public interface MethodConstants {
     String setSetSchedGroup = "setSetSchedGroup";
     String hasForegroundActivities = "hasForegroundActivities";
     String setThreadGroupAndCpuset = "setThreadGroupAndCpuset";
+    String getCurAdj = "getCurAdj";
+    String setReqCompactAction = "setReqCompactAction";
+    String updateUseCompaction = "updateUseCompaction";
 
     /**
      * miui

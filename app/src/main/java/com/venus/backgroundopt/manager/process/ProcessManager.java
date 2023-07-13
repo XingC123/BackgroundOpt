@@ -4,6 +4,7 @@ import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.AppInfo;
+import com.venus.backgroundopt.entity.ProcessInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
@@ -69,6 +70,42 @@ public class ProcessManager implements ILogger {
      */
     public void compactApp(int pid, int compactAction) {
         cachedAppOptimizer.compactProcess(pid, compactAction);
+    }
+
+    /**
+     * 部分压缩
+     *
+     * @param pid 要压缩的pid
+     */
+    public void compactAppSome(int pid) {
+        compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FILE);
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug("pid: " + pid + " >>> 进行了一次compactAppSome");
+        }
+    }
+
+    public void compactAppSome(AppInfo appInfo) {
+        appInfo.getProcessInfoPids().parallelStream().forEach(this::compactAppSome);
+    }
+
+    /**
+     * 全量压缩
+     *
+     * @param pid 要压缩的pid
+     */
+    public void compactAppFull(int pid, int curAdj) {
+        if (CachedAppOptimizer.isOomAdjEnteredCached(curAdj)) {
+            compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL);
+        }
+    }
+
+//    public boolean compactAppFull(ProcessInfo processInfo) {
+//        return cachedAppOptimizer.compactApp(processInfo.getProcessRecord(), true, "Full");
+//    }
+
+    public void compactAppFull(ProcessInfo processInfo, int curAdj) {
+        compactAppFull(processInfo.getPid(), curAdj);
     }
 
     /* *************************************************************************
@@ -141,7 +178,10 @@ public class ProcessManager implements ILogger {
      * @param appInfo app信息
      */
     public void setAppToBackgroundProcessGroup(AppInfo appInfo) {
-        Set<Integer> processInfoPids = appInfo.getProcessInfoPids();
+        Set<Integer> processInfoPids;
+        if (appInfo == null || (processInfoPids = appInfo.getProcessInfoPids()) == null) {
+            return;
+        }
 
         processInfoPids.parallelStream().forEach(this::setPidToBackgroundProcessGroup);
 

@@ -59,6 +59,21 @@ public class ProcessRecord {
     // 当前ProcessRecord已记录的最大adj
     private int recordMaxAdj;
 
+    /**
+     * All about the state info of the optimizer when the process is cached.
+     */
+    private ProcessCachedOptimizerRecord processCachedOptimizerRecord;
+
+    public ProcessCachedOptimizerRecord getProcessCachedOptimizerRecord() {
+        if (processCachedOptimizerRecord == null) {
+            processCachedOptimizerRecord = new ProcessCachedOptimizerRecord(
+                    XposedHelpers.getObjectField(this.processRecord, FieldConstants.mOptRecord)
+            );
+        }
+
+        return processCachedOptimizerRecord;
+    }
+
     public ProcessRecord(Object processRecord) {
         this.processRecord = processRecord;
         this.pid = getPid(processRecord);
@@ -255,6 +270,10 @@ public class ProcessRecord {
         if (isNeedAdjustMaxAdj()) {
             setMaxAdj(this.recordMaxAdj);
         }
+    }
+
+    public int getCurAdj() {
+        return (int) XposedHelpers.callMethod(this.processRecord, MethodConstants.getCurAdj);
     }
 
     @Override
