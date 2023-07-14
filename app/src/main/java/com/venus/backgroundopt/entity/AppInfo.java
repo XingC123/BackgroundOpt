@@ -222,6 +222,14 @@ public class AppInfo implements ILogger {
      * 当前appInfo清理状态                                                       *
      *                                                                         *
      **************************************************************************/
+    private static final Field[] fields = AppInfo.class.getDeclaredFields();
+
+    static {
+        for (Field field : fields) {
+            field.setAccessible(true);
+        }
+    }
+
     public void clearAppInfo() {
         try {
             runningInfo = null;
@@ -229,7 +237,6 @@ public class AppInfo implements ILogger {
             mProcessInfo = null;
 
             try {
-                Field[] fields = AppInfo.class.getDeclaredFields();
                 Object obj;
                 for (Field field : fields) {
                     obj = field.get(this);
