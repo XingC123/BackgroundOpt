@@ -100,12 +100,20 @@ public class ProcessManager implements ILogger {
         }
     }
 
+    public void compactAppFullNoCheck(int pid) {
+        compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL);
+    }
+
 //    public boolean compactAppFull(ProcessInfo processInfo) {
 //        return cachedAppOptimizer.compactApp(processInfo.getProcessRecord(), true, "Full");
 //    }
 
     public void compactAppFull(ProcessInfo processInfo, int curAdj) {
         compactAppFull(processInfo.getPid(), curAdj);
+    }
+
+    public void compactAppFullNoCheck(ProcessInfo processInfo) {
+        compactAppFullNoCheck(processInfo.getPid());
     }
 
     /* *************************************************************************
