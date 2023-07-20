@@ -24,7 +24,7 @@ public class BackgroundAppMemoryTrimManager extends AppMemoryTrimManager {
 
     @Override
     public long getTaskInitialDelay() {
-        return 0;
+        return 1;
     }
 
     @Override
