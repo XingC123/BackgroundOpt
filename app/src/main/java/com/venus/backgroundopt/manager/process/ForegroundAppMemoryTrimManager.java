@@ -24,16 +24,16 @@ public class ForegroundAppMemoryTrimManager extends AppMemoryTrimManager {
 
     @Override
     public long getTaskInitialDelay() {
-        return 0;
+        return 30;
     }
 
     @Override
     public long getTaskPeriod() {
-        return 5;
+        return 60 * 5;
     }
 
     @Override
     public TimeUnit getTaskTimeUnit() {
-        return TimeUnit.MINUTES;
+        return TimeUnit.SECONDS;
     }
 }
