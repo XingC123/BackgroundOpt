@@ -130,7 +130,8 @@ public class AppInfo implements ILogger {
         AppGroupEnum curAppGroupEnum = getAppGroupEnum();
         if (Objects.equals(curAppGroupEnum, AppGroupEnum.IDLE) &&
                 !Objects.equals(packageName, runningInfo.getActiveLaunchPackageName())) {
-            if (!Objects.equals(curAppGroupEnum, processInfo.getLastAppGroupEnum())) {  // app经历了idle->active->idle
+            AppGroupEnum lastAppGroupEnum = processInfo.getLastAppGroupEnum();
+            if (lastAppGroupEnum != null && !Objects.equals(curAppGroupEnum, lastAppGroupEnum)) {  // app经历了idle->active->idle
                 runningInfo.getProcessManager().compactAppFullNoCheck(processInfo);
 
                 if (BuildConfig.DEBUG) {
