@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.hook.handle.android;
 
+import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
+
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.ProcessInfo;
@@ -12,6 +14,8 @@ import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
+
+import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
 
@@ -106,7 +110,9 @@ public class ProcessListHook extends MethodHook {
                     processInfo.setFixedOomAdjScore(ProcessRecord.SUB_PROC_ADJ);
                     processInfo.setOomAdjScore(ProcessRecord.SUB_PROC_ADJ);
 
-                    runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, appInfo);
+                    if (Objects.equals(AppGroupEnum.IDLE, appInfo.getAppGroupEnum())) {
+                        runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, appInfo);
+                    }
 
                     if (BuildConfig.DEBUG) {
                         getLogger().debug(

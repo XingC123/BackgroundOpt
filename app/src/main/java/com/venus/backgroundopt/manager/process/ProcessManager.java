@@ -204,12 +204,16 @@ public class ProcessManager implements ILogger {
      * @param pid 要设置的pid
      */
     public void setPidToBackgroundProcessGroup(int pid) {
-        int processGroup = Process.getProcessGroup(pid);
-        if (processGroup == Process.THREAD_GROUP_AUDIO_APP ||
-                processGroup == Process.THREAD_GROUP_AUDIO_SYS) {
-            return;
+        try {
+            int processGroup = Process.getProcessGroup(pid);
+            if (processGroup == Process.THREAD_GROUP_AUDIO_APP ||
+                    processGroup == Process.THREAD_GROUP_AUDIO_SYS) {
+                return;
+            }
+            Process.setProcessGroup(pid, THREAD_GROUP_BACKGROUND);
+        } catch (Exception ignore) {
+            // 不进行任何设置
         }
-        Process.setProcessGroup(pid, THREAD_GROUP_BACKGROUND);
     }
 
     /**
