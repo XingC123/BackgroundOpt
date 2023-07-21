@@ -28,6 +28,9 @@ public class AndroidHookHandler extends PackageHook {
     public void hook(XC_LoadPackage.LoadPackageParam packageParam) {
         RunningInfo runningInfo = new RunningInfo();
 
+        // hook获取
+        new DeviceConfigHook(packageParam.classLoader, runningInfo);
+
         // 抓取AMS, 前后台切换
         new ActivityManagerServiceHook(packageParam.classLoader, runningInfo);
 
@@ -40,17 +43,12 @@ public class AndroidHookHandler extends PackageHook {
         // oom_adj更新hook
         new ProcessListHook(packageParam.classLoader, runningInfo);
 
-        /*
-            根据酷安(don`t kill)作者提供思路所写: https://www.coolapk.com/feed/43786372?shareKey=ZGMyOWJjNjZlZGRmNjQ0NzdkOTI~&shareFrom=com.coolapk.market_13.1.2
-         */
         // 安卓虚进程处理hook
         new PhantomProcessListHook(packageParam.classLoader, runningInfo);
+
         new ActivityManagerConstantsHook(packageParam.classLoader, runningInfo);
 
         // 最近任务可见性hook
         new RecentTasksHook(packageParam.classLoader, runningInfo);
-
-        // hook获取
-        new DeviceConfigHook(packageParam.classLoader, runningInfo);
     }
 }
