@@ -25,27 +25,8 @@ import de.robv.android.xposed.XposedHelpers;
  * @date 2023/6/1
  */
 public class ActivityManagerConstantsHook extends MethodHook {
-    /**
-     * 退到一定时间, 允许使用的最大cpu占比
-     */
-    // <=5min
-    private static final int DEFAULT_POWER_CHECK_MAX_CPU_1 = 25;
-    // (5, 10]
-    private static final int DEFAULT_POWER_CHECK_MAX_CPU_2 = 25;
-    // (10, 15]
-    private static final int DEFAULT_POWER_CHECK_MAX_CPU_3 = 10;
-    // >15
-    private static final int DEFAULT_POWER_CHECK_MAX_CPU_4 = 2;
-
-    public static String KEY_MAX_CACHED_PROCESSES;
-
     public ActivityManagerConstantsHook(ClassLoader classLoader, RunningInfo hookInfo) {
         super(classLoader, hookInfo);
-
-        KEY_MAX_CACHED_PROCESSES =
-                String.valueOf(XposedHelpers.getStaticObjectField(
-                        XposedHelpers.findClass(ClassConstants.ActivityManagerConstants, classLoader),
-                        FieldConstants.KEY_MAX_CACHED_PROCESSES));
     }
 
     @Override

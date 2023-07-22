@@ -130,6 +130,10 @@ public class ProcessManager implements ILogger {
         backgroundAppMemoryTrimManager.startTrimTask(processRecord);
     }
 
+    public void cancelBackgroundScheduledFuture(ProcessRecord processRecord) {
+        backgroundAppMemoryTrimManager.cancelScheduledFuture(processRecord);
+    }
+
     private final AppMemoryTrimManager foregroundAppMemoryTrimManager = new ForegroundAppMemoryTrimManager();
 
     public void startForegroundAppTrimTask(ProcessRecord processRecord) {
@@ -141,10 +145,6 @@ public class ProcessManager implements ILogger {
 
     public void cancelForegroundScheduledFuture(ProcessRecord processRecord) {
         foregroundAppMemoryTrimManager.cancelScheduledFuture(processRecord);
-    }
-
-    public void cancelBackgroundScheduledFuture(ProcessRecord processRecord) {
-        backgroundAppMemoryTrimManager.cancelScheduledFuture(processRecord);
     }
 
     public void removeAllAppMemoryTrimTask(AppInfo appInfo) {
@@ -166,16 +166,30 @@ public class ProcessManager implements ILogger {
 
             return;
         }
+        handleGCNoNullCheck(processRecord);
+    }
+
+    public static void handleGC(ProcessRecord processRecord) {
+        if (processRecord == null) {
+            return;
+        }
+
+        handleGCNoNullCheck(processRecord);
+    }
+
+    public static void handleGCNoNullCheck(ProcessRecord processRecord) {
         // kill -10 pid
         try {
-            Process.sendSignal(appInfo.getmPid(), SIGNAL_10);
+            Process.sendSignal(processRecord.getPid(), SIGNAL_10);
 
             if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + " 触发gc, pid = " + appInfo.getmPid());
+                ILogger.getLoggerStatic(ProcessManager.class)
+                        .debug(processRecord.getPackageName() + " 触发gc, pid = " + processRecord.getPid());
             }
         } catch (Exception e) {
             if (BuildConfig.DEBUG) {
-                getLogger().error(appInfo.getPackageName() + " 存在问题, 无法执行gc", e);
+                ILogger.getLoggerStatic(ProcessManager.class)
+                        .error(processRecord.getPackageName() + " 存在问题, 无法执行gc", e);
             }
         }
     }

@@ -273,6 +273,7 @@ public class RunningInfo implements ILogger {
         TMP,
         IDLE
     }
+
     // 活跃分组
     private final Set<AppInfo> activeAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
     // 缓存分组
@@ -313,15 +314,15 @@ public class RunningInfo implements ILogger {
             });
 
             // 检查后台分组(宗旨是在切换后台时执行)
-            idleAppGroup.parallelStream().forEach(app -> {
-                if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED) {
-                    // 从后台分组移除
-                    idleAppGroup.remove(app);
-                    handleRemoveFromIdleAppGroup(app);
+            idleAppGroup.parallelStream()
+                    .filter(app -> app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED)
+                    .forEach(app -> {
+                        // 从后台分组移除
+                        idleAppGroup.remove(app);
+                        handleRemoveFromIdleAppGroup(app);
 
-                    handlePutInfoActiveAppGroup(appInfo, true);
-                }
-            });
+                        handlePutInfoActiveAppGroup(appInfo, true);
+                    });
         }
 
         if (BuildConfig.DEBUG) {
@@ -379,10 +380,10 @@ public class RunningInfo implements ILogger {
          */
         if (!getPowerManager().isInteractive()) {
             putIntoIdleAppGroup(appInfo);
-        }
-
-        if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + " 被放入TmpGroup");
+        } else {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug(appInfo.getPackageName() + " 被放入TmpGroup");
+            }
         }
     }
 

@@ -36,4 +36,8 @@ public class ForegroundAppMemoryTrimManager extends AppMemoryTrimManager {
     public TimeUnit getTaskTimeUnit() {
         return TimeUnit.MINUTES;
     }
+
+    @Override
+    public void runSpecialTask(AppMemoryTrimTask appMemoryTrimTask) {
+    }
 }
