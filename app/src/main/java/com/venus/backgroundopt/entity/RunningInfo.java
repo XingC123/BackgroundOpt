@@ -273,6 +273,7 @@ public class RunningInfo implements ILogger {
         TMP,
         IDLE
     }
+
     // 活跃分组
     private final Set<AppInfo> activeAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
     // 缓存分组
@@ -379,10 +380,10 @@ public class RunningInfo implements ILogger {
          */
         if (!getPowerManager().isInteractive()) {
             putIntoIdleAppGroup(appInfo);
-        }
-
-        if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + " 被放入TmpGroup");
+        } else {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug(appInfo.getPackageName() + " 被放入TmpGroup");
+            }
         }
     }
 
