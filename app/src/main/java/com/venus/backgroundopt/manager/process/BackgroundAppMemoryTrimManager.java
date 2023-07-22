@@ -36,4 +36,14 @@ public class BackgroundAppMemoryTrimManager extends AppMemoryTrimManager {
     public TimeUnit getTaskTimeUnit() {
         return TimeUnit.MINUTES;
     }
+
+    @Override
+    public void runSpecialTask(AppMemoryTrimTask appMemoryTrimTask) {
+        // App进入后台后, 执行gc
+        appMemoryTrimTask.gcTask.scheduledFuture = executor.schedule(
+                appMemoryTrimTask.gcTask.runnable,
+                5,
+                TimeUnit.MINUTES
+        );
+    }
 }

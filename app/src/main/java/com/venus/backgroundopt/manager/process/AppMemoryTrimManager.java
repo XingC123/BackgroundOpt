@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * 应用内存清理管理器
@@ -18,21 +19,9 @@ import java.util.concurrent.TimeUnit;
  * @date 2023/6/4
  */
 public abstract class AppMemoryTrimManager implements ILogger {
-    private final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(10);
+    final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(10);
 
     private final Map<ProcessRecord, AppMemoryTrimTask> appMemoryTrimTaskMap = new ConcurrentHashMap<>();
-
-    private static class AppMemoryTrimTask {
-        Runnable runnable;
-        ScheduledFuture<?> scheduledFuture;
-        ProcessRecord processRecord;
-
-        public AppMemoryTrimTask(ProcessRecord processRecord, Runnable runnable) {
-            this.processRecord = processRecord;
-
-            this.runnable = runnable;
-        }
-    }
 
     public AppMemoryTrimManager() {
         // 在任务取消时一并将其移除
@@ -51,6 +40,8 @@ public abstract class AppMemoryTrimManager implements ILogger {
 
     public abstract TimeUnit getTaskTimeUnit();
 
+    public abstract void runSpecialTask(AppMemoryTrimTask appMemoryTrimTask);
+
     private String getMemoryTrimManagerNameImpl() {
         return getMemoryTrimManagerName() + ": ";
     }
@@ -65,19 +56,20 @@ public abstract class AppMemoryTrimManager implements ILogger {
         }
 
         AppMemoryTrimTask appMemoryTrimTask = appMemoryTrimTaskMap.computeIfAbsent(
-                processRecord,
-                process -> new AppMemoryTrimTask(process, getAppMemoryTrimRunnable(process)));
+                processRecord, AppMemoryTrimTask::new);
 
         // 移除原有任务
         cancelScheduledFuture(appMemoryTrimTask);  // 移除原有的以充分保持轮循间隔
 
-        // 立即执行。每隔3分钟执行
-        appMemoryTrimTask.scheduledFuture = executor.scheduleAtFixedRate(
-                appMemoryTrimTask.runnable,
+        // 内存紧张任务立即执行。每隔3分钟执行
+        appMemoryTrimTask.scheduleTrimMemoryTask.scheduledFuture = executor.scheduleAtFixedRate(
+                appMemoryTrimTask.scheduleTrimMemoryTask.runnable,
                 getTaskInitialDelay(),
                 getTaskPeriod(),
                 getTaskTimeUnit()
         );
+
+        runSpecialTask(appMemoryTrimTask);
     }
 
     /**
@@ -85,15 +77,17 @@ public abstract class AppMemoryTrimManager implements ILogger {
      * 在进程已设置过任务, 重新设置任务时调用
      */
     public void cancelScheduledFuture(AppMemoryTrimTask appMemoryTrimTask) {
-        if (appMemoryTrimTask != null && appMemoryTrimTask.scheduledFuture != null) {
-            appMemoryTrimTask.scheduledFuture.cancel(true);
-            appMemoryTrimTask.scheduledFuture = null;
+        if (appMemoryTrimTask != null) {
+            boolean scheduleTrimMemoryFlag = appMemoryTrimTask.scheduleTrimMemoryTask.cancelScheduledFuture();
+            boolean gcFlag = appMemoryTrimTask.gcTask.cancelScheduledFuture();
 
             if (BuildConfig.DEBUG) {
-                getLogger().debug(
-                        getMemoryTrimManagerNameImpl()
-                                + appMemoryTrimTask.processRecord.getPackageName()
-                                + " ->>> 移除ScheduledFuture");
+                if (scheduleTrimMemoryFlag || gcFlag) { // 任一执行成功, 则打印
+                    getLogger().debug(
+                            getMemoryTrimManagerNameImpl()
+                                    + appMemoryTrimTask.processRecord.getPackageName()
+                                    + " ->>> 移除ScheduledFuture");
+                }
             }
         }
     }
@@ -127,8 +121,7 @@ public abstract class AppMemoryTrimManager implements ILogger {
         AppMemoryTrimTask appMemoryTrimTask = appMemoryTrimTaskMap.remove(processRecord);
 
         if (appMemoryTrimTask != null) {
-            appMemoryTrimTask.runnable = null;
-            cancelScheduledFuture(appMemoryTrimTask);
+            appMemoryTrimTask.clear();
 
             if (BuildConfig.DEBUG) {
                 getLogger().debug(getMemoryTrimManagerNameImpl() + "移除TrimMemoryTask ->>> "
@@ -164,5 +157,67 @@ public abstract class AppMemoryTrimManager implements ILogger {
                                 + getDefaultTrimLevel() + " 失败或未执行");
             }
         };
+    }
+
+    /**
+     * App内存清理任务
+     */
+    class AppMemoryTrimTask {
+        /**
+         * 内存紧张任务
+         */
+        Task scheduleTrimMemoryTask;
+        /**
+         * app进行gc
+         */
+        Task gcTask;
+        ProcessRecord processRecord;
+
+        public AppMemoryTrimTask(ProcessRecord processRecord) {
+            this.processRecord = processRecord;
+
+            this.scheduleTrimMemoryTask = new Task(getAppMemoryTrimRunnable(processRecord));
+            this.gcTask = new Task(() -> gcRunnable.accept(processRecord));
+        }
+
+        void clear() {
+            scheduleTrimMemoryTask.clear();
+            gcTask.clear();
+
+            scheduleTrimMemoryTask = null;
+            gcTask = null;
+            processRecord = null;
+        }
+
+        static final Consumer<ProcessRecord> gcRunnable = ProcessManager::handleGC;
+
+        class Task {
+            Runnable runnable;
+            ScheduledFuture<?> scheduledFuture;
+
+            public Task(Runnable runnable) {
+                this.runnable = runnable;
+            }
+
+            /**
+             * 取消任务
+             *
+             * @return 若实际上取消了任务, 则返回true
+             */
+            boolean cancelScheduledFuture() {
+                if (scheduledFuture == null) {
+                    return false;
+                }
+                scheduledFuture.cancel(true);
+                scheduledFuture = null;
+
+                return true;
+            }
+
+            void clear() {
+                cancelScheduledFuture();
+                runnable = null;
+            }
+        }
     }
 }
