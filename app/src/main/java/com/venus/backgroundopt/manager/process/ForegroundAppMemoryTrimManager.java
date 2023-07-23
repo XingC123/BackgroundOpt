@@ -13,6 +13,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class ForegroundAppMemoryTrimManager extends AppMemoryTrimManager {
     @Override
+    int getCorePoolSize() {
+        return 10;
+    }
+
+    @Override
     public int getDefaultTrimLevel() {
         return ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL;
     }
