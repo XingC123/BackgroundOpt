@@ -62,7 +62,7 @@ public abstract class AppMemoryTrimManager implements ILogger {
         cancelScheduledFuture(appMemoryTrimTask);  // 移除原有的以充分保持轮循间隔
 
         // 内存紧张任务立即执行。每隔3分钟执行
-        appMemoryTrimTask.scheduleTrimMemoryTask.scheduledFuture = executor.scheduleAtFixedRate(
+        appMemoryTrimTask.scheduleTrimMemoryTask.scheduledFuture = executor.scheduleWithFixedDelay(
                 appMemoryTrimTask.scheduleTrimMemoryTask.runnable,
                 getTaskInitialDelay(),
                 getTaskPeriod(),
