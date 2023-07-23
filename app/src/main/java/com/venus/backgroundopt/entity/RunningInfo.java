@@ -293,7 +293,6 @@ public class RunningInfo implements ILogger {
                 handlePutInfoActiveAppGroup(appInfo, false);
                 switchActivity = true;
             } else if (idleAppGroup.remove(appInfo)) {  // 从后台组移除
-                handleRemoveFromIdleAppGroup(appInfo);
                 handlePutInfoActiveAppGroup(appInfo, true);
             }
         }
@@ -395,7 +394,6 @@ public class RunningInfo implements ILogger {
     }
 
     private void putIntoIdleAppGroup(AppInfo appInfo) {
-        handleRemoveFromActiveAppGroup(appInfo);
         // 做app清理工作
         handleLastApp(appInfo);
 
@@ -405,16 +403,6 @@ public class RunningInfo implements ILogger {
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + "  被放入IdleGroup");
         }
-    }
-
-    private void handleRemoveFromActiveAppGroup(AppInfo appInfo) {
-        // 移除某些定时
-//        processManager.cancelForegroundScheduledFuture(appInfo.getmProcessRecord());
-    }
-
-    private void handleRemoveFromIdleAppGroup(AppInfo appInfo) {
-        // 移除某些定时
-//        processManager.cancelBackgroundScheduledFuture(appInfo.getmProcessRecord());
     }
 
     private void handleLastApp(AppInfo appInfo) {
