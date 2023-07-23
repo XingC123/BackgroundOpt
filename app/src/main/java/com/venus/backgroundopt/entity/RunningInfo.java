@@ -28,13 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @date 2023/2/10
  */
 public class RunningInfo implements ILogger {
-    private ClassLoader classLoader;
-
     public RunningInfo() {
-    }
-
-    public RunningInfo(ClassLoader classLoader) {
-        this.classLoader = classLoader;
     }
 
     /**
@@ -77,7 +71,6 @@ public class RunningInfo implements ILogger {
      * 运行的进程                                                                *
      *                                                                         *
      **************************************************************************/
-    public volatile AppInfo lastAppInfo;
     /**
      * 非系统重要进程记录
      * userId包名, NormalAppResult
@@ -256,10 +249,6 @@ public class RunningInfo implements ILogger {
      * @param appInfo app信息
      */
     public void removeRunningApp(AppInfo appInfo) {
-        if (Objects.equals(appInfo, lastAppInfo)) {
-            lastAppInfo = null;
-        }
-
         // 从运行列表移除
         AppInfo remove = runningApps.remove(appInfo.getRepairedUid());
 
@@ -283,6 +272,12 @@ public class RunningInfo implements ILogger {
      * app切换待处理队列                                                          *
      *                                                                         *
      **************************************************************************/
+    public enum AppGroupEnum {
+        ACTIVE,
+        TMP,
+        IDLE
+    }
+
     // 活跃分组
     private final Set<AppInfo> activeAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
     // 缓存分组
@@ -310,8 +305,14 @@ public class RunningInfo implements ILogger {
         /*
             处理其他分组
          */
-        if (!switchActivity) {
-            // 检查缓存分组
+        if (!switchActivity) {  // 意味着非应用内切换Activity, 即某应用前后台状态被改变
+            // 检查缓存分组, 以确定是否需要改变前后台状态
+            /*
+                理论来说, 只有app.getAppSwitchEvent()== ActivityManagerServiceHook.ACTIVITY_PAUSED才能
+                被放置于tmpGroup。但由于响应的滞后性, 可能在期间发生了app状态切换, 因此仍然检查是否是
+                ActivityManagerServiceHook.ACTIVITY_PAUSED来做不同操作。
+                这里也许是可优化的点。
+             */
             tmpAppGroup.parallelStream().forEach(app -> {
                 if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_PAUSED) {
                     tmpAppGroup.remove(app);
@@ -323,15 +324,16 @@ public class RunningInfo implements ILogger {
             });
 
             // 检查后台分组(宗旨是在切换后台时执行)
-            idleAppGroup.parallelStream().forEach(app -> {
-                if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED) {
-                    // 从后台分组移除
-                    idleAppGroup.remove(app);
-                    handleRemoveFromIdleAppGroup(app);
-
-                    handlePutInfoActiveAppGroup(appInfo, true);
-                }
-            });
+            // 不需要检查。如果状态改变, app自己会进入此方法来作用
+//            idleAppGroup.parallelStream()
+//                    .filter(app -> app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED)
+//                    .forEach(app -> {
+//                        // 从后台分组移除
+//                        idleAppGroup.remove(app);
+//                        handleRemoveFromIdleAppGroup(app);
+//
+//                        handlePutInfoActiveAppGroup(appInfo, true);
+//                    });
         }
 
         if (BuildConfig.DEBUG) {
@@ -348,6 +350,7 @@ public class RunningInfo implements ILogger {
         }
 
         activeAppGroup.add(appInfo);
+        appInfo.setAppGroupEnum(AppGroupEnum.ACTIVE);
     }
 
     private void handleCurApp(AppInfo appInfo) {
@@ -379,6 +382,8 @@ public class RunningInfo implements ILogger {
         activeAppGroup.remove(appInfo);
 //        idleAppGroup.remove(appInfo); // 没有app在后台也能进入这个方法吧
 
+        appInfo.setAppGroupEnum(AppGroupEnum.TMP);
+
         /*
             息屏触发 UsageEvents.Event.ACTIVITY_PAUSED 事件。则对当前app按照进入后台处理
             boolean isScreenOn = pm.isInteractive();
@@ -386,10 +391,10 @@ public class RunningInfo implements ILogger {
          */
         if (!getPowerManager().isInteractive()) {
             putIntoIdleAppGroup(appInfo);
-        }
-
-        if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + " 被放入TmpGroup");
+        } else {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug(appInfo.getPackageName() + " 被放入TmpGroup");
+            }
         }
     }
 
@@ -399,6 +404,7 @@ public class RunningInfo implements ILogger {
         handleLastApp(appInfo);
 
         idleAppGroup.add(appInfo);
+        appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + "  被放入IdleGroup");
@@ -407,12 +413,12 @@ public class RunningInfo implements ILogger {
 
     private void handleRemoveFromActiveAppGroup(AppInfo appInfo) {
         // 移除某些定时
-        processManager.removeForegroundAppTrimTask(appInfo.getmProcessRecord());
+//        processManager.cancelForegroundScheduledFuture(appInfo.getmProcessRecord());
     }
 
     private void handleRemoveFromIdleAppGroup(AppInfo appInfo) {
         // 移除某些定时
-        processManager.removeBackgroundAppTrimTask(appInfo.getmProcessRecord());
+//        processManager.cancelBackgroundScheduledFuture(appInfo.getmProcessRecord());
     }
 
     private void handleLastApp(AppInfo appInfo) {
@@ -439,7 +445,7 @@ public class RunningInfo implements ILogger {
         }
 
         processManager.startBackgroundAppTrimTask(appInfo.getmProcessRecord());
-        processManager.handleGC(appInfo);
+//        processManager.handleGC(appInfo);
 //        compactApp(appInfo);
 
         appInfo.setSwitchEventHandled(true);
@@ -464,7 +470,8 @@ public class RunningInfo implements ILogger {
      *                                                                         *
      * process_daemon_service                                                  *
      *                                                                         *
-     **************************************************************************/ ProcessDaemonService processDaemonService;
+     **************************************************************************/
+    ProcessDaemonService processDaemonService;
 
     public ProcessDaemonService getProcessDaemonService() {
         return processDaemonService;

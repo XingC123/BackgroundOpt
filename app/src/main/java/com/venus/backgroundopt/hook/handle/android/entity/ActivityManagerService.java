@@ -23,6 +23,8 @@ import de.robv.android.xposed.XposedHelpers;
  */
 public class ActivityManagerService implements ILogger {
     public final static int MAIN_USER = 0;
+
+    public final static int USER_APP_UID_START_NUM = 10000;
     /* *************************************************************************
      *                                                                         *
      * 系统activityManagerService                                               *

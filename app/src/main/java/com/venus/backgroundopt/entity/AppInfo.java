@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.entity;
 
+import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
+
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
@@ -12,6 +14,8 @@ import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * app信息
@@ -50,7 +54,7 @@ public class AppInfo implements ILogger {
     private volatile ProcessRecord mProcessRecord;   // 主进程记录
 
     private volatile ProcessInfo mProcessInfo;   // 主进程信息
-    private volatile int appSwitchEvent = Integer.MIN_VALUE; // app切换事件
+    private final AtomicInteger appSwitchEvent = new AtomicInteger(Integer.MIN_VALUE); // app切换事件
 
     private volatile boolean switchEventHandled = false;    // 切换事件处理完毕
 
@@ -67,6 +71,17 @@ public class AppInfo implements ILogger {
      * app进程信息(简单)                                                         *
      *                                                                         *
      **************************************************************************/
+    // 当前app在本模块内的内存分组
+    private final AtomicReference<AppGroupEnum> appGroupEnumAtomicReference = new AtomicReference<>();
+
+    public void setAppGroupEnum(AppGroupEnum appGroupEnum) {
+        appGroupEnumAtomicReference.set(appGroupEnum);
+    }
+
+    public AppGroupEnum getAppGroupEnum() {
+        return appGroupEnumAtomicReference.get();
+    }
+
     /**
      * 进程信息映射<pid, ProcessInfo>
      * 没有设置为 final, 因为在{@link AppInfo#clearAppInfo()}中需要反射来置空
@@ -108,7 +123,7 @@ public class AppInfo implements ILogger {
         }
 
         // 当进程实际oomAdjScore大于指定等级。则进行一次压缩
-        if (appSwitchEvent == ActivityManagerServiceHook.ACTIVITY_PAUSED && oomAdjScore > ProcessList.SERVICE_B_ADJ
+        if (getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_PAUSED && oomAdjScore > ProcessList.SERVICE_B_ADJ
                 && !Objects.equals(packageName, runningInfo.getActiveLaunchPackageName())) {
 
             boolean executed = false;
@@ -166,6 +181,16 @@ public class AppInfo implements ILogger {
         return mProcessInfo;
     }
 
+    /**
+     * 设置主进程信息
+     */
+    public void setMProcessInfoAndMProcessRecord(ProcessRecord processRecord) {
+        // 保存进程信息
+        setmProcessInfo(processRecord);
+        // 保存主进程
+        setmProcessRecord(processRecord);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -184,13 +209,12 @@ public class AppInfo implements ILogger {
      * 当前appInfo清理状态                                                       *
      *                                                                         *
      **************************************************************************/
-    private static Class<? extends AppInfo> appInfoClass;
+    private static final Field[] fields = AppInfo.class.getDeclaredFields();
 
-    public static Class<? extends AppInfo> getAppInfoClass(AppInfo appInfo) {
-        if (appInfoClass == null) {
-            appInfoClass = appInfo.getClass();
+    static {
+        for (Field field : fields) {
+            field.setAccessible(true);
         }
-        return appInfoClass;
     }
 
     public void clearAppInfo() {
@@ -200,14 +224,14 @@ public class AppInfo implements ILogger {
             mProcessInfo = null;
 
             try {
-                Class<? extends AppInfo> aClass = getAppInfoClass(this);
-                Field[] fields = aClass.getDeclaredFields();
                 Object obj;
                 for (Field field : fields) {
                     obj = field.get(this);
-                    if (obj instanceof Map<?, ?>) {
-                        ((Map<?, ?>) obj).clear();
+                    if (obj instanceof Map<?, ?> map) {
+                        map.clear();
                         field.set(this, null);
+                    } else if (obj instanceof AtomicReference<?> ap) {
+                        ap.set(null);
                     }
                 }
             } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -228,7 +252,15 @@ public class AppInfo implements ILogger {
         if (userId == ActivityManagerService.MAIN_USER) {
             return uid;
         } else {
-            return Integer.parseInt(String.valueOf(userId) + uid);
+            int compute = uid / ActivityManagerService.USER_APP_UID_START_NUM;
+
+            // 0: 系统应用, 1: 用户程序
+            // 位数不够需要补0(测试于: MIUI13 22.7.8 安卓12)
+            if (compute == 0) {
+                return Integer.parseInt(userId + String.valueOf(0) + uid);
+            } else {
+                return Integer.parseInt(String.valueOf(userId) + uid);
+            }
         }
     }
 
@@ -269,11 +301,11 @@ public class AppInfo implements ILogger {
     }
 
     public int getAppSwitchEvent() {
-        return appSwitchEvent;
+        return appSwitchEvent.get();
     }
 
     public void setAppSwitchEvent(int appSwitchEvent) {
-        this.appSwitchEvent = appSwitchEvent;
+        this.appSwitchEvent.set(appSwitchEvent);
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(packageName + " 切换状态 ->>> " + appSwitchEvent);
