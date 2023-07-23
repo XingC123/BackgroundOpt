@@ -19,8 +19,10 @@ import java.util.function.Consumer;
  * @date 2023/6/4
  */
 public abstract class AppMemoryTrimManager implements ILogger {
+    // 线程池
     final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(getCorePoolSize());
 
+    // 缓存ProcessRecord对应的AppMemoryTrimTask, 使得前后台切换无需重复创建
     private final Map<ProcessRecord, AppMemoryTrimTask> appMemoryTrimTaskMap = new ConcurrentHashMap<>();
 
     public AppMemoryTrimManager() {
@@ -28,18 +30,47 @@ public abstract class AppMemoryTrimManager implements ILogger {
         executor.setRemoveOnCancelPolicy(true);
     }
 
+    /**
+     * 核心线程数
+     * 由于此处为{@link ScheduledThreadPoolExecutor}, 因此在任务占用核心线程执行完毕后, 会重新放到任务队列。
+     * 这意味着此时的核心线程数可以理解为前后台切换时, 前/后台内存清理任务的最大并发处理数目(即允许同时有多少个任务改变前后台状态)
+     */
     abstract int getCorePoolSize();
 
+    /**
+     * 获取默认的清理级别
+     *
+     * @return {@link com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2}中定义的。即从相应安卓源码中取得的值
+     */
     abstract int getDefaultTrimLevel();
 
+    /**
+     * 内存清理管理器名字
+     */
     abstract String getMemoryTrimManagerName();
 
+    /**
+     * 任务初次执行延时
+     *
+     * @return 单位见 {@link #getTaskTimeUnit}
+     */
     abstract long getTaskInitialDelay();
 
+    /**
+     * 任务执行间隔
+     *
+     * @return 单位见 {@link #getTaskTimeUnit}
+     */
     abstract long getTaskPeriod();
 
+    /**
+     * 任务执行时间单位
+     */
     abstract TimeUnit getTaskTimeUnit();
 
+    /**
+     * 执行特殊的任务
+     */
     abstract void runSpecialTask(AppMemoryTrimTask appMemoryTrimTask);
 
     String getMemoryTrimManagerNameImpl() {
