@@ -100,9 +100,7 @@ public class RunningInfo implements ILogger {
     }
 
     public NormalAppResult isNormalApp(int userId, String packageName) {
-        String userIdAndPackageName = getNormalAppKey(userId, packageName);
-
-        return normalApps.computeIfAbsent(userIdAndPackageName, key -> isImportantSystemApp(packageName));
+        return normalApps.computeIfAbsent(getNormalAppKey(userId, packageName), key -> isImportantSystemApp(packageName));
     }
 
     /**
@@ -307,7 +305,7 @@ public class RunningInfo implements ILogger {
                 ActivityManagerServiceHook.ACTIVITY_PAUSED来做不同操作。
                 这里也许是可优化的点。
              */
-            tmpAppGroup.parallelStream().forEach(app -> {
+            tmpAppGroup.forEach(app -> {
                 if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_PAUSED) {
                     tmpAppGroup.remove(app);
                     putIntoIdleAppGroup(app);
