@@ -100,12 +100,9 @@ public class RunningInfo implements ILogger {
     }
 
     public NormalAppResult isNormalApp(int userId, String packageName) {
-        NormalAppResult normalAppResult;
         String userIdAndPackageName = getNormalAppKey(userId, packageName);
 
-        normalAppResult = normalApps.computeIfAbsent(userIdAndPackageName, key -> isImportantSystemApp(packageName));
-
-        return normalAppResult;
+        return normalApps.computeIfAbsent(userIdAndPackageName, key -> isImportantSystemApp(packageName));
     }
 
     /**
@@ -215,10 +212,7 @@ public class RunningInfo implements ILogger {
         if (mProcessRecord != null) {
             // 设置主进程的最大adj(保活)
             mProcessRecord.setDefaultMaxAdj();
-            // 保存进程信息
-            appInfo.setmProcessInfo(mProcessRecord);
-            // 保存主进程
-            appInfo.setmProcessRecord(mProcessRecord);
+            appInfo.setMProcessInfoAndMProcessRecord(mProcessRecord);
         } else {
             if (BuildConfig.DEBUG) {
                 getLogger().warn(appInfo.getPackageName() + " 的mProcessRecord为空");
@@ -252,19 +246,20 @@ public class RunningInfo implements ILogger {
         // 从运行列表移除
         AppInfo remove = runningApps.remove(appInfo.getRepairedUid());
 
+        if (remove != null) {
+            // 从待处理列表中移除
+            activeAppGroup.remove(appInfo);
+            tmpAppGroup.remove(appInfo);
+            idleAppGroup.remove(appInfo);
+            processManager.removeAllAppMemoryTrimTask(appInfo);
+
+            // 清理AppInfo。也许有助于gc
+            appInfo.clearAppInfo();
+        }
+
         if (BuildConfig.DEBUG) {
             getLogger().debug("移除: " + (remove == null ? "未找到包名" : remove.getPackageName()));
         }
-
-        // 从待处理列表中移除
-        activeAppGroup.remove(appInfo);
-        tmpAppGroup.remove(appInfo);
-        idleAppGroup.remove(appInfo);
-        handleRemoveFromActiveAppGroup(appInfo);
-        handleRemoveFromIdleAppGroup(appInfo);
-
-        // 清理AppInfo。也许有助于gc
-        appInfo.clearAppInfo();
     }
 
     /* *************************************************************************
@@ -297,7 +292,6 @@ public class RunningInfo implements ILogger {
                 handlePutInfoActiveAppGroup(appInfo, false);
                 switchActivity = true;
             } else if (idleAppGroup.remove(appInfo)) {  // 从后台组移除
-                handleRemoveFromIdleAppGroup(appInfo);
                 handlePutInfoActiveAppGroup(appInfo, true);
             }
         }
@@ -399,7 +393,6 @@ public class RunningInfo implements ILogger {
     }
 
     private void putIntoIdleAppGroup(AppInfo appInfo) {
-        handleRemoveFromActiveAppGroup(appInfo);
         // 做app清理工作
         handleLastApp(appInfo);
 
@@ -409,16 +402,6 @@ public class RunningInfo implements ILogger {
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + "  被放入IdleGroup");
         }
-    }
-
-    private void handleRemoveFromActiveAppGroup(AppInfo appInfo) {
-        // 移除某些定时
-//        processManager.cancelForegroundScheduledFuture(appInfo.getmProcessRecord());
-    }
-
-    private void handleRemoveFromIdleAppGroup(AppInfo appInfo) {
-        // 移除某些定时
-//        processManager.cancelBackgroundScheduledFuture(appInfo.getmProcessRecord());
     }
 
     private void handleLastApp(AppInfo appInfo) {

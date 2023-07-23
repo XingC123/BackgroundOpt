@@ -83,6 +83,11 @@ public class ProcessManager implements ILogger {
         foregroundAppMemoryTrimManager.removeTrimTask(processRecord);
     }
 
+    public void removeAllAppMemoryTrimTask(AppInfo appInfo) {
+        foregroundAppMemoryTrimManager.removeTrimTask(appInfo.getmProcessRecord());
+        backgroundAppMemoryTrimManager.removeTrimTask(appInfo.getmProcessRecord());
+    }
+
     /**
      * 处理gc
      *
