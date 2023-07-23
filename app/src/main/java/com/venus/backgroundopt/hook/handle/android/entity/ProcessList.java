@@ -3,7 +3,7 @@ package com.venus.backgroundopt.hook.handle.android.entity;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.ApplicationIdentity;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
-import com.venus.backgroundopt.interfaces.ILogger;
+import com.venus.backgroundopt.utils.log.ILogger;
 import com.venus.backgroundopt.utils.reference.ObjectReference;
 
 import java.util.ArrayList;

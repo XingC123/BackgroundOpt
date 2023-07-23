@@ -1,6 +1,6 @@
 package com.venus.backgroundopt.entity;
 
-import com.venus.backgroundopt.interfaces.ILogger;
+import com.venus.backgroundopt.utils.log.ILogger;
 import com.venus.backgroundopt.utils.FileUtils;
 import com.venus.backgroundopt.utils.reference.ObjectReference;
 

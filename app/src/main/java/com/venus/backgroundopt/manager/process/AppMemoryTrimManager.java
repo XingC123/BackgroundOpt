@@ -2,7 +2,7 @@ package com.venus.backgroundopt.manager.process;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
-import com.venus.backgroundopt.interfaces.ILogger;
+import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

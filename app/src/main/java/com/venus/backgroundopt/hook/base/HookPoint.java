@@ -7,7 +7,7 @@ import com.venus.backgroundopt.hook.base.action.AfterHookAction;
 import com.venus.backgroundopt.hook.base.action.BeforeHookAction;
 import com.venus.backgroundopt.hook.base.action.HookAction;
 import com.venus.backgroundopt.hook.base.action.ReplacementHookAction;
-import com.venus.backgroundopt.interfaces.ILogger;
+import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
