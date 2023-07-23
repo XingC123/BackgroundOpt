@@ -316,18 +316,6 @@ public class RunningInfo implements ILogger {
                     handlePutInfoActiveAppGroup(appInfo, false);
                 }
             });
-
-            // 检查后台分组(宗旨是在切换后台时执行)
-            // 不需要检查。如果状态改变, app自己会进入此方法来作用
-//            idleAppGroup.parallelStream()
-//                    .filter(app -> app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED)
-//                    .forEach(app -> {
-//                        // 从后台分组移除
-//                        idleAppGroup.remove(app);
-//                        handleRemoveFromIdleAppGroup(app);
-//
-//                        handlePutInfoActiveAppGroup(appInfo, true);
-//                    });
         }
 
         if (BuildConfig.DEBUG) {
@@ -427,7 +415,7 @@ public class RunningInfo implements ILogger {
             return;
         }
 
-        processManager.compactAppSome(appInfo);
+//        processManager.compactAppSome(appInfo);
         processManager.startBackgroundAppTrimTask(appInfo.getmProcessRecord());
 //        processManager.handleGC(appInfo);
         processManager.setAppToBackgroundProcessGroup(appInfo);
