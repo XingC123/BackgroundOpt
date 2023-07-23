@@ -100,12 +100,9 @@ public class RunningInfo implements ILogger {
     }
 
     public NormalAppResult isNormalApp(int userId, String packageName) {
-        NormalAppResult normalAppResult;
         String userIdAndPackageName = getNormalAppKey(userId, packageName);
 
-        normalAppResult = normalApps.computeIfAbsent(userIdAndPackageName, key -> isImportantSystemApp(packageName));
-
-        return normalAppResult;
+        return normalApps.computeIfAbsent(userIdAndPackageName, key -> isImportantSystemApp(packageName));
     }
 
     /**
@@ -249,18 +246,20 @@ public class RunningInfo implements ILogger {
         // 从运行列表移除
         AppInfo remove = runningApps.remove(appInfo.getRepairedUid());
 
+        if (remove != null) {
+            // 从待处理列表中移除
+            activeAppGroup.remove(appInfo);
+            tmpAppGroup.remove(appInfo);
+            idleAppGroup.remove(appInfo);
+            processManager.removeAllAppMemoryTrimTask(appInfo);
+
+            // 清理AppInfo。也许有助于gc
+            appInfo.clearAppInfo();
+        }
+
         if (BuildConfig.DEBUG) {
             getLogger().debug("移除: " + (remove == null ? "未找到包名" : remove.getPackageName()));
         }
-
-        // 从待处理列表中移除
-        activeAppGroup.remove(appInfo);
-        tmpAppGroup.remove(appInfo);
-        idleAppGroup.remove(appInfo);
-        processManager.removeAllAppMemoryTrimTask(appInfo);
-
-        // 清理AppInfo。也许有助于gc
-        appInfo.clearAppInfo();
     }
 
     /* *************************************************************************
