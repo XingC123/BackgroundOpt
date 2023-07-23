@@ -1,4 +1,4 @@
-package com.venus.backgroundopt.interfaces;
+package com.venus.backgroundopt.utils.log;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.factory.SingletonLoggerFactory;

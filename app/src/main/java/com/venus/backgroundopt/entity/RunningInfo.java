@@ -7,7 +7,7 @@ import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ApplicationInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
-import com.venus.backgroundopt.interfaces.ILogger;
+import com.venus.backgroundopt.utils.log.ILogger;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.service.ProcessDaemonService;
 
@@ -100,12 +100,9 @@ public class RunningInfo implements ILogger {
     }
 
     public NormalAppResult isNormalApp(int userId, String packageName) {
-        NormalAppResult normalAppResult;
         String userIdAndPackageName = getNormalAppKey(userId, packageName);
 
-        normalAppResult = normalApps.computeIfAbsent(userIdAndPackageName, key -> isImportantSystemApp(packageName));
-
-        return normalAppResult;
+        return normalApps.computeIfAbsent(userIdAndPackageName, key -> isImportantSystemApp(packageName));
     }
 
     /**
@@ -249,18 +246,20 @@ public class RunningInfo implements ILogger {
         // 从运行列表移除
         AppInfo remove = runningApps.remove(appInfo.getRepairedUid());
 
+        if (remove != null) {
+            // 从待处理列表中移除
+            activeAppGroup.remove(appInfo);
+            tmpAppGroup.remove(appInfo);
+            idleAppGroup.remove(appInfo);
+            processManager.removeAllAppMemoryTrimTask(appInfo);
+
+            // 清理AppInfo。也许有助于gc
+            appInfo.clearAppInfo();
+        }
+
         if (BuildConfig.DEBUG) {
             getLogger().debug("移除: " + (remove == null ? "未找到包名" : remove.getPackageName()));
         }
-
-        // 从待处理列表中移除
-        activeAppGroup.remove(appInfo);
-        tmpAppGroup.remove(appInfo);
-        idleAppGroup.remove(appInfo);
-        processManager.removeAllAppMemoryTrimTask(appInfo);
-
-        // 清理AppInfo。也许有助于gc
-        appInfo.clearAppInfo();
     }
 
     /* *************************************************************************
@@ -293,7 +292,6 @@ public class RunningInfo implements ILogger {
                 handlePutInfoActiveAppGroup(appInfo, false);
                 switchActivity = true;
             } else if (idleAppGroup.remove(appInfo)) {  // 从后台组移除
-                handleRemoveFromIdleAppGroup(appInfo);
                 handlePutInfoActiveAppGroup(appInfo, true);
             }
         }
@@ -301,8 +299,14 @@ public class RunningInfo implements ILogger {
         /*
             处理其他分组
          */
-        if (!switchActivity) {
-            // 检查缓存分组
+        if (!switchActivity) {  // 意味着非应用内切换Activity, 即某应用前后台状态被改变
+            // 检查缓存分组, 以确定是否需要改变前后台状态
+            /*
+                理论来说, 只有app.getAppSwitchEvent()== ActivityManagerServiceHook.ACTIVITY_PAUSED才能
+                被放置于tmpGroup。但由于响应的滞后性, 可能在期间发生了app状态切换, 因此仍然检查是否是
+                ActivityManagerServiceHook.ACTIVITY_PAUSED来做不同操作。
+                这里也许是可优化的点。
+             */
             tmpAppGroup.parallelStream().forEach(app -> {
                 if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_PAUSED) {
                     tmpAppGroup.remove(app);
@@ -314,15 +318,16 @@ public class RunningInfo implements ILogger {
             });
 
             // 检查后台分组(宗旨是在切换后台时执行)
-            idleAppGroup.parallelStream()
-                    .filter(app -> app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED)
-                    .forEach(app -> {
-                        // 从后台分组移除
-                        idleAppGroup.remove(app);
-                        handleRemoveFromIdleAppGroup(app);
-
-                        handlePutInfoActiveAppGroup(appInfo, true);
-                    });
+            // 不需要检查。如果状态改变, app自己会进入此方法来作用
+//            idleAppGroup.parallelStream()
+//                    .filter(app -> app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED)
+//                    .forEach(app -> {
+//                        // 从后台分组移除
+//                        idleAppGroup.remove(app);
+//                        handleRemoveFromIdleAppGroup(app);
+//
+//                        handlePutInfoActiveAppGroup(appInfo, true);
+//                    });
         }
 
         if (BuildConfig.DEBUG) {
@@ -388,7 +393,6 @@ public class RunningInfo implements ILogger {
     }
 
     private void putIntoIdleAppGroup(AppInfo appInfo) {
-        handleRemoveFromActiveAppGroup(appInfo);
         // 做app清理工作
         handleLastApp(appInfo);
 
@@ -398,16 +402,6 @@ public class RunningInfo implements ILogger {
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + "  被放入IdleGroup");
         }
-    }
-
-    private void handleRemoveFromActiveAppGroup(AppInfo appInfo) {
-        // 移除某些定时
-//        processManager.cancelForegroundScheduledFuture(appInfo.getmProcessRecord());
-    }
-
-    private void handleRemoveFromIdleAppGroup(AppInfo appInfo) {
-        // 移除某些定时
-//        processManager.cancelBackgroundScheduledFuture(appInfo.getmProcessRecord());
     }
 
     private void handleLastApp(AppInfo appInfo) {

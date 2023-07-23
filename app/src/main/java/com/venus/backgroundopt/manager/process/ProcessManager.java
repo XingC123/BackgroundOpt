@@ -9,7 +9,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
-import com.venus.backgroundopt.interfaces.ILogger;
+import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.util.Set;
 

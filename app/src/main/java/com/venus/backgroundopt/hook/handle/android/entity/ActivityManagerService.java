@@ -10,7 +10,7 @@ import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
-import com.venus.backgroundopt.interfaces.ILogger;
+import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.lang.reflect.InvocationTargetException;
 
