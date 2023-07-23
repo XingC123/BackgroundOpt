@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -53,16 +54,16 @@ public class AppInfo implements ILogger {
     private volatile ProcessRecord mProcessRecord;   // 主进程记录
 
     private volatile ProcessInfo mProcessInfo;   // 主进程信息
-    private AtomicInteger appSwitchEvent = new AtomicInteger(Integer.MIN_VALUE); // app切换事件
+    private final AtomicInteger appSwitchEvent = new AtomicInteger(Integer.MIN_VALUE); // app切换事件
 
-    private volatile boolean switchEventHandled = false;    // 切换事件处理完毕
+    private final AtomicBoolean switchEventHandled = new AtomicBoolean(false);    // 切换事件处理完毕
 
     public boolean isSwitchEventHandled() {
-        return switchEventHandled;
+        return switchEventHandled.get();
     }
 
     public void setSwitchEventHandled(boolean switchEventHandled) {
-        this.switchEventHandled = switchEventHandled;
+        this.switchEventHandled.set(switchEventHandled);
     }
 
     /* *************************************************************************

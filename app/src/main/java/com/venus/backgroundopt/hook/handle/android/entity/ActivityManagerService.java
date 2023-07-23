@@ -70,10 +70,10 @@ public class ActivityManagerService implements ILogger {
 
     public ProcessRecord getProcessRecord(int pid) {
         Object process = XposedHelpers.callMethod(mPidsSelfLocked, MethodConstants.get, pid);
-        return new ProcessRecord(process);
+        return process == null ? null : new ProcessRecord(process);
     }
 
-    private Object mProcLock;
+    private final Object mProcLock;
 
     public Object getmProcLock() {
         return mProcLock;
@@ -180,7 +180,7 @@ public class ActivityManagerService implements ILogger {
 
     public ProcessRecord getTopApp() {
         Object androProcessRecord = XposedHelpers.callMethod(getActivityManagerService(), MethodConstants.getTopApp);
-        return new ProcessRecord(androProcessRecord);
+        return androProcessRecord == null ? null : new ProcessRecord(androProcessRecord);
     }
 
     /**
@@ -199,7 +199,7 @@ public class ActivityManagerService implements ILogger {
                 callName
         );
 
-        return new ProcessRecord(processRecord);
+        return processRecord == null ? null : new ProcessRecord(processRecord);
     }
 
     public ProcessRecord findProcessLOSP(String process, int userId) {
@@ -237,10 +237,7 @@ public class ActivityManagerService implements ILogger {
                 uid
         );
 
-        if (process == null) {
-            return null;
-        }
-        return new ProcessRecord(process);
+        return process == null ? null : new ProcessRecord(process);
     }
 
     /**

@@ -100,9 +100,7 @@ public class RunningInfo implements ILogger {
     }
 
     public NormalAppResult isNormalApp(int userId, String packageName) {
-        String userIdAndPackageName = getNormalAppKey(userId, packageName);
-
-        return normalApps.computeIfAbsent(userIdAndPackageName, key -> isImportantSystemApp(packageName));
+        return normalApps.computeIfAbsent(getNormalAppKey(userId, packageName), key -> isImportantSystemApp(packageName));
     }
 
     /**
@@ -307,7 +305,7 @@ public class RunningInfo implements ILogger {
                 ActivityManagerServiceHook.ACTIVITY_PAUSED来做不同操作。
                 这里也许是可优化的点。
              */
-            tmpAppGroup.parallelStream().forEach(app -> {
+            tmpAppGroup.forEach(app -> {
                 if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_PAUSED) {
                     tmpAppGroup.remove(app);
                     putIntoIdleAppGroup(app);
@@ -316,18 +314,6 @@ public class RunningInfo implements ILogger {
                     handlePutInfoActiveAppGroup(appInfo, false);
                 }
             });
-
-            // 检查后台分组(宗旨是在切换后台时执行)
-            // 不需要检查。如果状态改变, app自己会进入此方法来作用
-//            idleAppGroup.parallelStream()
-//                    .filter(app -> app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED)
-//                    .forEach(app -> {
-//                        // 从后台分组移除
-//                        idleAppGroup.remove(app);
-//                        handleRemoveFromIdleAppGroup(app);
-//
-//                        handlePutInfoActiveAppGroup(appInfo, true);
-//                    });
         }
 
         if (BuildConfig.DEBUG) {
@@ -427,7 +413,7 @@ public class RunningInfo implements ILogger {
             return;
         }
 
-        processManager.compactAppSome(appInfo);
+//        processManager.compactAppSome(appInfo);
         processManager.startBackgroundAppTrimTask(appInfo.getmProcessRecord());
 //        processManager.handleGC(appInfo);
         processManager.setAppToBackgroundProcessGroup(appInfo);
