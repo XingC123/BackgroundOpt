@@ -13,6 +13,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class BackgroundAppMemoryTrimManager extends AppMemoryTrimManager {
     @Override
+    int getCorePoolSize() {
+        return 50;
+    }
+
+    @Override
     public int getDefaultTrimLevel() {
         return ComponentCallbacks2.TRIM_MEMORY_MODERATE;
     }

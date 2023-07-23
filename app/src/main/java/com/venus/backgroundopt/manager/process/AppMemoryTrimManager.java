@@ -19,30 +19,30 @@ import java.util.function.Consumer;
  * @date 2023/6/4
  */
 public abstract class AppMemoryTrimManager implements ILogger {
-    final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(10);
+    final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(getCorePoolSize());
 
     private final Map<ProcessRecord, AppMemoryTrimTask> appMemoryTrimTaskMap = new ConcurrentHashMap<>();
 
     public AppMemoryTrimManager() {
         // 在任务取消时一并将其移除
         executor.setRemoveOnCancelPolicy(true);
-        // 设置最大线程数(就目前来说, 只有从前台退往后台以后, 任务才会被添加于此, 安卓的后台, 真的能挂100个吗)
-        executor.setMaximumPoolSize(100);
     }
 
-    public abstract int getDefaultTrimLevel();
+    abstract int getCorePoolSize();
 
-    public abstract String getMemoryTrimManagerName();
+    abstract int getDefaultTrimLevel();
 
-    public abstract long getTaskInitialDelay();
+    abstract String getMemoryTrimManagerName();
 
-    public abstract long getTaskPeriod();
+    abstract long getTaskInitialDelay();
 
-    public abstract TimeUnit getTaskTimeUnit();
+    abstract long getTaskPeriod();
 
-    public abstract void runSpecialTask(AppMemoryTrimTask appMemoryTrimTask);
+    abstract TimeUnit getTaskTimeUnit();
 
-    private String getMemoryTrimManagerNameImpl() {
+    abstract void runSpecialTask(AppMemoryTrimTask appMemoryTrimTask);
+
+    String getMemoryTrimManagerNameImpl() {
         return getMemoryTrimManagerName() + ": ";
     }
 
