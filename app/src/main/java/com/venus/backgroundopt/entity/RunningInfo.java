@@ -301,8 +301,14 @@ public class RunningInfo implements ILogger {
         /*
             处理其他分组
          */
-        if (!switchActivity) {
-            // 检查缓存分组
+        if (!switchActivity) {  // 意味着非应用内切换Activity, 即某应用前后台状态被改变
+            // 检查缓存分组, 以确定是否需要改变前后台状态
+            /*
+                理论来说, 只有app.getAppSwitchEvent()== ActivityManagerServiceHook.ACTIVITY_PAUSED才能
+                被放置于tmpGroup。但由于响应的滞后性, 可能在期间发生了app状态切换, 因此仍然检查是否是
+                ActivityManagerServiceHook.ACTIVITY_PAUSED来做不同操作。
+                这里也许是可优化的点。
+             */
             tmpAppGroup.parallelStream().forEach(app -> {
                 if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_PAUSED) {
                     tmpAppGroup.remove(app);
@@ -314,15 +320,16 @@ public class RunningInfo implements ILogger {
             });
 
             // 检查后台分组(宗旨是在切换后台时执行)
-            idleAppGroup.parallelStream()
-                    .filter(app -> app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED)
-                    .forEach(app -> {
-                        // 从后台分组移除
-                        idleAppGroup.remove(app);
-                        handleRemoveFromIdleAppGroup(app);
-
-                        handlePutInfoActiveAppGroup(appInfo, true);
-                    });
+            // 不需要检查。如果状态改变, app自己会进入此方法来作用
+//            idleAppGroup.parallelStream()
+//                    .filter(app -> app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED)
+//                    .forEach(app -> {
+//                        // 从后台分组移除
+//                        idleAppGroup.remove(app);
+//                        handleRemoveFromIdleAppGroup(app);
+//
+//                        handlePutInfoActiveAppGroup(appInfo, true);
+//                    });
         }
 
         if (BuildConfig.DEBUG) {
