@@ -57,6 +57,17 @@ public interface MethodConstants {
     String getThread = "getThread";
     String getProcessRecordLocked = "getProcessRecordLocked";
     String getProcessInPackage = "getProcessInPackage";
+    String setProcessGroup = "setProcessGroup";
+    String getProcessGroup = "getProcessGroup";
+    String setCurrentSchedulingGroup = "setCurrentSchedulingGroup";
+    String setSetSchedGroup = "setSetSchedGroup";
+    String hasForegroundActivities = "hasForegroundActivities";
+    String setThreadGroupAndCpuset = "setThreadGroupAndCpuset";
+    String getCurAdj = "getCurAdj";
+    String setReqCompactAction = "setReqCompactAction";
+    String updateUseCompaction = "updateUseCompaction";
+    String deletePackageX = "deletePackageX";
+    String deletePackageLIF = "deletePackageLIF";
 
     /**
      * miui
