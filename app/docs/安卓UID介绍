@@ -1,0 +1,90 @@
+【Android安全】Android中的应用沙箱和UID | Android多用户: https://blog.csdn.net/qq_39441603/article/details/126997418
+
+Android中的应用沙箱和UID
+参考：
+《Android安全架构深究（美）NIKOLAY ELENKOV》
+
+Linux 用户和用户组管理：
+https://www.runoob.com/linux/linux-user-manage.html
+
+Android系统多用户：
+https://blog.csdn.net/qq_14978113/article/details/94654401
+
+1 Linux中的UID
+Linux系统是一个多用户的操作系统。任何一个物理用户，必须首先向系统管理员申请一个账号，然后以这个账号的身份进入系统。
+
+一个用户不能访问其他用户的文件（除非有明确的授权）。
+
+每个进程以启动它的用户UID和GID运行（例外情况是当可执行文件的SUID或SGID被设置时）。
+
+也就是说，Linux中的UID主要是用来 区分不同物理用户和系统守护进程 的。
+
+这里需要注意，在Linux系统中，一个UID可以被分配给某个通过shell执行命令的物理用户，也可以被分配给某个系统服务守护进程。这是因为，守护进程通常可以通过网络被访问， 每个守护进程使用专用的UID，可以降低守护进程被攻击后带来的损失。
+
+2 Android中的UID
+2.1 UID的作用
+Android 最初是为智能手机设计的， 由于智能手机是私人设备， 所以不需要区分物理用户。所以 UID被用来区别应用程序。这构成了Android应用程序沙箱的基础。
+
+在每个app的安装阶段， Android自动为每个app赋予一个专属的UID。该UID的值是恒定的。app执行时就在自身UID对应的进程内运行。
+
+另外， 每个app都有一个只有它具有读写权限的私有数据目录。
+
+因此， 安卓app是隔离的，包括进程级隔离（分别运行在各自的进程中） 和文件级隔离（具有私有的数据目录）。
+
+系统服务和应用程序都在恒定的UID 下运行。例如，重启手机后，各服务/应用的UID不会发生变化。
+
+2.2 UID与用户名
+系统服务的UID从1000开始；1000是AID_SYSTEM，具有一些特殊权限
+应用程序的UID从10000开始；10000是AID_APP
+在不支持多用户的Android中，UID对应的用户名是app_XXX，其中XXX是UID从AID_APP起的偏移。
+在支持多用户的Android中（Android 从4.2 开始真正支持多用户），UID对应的用户名是uY_aXXX，其中Y是当前物理用户的user ID，XXX是UID从AID_APP起的偏移。
+例如，10037 UID对应的用户名可以是u0_a37，其中0是当前物理用户的user ID，37是10037-10000。Android的主用户（所谓“机主”）的user ID为0，之后添加的新用户的user ID从10开始递增。比如，新添加的第一个用户的user ID是10，第二个用户是11。
+
+如下，添加新用户后，使用ps -A，能看到user ID为10的用户：
+在这里插入图片描述
+
+重启系统后，app的UID和用户名不变，如下面的com.oneplus.faceunlock：
+在这里插入图片描述
+在这里插入图片描述
+
+2.3 UID的存储
+app的UID会被写入/data/system/packages.list
+例如对于com.oneplus.faceunlock：
+
+com.oneplus.faceunlock 10122 0 /data/user/0/com.oneplus.faceunlock default:privapp:targetSdkVersion=28 none 0 20390141
+
+这里：
+第一个字段com.oneplus.faceunlock是包名，
+第二个字段10122是应用 UID ，
+第三个字段0是调试标志位 （1表示可调试），
+第四个字段/data/user/0/com.oneplus.faceunlock是app的数据目录路径，
+第五个字段default:privapp:targetSdkVersion=28是seinfo标签（由SELinux使用）。
+第六个字段none是supplementary GID 列表。每个 GID 通常与一个A ndroid 权限相关联，GID 列表基于赋给应用程序的权限而产生。
+
+普通用户app，例如：
+
+com.atominvention.rootchecker 10236 0 /data/user/0/com.atominvention.rootchecker default:targetSdkVersion=26 3003 0 2
+
+2.4 共享UID
+应用程序可以使用同一个 UID 安装，叫作共享UID，在这种情况下，它们共享文件，甚至在同一个进程中运行。
+
+为模块化考虑，共享用户ID被广泛应用在系统app之间，因为系统app需要在不同的包之间共享使用相同资源。
+
+比如，在Android 4.4中，系统UI和键盘锁（实现锁屏）共享同一 个 UID 10012：
+
+grep ‘10012’ /data/system/packages.list
+com.android.keyguard 10012 0 /data/data/com.android.keyguard platform 1028,1015,1035,3002,3001
+com.android.systemui 10012 0 /data/data/com.android.systemui platform 1028,1015,1035,3002,3001
+
+共享用户ID 对第三方app来说也是可用的。
+
+为共享同一个UID，app需要使用同一个开发者密钥进行代码签名。
+
+共享UID不可以追加，只有应用一开始就设计使用UID才行。
+
+2.5 特殊UID
+参考：https://blog.csdn.net/SweetTool/article/details/72864229
+
+AID_ROOT是0
+
+可以通过检测系统中的特权文件来判断设备的Root状态，例如Root过的设备中通常会增加一些uid为0（root用户的UID）的文件。

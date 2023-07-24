@@ -66,6 +66,8 @@ public interface MethodConstants {
     String getCurAdj = "getCurAdj";
     String setReqCompactAction = "setReqCompactAction";
     String updateUseCompaction = "updateUseCompaction";
+    String deletePackageX = "deletePackageX";
+    String deletePackageLIF = "deletePackageLIF";
 
     /**
      * miui

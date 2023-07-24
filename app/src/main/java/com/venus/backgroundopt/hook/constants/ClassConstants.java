@@ -36,6 +36,10 @@ public interface ClassConstants {
     String MemCompactionHandler = "com.android.server.am.CachedAppOptimizer.MemCompactionHandler";
     String ComponentCallbacks2 = "android.content.ComponentCallbacks2";
     String UidRecord = "com.android.server.am.UidRecord";
+    String DeletePackageHelper = "com.android.server.pm.DeletePackageHelper";
+    String PackageRemovedInfo = "com.android.server.pm.PackageRemovedInfo";
+    String PackageRemovedInfo_A12 = "com.android.server.pm.PackageManagerService.PackageRemovedInfo";
+    String ParsedPackage = "com.android.server.pm.parsing.pkg.ParsedPackage";
 
     /**
      * miui
