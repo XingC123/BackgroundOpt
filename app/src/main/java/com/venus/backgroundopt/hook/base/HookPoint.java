@@ -87,9 +87,9 @@ public class HookPoint implements ILogger {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("[" + hookClassName + "." + hookMethodName + "]hook成功");
             }
-        } catch (Exception e) {
+        } catch (Throwable t) {
             if (BuildConfig.DEBUG) {
-                getLogger().debug("[" + hookClassName + "." + hookMethodName + "]hook失败", e);
+                getLogger().error("[" + hookClassName + "." + hookMethodName + "]hook失败", t);
             }
         }
     }
