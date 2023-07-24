@@ -7,9 +7,9 @@ import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ApplicationInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
-import com.venus.backgroundopt.utils.log.ILogger;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.service.ProcessDaemonService;
+import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -101,6 +101,27 @@ public class RunningInfo implements ILogger {
 
     public NormalAppResult isNormalApp(int userId, String packageName) {
         return normalApps.computeIfAbsent(getNormalAppKey(userId, packageName), key -> isImportantSystemApp(packageName));
+    }
+
+    /**
+     * 移除给定key匹配的{@link NormalAppResult}
+     *
+     * @param key 见{@link #getNormalAppKey}
+     */
+    public void removeRecordedNormalApp(String key) {
+        normalApps.remove(key);
+        if (BuildConfig.DEBUG) {
+            getLogger().debug("移除\"普通app记录\": " + key);
+        }
+    }
+
+    public void removeAllRecordedNormalApp(String packageName) {
+        normalApps.keySet().stream()
+                .filter(key -> key.contains(packageName))
+                .forEach(normalApps::remove);
+        if (BuildConfig.DEBUG) {
+            getLogger().debug("移除\"普通app记录\": " + packageName);
+        }
     }
 
     /**

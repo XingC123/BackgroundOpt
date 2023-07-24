@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.hook.handle.android;
 
+import android.os.UserHandle;
+
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
@@ -9,6 +11,8 @@ import com.venus.backgroundopt.hook.base.action.HookAction;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
+
+import java.lang.reflect.Array;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
@@ -32,6 +36,19 @@ public class PackageManagerServiceHook extends MethodHook {
                         new HookAction[]{
                                 (AfterHookAction) this::getActiveLaunchPackageName
                         }
+                ),
+                new HookPoint(
+                        ClassConstants.PackageManagerService,
+                        MethodConstants.deletePackageLIF,
+                        new HookAction[]{(AfterHookAction) this::handleDeletePackageLIF},
+                        String.class,   /* packageName */
+                        UserHandle.class,    /* user */
+                        boolean.class,  /* deleteCodeAndResources */
+                        Array.newInstance(int.class, 0).getClass(), /* allUserHandles */
+                        int.class,  /* flags */
+                        ClassConstants.PackageRemovedInfo_A12,  /* outInfo */
+                        boolean.class,  /* writeSettings */
+                        ClassConstants.ParsedPackage    /* replacingPackage */
                 ),
         };
     }
@@ -64,6 +81,19 @@ public class PackageManagerServiceHook extends MethodHook {
         }
 
         runningInfo.setActiveLaunchPackageName(packageName);
+
+        return null;
+    }
+
+    private Object handleDeletePackageLIF(XC_MethodHook.MethodHookParam methodHookParam) {
+        Object[] args = methodHookParam.args;
+        String packageName = (String) args[0];
+        int[] userIds = (int[]) args[3];
+        RunningInfo runningInfo = getRunningInfo();
+
+        for (int userId : userIds) {
+            runningInfo.removeRecordedNormalApp(runningInfo.getNormalAppKey(userId, packageName));
+        }
 
         return null;
     }

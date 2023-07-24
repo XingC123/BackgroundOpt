@@ -1,9 +1,12 @@
 package com.venus.backgroundopt.hook.handler;
 
+import android.os.Build;
+
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.PackageHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerConstantsHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
+import com.venus.backgroundopt.hook.handle.android.DeletePackageHelperHook;
 import com.venus.backgroundopt.hook.handle.android.DeviceConfigHook;
 import com.venus.backgroundopt.hook.handle.android.PackageManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.PhantomProcessListHook;
@@ -50,5 +53,11 @@ public class AndroidHookHandler extends PackageHook {
 
         // 最近任务可见性hook
         new RecentTasksHook(packageParam.classLoader, runningInfo);
+
+        // 软件卸载
+        // 安卓12在PackageManagerServiceHook完成
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {    // 安卓13
+            new DeletePackageHelperHook(packageParam.classLoader, runningInfo);
+        }
     }
 }
