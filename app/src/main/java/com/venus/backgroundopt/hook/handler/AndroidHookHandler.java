@@ -8,7 +8,7 @@ import com.venus.backgroundopt.hook.handle.android.ActivityManagerConstantsHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.DeletePackageHelperHook;
 import com.venus.backgroundopt.hook.handle.android.DeviceConfigHook;
-import com.venus.backgroundopt.hook.handle.android.PackageManagerServiceHook;
+import com.venus.backgroundopt.hook.handle.android.PackageManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.PhantomProcessListHook;
 import com.venus.backgroundopt.hook.handle.android.ProcessHook;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHook;
@@ -38,7 +38,7 @@ public class AndroidHookHandler extends PackageHook {
         new ActivityManagerServiceHook(packageParam.classLoader, runningInfo);
 
         // 默认桌面
-        new PackageManagerServiceHook(packageParam.classLoader, runningInfo);
+        new PackageManagerServiceHookKt(packageParam.classLoader, runningInfo);
 
         // 杀后台hook
         new ProcessHook(packageParam.classLoader, runningInfo);
