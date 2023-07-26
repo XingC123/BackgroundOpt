@@ -7,6 +7,7 @@ import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.afterHookAction
+import com.venus.backgroundopt.hook.base.effectiveHookFlagMaker
 import com.venus.backgroundopt.hook.base.generateHookPoint
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
@@ -25,7 +26,9 @@ class PackageManagerServiceHookKt(
     override fun getHookPoint(): Array<HookPoint> {
         return arrayOf(
             generateHookPoint(
-                true,
+                effectiveHookFlagMaker {
+                    true
+                },
                 ClassConstants.PackageManagerService,
                 MethodConstants.isFirstBoot,
                 arrayOf(
@@ -39,7 +42,9 @@ class PackageManagerServiceHookKt(
              * 安卓13已经更换实现。模块其实现位于 [DeletePackageHelperHook.handleDeletePackageLIF]
              */
             generateHookPoint(
-                Build.VERSION.SDK_INT in Build.VERSION_CODES.S..Build.VERSION_CODES.S_V2,
+                effectiveHookFlagMaker {
+                    Build.VERSION.SDK_INT in Build.VERSION_CODES.S..Build.VERSION_CODES.S_V2
+                },
                 ClassConstants.PackageManagerService,
                 MethodConstants.deletePackageLIF,
                 arrayOf(

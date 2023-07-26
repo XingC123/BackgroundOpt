@@ -45,3 +45,14 @@ fun generateHookPoint(
         IneffectiveHookPoint(className)
     }
 }
+
+/**
+ * 使用 [generateHookPoint] 生成 [HookPoint] 时, 需要传递 effectiveFlag 参数, 该参数是一个Boolean值。可以通过当前
+ * 方法，传入一个表达式来计算出一个Boolean进行返回
+ *
+ * @param action 决定当前方法返回值的表达式
+ * @return 返回 [action] 运算后的值
+ */
+inline fun effectiveHookFlagMaker(action: () -> Boolean): Boolean {
+    return action()
+}
