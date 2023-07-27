@@ -183,14 +183,14 @@ public class ProcessRecord {
         try {
             this.processStateRecord.setMaxAdj(maxAdj);
             setSucceed = true;
-        } catch (Exception e) {
+        } catch (Throwable t) {
             try {
                 XposedHelpers.setIntField(
                         this.processStateRecord.getProcessStateRecord(),
                         FieldConstants.mMaxAdj,
                         maxAdj);
                 setSucceed = true;
-            } catch (Exception ignore) {
+            } catch (Throwable ignore) {
             }
         }
 
@@ -205,11 +205,11 @@ public class ProcessRecord {
     public int getMaxAdj() {
         try {
             return this.processStateRecord.getMaxAdj();
-        } catch (Exception e) {
+        } catch (Throwable t) {
             try {
                 return XposedHelpers.getIntField(
                         this.processStateRecord.getProcessStateRecord(), FieldConstants.mMaxAdj);
-            } catch (Exception ex) {
+            } catch (Throwable th) {
                 return ProcessList.UNKNOWN_ADJ;
             }
         }
@@ -243,7 +243,7 @@ public class ProcessRecord {
 
         try {
             thread = XposedHelpers.callMethod(processRecord, MethodConstants.getThread);
-        } catch (Exception ignore) {
+        } catch (Throwable ignore) {
         }
 
         if (thread == null) {
