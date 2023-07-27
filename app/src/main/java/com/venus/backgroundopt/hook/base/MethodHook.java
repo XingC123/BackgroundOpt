@@ -34,7 +34,8 @@ public abstract class MethodHook extends AbstractHook {
         }
     }
 
+    private static final HookPoint[] defaultHookPoint = new HookPoint[0];
     public HookPoint[] getConstructorHookPoint() {
-        return new HookPoint[0];
+        return defaultHookPoint;
     }
 }
