@@ -130,13 +130,14 @@ public class ActivityManagerServiceHook extends MethodHook {
             return null;
         }
 
-        // 本次事件用户
-        int userId = (int) args[1];
         // 本次事件包名
         String packageName = ((ComponentName) args[0]).getPackageName();
         if (packageName == null) {
             return null;
         }
+
+        // 本次事件用户
+        int userId = (int) args[1];
 
         RunningInfo runningInfo = getRunningInfo();
         // 检查是否是系统重要进程

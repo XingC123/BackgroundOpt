@@ -186,10 +186,10 @@ public class ProcessManager implements ILogger {
                 ILogger.getLoggerStatic(ProcessManager.class)
                         .debug(processRecord.getPackageName() + " 触发gc, pid = " + processRecord.getPid());
             }
-        } catch (Exception e) {
+        } catch (Throwable t) {
             if (BuildConfig.DEBUG) {
                 ILogger.getLoggerStatic(ProcessManager.class)
-                        .error(processRecord.getPackageName() + " 存在问题, 无法执行gc", e);
+                        .error(processRecord.getPackageName() + " 存在问题, 无法执行gc", t);
             }
         }
     }
@@ -225,7 +225,7 @@ public class ProcessManager implements ILogger {
                 return;
             }
             Process.setProcessGroup(pid, THREAD_GROUP_BACKGROUND);
-        } catch (Exception ignore) {
+        } catch (Throwable ignore) {
             // 不进行任何设置
         }
     }

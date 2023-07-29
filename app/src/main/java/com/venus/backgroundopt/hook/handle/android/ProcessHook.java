@@ -38,16 +38,16 @@ public class ProcessHook extends MethodHook {
                         int.class,
                         int.class
                 ),
-                new HookPoint(
-                        ClassConstants.Process,
-                        MethodConstants.setProcessGroup,
-                        new HookAction[]{
-                                (BeforeHookAction) this::handleSetProcessGroup
-                        },
-                        /* pid, group */
-                        int.class,
-                        int.class
-                ),
+//                new HookPoint(
+//                        ClassConstants.Process,
+//                        MethodConstants.setProcessGroup,
+//                        new HookAction[]{
+//                                (BeforeHookAction) this::handleSetProcessGroup
+//                        },
+//                        /* pid, group */
+//                        int.class,
+//                        int.class
+//                ),
         };
     }
 

@@ -96,7 +96,7 @@ public class ActivityManagerConstantsHook extends MethodHook {
             } else {
                 getLogger().warn(field + "设置失败");
             }
-        } catch (Exception e) {
+        } catch (Throwable t) {
             getLogger().warn(field + "设置出现异常");
         }
     }

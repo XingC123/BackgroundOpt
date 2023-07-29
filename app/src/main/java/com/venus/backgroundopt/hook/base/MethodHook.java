@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.hook.base;
 
+import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.RunningInfo;
 
 /**
@@ -23,11 +24,18 @@ public abstract class MethodHook extends AbstractHook {
         }
 
         for (HookPoint hookPoint : getHookPoint()) {
-            hookPoint.hook(classLoader, HookPoint.MethodType.Member);
+            if (hookPoint instanceof IneffectiveHookPoint) {
+                if (BuildConfig.DEBUG) {
+                    getLogger().debug("因不满足条件, [" + hookPoint.getClassName() + "." + hookPoint.getMethodName() + "]不进行hook");
+                }
+            } else {
+                hookPoint.hook(classLoader, HookPoint.MethodType.Member);
+            }
         }
     }
 
+    private static final HookPoint[] defaultHookPoint = new HookPoint[0];
     public HookPoint[] getConstructorHookPoint() {
-        return new HookPoint[0];
+        return defaultHookPoint;
     }
 }

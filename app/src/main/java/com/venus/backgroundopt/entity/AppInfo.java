@@ -125,7 +125,7 @@ public class AppInfo implements ILogger {
         } else {
             processInfo = addProcessInfo(pid, oomAdjScore);
 
-            runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, this);
+//            runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, this);
         }
 
         // 压缩当前进程

@@ -437,7 +437,7 @@ public class RunningInfo implements ILogger {
 //        processManager.compactAppSome(appInfo);
         processManager.startBackgroundAppTrimTask(appInfo.getmProcessRecord());
 //        processManager.handleGC(appInfo);
-        processManager.setAppToBackgroundProcessGroup(appInfo);
+//        processManager.setAppToBackgroundProcessGroup(appInfo);
 //        compactApp(appInfo);
 
         appInfo.setSwitchEventHandled(true);

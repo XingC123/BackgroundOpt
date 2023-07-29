@@ -5,8 +5,7 @@ import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
-import com.venus.backgroundopt.hook.base.action.BeforeHookAction
-import com.venus.backgroundopt.hook.base.action.HookAction
+import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -24,7 +23,11 @@ class DeletePackageHelperHook(
 //            HookPoint(
 //                ClassConstants.DeletePackageHelper,
 //                MethodConstants.deletePackageX,
-//                arrayOf(::handleDeletePackageX as BeforeHookAction),
+//                arrayOf(
+//                    beforeHookAction {
+//                        handleDeletePackageX(it)
+//                    }
+//                ),
 //                String::class.java, /* packageName */
 //                Long::class.java,   /* versionCode */
 //                Int::class.java,    /* userId */
@@ -34,12 +37,10 @@ class DeletePackageHelperHook(
             HookPoint(
                 ClassConstants.DeletePackageHelper,
                 MethodConstants.deletePackageLIF,
-                arrayOf<HookAction>(
-                    object : BeforeHookAction {
-                        override fun execute(param: MethodHookParam): Any? {
-                            return handleDeletePackageLIF(param)
-                        }
-                    },
+                arrayOf(
+                    beforeHookAction {
+                        handleDeletePackageLIF(it)
+                    }
                 ),
                 String::class.java, /* packageName */
                 UserHandle::class.java, /* user */
@@ -52,7 +53,7 @@ class DeletePackageHelperHook(
         )
     }
 
-    private fun handleDeletePackageX(param: MethodHookParam): Any? {
+    private fun handleDeletePackageX(param: MethodHookParam) {
         val packageName = param.args[0] as String
 
         runningInfo.removeAllRecordedNormalApp(packageName)
@@ -60,11 +61,9 @@ class DeletePackageHelperHook(
         if (BuildConfig.DEBUG) {
             logger.debug("卸载: $packageName")
         }
-
-        return null
     }
 
-    private fun handleDeletePackageLIF(param: MethodHookParam): Any? {
+    private fun handleDeletePackageLIF(param: MethodHookParam) {
         val args = param.args
         val packageName = args[0] as String
         val userIds = args[3] as IntArray
@@ -72,7 +71,5 @@ class DeletePackageHelperHook(
         userIds.forEach { userId ->
             runningInfo.removeRecordedNormalApp(runningInfo.getNormalAppKey(userId, packageName))
         }
-
-        return null
     }
 }

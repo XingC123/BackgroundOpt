@@ -1,5 +1,8 @@
 package com.venus.backgroundopt.hook.base.action;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam;
 
 /**
@@ -8,5 +11,6 @@ import de.robv.android.xposed.XC_MethodHook.MethodHookParam;
  * @date 2023/4/27
  */
 public interface HookAction {
-    Object execute(MethodHookParam param);
+    @Nullable
+    Object execute(@NotNull MethodHookParam param);
 }

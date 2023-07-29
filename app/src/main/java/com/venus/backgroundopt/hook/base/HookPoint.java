@@ -9,6 +9,8 @@ import com.venus.backgroundopt.hook.base.action.HookAction;
 import com.venus.backgroundopt.hook.base.action.ReplacementHookAction;
 import com.venus.backgroundopt.utils.log.ILogger;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +39,7 @@ public class HookPoint implements ILogger {
      * @param hookActions hook后的具体执行
      * @param actionArgs  参数
      */
-    public HookPoint(String className, HookAction[] hookActions, Object... actionArgs) {
+    public HookPoint(@NotNull String className, HookAction[] hookActions, Object... actionArgs) {
         this(className, className, hookActions, actionArgs);
     }
 
@@ -49,7 +51,7 @@ public class HookPoint implements ILogger {
      * @param hookActions hook后的具体执行
      * @param actionArgs  参数
      */
-    public HookPoint(String className, String methodName, HookAction[] hookActions, Object... actionArgs) {
+    public HookPoint(@NotNull String className, String methodName, HookAction[] hookActions, Object... actionArgs) {
         this.className = className;
         this.methodName = methodName;
         this.hookActions = hookActions;
