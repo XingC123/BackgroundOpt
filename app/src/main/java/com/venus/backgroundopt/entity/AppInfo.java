@@ -8,6 +8,8 @@ import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.utils.log.ILogger;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Objects;
@@ -35,7 +37,7 @@ public class AppInfo implements ILogger {
      * miui: 99910435 = 用户id+真正uid
      * 安卓13原生: 1010207 = 用户id+真正uid
      */
-    private int repairedUid = Integer.MIN_VALUE;
+    private int uid = Integer.MIN_VALUE;
     private String packageName;
     private int userId = Integer.MIN_VALUE;
 
@@ -89,7 +91,7 @@ public class AppInfo implements ILogger {
     private Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
 
     public ProcessInfo addProcessInfo(int pid, int oomAdjScore) {
-        ProcessInfo processInfo = new ProcessInfo(repairedUid, pid, oomAdjScore);
+        ProcessInfo processInfo = new ProcessInfo(uid, pid, oomAdjScore);
         processInfoMap.put(pid, processInfo);
 
         return processInfo;
@@ -97,11 +99,12 @@ public class AppInfo implements ILogger {
 
     public void addProcessInfo(ProcessInfo processInfo) {
         // 纠正processInfo的uid
-        processInfo.setRepairedUid(repairedUid);
+        processInfo.setUid(uid);
         // 添加
         processInfoMap.put(processInfo.getPid(), processInfo);
     }
 
+    @Nullable
     public ProcessInfo getProcessInfo(int pid) {
         return processInfoMap.get(pid);
     }
@@ -137,7 +140,7 @@ public class AppInfo implements ILogger {
                 runningInfo.getProcessManager().compactAppFullNoCheck(processInfo);
 
                 if (BuildConfig.DEBUG) {
-                    getLogger().debug("包名: " + packageName + "的pid: " + pid + " >>> 因[所在app内存状态改变]而内存压缩");
+                    getLogger().debug("包名: " + packageName + ", uid: " + uid + "的pid: " + pid + " >>> 因[所在app内存状态改变]而内存压缩");
                 }
             } else // 参照了com.android.server.am.CachedAppOptimizer.void onOomAdjustChanged(int oldAdj, int newAdj, ProcessRecord app)
                 if (oldAdj < ProcessList.CACHED_APP_MIN_ADJ
@@ -149,7 +152,7 @@ public class AppInfo implements ILogger {
                         processInfo.setLastCompactTime(currentTimeMillis);
 
                         if (BuildConfig.DEBUG) {
-                            getLogger().debug("包名: " + packageName + "的pid: " + pid + " >>> 因[oom_score]而内存压缩");
+                            getLogger().debug("包名: " + packageName + ", uid: " + uid + "的pid: " + pid + " >>> 因[oom_score]而内存压缩");
                         }
                     }
                 }
@@ -212,12 +215,12 @@ public class AppInfo implements ILogger {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AppInfo appInfo = (AppInfo) o;
-        return repairedUid == appInfo.repairedUid && userId == appInfo.userId && Objects.equals(packageName, appInfo.packageName);
+        return uid == appInfo.uid && userId == appInfo.userId && Objects.equals(packageName, appInfo.packageName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(repairedUid, packageName, userId);
+        return Objects.hash(uid, packageName, userId);
     }
 
     /* *************************************************************************
@@ -267,7 +270,7 @@ public class AppInfo implements ILogger {
     public static int getRepairedUid(int userId, int uid) {
         if (userId == ActivityManagerService.MAIN_USER) {
             return uid;
-        } else {
+        } else {    // 还需判断传入的uid是否已经是符合"用户id+uid"
             int compute = uid / ActivityManagerService.USER_APP_UID_START_NUM;
 
             // 0: 系统应用, 1: 用户程序
@@ -280,12 +283,12 @@ public class AppInfo implements ILogger {
         }
     }
 
-    public int getRepairedUid() {
-        return repairedUid;
+    public int getUid() {
+        return uid;
     }
 
-    public AppInfo setRepairedUid(int repairedUid) {
-        this.repairedUid = repairedUid;
+    public AppInfo setUid(int uid) {
+        this.uid = uid;
 
         return this;
     }

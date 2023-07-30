@@ -5,6 +5,7 @@ import static com.venus.backgroundopt.entity.RunningInfo.NormalAppResult;
 import android.content.Context;
 import android.content.pm.PackageManager;
 
+import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
@@ -85,8 +86,8 @@ public class ActivityManagerService implements ILogger {
 
     private final NormalAppResult notNormalAppResult = new NormalAppResult().setNormalApp(false);
 
-    public RunningInfo.NormalAppResult isImportantSystemApp(String packageName) {
-        ApplicationInfo applicationInfo = getApplicationInfo(MAIN_USER, packageName);
+    public RunningInfo.NormalAppResult isImportantSystemApp(int userId, String packageName) {
+        ApplicationInfo applicationInfo = getApplicationInfo(userId, packageName);
 
         // 安卓源码ActivityManagerService.java判断方式:
 //            final boolean isSystemApp = process == null ||
@@ -103,8 +104,16 @@ public class ActivityManagerService implements ILogger {
          */
         //  普通应用程序的UID 都是从 10000开始的
         if (applicationInfo == null || applicationInfo.uid < USER_APP_UID_START_NUM) {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("applicationInfo == null ?" + (applicationInfo == null) + ", applicationInfo.uid < USER_APP_UID_START_NUM ? " + (applicationInfo != null && applicationInfo.uid < USER_APP_UID_START_NUM));
+            }
+
             return notNormalAppResult;
         } else {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("当前获取的applicationInfo的信息: userId: " + userId + ", packageName: " + packageName + ", uid: " + applicationInfo.uid);
+            }
+
             NormalAppResult normalAppResult = new NormalAppResult();
             normalAppResult.setNormalApp(true);
             normalAppResult.setApplicationInfo(applicationInfo);
@@ -132,9 +141,7 @@ public class ActivityManagerService implements ILogger {
                             packageManager, MethodConstants.getApplicationInfoAsUser,
                             packageName, PackageManager.MATCH_UNINSTALLED_PACKAGES, userId);
             if (applicationInfoAsUser != null) {
-                return
-                        new ApplicationInfo(applicationInfoAsUser)
-                                .setRepairedUid(AppInfo.getRepairedUid(userId, applicationInfoAsUser.uid));
+                return new ApplicationInfo(applicationInfoAsUser);
             }
         } catch (Throwable throwable) {
             getLogger().warn("获取应用信息失败: [userId = " + userId + ", packageName = " + packageName, throwable);
@@ -142,6 +149,14 @@ public class ActivityManagerService implements ILogger {
         return null;
     }
 
+    /**
+     * 获取app的uid
+     * 注意: 如果是多开app, 通过此方法获取得到的uid仍然为主用户下的uid
+     *
+     * @param userId      用户id
+     * @param packageName 包名
+     * @return 指定的app的uid
+     */
     public int getAppUID(int userId, String packageName) {
         return getApplicationInfo(userId, packageName).uid;
     }
@@ -247,7 +262,7 @@ public class ActivityManagerService implements ILogger {
      * @return 主进程的记录
      */
     public ProcessRecord findMProcessRecord(AppInfo appInfo) {
-        ProcessRecord mProcessRecord = getProcessRecordLocked(appInfo.getPackageName(), appInfo.getRepairedUid());
+        ProcessRecord mProcessRecord = getProcessRecordLocked(appInfo.getPackageName(), appInfo.getUid());
 
         if (mProcessRecord == null) {   // 目前已知, 双开的app必走这里
 //            Object uidRecord = XposedHelpers.newInstance(

@@ -66,30 +66,31 @@ public class ProcessHook extends MethodHook {
                 后续(23.3.6): 设置进程最大adj之后解决
              */
             int mPid = Integer.MIN_VALUE;
+            boolean flag = false;
 
             try {
                 mPid = appInfo.getmPid();
             } catch (Exception e) {
                 // app已清理过一次后台
-                runningInfo.removeRunningApp(appInfo);
+                flag = true;
             }
 
-            if (pid == mPid) {
+            if (pid == mPid || flag) {
                 runningInfo.removeRunningApp(appInfo);
 
                 if (BuildConfig.DEBUG) {
-                    getLogger().debug("kill: " + appInfo.getPackageName());
+                    getLogger().debug("kill: " + appInfo.getPackageName() + ", uid: " + uid);
                 }
             } else if (mPid == Integer.MIN_VALUE) {
                 if (BuildConfig.DEBUG) {
-                    getLogger().warn("再次kill: " + appInfo.getPackageName());
+                    getLogger().warn("再次kill: " + appInfo.getPackageName() + ", uid: " + uid);
                 }
             } else {
                 // 移除进程记录
                 appInfo.removeProcessInfo(pid);
 
                 if (BuildConfig.DEBUG) {
-                    getLogger().debug(appInfo.getPackageName() + " 的子进程被杀");
+                    getLogger().debug("[" + appInfo.getPackageName() + ", uid: " + uid + " ]的子进程被杀");
                 }
             }
         }
