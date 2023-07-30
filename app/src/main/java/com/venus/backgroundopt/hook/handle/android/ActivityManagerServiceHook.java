@@ -153,7 +153,7 @@ public class ActivityManagerServiceHook extends MethodHook {
 
         if (appInfo == null) {
             if (BuildConfig.DEBUG) {
-                getLogger().debug("创建新进程: " + packageName);
+                getLogger().debug("创建新进程: " + packageName + ", uid: " + uid);
             }
 
             firstRunning = true;

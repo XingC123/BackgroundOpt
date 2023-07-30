@@ -237,7 +237,7 @@ public class RunningInfo implements ILogger {
             appInfo.setMProcessInfoAndMProcessRecord(mProcessRecord);
         } else {
             if (BuildConfig.DEBUG) {
-                getLogger().warn(appInfo.getPackageName() + " 的mProcessRecord为空");
+                getLogger().warn(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的mProcessRecord为空");
             }
         }
 
@@ -346,7 +346,7 @@ public class RunningInfo implements ILogger {
         }
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + " 的active事件处理完毕");
+            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的active事件处理完毕");
         }
     }
 
@@ -382,7 +382,7 @@ public class RunningInfo implements ILogger {
         processManager.startForegroundAppTrimTask(appInfo.getmProcessRecord());
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + " 被放入ActiveGroup");
+            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid()  + " 被放入ActiveGroup");
         }
     }
 
@@ -402,7 +402,7 @@ public class RunningInfo implements ILogger {
             putIntoIdleAppGroup(appInfo);
         } else {
             if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + " 被放入TmpGroup");
+                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid()  + " 被放入TmpGroup");
             }
         }
     }
@@ -415,7 +415,7 @@ public class RunningInfo implements ILogger {
         appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + "  被放入IdleGroup");
+            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid()  + "  被放入IdleGroup");
         }
     }
 
@@ -437,7 +437,7 @@ public class RunningInfo implements ILogger {
 
         if (appInfo.isSwitchEventHandled()) {
             if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + " 的切换事件已经处理过");
+                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid()  + " 的切换事件已经处理过");
             }
             return;
         }

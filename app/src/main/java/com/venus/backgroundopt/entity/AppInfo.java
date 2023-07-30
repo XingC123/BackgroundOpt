@@ -8,6 +8,8 @@ import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.utils.log.ILogger;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Objects;
@@ -97,11 +99,12 @@ public class AppInfo implements ILogger {
 
     public void addProcessInfo(ProcessInfo processInfo) {
         // 纠正processInfo的uid
-        processInfo.setRepairedUid(uid);
+        processInfo.setUid(uid);
         // 添加
         processInfoMap.put(processInfo.getPid(), processInfo);
     }
 
+    @Nullable
     public ProcessInfo getProcessInfo(int pid) {
         return processInfoMap.get(pid);
     }
@@ -284,8 +287,8 @@ public class AppInfo implements ILogger {
         return uid;
     }
 
-    public AppInfo setUid(int repairedUid) {
-        this.uid = repairedUid;
+    public AppInfo setUid(int uid) {
+        this.uid = uid;
 
         return this;
     }

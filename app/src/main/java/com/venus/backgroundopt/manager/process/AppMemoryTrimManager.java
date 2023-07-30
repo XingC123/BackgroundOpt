@@ -117,6 +117,7 @@ public abstract class AppMemoryTrimManager implements ILogger {
                     getLogger().debug(
                             getMemoryTrimManagerNameImpl()
                                     + appMemoryTrimTask.processRecord.getPackageName()
+                                    + ", uid: " + appMemoryTrimTask.processRecord.getUid()
                                     + " ->>> 移除ScheduledFuture");
                 }
             }
@@ -156,12 +157,12 @@ public abstract class AppMemoryTrimManager implements ILogger {
 
             if (BuildConfig.DEBUG) {
                 getLogger().debug(getMemoryTrimManagerNameImpl() + "移除TrimMemoryTask ->>> "
-                        + processRecord.getPackageName());
+                        + processRecord.getPackageName() + ", uid: " + processRecord.getUid());
             }
         } else {
             if (BuildConfig.DEBUG) {
                 getLogger().debug(getMemoryTrimManagerNameImpl() + "移除TrimMemoryTask ->>> "
-                        + processRecord.getPackageName() + " 无需移除");
+                        + processRecord.getPackageName() + ", uid: " + processRecord.getUid() + " 无需移除");
             }
         }
     }
@@ -175,6 +176,7 @@ public abstract class AppMemoryTrimManager implements ILogger {
                 if (BuildConfig.DEBUG) {
                     getLogger().debug(
                             getMemoryTrimManagerNameImpl() + processRecord.getPackageName()
+                                    + ", uid: " + processRecord.getUid()
                                     + ": 设置TrimMemoryTask ->>> "
                                     + getDefaultTrimLevel() + " 成功");
                 }
@@ -184,6 +186,7 @@ public abstract class AppMemoryTrimManager implements ILogger {
 
                 getLogger().warn(
                         getMemoryTrimManagerNameImpl() + processRecord.getPackageName()
+                                + ", uid: " + processRecord.getUid()
                                 + ": 设置TrimMemoryTask ->>> "
                                 + getDefaultTrimLevel() + " 失败或未执行");
             }

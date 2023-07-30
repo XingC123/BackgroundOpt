@@ -105,13 +105,13 @@ public class ActivityManagerService implements ILogger {
         //  普通应用程序的UID 都是从 10000开始的
         if (applicationInfo == null || applicationInfo.uid < USER_APP_UID_START_NUM) {
             if (BuildConfig.DEBUG) {
-                getLogger().warn("applicationInfo == null ?" + (applicationInfo == null) + ", applicationInfo.uid < USER_APP_UID_START_NUM ? " + (applicationInfo != null && applicationInfo.uid < USER_APP_UID_START_NUM));
+                getLogger().debug("applicationInfo == null ?" + (applicationInfo == null) + ", applicationInfo.uid < USER_APP_UID_START_NUM ? " + (applicationInfo != null && applicationInfo.uid < USER_APP_UID_START_NUM));
             }
 
             return notNormalAppResult;
         } else {
             if (BuildConfig.DEBUG) {
-                getLogger().warn("当前获取的applicationInfo的信息: userId: " + userId + ", packageName: " + packageName + ", uid: " + applicationInfo.uid);
+                getLogger().debug("当前获取的applicationInfo的信息: userId: " + userId + ", packageName: " + packageName + ", uid: " + applicationInfo.uid);
             }
 
             NormalAppResult normalAppResult = new NormalAppResult();

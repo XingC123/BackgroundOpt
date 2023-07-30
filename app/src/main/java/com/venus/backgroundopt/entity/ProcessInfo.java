@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @date 2023/6/3
  */
 public class ProcessInfo {
-    private int repairedUid = Integer.MIN_VALUE;
+    private int uid = Integer.MIN_VALUE;
     private int pid = Integer.MIN_VALUE;
     private int oomAdjScore = Integer.MIN_VALUE;
 
@@ -64,12 +64,12 @@ public class ProcessInfo {
         this(processRecord.getUid(), processRecord.getPid(), Integer.MIN_VALUE);
     }
 
-    public ProcessInfo(int repairedUid, int pid, int oomAdjScore) {
-        this(repairedUid, pid, oomAdjScore, Integer.MIN_VALUE);
+    public ProcessInfo(int uid, int pid, int oomAdjScore) {
+        this(uid, pid, oomAdjScore, Integer.MIN_VALUE);
     }
 
-    public ProcessInfo(int repairedUid, int pid, int oomAdjScore, int fixedOomAdjScore) {
-        this.repairedUid = repairedUid;
+    public ProcessInfo(int uid, int pid, int oomAdjScore, int fixedOomAdjScore) {
+        this.uid = uid;
         this.pid = pid;
         this.oomAdjScore = oomAdjScore;
         this.fixedOomAdjScore = fixedOomAdjScore;
@@ -82,12 +82,12 @@ public class ProcessInfo {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ProcessInfo that = (ProcessInfo) o;
-        return repairedUid == that.repairedUid && pid == that.pid;
+        return uid == that.uid && pid == that.pid;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(repairedUid, pid);
+        return Objects.hash(uid, pid);
     }
 
     public int getPid() {
@@ -114,11 +114,11 @@ public class ProcessInfo {
         this.fixedOomAdjScore = fixedOomAdjScore;
     }
 
-    public int getRepairedUid() {
-        return repairedUid;
+    public int getUid() {
+        return uid;
     }
 
-    public void setRepairedUid(int repairedUid) {
-        this.repairedUid = repairedUid;
+    public void setUid(int uid) {
+        this.uid = uid;
     }
 }
