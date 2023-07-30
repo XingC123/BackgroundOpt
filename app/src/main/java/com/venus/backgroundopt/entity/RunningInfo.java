@@ -73,8 +73,13 @@ public class RunningInfo implements ILogger {
      **************************************************************************/
     /**
      * 非系统重要进程记录
-     * userId包名, NormalAppResult
-     * userId包名 -> userId = 10999, 包名=com.venus.aaa -> 10999com.venus.aaa
+     * key: 主用户 -> packageName, 其他用户: userId:packageName
+     * value: NormalAppResult
+     * 例:
+     * <pre>
+     *     1) (userId = 0, packageName=com.venus.aaa) -> (key): com.venus.aaa
+     *     2) (userId = 999, packageName=com.venus.aaa) -> (key): com.venus.aaa:999
+     * </pre>
      */
     private final Map<String, NormalAppResult> normalApps = new ConcurrentHashMap<>();
 
@@ -89,7 +94,7 @@ public class RunningInfo implements ILogger {
         if (userId == ActivityManagerService.MAIN_USER) {
             return packageName;
         }
-        return userId + packageName;
+        return userId + ":" + packageName;
     }
 
     /**
