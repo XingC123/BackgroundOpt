@@ -175,7 +175,7 @@ public class RunningInfo implements ILogger {
      **************************************************************************/
     /**
      * 只有非重要系统进程才能放置于此
-     * repairedUid, AppInfo
+     * uid, AppInfo
      * 对此map的访问应加锁
      */
     private final Map<Integer, AppInfo> runningApps = new ConcurrentHashMap<>();
@@ -205,11 +205,11 @@ public class RunningInfo implements ILogger {
     /**
      * 根据uid获取正在运行的列表中的app信息
      *
-     * @param repairedUid 要查询的uid(userId+uid)
+     * @param uid 要查询的uid(userId+uid)
      * @return 查询到的app信息
      */
-    public AppInfo getRunningAppInfo(int repairedUid) {
-        return runningApps.get(repairedUid);
+    public AppInfo getRunningAppInfo(int uid) {
+        return runningApps.get(uid);
     }
 
     /**
@@ -267,6 +267,7 @@ public class RunningInfo implements ILogger {
     public void removeRunningApp(AppInfo appInfo) {
         // 从运行列表移除
         AppInfo remove = runningApps.remove(appInfo.getUid());
+        String logStr = null;
 
         if (remove != null) {
             // 从待处理列表中移除
@@ -277,10 +278,14 @@ public class RunningInfo implements ILogger {
 
             // 清理AppInfo。也许有助于gc
             appInfo.clearAppInfo();
+
+            logStr = "移除: " + remove.getPackageName() + ", uid: " + remove.getUid();
+        } else {
+            logStr = "移除: 未找到溢出项 -> " + appInfo.getPackageName() + ", uid: " + appInfo.getUid();
         }
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug("移除: " + (remove == null ? "未找到包名" : remove.getPackageName()));
+            getLogger().debug(logStr);
         }
     }
 

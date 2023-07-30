@@ -79,18 +79,18 @@ public class ProcessHook extends MethodHook {
                 runningInfo.removeRunningApp(appInfo);
 
                 if (BuildConfig.DEBUG) {
-                    getLogger().debug("kill: " + appInfo.getPackageName());
+                    getLogger().debug("kill: " + appInfo.getPackageName() + ", uid: " + uid);
                 }
             } else if (mPid == Integer.MIN_VALUE) {
                 if (BuildConfig.DEBUG) {
-                    getLogger().warn("再次kill: " + appInfo.getPackageName());
+                    getLogger().warn("再次kill: " + appInfo.getPackageName() + ", uid: " + uid);
                 }
             } else {
                 // 移除进程记录
                 appInfo.removeProcessInfo(pid);
 
                 if (BuildConfig.DEBUG) {
-                    getLogger().debug(appInfo.getPackageName() + " 的子进程被杀");
+                    getLogger().debug("[" + appInfo.getPackageName() + ", uid: " + uid + " ]的子进程被杀");
                 }
             }
         }

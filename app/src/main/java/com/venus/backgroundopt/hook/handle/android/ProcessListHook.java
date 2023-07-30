@@ -70,11 +70,11 @@ public class ProcessListHook extends MethodHook {
                 mPid = appInfo.getmPid();
 
                 if (BuildConfig.DEBUG) {
-                    getLogger().debug(appInfo.getPackageName() + "的主进程信息补全完毕");
+                    getLogger().debug("[" + appInfo.getPackageName() + ", uid: " + uid + "]的主进程信息补全完毕");
                 }
             } catch (Exception ex) {
                 if (BuildConfig.DEBUG) {
-                    getLogger().warn("获取: " + appInfo.getPackageName() + " 的mPid出错", ex);
+                    getLogger().warn("获取: [" + appInfo.getPackageName() + ", uid: " + uid + "] 的mPid出错", ex);
                 }
             }
         }
@@ -88,9 +88,8 @@ public class ProcessListHook extends MethodHook {
                 processInfo.setOomAdjScore(oomAdjScore);
 
                 if (BuildConfig.DEBUG) {
-                    getLogger().debug(
-                            "设置主进程[" + pid + "-" + appInfo.getPackageName() + "]adj: "
-                                    + param.args[2]);
+                    getLogger().debug("设置主进程: [" + appInfo.getPackageName() + ", uid: " + uid
+                            + "] ->>> pid: " + pid + ", adj: " + param.args[2]);
                 }
             } else {
 //                    ProcessRecord mProcessRecord = appInfo.getmProcessRecord();
@@ -101,7 +100,7 @@ public class ProcessListHook extends MethodHook {
             }
         } else if (pid == Integer.MIN_VALUE) {
             if (BuildConfig.DEBUG) {
-                getLogger().warn(appInfo.getPackageName() + " 的pid = " + pid + " 不符合规范, 无法添加至进程列表");
+                getLogger().warn(appInfo.getPackageName() + ", uid: " + uid + " 的pid = " + pid + " 不符合规范, 无法添加至进程列表");
             }
 
             return null;
@@ -119,16 +118,15 @@ public class ProcessListHook extends MethodHook {
                 }
 
                 if (BuildConfig.DEBUG) {
-                    getLogger().debug(
-                            "设置子进程[" + pid + "-" + appInfo.getPackageName() + "]adj: "
-                                    + param.args[2]);
+                    getLogger().debug("设置子进程: [" + appInfo.getPackageName() + ", uid: " + uid
+                            + "] ->>> pid: " + pid + ", adj: " + param.args[2]);
                 }
             } else {
                 ProcessInfo subProcessInfo = appInfo.getProcessInfo(pid);
 
                 if (subProcessInfo == null) {
                     if (BuildConfig.DEBUG) {
-                        getLogger().warn("子进程 " + appInfo.getPackageName() + "-" + pid + " 为空, 无法调整oom");
+                        getLogger().warn("子进程 [" + appInfo.getPackageName() + ", uid: " + uid + ", pid: " + pid + " ]为空, 无法调整oom");
                     }
                     return null;
                 }

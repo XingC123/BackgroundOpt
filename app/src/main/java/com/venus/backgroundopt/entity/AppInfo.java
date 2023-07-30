@@ -137,7 +137,7 @@ public class AppInfo implements ILogger {
                 runningInfo.getProcessManager().compactAppFullNoCheck(processInfo);
 
                 if (BuildConfig.DEBUG) {
-                    getLogger().debug("包名: " + packageName + "的pid: " + pid + " >>> 因[所在app内存状态改变]而内存压缩");
+                    getLogger().debug("包名: " + packageName + ", uid: " + uid + "的pid: " + pid + " >>> 因[所在app内存状态改变]而内存压缩");
                 }
             } else // 参照了com.android.server.am.CachedAppOptimizer.void onOomAdjustChanged(int oldAdj, int newAdj, ProcessRecord app)
                 if (oldAdj < ProcessList.CACHED_APP_MIN_ADJ
@@ -149,7 +149,7 @@ public class AppInfo implements ILogger {
                         processInfo.setLastCompactTime(currentTimeMillis);
 
                         if (BuildConfig.DEBUG) {
-                            getLogger().debug("包名: " + packageName + "的pid: " + pid + " >>> 因[oom_score]而内存压缩");
+                            getLogger().debug("包名: " + packageName + ", uid: " + uid + "的pid: " + pid + " >>> 因[oom_score]而内存压缩");
                         }
                     }
                 }
