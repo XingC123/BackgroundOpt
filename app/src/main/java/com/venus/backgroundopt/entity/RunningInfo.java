@@ -108,7 +108,7 @@ public class RunningInfo implements ILogger {
     }
 
     public NormalAppResult isNormalApp(int userId, String packageName) {
-        return normalApps.computeIfAbsent(getNormalAppKey(userId, packageName), key -> isImportantSystemApp(packageName));
+        return normalApps.computeIfAbsent(getNormalAppKey(userId, packageName), key -> isImportantSystemApp(userId, packageName));
     }
 
     /**
@@ -130,6 +130,16 @@ public class RunningInfo implements ILogger {
         if (BuildConfig.DEBUG) {
             getLogger().debug("移除\"普通app记录\": " + packageName);
         }
+    }
+
+    /**
+     * 根据包名判断是否是系统重要app
+     *
+     * @param packageName 包名
+     * @return 是 => true
+     */
+    public NormalAppResult isImportantSystemApp(int userId, String packageName) {
+        return getActivityManagerService().isImportantSystemApp(userId, packageName);
     }
 
     /**
@@ -185,31 +195,11 @@ public class RunningInfo implements ILogger {
     }
 
     public AppInfo getAppInfoFromRunningApps(AppInfo appInfo) {
-        return getAppInfoFromRunningApps(appInfo.getRepairedUid());
+        return getAppInfoFromRunningApps(appInfo.getUid());
     }
 
     public AppInfo getAppInfoFromRunningApps(int repairedUid) {
         return getRunningAppInfo(repairedUid);
-    }
-
-    /**
-     * 根据传入的{@link AppInfo}判断是否是系统重要app
-     *
-     * @param appInfo app信息
-     * @return 是 => true
-     */
-    public boolean isImportantSystemApp(AppInfo appInfo) {
-        return isImportantSystemApp(appInfo.getPackageName()).isNormalApp();
-    }
-
-    /**
-     * 根据包名判断是否是系统重要app
-     *
-     * @param packageName 包名
-     * @return 是 => true
-     */
-    public NormalAppResult isImportantSystemApp(String packageName) {
-        return getActivityManagerService().isImportantSystemApp(packageName);
     }
 
     /**
@@ -252,7 +242,7 @@ public class RunningInfo implements ILogger {
         }
 
         // 添加到运行列表
-        runningApps.put(appInfo.getRepairedUid(), appInfo);
+        runningApps.put(appInfo.getUid(), appInfo);
     }
 
     /**
@@ -276,7 +266,7 @@ public class RunningInfo implements ILogger {
      */
     public void removeRunningApp(AppInfo appInfo) {
         // 从运行列表移除
-        AppInfo remove = runningApps.remove(appInfo.getRepairedUid());
+        AppInfo remove = runningApps.remove(appInfo.getUid());
 
         if (remove != null) {
             // 从待处理列表中移除

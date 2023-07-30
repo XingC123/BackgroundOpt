@@ -35,7 +35,7 @@ public class AppInfo implements ILogger {
      * miui: 99910435 = 用户id+真正uid
      * 安卓13原生: 1010207 = 用户id+真正uid
      */
-    private int repairedUid = Integer.MIN_VALUE;
+    private int uid = Integer.MIN_VALUE;
     private String packageName;
     private int userId = Integer.MIN_VALUE;
 
@@ -89,7 +89,7 @@ public class AppInfo implements ILogger {
     private Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
 
     public ProcessInfo addProcessInfo(int pid, int oomAdjScore) {
-        ProcessInfo processInfo = new ProcessInfo(repairedUid, pid, oomAdjScore);
+        ProcessInfo processInfo = new ProcessInfo(uid, pid, oomAdjScore);
         processInfoMap.put(pid, processInfo);
 
         return processInfo;
@@ -97,7 +97,7 @@ public class AppInfo implements ILogger {
 
     public void addProcessInfo(ProcessInfo processInfo) {
         // 纠正processInfo的uid
-        processInfo.setRepairedUid(repairedUid);
+        processInfo.setRepairedUid(uid);
         // 添加
         processInfoMap.put(processInfo.getPid(), processInfo);
     }
@@ -212,12 +212,12 @@ public class AppInfo implements ILogger {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AppInfo appInfo = (AppInfo) o;
-        return repairedUid == appInfo.repairedUid && userId == appInfo.userId && Objects.equals(packageName, appInfo.packageName);
+        return uid == appInfo.uid && userId == appInfo.userId && Objects.equals(packageName, appInfo.packageName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(repairedUid, packageName, userId);
+        return Objects.hash(uid, packageName, userId);
     }
 
     /* *************************************************************************
@@ -267,7 +267,7 @@ public class AppInfo implements ILogger {
     public static int getRepairedUid(int userId, int uid) {
         if (userId == ActivityManagerService.MAIN_USER) {
             return uid;
-        } else {
+        } else {    // 还需判断传入的uid是否已经是符合"用户id+uid"
             int compute = uid / ActivityManagerService.USER_APP_UID_START_NUM;
 
             // 0: 系统应用, 1: 用户程序
@@ -280,12 +280,12 @@ public class AppInfo implements ILogger {
         }
     }
 
-    public int getRepairedUid() {
-        return repairedUid;
+    public int getUid() {
+        return uid;
     }
 
-    public AppInfo setRepairedUid(int repairedUid) {
-        this.repairedUid = repairedUid;
+    public AppInfo setUid(int repairedUid) {
+        this.uid = repairedUid;
 
         return this;
     }
