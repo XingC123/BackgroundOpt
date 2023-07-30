@@ -86,6 +86,9 @@ public class RunningInfo implements ILogger {
      * @return key
      */
     public String getNormalAppKey(int userId, String packageName) {
+        if (userId == ActivityManagerService.MAIN_USER) {
+            return packageName;
+        }
         return userId + packageName;
     }
 
