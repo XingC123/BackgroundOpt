@@ -49,14 +49,14 @@ class AppMemoryTrimManagerKt : ILogger {
             foregroundTasks.forEach {
                 executeForegroundTask(it)
             }
-        }, foregroundInitialDelay, foregroundDelay, foregroundTimeUnit)
+        }, 0, foregroundDelay, foregroundTimeUnit)
 
         // 后台任务
         executor.scheduleWithFixedDelay({
             backgroundTasks.forEach {
                 executeBackgroundTask(it)
             }
-        }, backgroundInitialDelay, backgroundDelay, backgroundTimeUnit)
+        }, 0, backgroundDelay, backgroundTimeUnit)
     }
 
     /**
