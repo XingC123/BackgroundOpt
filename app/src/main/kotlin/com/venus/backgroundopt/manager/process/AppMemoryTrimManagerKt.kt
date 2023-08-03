@@ -88,7 +88,7 @@ class AppMemoryTrimManagerKt : ILogger {
                     }添加Task成功"
                 )
             } else {
-                logger.debug(
+                logger.warn(
                     "${
                         logStrPrefix(
                             foregroundTrimManagerName,
@@ -134,7 +134,7 @@ class AppMemoryTrimManagerKt : ILogger {
                     }添加Task成功"
                 )
             } else {
-                logger.debug(
+                logger.warn(
                     "${
                         logStrPrefix(
                             backgroundTrimManagerName,
@@ -145,7 +145,7 @@ class AppMemoryTrimManagerKt : ILogger {
             }
         }
 
-        if(BuildConfig.DEBUG) {
+        if (BuildConfig.DEBUG) {
             logger.debug("foregroundTasks元素个数: ${foregroundTasks.size}, backgroundTasks元素个数: ${backgroundTasks.size}")
         }
     }
@@ -175,7 +175,7 @@ class AppMemoryTrimManagerKt : ILogger {
      * @param processRecord 进程记录器
      */
     private fun executeForegroundTask(processRecord: ProcessRecord) {
-        trimMemory(foregroundTrimManagerName, processRecord, foregroundTrimLevel)
+        trimMemory(foregroundTrimManagerName, processRecord, foregroundTrimLevel, foregroundTasks)
     }
 
     private fun removeForegroundTask(processRecord: ProcessRecord) {
@@ -188,7 +188,7 @@ class AppMemoryTrimManagerKt : ILogger {
      * @param processRecord 进程记录器
      */
     private fun executeBackgroundTask(processRecord: ProcessRecord) {
-        trimMemory(backgroundTrimManagerName, processRecord, backgroundTrimLevel)
+        trimMemory(backgroundTrimManagerName, processRecord, backgroundTrimLevel, backgroundTasks)
         gc(processRecord)
     }
 
@@ -222,7 +222,12 @@ class AppMemoryTrimManagerKt : ILogger {
      * 任务的具体实现                                                             *
      *                                                                         *
      **************************************************************************/
-    private fun trimMemory(trimManagerName: String, processRecord: ProcessRecord, trimLevel: Int) {
+    private fun trimMemory(
+        trimManagerName: String,
+        processRecord: ProcessRecord,
+        trimLevel: Int,
+        list: ArrayList<ProcessRecord>
+    ) {
         val result = processRecord.scheduleTrimMemory(trimLevel)
 
         if (result) {
@@ -237,6 +242,9 @@ class AppMemoryTrimManagerKt : ILogger {
                 )
             }
         } else {    // 若调用scheduleTrimMemory()后目标进程被终结(kill), 则会得到此结果
+            // 移除此任务
+            list.remove(processRecord)
+
             logger.warn(
                 "${
                     logStrPrefix(
