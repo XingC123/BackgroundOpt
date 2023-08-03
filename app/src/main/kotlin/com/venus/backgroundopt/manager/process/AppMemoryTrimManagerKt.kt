@@ -98,6 +98,10 @@ class AppMemoryTrimManagerKt : ILogger {
                 )
             }
         }
+
+        if (BuildConfig.DEBUG) {
+            logger.debug("foregroundTasks元素个数: ${foregroundTasks.size}, backgroundTasks元素个数: ${backgroundTasks.size}")
+        }
     }
 
     /**
@@ -140,6 +144,10 @@ class AppMemoryTrimManagerKt : ILogger {
                 )
             }
         }
+
+        if(BuildConfig.DEBUG) {
+            logger.debug("foregroundTasks元素个数: ${foregroundTasks.size}, backgroundTasks元素个数: ${backgroundTasks.size}")
+        }
     }
 
     /**
@@ -150,6 +158,10 @@ class AppMemoryTrimManagerKt : ILogger {
     fun removeAllTask(processRecord: ProcessRecord?) {
         foregroundTasks.remove(processRecord)
         backgroundTasks.remove(processRecord)
+
+        if (BuildConfig.DEBUG) {
+            logger.debug("foregroundTasks元素个数: ${foregroundTasks.size}, backgroundTasks元素个数: ${backgroundTasks.size}")
+        }
     }
 
     /* *************************************************************************
