@@ -76,7 +76,28 @@ class AppMemoryTrimManagerKt : ILogger {
         // 移除后台任务
         removeBackgroundTask(processRecord)
 
-        foregroundTasks.add(processRecord)
+        val add = foregroundTasks.add(processRecord)
+        if (BuildConfig.DEBUG) {
+            if (add) {
+                logger.debug(
+                    "${
+                        logStrPrefix(
+                            foregroundTrimManagerName,
+                            processRecord
+                        )
+                    }添加Task成功"
+                )
+            } else {
+                logger.debug(
+                    "${
+                        logStrPrefix(
+                            foregroundTrimManagerName,
+                            processRecord
+                        )
+                    }添加Task失败"
+                )
+            }
+        }
     }
 
     /**
@@ -96,7 +117,29 @@ class AppMemoryTrimManagerKt : ILogger {
         // 移除前台任务
         removeForegroundTask(processRecord)
 
-        backgroundTasks.add(processRecord)
+        val add = backgroundTasks.add(processRecord)
+
+        if (BuildConfig.DEBUG) {
+            if (add) {
+                logger.debug(
+                    "${
+                        logStrPrefix(
+                            backgroundTrimManagerName,
+                            processRecord
+                        )
+                    }添加Task成功"
+                )
+            } else {
+                logger.debug(
+                    "${
+                        logStrPrefix(
+                            backgroundTrimManagerName,
+                            processRecord
+                        )
+                    }添加Task失败"
+                )
+            }
+        }
     }
 
     /**
@@ -151,7 +194,12 @@ class AppMemoryTrimManagerKt : ILogger {
         if (BuildConfig.DEBUG) {
             if (remove) {
                 logger.debug(
-                    "${trimManagerName}: ${processRecord.packageName}, uid: ${processRecord.uid} ->>> 移除Task"
+                    "${
+                        logStrPrefix(
+                            trimManagerName,
+                            processRecord
+                        )
+                    }移除Task"
                 )
             }
         }
@@ -168,18 +216,32 @@ class AppMemoryTrimManagerKt : ILogger {
         if (result) {
             if (BuildConfig.DEBUG) {
                 logger.debug(
-                    "${trimManagerName}: ${processRecord.packageName}, uid: ${processRecord.uid} ->>> 设置TrimMemoryTask(${trimLevel}) 成功"
+                    "${
+                        logStrPrefix(
+                            trimManagerName,
+                            processRecord
+                        )
+                    }执行TrimMemoryTask(${trimLevel}) 成功"
                 )
             }
         } else {    // 若调用scheduleTrimMemory()后目标进程被终结(kill), 则会得到此结果
             logger.warn(
-                "${trimManagerName}: ${processRecord.packageName}, uid: ${processRecord.uid} ->>> 设置TrimMemoryTask(${trimLevel}) 失败或未执行"
+                "${
+                    logStrPrefix(
+                        trimManagerName,
+                        processRecord
+                    )
+                }执行TrimMemoryTask(${trimLevel}) 失败或未执行"
             )
         }
     }
 
     private fun gc(processRecord: ProcessRecord) {
         ProcessManager.handleGC(processRecord)
+    }
+
+    private fun logStrPrefix(trimManagerName: String, processRecord: ProcessRecord): String {
+        return "${trimManagerName}: ${processRecord.packageName}, uid: ${processRecord.uid} ->>> "
     }
 
     private class Tasks {}
