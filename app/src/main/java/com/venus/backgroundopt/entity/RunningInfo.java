@@ -267,7 +267,6 @@ public class RunningInfo implements ILogger {
     public void removeRunningApp(AppInfo appInfo) {
         // 从运行列表移除
         AppInfo remove = runningApps.remove(appInfo.getUid());
-        String logStr = null;
 
         if (remove != null) {
             // 从待处理列表中移除
@@ -279,13 +278,13 @@ public class RunningInfo implements ILogger {
             // 清理AppInfo。也许有助于gc
             appInfo.clearAppInfo();
 
-            logStr = "移除: " + remove.getPackageName() + ", uid: " + remove.getUid();
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("移除: " + remove.getPackageName() + ", uid: " + remove.getUid());
+            }
         } else {
-            logStr = "移除: 未找到溢出项 -> " + appInfo.getPackageName() + ", uid: " + appInfo.getUid();
-        }
-
-        if (BuildConfig.DEBUG) {
-            getLogger().debug(logStr);
+            if (BuildConfig.DEBUG) {
+                getLogger().warn("移除: 未找到移除项 -> " + appInfo.getPackageName() + ", uid: " + appInfo.getUid());
+            }
         }
     }
 
