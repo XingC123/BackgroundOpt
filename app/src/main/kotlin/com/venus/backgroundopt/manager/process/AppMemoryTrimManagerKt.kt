@@ -104,7 +104,7 @@ class AppMemoryTrimManagerKt : ILogger {
      *
      * @param processRecord 进程记录器
      */
-    fun removeAllTask(processRecord: ProcessRecord) {
+    fun removeAllTask(processRecord: ProcessRecord?) {
         foregroundTasks.remove(processRecord)
         backgroundTasks.remove(processRecord)
     }
