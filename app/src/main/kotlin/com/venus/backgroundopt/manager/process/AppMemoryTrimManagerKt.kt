@@ -33,8 +33,8 @@ class AppMemoryTrimManagerKt : ILogger {
     // 线程池
     private val executor = ScheduledThreadPoolExecutor(2)
 
-    private val foregroundTasks = ArrayList<ProcessRecord>()
-    private val backgroundTasks = ArrayList<ProcessRecord>()
+    private val foregroundTasks = mutableSetOf<ProcessRecord>()
+    private val backgroundTasks = mutableSetOf<ProcessRecord>()
 
     init {
         init()
@@ -199,7 +199,7 @@ class AppMemoryTrimManagerKt : ILogger {
     private fun removeTaskImpl(
         processRecord: ProcessRecord,
         trimManagerName: String,
-        list: ArrayList<ProcessRecord>
+        list: MutableSet<ProcessRecord>
     ) {
         val remove = list.remove(processRecord)
 
@@ -226,7 +226,7 @@ class AppMemoryTrimManagerKt : ILogger {
         trimManagerName: String,
         processRecord: ProcessRecord,
         trimLevel: Int,
-        list: ArrayList<ProcessRecord>
+        list: MutableSet<ProcessRecord>
     ) {
         val result = processRecord.scheduleTrimMemory(trimLevel)
 
