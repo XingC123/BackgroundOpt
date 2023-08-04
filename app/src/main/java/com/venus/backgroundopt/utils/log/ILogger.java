@@ -2,7 +2,6 @@ package com.venus.backgroundopt.utils.log;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.factory.SingletonLoggerFactory;
-import com.venus.backgroundopt.utils.log.Logger;
 
 
 /**

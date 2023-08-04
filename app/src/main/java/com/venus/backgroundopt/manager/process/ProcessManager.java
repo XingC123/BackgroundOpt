@@ -121,35 +121,18 @@ public class ProcessManager implements ILogger {
      * app内存回收管理                                                           *
      *                                                                         *
      **************************************************************************/
-    private final AppMemoryTrimManager backgroundAppMemoryTrimManager = new BackgroundAppMemoryTrimManager();
+    private final AppMemoryTrimManagerKt appMemoryTrimManager = new AppMemoryTrimManagerKt();
 
     public void startBackgroundAppTrimTask(ProcessRecord processRecord) {
-        // 移除前台任务
-        cancelForegroundScheduledFuture(processRecord);
-
-        backgroundAppMemoryTrimManager.startTrimTask(processRecord);
+        appMemoryTrimManager.addBackgroundTask(processRecord);
     }
-
-    public void cancelBackgroundScheduledFuture(ProcessRecord processRecord) {
-        backgroundAppMemoryTrimManager.cancelScheduledFuture(processRecord);
-    }
-
-    private final AppMemoryTrimManager foregroundAppMemoryTrimManager = new ForegroundAppMemoryTrimManager();
 
     public void startForegroundAppTrimTask(ProcessRecord processRecord) {
-        // 移除后台任务
-        cancelBackgroundScheduledFuture(processRecord);
-
-        foregroundAppMemoryTrimManager.startTrimTask(processRecord);
-    }
-
-    public void cancelForegroundScheduledFuture(ProcessRecord processRecord) {
-        foregroundAppMemoryTrimManager.cancelScheduledFuture(processRecord);
+        appMemoryTrimManager.addForegroundTask(processRecord);
     }
 
     public void removeAllAppMemoryTrimTask(AppInfo appInfo) {
-        foregroundAppMemoryTrimManager.removeTrimTask(appInfo.getmProcessRecord());
-        backgroundAppMemoryTrimManager.removeTrimTask(appInfo.getmProcessRecord());
+        appMemoryTrimManager.removeAllTask(appInfo.getmProcessRecord());
     }
 
     /**
