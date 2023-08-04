@@ -15,8 +15,6 @@ import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 
-import java.util.Objects;
-
 import de.robv.android.xposed.XC_MethodHook;
 
 /**
@@ -109,13 +107,19 @@ public class ProcessListHook extends MethodHook {
 
             return null;
         } else { // 子进程的处理
+            int expectedOomAdjScore = ProcessRecord.SUB_PROC_ADJ;
             // 子进程信息尚未记录
             if (!appInfo.isRecordedProcessInfo(pid)) {
-                param.args[2] = ProcessRecord.SUB_PROC_ADJ;
+                int finalOomAdjScore = expectedOomAdjScore;
+                if (oomAdjScore > expectedOomAdjScore) {
+                    finalOomAdjScore = oomAdjScore;
+                } else {
+                    param.args[2] = expectedOomAdjScore;
+                }
 
                 processInfo = appInfo.addProcessInfo(pid, oomAdjScore);
-                processInfo.setFixedOomAdjScore(ProcessRecord.SUB_PROC_ADJ);
-                processInfo.setOomAdjScore(ProcessRecord.SUB_PROC_ADJ);
+                processInfo.setFixedOomAdjScore(finalOomAdjScore);
+                processInfo.setOomAdjScore(finalOomAdjScore);
 
 //                if (Objects.equals(AppGroupEnum.IDLE, appInfo.getAppGroupEnum())) {
 //                    runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, appInfo);
@@ -123,19 +127,19 @@ public class ProcessListHook extends MethodHook {
 
                 if (BuildConfig.DEBUG) {
                     getLogger().debug("设置子进程: [" + appInfo.getPackageName() + ", uid: " + uid
-                            + "] ->>> pid: " + pid + ", adj: " + param.args[2]);
+                            + "] ->>> pid: " + pid + ", adj: " + finalOomAdjScore);
                 }
             } else {
-                ProcessInfo subProcessInfo = appInfo.getProcessInfo(pid);
+                processInfo = appInfo.getProcessInfo(pid);
 
-                if (subProcessInfo == null) {
+                if (processInfo == null) {
                     if (BuildConfig.DEBUG) {
                         getLogger().warn("子进程 [" + appInfo.getPackageName() + ", uid: " + uid + ", pid: " + pid + " ]为空, 无法调整oom");
                     }
                     return null;
                 }
 
-                int fixedOomAdjScore = subProcessInfo.getFixedOomAdjScore();
+                int fixedOomAdjScore = processInfo.getFixedOomAdjScore();
                 // 新的oomAdj小于修正过的adj 或 修正过的adj为不可能取值
                 if (oomAdjScore < fixedOomAdjScore || fixedOomAdjScore == ProcessList.IMPOSSIBLE_ADJ) {
                     param.setResult(null);
