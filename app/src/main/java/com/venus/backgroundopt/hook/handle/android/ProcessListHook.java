@@ -113,9 +113,9 @@ public class ProcessListHook extends MethodHook {
                 processInfo.setFixedOomAdjScore(ProcessRecord.SUB_PROC_ADJ);
                 processInfo.setOomAdjScore(ProcessRecord.SUB_PROC_ADJ);
 
-                if (Objects.equals(AppGroupEnum.IDLE, appInfo.getAppGroupEnum())) {
-                    runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, appInfo);
-                }
+//                if (Objects.equals(AppGroupEnum.IDLE, appInfo.getAppGroupEnum())) {
+//                    runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, appInfo);
+//                }
 
                 if (BuildConfig.DEBUG) {
                     getLogger().debug("设置子进程: [" + appInfo.getPackageName() + ", uid: " + uid
