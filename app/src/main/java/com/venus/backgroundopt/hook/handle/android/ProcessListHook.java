@@ -55,6 +55,10 @@ public class ProcessListHook extends MethodHook {
             return null;
         }
 
+        if (appInfo.getAppGroupEnum() != AppGroupEnum.IDLE) {   // 若app未进入后台, 则不进行设置
+            return null;
+        }
+
         // 非系统重要进程
         int pid = (int) param.args[0];
         int oomAdjScore = (int) param.args[2];
