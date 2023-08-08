@@ -11,6 +11,7 @@ import com.venus.backgroundopt.utils.log.ILogger;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -172,10 +173,11 @@ public class AppInfo implements ILogger {
     }
 
     public Set<Integer> getProcessInfoPids() {
-        if (processInfoMap == null) {
-            return null;
-        }
         return processInfoMap.keySet();
+    }
+
+    public Collection<ProcessInfo> getProcessInfos() {
+        return processInfoMap.values();
     }
 
     public ApplicationIdentity getApplicationIdentity() {
