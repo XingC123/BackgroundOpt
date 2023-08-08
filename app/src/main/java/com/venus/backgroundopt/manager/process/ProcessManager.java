@@ -40,7 +40,7 @@ public class ProcessManager implements ILogger {
     public static final int THREAD_GROUP_BACKGROUND = Process.THREAD_GROUP_BACKGROUND + THREAD_GROUP_LEVEL_OFFSET;
 
     public ProcessManager(ActivityManagerService activityManagerService) {
-        this.cachedAppOptimizer = activityManagerService.getOomAdjuster().getCachedAppOptimizer();
+        appCompactManager = new AppCompactManager(activityManagerService.getOomAdjuster().getCachedAppOptimizer());
     }
 
     /* *************************************************************************
@@ -48,18 +48,14 @@ public class ProcessManager implements ILogger {
      * app压缩                                                                  *
      *                                                                         *
      **************************************************************************/
-    // 默认压缩级别
-    private static final int DEFAULT_COMPACT_LEVEL = CachedAppOptimizer.COMPACT_ACTION_ANON;
-
-    // 封装的CachedAppOptimizer
-    private final CachedAppOptimizer cachedAppOptimizer;
+    private final AppCompactManager appCompactManager;
 
     public void compactApp(ProcessRecord processRecord) {
-        compactApp(processRecord.getPid());
+        appCompactManager.compactApp(processRecord);
     }
 
     public void compactApp(int pid) {
-        compactApp(pid, DEFAULT_COMPACT_LEVEL);
+        appCompactManager.compactApp(pid);
     }
 
     /**
@@ -69,7 +65,7 @@ public class ProcessManager implements ILogger {
      * @param compactAction 压缩行为: {@link CachedAppOptimizer#COMPACT_ACTION_NONE}等
      */
     public void compactApp(int pid, int compactAction) {
-        cachedAppOptimizer.compactProcess(pid, compactAction);
+        appCompactManager.compactApp(pid, compactAction);
     }
 
     /**
@@ -78,15 +74,11 @@ public class ProcessManager implements ILogger {
      * @param pid 要压缩的pid
      */
     public void compactAppSome(int pid) {
-        compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FILE);
-
-        if (BuildConfig.DEBUG) {
-            getLogger().debug("pid: " + pid + " >>> 进行了一次compactAppSome");
-        }
+        appCompactManager.compactAppSome(pid);
     }
 
     public void compactAppSome(AppInfo appInfo) {
-        appInfo.getProcessInfoPids().parallelStream().forEach(this::compactAppSome);
+        appCompactManager.compactAppSome(appInfo);
     }
 
     /**
@@ -95,13 +87,11 @@ public class ProcessManager implements ILogger {
      * @param pid 要压缩的pid
      */
     public void compactAppFull(int pid, int curAdj) {
-        if (CachedAppOptimizer.isOomAdjEnteredCached(curAdj)) {
-            compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL);
-        }
+        appCompactManager.compactAppFull(pid, curAdj);
     }
 
     public void compactAppFullNoCheck(int pid) {
-        compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL);
+        appCompactManager.compactAppFullNoCheck(pid);
     }
 
 //    public boolean compactAppFull(ProcessInfo processInfo) {
@@ -109,11 +99,11 @@ public class ProcessManager implements ILogger {
 //    }
 
     public void compactAppFull(ProcessInfo processInfo, int curAdj) {
-        compactAppFull(processInfo.getPid(), curAdj);
+        appCompactManager.compactAppFull(processInfo, curAdj);
     }
 
     public void compactAppFullNoCheck(ProcessInfo processInfo) {
-        compactAppFullNoCheck(processInfo.getPid());
+        appCompactManager.compactAppFullNoCheck(processInfo);
     }
 
     /* *************************************************************************
