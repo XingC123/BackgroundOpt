@@ -80,7 +80,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                             t
                         )
                     } finally {
-                        // 压缩完毕后/压缩出错后 移除
+                        // 压缩完毕/出错后 移除
                         cancelAppCompact(appInfo)
                     }
                 }
