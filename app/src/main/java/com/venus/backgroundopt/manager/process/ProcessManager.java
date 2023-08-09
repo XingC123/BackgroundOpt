@@ -50,6 +50,24 @@ public class ProcessManager implements ILogger {
      **************************************************************************/
     private final AppCompactManager appCompactManager;
 
+    /**
+     * 添加内存压缩任务
+     *
+     * @param appInfo app信息
+     */
+    public void addCompactApp(AppInfo appInfo) {
+        appCompactManager.addCompactApp(appInfo);
+    }
+
+    /**
+     * 取消app内存压缩
+     *
+     * @param appInfo app信息
+     */
+    public void cancelAppCompact(AppInfo appInfo) {
+        appCompactManager.cancelAppCompact(appInfo);
+    }
+
     public void compactApp(ProcessRecord processRecord) {
         appCompactManager.compactApp(processRecord);
     }

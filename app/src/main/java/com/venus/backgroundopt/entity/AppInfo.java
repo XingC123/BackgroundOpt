@@ -4,7 +4,6 @@ import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.utils.log.ILogger;
 
@@ -118,49 +117,13 @@ public class AppInfo implements ILogger {
 //            return;
 //        }
 
-        ProcessInfo processInfo;
-        int oldAdj = Integer.MIN_VALUE;
-
         if (processInfoMap.containsKey(pid)) {
-            processInfo = processInfoMap.get(pid);
-
-            oldAdj = processInfo.getOomAdjScore();
+            ProcessInfo processInfo = processInfoMap.get(pid);
             processInfo.setOomAdjScore(oomAdjScore);
         } else {
-            processInfo = addProcessInfo(pid, oomAdjScore);
+            addProcessInfo(pid, oomAdjScore);
 
 //            runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, this);
-        }
-
-        // 压缩当前进程
-        AppGroupEnum curAppGroupEnum = getAppGroupEnum();
-        if (Objects.equals(curAppGroupEnum, AppGroupEnum.IDLE) &&
-                !Objects.equals(packageName, runningInfo.getActiveLaunchPackageName())) {
-            AppGroupEnum lastAppGroupEnum = processInfo.getLastAppGroupEnum();
-            if (lastAppGroupEnum != null && !Objects.equals(curAppGroupEnum, lastAppGroupEnum)) {  // app经历了idle->active->idle
-                runningInfo.getProcessManager().compactAppFullNoCheck(processInfo);
-
-                if (BuildConfig.DEBUG) {
-                    getLogger().debug("包名: " + packageName + ", uid: " + uid + "的pid: " + pid + " >>> 因[所在app内存状态改变]而内存压缩");
-                }
-            } else // 参照了com.android.server.am.CachedAppOptimizer.void onOomAdjustChanged(int oldAdj, int newAdj, ProcessRecord app)
-                if (oldAdj < ProcessList.CACHED_APP_MIN_ADJ
-                        && oomAdjScore >= ProcessList.CACHED_APP_MIN_ADJ
-                        && oomAdjScore <= ProcessList.CACHED_APP_MAX_ADJ) {
-                    long currentTimeMillis = System.currentTimeMillis();
-                    if (processInfo.isAllowedCompact(currentTimeMillis)) {
-                        runningInfo.getProcessManager().compactAppFullNoCheck(processInfo);
-                        processInfo.setLastCompactTime(currentTimeMillis);
-
-                        if (BuildConfig.DEBUG) {
-                            getLogger().debug("包名: " + packageName + ", uid: " + uid + "的pid: " + pid + " >>> 因[oom_score]而内存压缩");
-                        }
-                    }
-                }
-        }
-        // 更新进程记录的app内存分组
-        if (!Objects.equals(curAppGroupEnum, AppGroupEnum.TMP)) {
-            processInfo.setLastAppGroupEnum(curAppGroupEnum);
         }
     }
 
