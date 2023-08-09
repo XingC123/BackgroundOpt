@@ -63,7 +63,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
      * @param appInfo 应用信息
      */
     fun addCompactApp(appInfo: AppInfo) {
-        compactAppScheduledFutures[appInfo] = executor.scheduleWithFixedDelay({
+        compactAppScheduledFutures[appInfo] = executor.schedule({
             appInfo.processInfos.forEach { processInfo ->
                 val oomAdjEnteredCached = processInfo.oomAdjScore >= ProcessList.CACHED_APP_MIN_ADJ
                         && processInfo.oomAdjScore <= ProcessList.CACHED_APP_MAX_ADJ
@@ -85,7 +85,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                     }
                 }
             }
-        }, initialDelay, delay, timeUnit)
+        }, delay, timeUnit)
 
         if (BuildConfig.DEBUG) {
             logger.debug("包名: ${appInfo.packageName}, uid: ${appInfo.uid} >>> 加入待压缩列表")
