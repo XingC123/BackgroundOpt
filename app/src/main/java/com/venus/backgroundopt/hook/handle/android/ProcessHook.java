@@ -4,6 +4,7 @@ import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.AppInfo;
+import com.venus.backgroundopt.entity.ProcessInfo;
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
@@ -87,7 +88,9 @@ public class ProcessHook extends MethodHook {
                 }
             } else {
                 // 移除进程记录
-                appInfo.removeProcessInfo(pid);
+                ProcessInfo processInfo = appInfo.removeProcessInfo(pid);
+                // 取消进程的待压缩任务
+                runningInfo.getProcessManager().cancelCompactProcessInfo(processInfo);
 
                 if (BuildConfig.DEBUG) {
                     getLogger().debug("[" + appInfo.getPackageName() + ", uid: " + uid + " ]的子进程被杀");

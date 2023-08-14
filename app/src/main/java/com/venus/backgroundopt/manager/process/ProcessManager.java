@@ -11,6 +11,9 @@ import com.venus.backgroundopt.hook.handle.android.entity.Process;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.utils.log.ILogger;
 
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -51,21 +54,22 @@ public class ProcessManager implements ILogger {
     private final AppCompactManager appCompactManager;
 
     /**
-     * 添加内存压缩任务
-     *
-     * @param appInfo app信息
+     * 添加压缩进程
      */
-    public void addCompactApp(AppInfo appInfo) {
-        appCompactManager.addCompactApp(appInfo);
+    public void addCompactProcessInfo(Collection<ProcessInfo> processInfos) {
+        appCompactManager.addCompactProcessInfo(processInfos);
     }
 
     /**
-     * 取消app内存压缩
-     *
-     * @param appInfo app信息
+     * 移除压缩进程
+     * @param processInfo 进程信息
      */
-    public void cancelAppCompact(AppInfo appInfo) {
-        appCompactManager.cancelAppCompact(appInfo);
+    public void cancelCompactProcessInfo(@Nullable ProcessInfo processInfo) {
+        appCompactManager.cancelCompactProcessInfo(processInfo);
+    }
+
+    public void cancelCompactProcessInfo(Collection<ProcessInfo> processInfos) {
+        appCompactManager.cancelCompactProcessInfo(processInfos);
     }
 
     public void compactApp(ProcessRecord processRecord) {
@@ -104,8 +108,8 @@ public class ProcessManager implements ILogger {
      *
      * @param pid 要压缩的pid
      */
-    public void compactAppFull(int pid, int curAdj) {
-        appCompactManager.compactAppFull(pid, curAdj);
+    public boolean compactAppFull(int pid, int curAdj) {
+        return appCompactManager.compactAppFull(pid, curAdj);
     }
 
     public void compactAppFullNoCheck(int pid) {
@@ -116,8 +120,8 @@ public class ProcessManager implements ILogger {
 //        return cachedAppOptimizer.compactApp(processInfo.getProcessRecord(), true, "Full");
 //    }
 
-    public void compactAppFull(ProcessInfo processInfo, int curAdj) {
-        appCompactManager.compactAppFull(processInfo, curAdj);
+    public boolean compactAppFull(ProcessInfo processInfo) {
+        return appCompactManager.compactAppFull(processInfo);
     }
 
     public void compactAppFullNoCheck(ProcessInfo processInfo) {

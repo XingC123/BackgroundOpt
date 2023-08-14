@@ -73,15 +73,31 @@ public class AppInfo implements ILogger {
      * app进程信息(简单)                                                         *
      *                                                                         *
      **************************************************************************/
+
     // 当前app在本模块内的内存分组
-    private final AtomicReference<AppGroupEnum> appGroupEnumAtomicReference = new AtomicReference<>();
+    private AppGroupEnum appGroupEnum = AppGroupEnum.ACTIVE;
+    private final Object appGroupSetLock = new Object();
 
     public void setAppGroupEnum(AppGroupEnum appGroupEnum) {
-        appGroupEnumAtomicReference.set(appGroupEnum);
+        synchronized (appGroupSetLock) {
+            this.appGroupEnum = appGroupEnum;
+            /*
+            添加切后台时所创建的所有进程, 意味着当app进入后台后, 又有子进程被创建的情况将被忽视
+            (即新创建的进程永远不会加入模块的内存压缩名单, 而是交由系统/内核处理)
+         */
+            if (!Objects.equals(runningInfo.getActiveLaunchPackageName(), packageName)) {   // 不是桌面进程
+                switch (appGroupEnum) {
+                    case IDLE ->
+                            runningInfo.getProcessManager().addCompactProcessInfo(getProcessInfos());
+                    case ACTIVE ->
+                            runningInfo.getProcessManager().cancelCompactProcessInfo(getProcessInfos());
+                }
+            }
+        }
     }
 
     public AppGroupEnum getAppGroupEnum() {
-        return appGroupEnumAtomicReference.get();
+        return appGroupEnum;
     }
 
     /**
@@ -131,8 +147,8 @@ public class AppInfo implements ILogger {
         return processInfoMap.containsKey(pid);
     }
 
-    public void removeProcessInfo(int pid) {
-        processInfoMap.remove(pid);
+    public ProcessInfo removeProcessInfo(int pid) {
+        return processInfoMap.remove(pid);
     }
 
     public Set<Integer> getProcessInfoPids() {
@@ -216,6 +232,8 @@ public class AppInfo implements ILogger {
                         field.set(this, null);
                     } else if (obj instanceof AtomicReference<?> ap) {
                         ap.set(null);
+                    } else if (obj instanceof Enum<?>) {
+                        field.set(this, null);
                     }
                 }
             } catch (IllegalAccessException | IllegalArgumentException e) {

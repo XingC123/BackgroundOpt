@@ -4,11 +4,10 @@ import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.ProcessInfo
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.log.ILogger
+import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
@@ -25,17 +24,53 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         const val DEFAULT_COMPACT_LEVEL = CachedAppOptimizer.COMPACT_ACTION_ANON
 
         // App压缩扫描线程池配置
-        const val initialDelay = 10L
+        const val initialDelay = 0L
         const val delay = 10L
         val timeUnit = TimeUnit.MINUTES
     }
 
-    // App压缩扫描线程
+    // App压缩处理线程池
     private val executor = ScheduledThreadPoolExecutor(1)
-    private val compactAppScheduledFutures = ConcurrentHashMap<AppInfo, ScheduledFuture<*>>()
+    private val compactProcessInfos = Collections.newSetFromMap<ProcessInfo>(ConcurrentHashMap())
 
     init {
-        executor.removeOnCancelPolicy = true
+        executor.scheduleWithFixedDelay({
+            var compactCount = 0
+            compactProcessInfos.forEach {
+                /*
+                    result: 0 -> 异常
+                            1 -> 成功
+                            2 -> 未执行
+                 */
+                var result = 2
+                try {
+                    val flag = compactAppFull(it)
+                    result = if (flag) 1 else 2
+                    if (BuildConfig.DEBUG) {
+                        if (result == 1) {
+                            logger.debug("uid: ${it.uid}, pid: ${it.pid} >>> 因[OOM_SCORE] 而内存压缩")
+                        }
+                    }
+                } catch (t: Throwable) {
+                    result = 0
+                    if (BuildConfig.DEBUG) {
+                        logger.warn(
+                            "uid: ${it.uid}, pid: ${it.pid} >>> 因[OOM_SCORE] 而内存压缩: 发生异常",
+                            t
+                        )
+                    }
+                } finally {
+                    if (result == 1 || result == 0) {
+                        cancelCompactProcessInfo(it)
+                        compactCount++
+                    }
+                }
+            }
+
+            if (BuildConfig.DEBUG) {
+                logger.debug("内存压缩任务检查完毕。本次压缩了[${compactCount}]个进程, 列表还剩[${compactProcessInfos.size}]个进程")
+            }
+        }, initialDelay, delay, timeUnit)
     }
 
     /* *************************************************************************
@@ -44,57 +79,47 @@ class AppCompactManager(// 封装的CachedAppOptimizer
      *                                                                         *
      **************************************************************************/
     /**
-     * 取消app压缩
-     *
-     * @param appInfo 应用信息
+     * 添加压缩进程
      */
-    fun cancelAppCompact(appInfo: AppInfo) {
-        compactAppScheduledFutures.remove(appInfo)?.let {
-            it.cancel(true)
+    fun addCompactProcessInfo(processInfos: Collection<ProcessInfo>) {
+        if (processInfos.isNotEmpty()) {
+            compactProcessInfos.addAll(processInfos)
             if (BuildConfig.DEBUG) {
-                logger.debug("包名: ${appInfo.packageName}, uid: ${appInfo.uid} >>> 移除自待压缩列表")
+                logger.debug("uid: ${processInfos.first().uid} >>> 加入待压缩列表")
             }
         }
     }
 
     /**
-     * 添加内存压缩任务
-     *
-     * @param appInfo 应用信息
+     * 移除压缩进程
      */
-    fun addCompactApp(appInfo: AppInfo) {
-        compactAppScheduledFutures[appInfo] = executor.schedule({
-            appInfo.processInfos.forEach { processInfo ->
-                val oomAdjEnteredCached = processInfo.oomAdjScore >= ProcessList.CACHED_APP_MIN_ADJ
-                        && processInfo.oomAdjScore <= ProcessList.CACHED_APP_MAX_ADJ
-                if (oomAdjEnteredCached) {
-                    try {
-                        compactAppFullNoCheck(processInfo)
-
-                        if (BuildConfig.DEBUG) {
-                            logger.debug("包名: ${appInfo.packageName}, uid: ${processInfo.uid}, pid: ${processInfo.pid} >>> 因[oom_score]而内存压缩")
-                        }
-                    } catch (t: Throwable) {
-                        logger.warn(
-                            "包名: ${appInfo.packageName}, uid: ${processInfo.uid}, pid: ${processInfo.pid} >>> 因[oom_score]而内存压缩, 压缩失败",
-                            t
-                        )
-                    } finally {
-                        // 压缩完毕/出错后 移除
-                        cancelAppCompact(appInfo)
+    fun cancelCompactProcessInfo(processInfos: Collection<ProcessInfo>) {
+        if (processInfos.isNotEmpty()) {
+            compactProcessInfos.removeAll(processInfos.toSet()).let {
+                if (BuildConfig.DEBUG) {
+                    if (it) {
+                        logger.debug("uid: ${processInfos.first().uid} >>> 移除自待压缩列表")
                     }
                 }
             }
-        }, delay, timeUnit)
+        }
+    }
 
-        if (BuildConfig.DEBUG) {
-            logger.debug("包名: ${appInfo.packageName}, uid: ${appInfo.uid} >>> 加入待压缩列表")
+    fun cancelCompactProcessInfo(processInfo: ProcessInfo?) {
+        processInfo?.let {
+            compactProcessInfos.remove(processInfo).let {
+                if (BuildConfig.DEBUG) {
+                    if (it) {
+                        logger.debug("uid: ${processInfo.uid}, pid: ${processInfo.pid} >>> 移除自待压缩列表")
+                    }
+                }
+            }
         }
     }
 
     /* *************************************************************************
      *                                                                         *
-     * 压缩方法                                                                  *
+     * 压缩方式                                                                  *
      *                                                                         *
      **************************************************************************/
     fun compactApp(processRecord: ProcessRecord) {
@@ -138,10 +163,13 @@ class AppCompactManager(// 封装的CachedAppOptimizer
      *
      * @param pid 要压缩的pid
      */
-    fun compactAppFull(pid: Int, curAdj: Int) {
+    fun compactAppFull(pid: Int, curAdj: Int): Boolean {
         if (CachedAppOptimizer.isOomAdjEnteredCached(curAdj)) {
             compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL)
+            return true
         }
+
+        return false
     }
 
     fun compactAppFullNoCheck(pid: Int) {
@@ -155,8 +183,8 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     //    public boolean compactAppFull(ProcessInfo processInfo) {
     //        return cachedAppOptimizer.compactApp(processInfo.getProcessRecord(), true, "Full");
     //    }
-    fun compactAppFull(processInfo: ProcessInfo, curAdj: Int) {
-        compactAppFull(processInfo.pid, curAdj)
+    fun compactAppFull(processInfo: ProcessInfo): Boolean {
+        return compactAppFull(processInfo.pid, processInfo.oomAdjScore)
     }
 
     fun compactAppFullNoCheck(processInfo: ProcessInfo) {
