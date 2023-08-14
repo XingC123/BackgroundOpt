@@ -117,6 +117,11 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         }
     }
 
+    fun cancelCompactProcessInfo(appInfo: AppInfo) {
+        val set = compactProcessInfos.filter { it.uid == appInfo.uid }.toSet()
+        cancelCompactProcessInfo(set)
+    }
+
     /* *************************************************************************
      *                                                                         *
      * 压缩方式                                                                  *

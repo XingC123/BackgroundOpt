@@ -72,6 +72,10 @@ public class ProcessManager implements ILogger {
         appCompactManager.cancelCompactProcessInfo(processInfos);
     }
 
+    public void cancelCompactProcessInfo(AppInfo appInfo) {
+        appCompactManager.cancelCompactProcessInfo(appInfo);
+    }
+
     public void compactApp(ProcessRecord processRecord) {
         appCompactManager.compactApp(processRecord);
     }
