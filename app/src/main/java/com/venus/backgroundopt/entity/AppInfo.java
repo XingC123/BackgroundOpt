@@ -4,13 +4,13 @@ import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -73,15 +73,31 @@ public class AppInfo implements ILogger {
      * app进程信息(简单)                                                         *
      *                                                                         *
      **************************************************************************/
+
     // 当前app在本模块内的内存分组
-    private final AtomicReference<AppGroupEnum> appGroupEnumAtomicReference = new AtomicReference<>();
+    private AppGroupEnum appGroupEnum = AppGroupEnum.ACTIVE;
+    private final Object appGroupSetLock = new Object();
 
     public void setAppGroupEnum(AppGroupEnum appGroupEnum) {
-        appGroupEnumAtomicReference.set(appGroupEnum);
+        synchronized (appGroupSetLock) {
+            this.appGroupEnum = appGroupEnum;
+            /*
+            添加切后台时所创建的所有进程, 意味着当app进入后台后, 又有子进程被创建的情况将被忽视
+            (即新创建的进程永远不会加入模块的内存压缩名单, 而是交由系统/内核处理)
+         */
+            if (!Objects.equals(runningInfo.getActiveLaunchPackageName(), packageName)) {   // 不是桌面进程
+                switch (appGroupEnum) {
+                    case IDLE ->
+                            runningInfo.getProcessManager().addCompactProcessInfo(getProcessInfos());
+                    case ACTIVE ->
+                            runningInfo.getProcessManager().cancelCompactProcessInfo(getProcessInfos());
+                }
+            }
+        }
     }
 
     public AppGroupEnum getAppGroupEnum() {
-        return appGroupEnumAtomicReference.get();
+        return appGroupEnum;
     }
 
     /**
@@ -117,49 +133,13 @@ public class AppInfo implements ILogger {
 //            return;
 //        }
 
-        ProcessInfo processInfo;
-        int oldAdj = Integer.MIN_VALUE;
-
         if (processInfoMap.containsKey(pid)) {
-            processInfo = processInfoMap.get(pid);
-
-            oldAdj = processInfo.getOomAdjScore();
+            ProcessInfo processInfo = processInfoMap.get(pid);
             processInfo.setOomAdjScore(oomAdjScore);
         } else {
-            processInfo = addProcessInfo(pid, oomAdjScore);
+            addProcessInfo(pid, oomAdjScore);
 
 //            runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, this);
-        }
-
-        // 压缩当前进程
-        AppGroupEnum curAppGroupEnum = getAppGroupEnum();
-        if (Objects.equals(curAppGroupEnum, AppGroupEnum.IDLE) &&
-                !Objects.equals(packageName, runningInfo.getActiveLaunchPackageName())) {
-            AppGroupEnum lastAppGroupEnum = processInfo.getLastAppGroupEnum();
-            if (lastAppGroupEnum != null && !Objects.equals(curAppGroupEnum, lastAppGroupEnum)) {  // app经历了idle->active->idle
-                runningInfo.getProcessManager().compactAppFullNoCheck(processInfo);
-
-                if (BuildConfig.DEBUG) {
-                    getLogger().debug("包名: " + packageName + ", uid: " + uid + "的pid: " + pid + " >>> 因[所在app内存状态改变]而内存压缩");
-                }
-            } else // 参照了com.android.server.am.CachedAppOptimizer.void onOomAdjustChanged(int oldAdj, int newAdj, ProcessRecord app)
-                if (oldAdj < ProcessList.CACHED_APP_MIN_ADJ
-                        && oomAdjScore >= ProcessList.CACHED_APP_MIN_ADJ
-                        && oomAdjScore <= ProcessList.CACHED_APP_MAX_ADJ) {
-                    long currentTimeMillis = System.currentTimeMillis();
-                    if (processInfo.isAllowedCompact(currentTimeMillis)) {
-                        runningInfo.getProcessManager().compactAppFullNoCheck(processInfo);
-                        processInfo.setLastCompactTime(currentTimeMillis);
-
-                        if (BuildConfig.DEBUG) {
-                            getLogger().debug("包名: " + packageName + ", uid: " + uid + "的pid: " + pid + " >>> 因[oom_score]而内存压缩");
-                        }
-                    }
-                }
-        }
-        // 更新进程记录的app内存分组
-        if (!Objects.equals(curAppGroupEnum, AppGroupEnum.TMP)) {
-            processInfo.setLastAppGroupEnum(curAppGroupEnum);
         }
     }
 
@@ -167,15 +147,16 @@ public class AppInfo implements ILogger {
         return processInfoMap.containsKey(pid);
     }
 
-    public void removeProcessInfo(int pid) {
-        processInfoMap.remove(pid);
+    public ProcessInfo removeProcessInfo(int pid) {
+        return processInfoMap.remove(pid);
     }
 
     public Set<Integer> getProcessInfoPids() {
-        if (processInfoMap == null) {
-            return null;
-        }
         return processInfoMap.keySet();
+    }
+
+    public Collection<ProcessInfo> getProcessInfos() {
+        return processInfoMap.values();
     }
 
     public ApplicationIdentity getApplicationIdentity() {
@@ -251,6 +232,8 @@ public class AppInfo implements ILogger {
                         field.set(this, null);
                     } else if (obj instanceof AtomicReference<?> ap) {
                         ap.set(null);
+                    } else if (obj instanceof Enum<?>) {
+                        field.set(this, null);
                     }
                 }
             } catch (IllegalAccessException | IllegalArgumentException e) {

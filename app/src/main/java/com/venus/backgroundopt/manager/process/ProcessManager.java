@@ -11,6 +11,9 @@ import com.venus.backgroundopt.hook.handle.android.entity.Process;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.utils.log.ILogger;
 
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -40,7 +43,7 @@ public class ProcessManager implements ILogger {
     public static final int THREAD_GROUP_BACKGROUND = Process.THREAD_GROUP_BACKGROUND + THREAD_GROUP_LEVEL_OFFSET;
 
     public ProcessManager(ActivityManagerService activityManagerService) {
-        this.cachedAppOptimizer = activityManagerService.getOomAdjuster().getCachedAppOptimizer();
+        appCompactManager = new AppCompactManager(activityManagerService.getOomAdjuster().getCachedAppOptimizer());
     }
 
     /* *************************************************************************
@@ -48,18 +51,33 @@ public class ProcessManager implements ILogger {
      * app压缩                                                                  *
      *                                                                         *
      **************************************************************************/
-    // 默认压缩级别
-    private static final int DEFAULT_COMPACT_LEVEL = CachedAppOptimizer.COMPACT_ACTION_ANON;
+    private final AppCompactManager appCompactManager;
 
-    // 封装的CachedAppOptimizer
-    private final CachedAppOptimizer cachedAppOptimizer;
+    /**
+     * 添加压缩进程
+     */
+    public void addCompactProcessInfo(Collection<ProcessInfo> processInfos) {
+        appCompactManager.addCompactProcessInfo(processInfos);
+    }
+
+    /**
+     * 移除压缩进程
+     * @param processInfo 进程信息
+     */
+    public void cancelCompactProcessInfo(@Nullable ProcessInfo processInfo) {
+        appCompactManager.cancelCompactProcessInfo(processInfo);
+    }
+
+    public void cancelCompactProcessInfo(Collection<ProcessInfo> processInfos) {
+        appCompactManager.cancelCompactProcessInfo(processInfos);
+    }
 
     public void compactApp(ProcessRecord processRecord) {
-        compactApp(processRecord.getPid());
+        appCompactManager.compactApp(processRecord);
     }
 
     public void compactApp(int pid) {
-        compactApp(pid, DEFAULT_COMPACT_LEVEL);
+        appCompactManager.compactApp(pid);
     }
 
     /**
@@ -69,7 +87,7 @@ public class ProcessManager implements ILogger {
      * @param compactAction 压缩行为: {@link CachedAppOptimizer#COMPACT_ACTION_NONE}等
      */
     public void compactApp(int pid, int compactAction) {
-        cachedAppOptimizer.compactProcess(pid, compactAction);
+        appCompactManager.compactApp(pid, compactAction);
     }
 
     /**
@@ -78,15 +96,11 @@ public class ProcessManager implements ILogger {
      * @param pid 要压缩的pid
      */
     public void compactAppSome(int pid) {
-        compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FILE);
-
-        if (BuildConfig.DEBUG) {
-            getLogger().debug("pid: " + pid + " >>> 进行了一次compactAppSome");
-        }
+        appCompactManager.compactAppSome(pid);
     }
 
     public void compactAppSome(AppInfo appInfo) {
-        appInfo.getProcessInfoPids().parallelStream().forEach(this::compactAppSome);
+        appCompactManager.compactAppSome(appInfo);
     }
 
     /**
@@ -94,26 +108,24 @@ public class ProcessManager implements ILogger {
      *
      * @param pid 要压缩的pid
      */
-    public void compactAppFull(int pid, int curAdj) {
-        if (CachedAppOptimizer.isOomAdjEnteredCached(curAdj)) {
-            compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL);
-        }
+    public boolean compactAppFull(int pid, int curAdj) {
+        return appCompactManager.compactAppFull(pid, curAdj);
     }
 
     public void compactAppFullNoCheck(int pid) {
-        compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL);
+        appCompactManager.compactAppFullNoCheck(pid);
     }
 
 //    public boolean compactAppFull(ProcessInfo processInfo) {
 //        return cachedAppOptimizer.compactApp(processInfo.getProcessRecord(), true, "Full");
 //    }
 
-    public void compactAppFull(ProcessInfo processInfo, int curAdj) {
-        compactAppFull(processInfo.getPid(), curAdj);
+    public boolean compactAppFull(ProcessInfo processInfo) {
+        return appCompactManager.compactAppFull(processInfo);
     }
 
     public void compactAppFullNoCheck(ProcessInfo processInfo) {
-        compactAppFullNoCheck(processInfo.getPid());
+        appCompactManager.compactAppFullNoCheck(processInfo);
     }
 
     /* *************************************************************************

@@ -4,6 +4,8 @@ import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.log.ILogger
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
@@ -33,8 +35,8 @@ class AppMemoryTrimManagerKt : ILogger {
     // 线程池
     private val executor = ScheduledThreadPoolExecutor(2)
 
-    private val foregroundTasks = mutableSetOf<ProcessRecord>()
-    private val backgroundTasks = mutableSetOf<ProcessRecord>()
+    private val foregroundTasks = Collections.newSetFromMap<ProcessRecord>(ConcurrentHashMap())
+    private val backgroundTasks = Collections.newSetFromMap<ProcessRecord>(ConcurrentHashMap())
 
     init {
         init()

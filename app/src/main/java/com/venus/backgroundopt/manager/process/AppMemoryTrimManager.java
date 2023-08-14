@@ -20,7 +20,7 @@ import java.util.function.Consumer;
  */
 public abstract class AppMemoryTrimManager implements ILogger {
     // 线程池
-    final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(getCorePoolSize());
+    final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(4);
 
     // 缓存ProcessRecord对应的AppMemoryTrimTask, 使得前后台切换无需重复创建
     private final Map<ProcessRecord, AppMemoryTrimTask> appMemoryTrimTaskMap = new ConcurrentHashMap<>();
