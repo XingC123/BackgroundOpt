@@ -55,7 +55,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                     result = 0
                     if (BuildConfig.DEBUG) {
                         logger.warn(
-                            "uid: ${it.uid}, pid: ${it.pid} >>> 因[OOM_SCORE] 而内存压缩: 发生异常",
+                            "uid: ${it.uid}, pid: ${it.pid} >>> 因[OOM_SCORE] 而内存压缩: 发生异常!压缩执行失败或进程已停止",
                             t
                         )
                     }
