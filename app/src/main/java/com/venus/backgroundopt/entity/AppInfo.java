@@ -230,6 +230,8 @@ public class AppInfo implements ILogger {
                     if (obj instanceof Map<?, ?> map) {
                         map.clear();
                         field.set(this, null);
+                    } else if (obj instanceof Collection<?> collection) {
+                        collection.clear();
                     } else if (obj instanceof AtomicReference<?> ap) {
                         ap.set(null);
                     } else if (obj instanceof Enum<?>) {

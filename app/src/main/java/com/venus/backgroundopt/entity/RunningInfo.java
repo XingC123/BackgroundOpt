@@ -275,6 +275,9 @@ public class RunningInfo implements ILogger {
             idleAppGroup.remove(appInfo);
             processManager.removeAllAppMemoryTrimTask(appInfo);
 
+            // 清理待压缩进程
+            processManager.cancelCompactProcessInfo(appInfo);
+
             // 清理AppInfo。也许有助于gc
             appInfo.clearAppInfo();
 
