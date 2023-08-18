@@ -25,7 +25,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
 
         // App压缩扫描线程池配置
         const val initialDelay = 0L
-        const val delay = 2L
+        const val delay = 10L
         val timeUnit = TimeUnit.MINUTES
     }
 
