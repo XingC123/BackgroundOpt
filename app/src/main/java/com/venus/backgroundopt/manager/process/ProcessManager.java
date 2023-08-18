@@ -60,6 +60,10 @@ public class ProcessManager implements ILogger {
         appCompactManager.addCompactProcessInfo(processInfos);
     }
 
+    public void addCompactProcessInfo(ProcessInfo processInfo) {
+        appCompactManager.addCompactProcessInfo(processInfo);
+    }
+
     /**
      * 移除压缩进程
      * @param processInfo 进程信息

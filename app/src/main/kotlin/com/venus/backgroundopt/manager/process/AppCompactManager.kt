@@ -31,6 +31,8 @@ class AppCompactManager(// 封装的CachedAppOptimizer
 
     // App压缩处理线程池
     private val executor = ScheduledThreadPoolExecutor(1)
+    // 待压缩的进程信息列表
+    // 注意: 是"进程信息"而不是"应用信息", 其size代表的是进程数不是app数
     private val compactProcessInfos = Collections.newSetFromMap<ProcessInfo>(ConcurrentHashMap())
 
     init {
@@ -85,8 +87,15 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         if (processInfos.isNotEmpty()) {
             compactProcessInfos.addAll(processInfos)
             if (BuildConfig.DEBUG) {
-                logger.debug("uid: ${processInfos.first().uid} >>> 加入待压缩列表")
+                logger.debug("uid: ${processInfos.first().uid} >>> [批量]加入待压缩列表")
             }
+        }
+    }
+
+    fun addCompactProcessInfo(processInfo: ProcessInfo) {
+        compactProcessInfos.add(processInfo)
+        if (BuildConfig.DEBUG) {
+            logger.debug("uid: ${processInfo.uid}, pid: ${processInfo.pid} >>> 加入待压缩列表")
         }
     }
 

@@ -93,7 +93,7 @@ public class ProcessHook extends MethodHook {
                 runningInfo.getProcessManager().cancelCompactProcessInfo(processInfo);
 
                 if (BuildConfig.DEBUG) {
-                    getLogger().debug("[" + appInfo.getPackageName() + ", uid: " + uid + " ]的子进程被杀");
+                    getLogger().debug("kill: " + appInfo.getPackageName() + ", uid: " + uid + ", pid: " + pid + " >>> 子进程被杀");
                 }
             }
         }

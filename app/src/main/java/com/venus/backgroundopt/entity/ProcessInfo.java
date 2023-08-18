@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.entity;
 
+import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
+
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 
 import java.util.Objects;
@@ -23,19 +25,37 @@ public class ProcessInfo {
      */
     private int fixedOomAdjScore = Integer.MIN_VALUE;
 
-    public ProcessInfo(ProcessRecord processRecord) {
+    private ProcessInfo(ProcessRecord processRecord) {
         this(processRecord.getUid(), processRecord.getPid(), Integer.MIN_VALUE);
     }
 
-    public ProcessInfo(int uid, int pid, int oomAdjScore) {
+    private ProcessInfo(int uid, int pid, int oomAdjScore) {
         this(uid, pid, oomAdjScore, Integer.MIN_VALUE);
     }
 
-    public ProcessInfo(int uid, int pid, int oomAdjScore, int fixedOomAdjScore) {
+    private ProcessInfo(int uid, int pid, int oomAdjScore, int fixedOomAdjScore) {
         this.uid = uid;
         this.pid = pid;
         this.oomAdjScore = oomAdjScore;
         this.fixedOomAdjScore = fixedOomAdjScore;
+    }
+
+    public static ProcessInfo newInstance(AppInfo appInfo, RunningInfo runningInfo, ProcessRecord processRecord) {
+        return newInstance(appInfo, runningInfo, processRecord.getUid(), processRecord.getPid(), Integer.MIN_VALUE);
+    }
+
+    public static ProcessInfo newInstance(AppInfo appInfo, RunningInfo runningInfo, int uid, int pid, int oomAdjScore) {
+        ProcessInfo processInfo = new ProcessInfo(uid, pid, oomAdjScore, Integer.MIN_VALUE);
+        if (Objects.equals(AppGroupEnum.IDLE, appInfo.getAppGroupEnum())) { // 若该进程创建时, app处于IDLE, 则将此进程添加到待压缩列表
+            return processInfo.addCompactProcessInfo(runningInfo);
+        }
+
+        return processInfo;
+    }
+
+    private ProcessInfo addCompactProcessInfo(RunningInfo runningInfo) {
+        runningInfo.getProcessManager().addCompactProcessInfo(this);
+        return this;
     }
 
     @Override
