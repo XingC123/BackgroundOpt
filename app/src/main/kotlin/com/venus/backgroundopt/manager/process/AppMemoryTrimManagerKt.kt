@@ -158,11 +158,13 @@ class AppMemoryTrimManagerKt : ILogger {
      * @param processRecord 进程记录器
      */
     fun removeAllTask(processRecord: ProcessRecord?) {
-        foregroundTasks.remove(processRecord)
-        backgroundTasks.remove(processRecord)
+        processRecord?.let {
+            foregroundTasks.remove(processRecord)
+            backgroundTasks.remove(processRecord)
 
-        if (BuildConfig.DEBUG) {
-            logger.debug("foregroundTasks元素个数: ${foregroundTasks.size}, backgroundTasks元素个数: ${backgroundTasks.size}")
+            if (BuildConfig.DEBUG) {
+                logger.debug("foregroundTasks元素个数: ${foregroundTasks.size}, backgroundTasks元素个数: ${backgroundTasks.size}")
+            }
         }
     }
 
