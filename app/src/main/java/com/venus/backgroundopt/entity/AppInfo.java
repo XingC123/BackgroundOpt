@@ -75,7 +75,7 @@ public class AppInfo implements ILogger {
      **************************************************************************/
 
     // 当前app在本模块内的内存分组
-    private AppGroupEnum appGroupEnum = AppGroupEnum.ACTIVE;
+    private AppGroupEnum appGroupEnum = AppGroupEnum.NONE;
     private final Object appGroupSetLock = new Object();
 
     public void setAppGroupEnum(AppGroupEnum appGroupEnum) {
@@ -89,7 +89,7 @@ public class AppInfo implements ILogger {
                 switch (appGroupEnum) {
                     case IDLE ->
                             runningInfo.getProcessManager().addCompactProcessInfo(getProcessInfos());
-                    case ACTIVE ->
+                    case ACTIVE ->  /* 若为第一次打开app, 此时也会执行这里。此时无需考虑是否能移除, 因为还没开始添加(至少也要在app第一次进入后台才会开始添加) */
                             runningInfo.getProcessManager().cancelCompactProcessInfo(getProcessInfos());
                 }
             }
@@ -107,7 +107,7 @@ public class AppInfo implements ILogger {
     private Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
 
     public ProcessInfo addProcessInfo(int pid, int oomAdjScore) {
-        ProcessInfo processInfo = new ProcessInfo(uid, pid, oomAdjScore);
+        ProcessInfo processInfo = ProcessInfo.newInstance(this, runningInfo, uid, pid, oomAdjScore);
         processInfoMap.put(pid, processInfo);
 
         return processInfo;
@@ -173,7 +173,7 @@ public class AppInfo implements ILogger {
     }
 
     public void setmProcessInfo(ProcessRecord processRecord) {
-        this.mProcessInfo = new ProcessInfo(processRecord);
+        this.mProcessInfo = ProcessInfo.newInstance(this, runningInfo, processRecord);
         addProcessInfo(mProcessInfo);
     }
 

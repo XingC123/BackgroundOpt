@@ -297,6 +297,7 @@ public class RunningInfo implements ILogger {
      *                                                                         *
      **************************************************************************/
     public enum AppGroupEnum {
+        NONE,
         ACTIVE,
         TMP,
         IDLE
