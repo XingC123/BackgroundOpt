@@ -65,6 +65,7 @@ public class ProcessHook extends MethodHook {
                 使得UpdateOomAdjHook: if (appInfo == null) 从而设置为-1000
                 问题: 为什么主进程被杀而子进程无事。目标应该是内存不足时杀子进程以保留更多主进程
                 后续(23.3.6): 设置进程最大adj之后解决
+                问题(23.8.19): 类原生从最近任务杀掉qq, 其实实际上并不能停止qq, 但此方法依然会执行, 导致qq的AppInfo被移除, 从而使得OOM管理失效
              */
             int mPid = Integer.MIN_VALUE;
             boolean flag = false;
