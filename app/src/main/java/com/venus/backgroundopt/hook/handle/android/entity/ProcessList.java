@@ -221,22 +221,30 @@ public class ProcessList implements ILogger {
      * @return 主进程
      */
     private ProcessRecord getMProcessRecord(AppInfo appInfo) {
+        return getMProcessRecord(appInfo.getPackageName());
+    }
+
+    private ProcessRecord getMProcessRecord(String packageName) {
         Optional<ProcessRecord> processRecord = processRecordList.parallelStream()
-                .filter(proc -> ProcessRecord.isProcessNameSame(appInfo.getPackageName(), proc))
+                .filter(proc -> ProcessRecord.isProcessNameSame(packageName, proc))
                 .findAny()
                 .map(ProcessRecord::new);
         return processRecord.orElse(null);
     }
 
     public ProcessRecord getMProcessRecordLockedWhenThrowException(AppInfo appInfo) {
+        return getMProcessRecordLockedWhenThrowException(appInfo.getPackageName());
+    }
+
+    public ProcessRecord getMProcessRecordLockedWhenThrowException(String packageName) {
         try {   // 先不使用锁来获取
-            return getMProcessRecord(appInfo);
+            return getMProcessRecord(packageName);
         } catch (ConcurrentModificationException e) {   // 出现异常, 加锁获取
             synchronized (activityManagerService.getmProcLock()) {
-                return getMProcessRecord(appInfo);
+                return getMProcessRecord(packageName);
             }
         } catch (Exception e) {
-            getLogger().error(appInfo.getPackageName() + "进程列表获取失败", e);
+            getLogger().error(packageName + "进程列表获取失败", e);
         }
         return null;
     }

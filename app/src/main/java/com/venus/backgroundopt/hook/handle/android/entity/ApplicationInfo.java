@@ -20,4 +20,8 @@ public class ApplicationInfo {
     }
 
     public int uid;
+
+    public String getPackageName() {
+        return applicationInfo.packageName;
+    }
 }

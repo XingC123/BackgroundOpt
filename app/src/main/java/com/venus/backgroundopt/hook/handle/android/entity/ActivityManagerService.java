@@ -255,14 +255,8 @@ public class ActivityManagerService implements ILogger {
         return process == null ? null : new ProcessRecord(process);
     }
 
-    /**
-     * 根据{@link AppInfo}找到其主进程
-     *
-     * @param appInfo app信息
-     * @return 主进程的记录
-     */
-    public ProcessRecord findMProcessRecord(AppInfo appInfo) {
-        ProcessRecord mProcessRecord = getProcessRecordLocked(appInfo.getPackageName(), appInfo.getUid());
+    public ProcessRecord findMProcessRecord(String packageName, int uid) {
+        ProcessRecord mProcessRecord = getProcessRecordLocked(packageName, uid);
 
         if (mProcessRecord == null) {   // 目前已知, 双开的app必走这里
 //            Object uidRecord = XposedHelpers.newInstance(
@@ -273,10 +267,20 @@ public class ActivityManagerService implements ILogger {
 //            if (process != null) {
 //                mProcessRecord = new ProcessRecord(process);
 //            } else {
-            mProcessRecord = processList.getMProcessRecordLockedWhenThrowException(appInfo);
+            mProcessRecord = processList.getMProcessRecordLockedWhenThrowException(packageName);
 //            }
         }
 
         return mProcessRecord;
+    }
+
+    /**
+     * 根据{@link AppInfo}找到其主进程
+     *
+     * @param appInfo app信息
+     * @return 主进程的记录
+     */
+    public ProcessRecord findMProcessRecord(AppInfo appInfo) {
+        return findMProcessRecord(appInfo.getPackageName(), appInfo.getUid());
     }
 }

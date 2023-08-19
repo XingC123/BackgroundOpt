@@ -14,11 +14,14 @@ import com.venus.backgroundopt.utils.log.ILogger;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 运行信息
@@ -82,6 +85,16 @@ public class RunningInfo implements ILogger {
      * </pre>
      */
     private final Map<String, NormalAppResult> normalApps = new ConcurrentHashMap<>();
+
+    public List<Integer> getNormalUIDs() {
+        return normalApps.values().stream()
+                .map(normalAppResult -> normalAppResult.getApplicationInfo().uid)
+                .collect(Collectors.toList());
+    }
+
+    public Collection<NormalAppResult> getNormalAppResults() {
+        return normalApps.values();
+    }
 
     /**
      * 获取放进{@link #normalApps}的key
@@ -231,6 +244,12 @@ public class RunningInfo implements ILogger {
         // 找到主进程进行必要设置
         ProcessRecord mProcessRecord = findMProcessRecord(appInfo);
 
+        setAddedRunningApp(mProcessRecord, appInfo);
+        // 添加到运行列表
+        runningApps.put(appInfo.getUid(), appInfo);
+    }
+
+    public void setAddedRunningApp(ProcessRecord mProcessRecord, AppInfo appInfo) {
         if (mProcessRecord != null) {
             // 设置主进程的最大adj(保活)
             mProcessRecord.setDefaultMaxAdj();
@@ -240,9 +259,10 @@ public class RunningInfo implements ILogger {
                 getLogger().warn(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的mProcessRecord为空");
             }
         }
+    }
 
-        // 添加到运行列表
-        runningApps.put(appInfo.getUid(), appInfo);
+    public AppInfo addRunningAppIfAbsent(int uid, Function<Integer, AppInfo> function) {
+        return runningApps.computeIfAbsent(uid, function);
     }
 
     /**
@@ -385,7 +405,7 @@ public class RunningInfo implements ILogger {
         processManager.startForegroundAppTrimTask(appInfo.getmProcessRecord());
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid()  + " 被放入ActiveGroup");
+            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入ActiveGroup");
         }
     }
 
@@ -405,44 +425,51 @@ public class RunningInfo implements ILogger {
             putIntoIdleAppGroup(appInfo);
         } else {
             if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid()  + " 被放入TmpGroup");
+                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入TmpGroup");
             }
         }
     }
 
-    private void putIntoIdleAppGroup(AppInfo appInfo) {
+    public void putIntoIdleAppGroup(AppInfo appInfo) {
         // 做app清理工作
-        handleLastApp(appInfo);
+        boolean valid = handleLastApp(appInfo);
+        if (valid) {
+            idleAppGroup.add(appInfo);
+            appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
 
-        idleAppGroup.add(appInfo);
-        appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
-
-        if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid()  + "  被放入IdleGroup");
+            if (BuildConfig.DEBUG) {
+                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + "  被放入IdleGroup");
+            }
         }
     }
 
-    private void handleLastApp(AppInfo appInfo) {
+    /**
+     * 处理上个app
+     *
+     * @param appInfo app信息
+     * @return appInfo是否合法
+     */
+    private boolean handleLastApp(AppInfo appInfo) {
         if (appInfo == null) {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("待执行app已被杀死, 不执行处理");
             }
 
-            return;
+            return false;
         }
 
         if (Objects.equals(getActiveLaunchPackageName(), appInfo.getPackageName())) {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("当前操作的app为默认桌面, 不进行处理");
             }
-            return;
+            return true;
         }
 
         if (appInfo.isSwitchEventHandled()) {
             if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid()  + " 的切换事件已经处理过");
+                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的切换事件已经处理过");
             }
-            return;
+            return true;
         }
 
         processManager.startBackgroundAppTrimTask(appInfo.getmProcessRecord());
@@ -450,6 +477,8 @@ public class RunningInfo implements ILogger {
 //        processManager.setAppToBackgroundProcessGroup(appInfo);
 
         appInfo.setSwitchEventHandled(true);
+
+        return true;
     }
 
     /* *************************************************************************
