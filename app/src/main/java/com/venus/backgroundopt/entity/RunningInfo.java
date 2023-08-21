@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -161,6 +162,12 @@ public class RunningInfo implements ILogger {
      * 普通app查找结果
      */
     public static class NormalAppResult {
+        /**
+         * (uid, {@link NormalAppResult}) 映射
+         * 只有能获取到 {@link ApplicationInfo} 的前提下(即可以获取到uid), 才会进行写入。因此使用 {@link #normalAppUidMap}.get(int)时无需判空
+         */
+        public static final Map<Integer, NormalAppResult> normalAppUidMap = new HashMap<>();
+
         private boolean isNormalApp = false;
         private ApplicationInfo applicationInfo;
 
@@ -189,7 +196,7 @@ public class RunningInfo implements ILogger {
      *                                                                         *
      **************************************************************************/
     /**
-     * 只有非重要系统进程通过key取值才是非null
+     * 只有非重要系统进程通过key取值才是非null(即, 需要做空检查)
      * uid, AppInfo
      */
     private final Map<Integer, AppInfo> runningApps = new ConcurrentHashMap<>();
@@ -274,36 +281,36 @@ public class RunningInfo implements ILogger {
 
     /**
      * 若 {@link #runningApps} 中没有此uid记录, 将进行计算创建
+     * 注意: 创建后, 会以(uid, {@link AppInfo}[nullable])的形式放入 {@link #runningApps}
      *
-     * @param uid      目标app的uid
+     * @param uid 目标app的uid
      * @return 生成的目标app信息(可能为空)
      */
     @Nullable
     public AppInfo computeRunningAppIfAbsent(int uid) {
         return runningApps.computeIfAbsent(uid, key -> {
             AppInfo[] apps = new AppInfo[]{null};
-            Collection<NormalAppResult> normalAppResults = getNormalAppResults();
             /*
                 从normalAppResults中查询而不是添加。这个Function只负责当app进入后台并被清理后台之后[自启动]时进行appInfo信息补全。
                 对于[开机自启动]的app, 模块暂时不做处理, 一切交由系统。
              */
-            normalAppResults.forEach(normalAppResult -> {
+            Map<Integer, NormalAppResult> normalAppUidMap = NormalAppResult.normalAppUidMap;
+            if (normalAppUidMap.containsKey(uid)) {
+                NormalAppResult normalAppResult = normalAppUidMap.get(uid);
                 ApplicationInfo applicationInfo = normalAppResult.getApplicationInfo();
-                if (applicationInfo == null || applicationInfo.uid != uid) {
-                    return;
-                }
-                String packageName = normalAppResult.getApplicationInfo().getPackageName();
-                ProcessRecord mProcessRecord = activityManagerService.findMProcessRecord(packageName, uid);
-                if (mProcessRecord == null) {
-                    return;
-                }
-                int userId = mProcessRecord.getUserId();
+                if (applicationInfo != null) {
+                    String packageName = normalAppResult.getApplicationInfo().getPackageName();
+                    ProcessRecord mProcessRecord = activityManagerService.findMProcessRecord(packageName, uid);
+                    if (mProcessRecord != null) {
+                        int userId = mProcessRecord.getUserId();
 
-                apps[0] = new AppInfo(userId, packageName, this).setUid(uid);
-                setAddedRunningApp(mProcessRecord, apps[0]);
-                apps[0].setAppSwitchEvent(ActivityManagerServiceHook.ACTIVITY_PAUSED);
-                putIntoIdleAppGroup(apps[0]);
-            });
+                        apps[0] = new AppInfo(userId, packageName, this).setUid(uid);
+                        setAddedRunningApp(mProcessRecord, apps[0]);
+                        apps[0].setAppSwitchEvent(ActivityManagerServiceHook.ACTIVITY_PAUSED);
+                        putIntoIdleAppGroup(apps[0]);
+                    }
+                }
+            }
 
             return apps[0];
         });
