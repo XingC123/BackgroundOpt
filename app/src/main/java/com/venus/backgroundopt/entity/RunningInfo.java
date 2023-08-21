@@ -11,6 +11,9 @@ import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.service.ProcessDaemonService;
 import com.venus.backgroundopt.utils.log.ILogger;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -241,6 +244,12 @@ public class RunningInfo implements ILogger {
         runningApps.put(appInfo.getUid(), appInfo);
     }
 
+    /**
+     * 设置添加到 {@link #runningApps} 中的 {@link AppInfo}的基本属性
+     *
+     * @param mProcessRecord app的主进程
+     * @param appInfo        要处理的应用信息
+     */
     public void setAddedRunningApp(ProcessRecord mProcessRecord, AppInfo appInfo) {
         if (mProcessRecord != null) {
             // 设置主进程的最大adj(保活)
@@ -253,16 +262,38 @@ public class RunningInfo implements ILogger {
         }
     }
 
+    /**
+     * 设置添加到 {@link #runningApps} 中的 {@link AppInfo}的基本属性
+     *
+     * @param appInfo 要处理的应用信息
+     */
     public void setAddedRunningApp(AppInfo appInfo) {
         // 找到主进程进行必要设置
         ProcessRecord mProcessRecord = findMProcessRecord(appInfo);
         setAddedRunningApp(mProcessRecord, appInfo);
     }
 
+    /**
+     * 若 {@link #runningApps} 中没有此uid记录, 将进行计算创建
+     *
+     * @param uid      目标app的uid
+     * @param function 生成目标app {@link AppInfo} 的方法
+     * @return 生成的目标app信息(可能为空)
+     */
+    @Nullable
     public AppInfo computeRunningAppIfAbsent(int uid, Function<Integer, AppInfo> function) {
         return runningApps.computeIfAbsent(uid, function);
     }
 
+    /**
+     * 若 {@link #runningApps} 中没有此uid记录, 将进行计算创建
+     *
+     * @param userId      目标app对应用户id
+     * @param packageName 目标app包名
+     * @param uid         目标app的uid
+     * @return 生成的目标app信息
+     */
+    @NotNull
     public AppInfo computeRunningAppIfAbsent(int userId, String packageName, int uid) {
         return runningApps.computeIfAbsent(uid, key -> {
             if (BuildConfig.DEBUG) {
