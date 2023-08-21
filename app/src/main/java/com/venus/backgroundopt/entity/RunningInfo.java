@@ -189,7 +189,7 @@ public class RunningInfo implements ILogger {
      *                                                                         *
      **************************************************************************/
     /**
-     * 只有非重要系统进程通过key取值才是非null
+     * 只有非重要系统进程通过key取值才是非null(即, 需要做空检查)
      * uid, AppInfo
      */
     private final Map<Integer, AppInfo> runningApps = new ConcurrentHashMap<>();
@@ -274,8 +274,9 @@ public class RunningInfo implements ILogger {
 
     /**
      * 若 {@link #runningApps} 中没有此uid记录, 将进行计算创建
+     * 注意: 创建后, 会以(uid, {@link AppInfo}[nullable])的形式放入 {@link #runningApps}
      *
-     * @param uid      目标app的uid
+     * @param uid 目标app的uid
      * @return 生成的目标app信息(可能为空)
      */
     @Nullable
