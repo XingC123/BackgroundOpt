@@ -241,10 +241,7 @@ public class RunningInfo implements ILogger {
      * @param appInfo app信息
      */
     public void addRunningApp(AppInfo appInfo) {
-        // 找到主进程进行必要设置
-        ProcessRecord mProcessRecord = findMProcessRecord(appInfo);
-
-        setAddedRunningApp(mProcessRecord, appInfo);
+        setAddedRunningApp(appInfo);
         // 添加到运行列表
         runningApps.put(appInfo.getUid(), appInfo);
     }
@@ -261,8 +258,25 @@ public class RunningInfo implements ILogger {
         }
     }
 
-    public AppInfo addRunningAppIfAbsent(int uid, Function<Integer, AppInfo> function) {
+    public void setAddedRunningApp(AppInfo appInfo) {
+        // 找到主进程进行必要设置
+        ProcessRecord mProcessRecord = findMProcessRecord(appInfo);
+        setAddedRunningApp(mProcessRecord, appInfo);
+    }
+
+    public AppInfo computeRunningAppIfAbsent(int uid, Function<Integer, AppInfo> function) {
         return runningApps.computeIfAbsent(uid, function);
+    }
+
+    public AppInfo computeRunningAppIfAbsent(int userId, String packageName, int uid) {
+        return runningApps.computeIfAbsent(uid, key -> {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("创建新进程: " + packageName + ", uid: " + uid);
+            }
+            AppInfo appInfo = new AppInfo(userId, packageName, this).setUid(uid);
+            setAddedRunningApp(appInfo);
+            return appInfo;
+        });
     }
 
     /**
@@ -330,20 +344,18 @@ public class RunningInfo implements ILogger {
     // 后台分组
     private final Set<AppInfo> idleAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    public void putIntoActiveAppGroup(AppInfo appInfo, boolean firstRunning) {
+    public void putIntoActiveAppGroup(AppInfo appInfo) {
         boolean switchActivity = false;  // 是否是应用内activity的切换
         /*
             处理当前元素
          */
-        if (firstRunning) { // 第一次运行直接添加
+        if (Objects.equals(AppGroupEnum.NONE, appInfo.getAppGroupEnum())) { // 第一次运行直接添加
             handlePutInfoActiveAppGroup(appInfo, true);
-        } else {
-            if (tmpAppGroup.remove(appInfo)) {  // app: Activity切换
-                handlePutInfoActiveAppGroup(appInfo, false);
-                switchActivity = true;
-            } else if (idleAppGroup.remove(appInfo)) {  // 从后台组移除
-                handlePutInfoActiveAppGroup(appInfo, true);
-            }
+        } else if (tmpAppGroup.remove(appInfo)) {  // app: Activity切换
+            handlePutInfoActiveAppGroup(appInfo, false);
+            switchActivity = true;
+        } else if (idleAppGroup.remove(appInfo)) {  // 从后台组移除
+            handlePutInfoActiveAppGroup(appInfo, true);
         }
 
         /*

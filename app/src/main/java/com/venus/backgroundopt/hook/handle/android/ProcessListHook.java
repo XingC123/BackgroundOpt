@@ -81,7 +81,7 @@ public class ProcessListHook extends MethodHook {
     private Object handleSetOomAdj(XC_MethodHook.MethodHookParam param) {
         int uid = (int) param.args[1];
         RunningInfo runningInfo = getRunningInfo();
-        AppInfo appInfo = runningInfo.addRunningAppIfAbsent(uid, appInfoFunction);
+        AppInfo appInfo = runningInfo.computeRunningAppIfAbsent(uid, appInfoFunction);
 
         if (appInfo == null) {
             return null;

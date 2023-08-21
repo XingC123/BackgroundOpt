@@ -146,28 +146,13 @@ public class ActivityManagerServiceHook extends MethodHook {
             return null;
         }
 
-        // 第一次打开此app
-        boolean firstRunning = false;
-        int uid = normalAppResult.getApplicationInfo().uid;
-        AppInfo appInfo = runningInfo.getAppInfoFromRunningApps(uid);
-
-        if (appInfo == null) {
-            if (BuildConfig.DEBUG) {
-                getLogger().debug("创建新进程: " + packageName + ", uid: " + uid);
-            }
-
-            firstRunning = true;
-            appInfo = new AppInfo(userId, packageName, runningInfo).setUid(uid);
-
-            // 添加到运行app列表
-            runningInfo.addRunningApp(appInfo);
-        }
+        AppInfo appInfo = runningInfo.computeRunningAppIfAbsent(userId, packageName, normalAppResult.getApplicationInfo().uid);
 
         // 更新app的切换状态
         appInfo.setAppSwitchEvent(event);
 
         if (event == ACTIVITY_RESUMED) {
-            runningInfo.putIntoActiveAppGroup(appInfo, firstRunning);
+            runningInfo.putIntoActiveAppGroup(appInfo);
         } else {
             runningInfo.putIntoTmpAppGroup(appInfo);
         }
