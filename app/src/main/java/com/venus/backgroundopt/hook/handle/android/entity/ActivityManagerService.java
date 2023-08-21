@@ -7,7 +7,6 @@ import android.content.pm.PackageManager;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.AppInfo;
-import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
@@ -86,7 +85,7 @@ public class ActivityManagerService implements ILogger {
 
     private final NormalAppResult notNormalAppResult = new NormalAppResult().setNormalApp(false);
 
-    public RunningInfo.NormalAppResult isImportantSystemApp(int userId, String packageName) {
+    public NormalAppResult isImportantSystemApp(int userId, String packageName) {
         ApplicationInfo applicationInfo = getApplicationInfo(userId, packageName);
 
         // 安卓源码ActivityManagerService.java判断方式:
@@ -103,9 +102,14 @@ public class ActivityManagerService implements ILogger {
             例如某个app的uid是10022，则计算出来ps打印得到uid字串就是u0_a22
          */
         //  普通应用程序的UID 都是从 10000开始的
-        if (applicationInfo == null || applicationInfo.uid < USER_APP_UID_START_NUM) {
+        int uid = Integer.MIN_VALUE;
+        if (applicationInfo == null || (uid = applicationInfo.uid) < USER_APP_UID_START_NUM) {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("applicationInfo == null ?" + (applicationInfo == null) + ", applicationInfo.uid < USER_APP_UID_START_NUM ? " + (applicationInfo != null && applicationInfo.uid < USER_APP_UID_START_NUM));
+            }
+
+            if (uid != Integer.MIN_VALUE) {
+                NormalAppResult.normalAppUidMap.put(uid, notNormalAppResult);
             }
 
             return notNormalAppResult;
@@ -117,6 +121,8 @@ public class ActivityManagerService implements ILogger {
             NormalAppResult normalAppResult = new NormalAppResult();
             normalAppResult.setNormalApp(true);
             normalAppResult.setApplicationInfo(applicationInfo);
+
+            NormalAppResult.normalAppUidMap.put(applicationInfo.uid, normalAppResult);
 
             return normalAppResult;
         }
