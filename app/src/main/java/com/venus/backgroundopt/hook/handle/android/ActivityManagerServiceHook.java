@@ -33,11 +33,6 @@ public class ActivityManagerServiceHook extends MethodHook {
      */
     public static final int ACTIVITY_PAUSED = UsageEvents.Event.ACTIVITY_PAUSED;
 
-    /**
-     * {@link android.os.Process#SIGNAL_USR1}
-     */
-    public static final int SIGNAL_10 = 10;
-
     public ActivityManagerServiceHook(ClassLoader classLoader, RunningInfo hookInfo) {
         super(classLoader, hookInfo);
     }
