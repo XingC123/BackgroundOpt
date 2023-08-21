@@ -11,14 +11,19 @@ import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.service.ProcessDaemonService;
 import com.venus.backgroundopt.utils.log.ILogger;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * 运行信息
@@ -82,6 +87,16 @@ public class RunningInfo implements ILogger {
      * </pre>
      */
     private final Map<String, NormalAppResult> normalApps = new ConcurrentHashMap<>();
+
+    public List<Integer> getNormalUIDs() {
+        return normalApps.values().stream()
+                .map(normalAppResult -> normalAppResult.getApplicationInfo().uid)
+                .collect(Collectors.toList());
+    }
+
+    public Collection<NormalAppResult> getNormalAppResults() {
+        return normalApps.values();
+    }
 
     /**
      * 获取放进{@link #normalApps}的key
@@ -174,9 +189,8 @@ public class RunningInfo implements ILogger {
      *                                                                         *
      **************************************************************************/
     /**
-     * 只有非重要系统进程才能放置于此
+     * 只有非重要系统进程通过key取值才是非null
      * uid, AppInfo
-     * 对此map的访问应加锁
      */
     private final Map<Integer, AppInfo> runningApps = new ConcurrentHashMap<>();
     private final Collection<AppInfo> runningAppsInfo = runningApps.values();
@@ -195,11 +209,7 @@ public class RunningInfo implements ILogger {
     }
 
     public AppInfo getAppInfoFromRunningApps(AppInfo appInfo) {
-        return getAppInfoFromRunningApps(appInfo.getUid());
-    }
-
-    public AppInfo getAppInfoFromRunningApps(int repairedUid) {
-        return getRunningAppInfo(repairedUid);
+        return getRunningAppInfo(appInfo.getUid());
     }
 
     /**
@@ -228,9 +238,18 @@ public class RunningInfo implements ILogger {
      * @param appInfo app信息
      */
     public void addRunningApp(AppInfo appInfo) {
-        // 找到主进程进行必要设置
-        ProcessRecord mProcessRecord = findMProcessRecord(appInfo);
+        setAddedRunningApp(appInfo);
+        // 添加到运行列表
+        runningApps.put(appInfo.getUid(), appInfo);
+    }
 
+    /**
+     * 设置添加到 {@link #runningApps} 中的 {@link AppInfo}的基本属性
+     *
+     * @param mProcessRecord app的主进程
+     * @param appInfo        要处理的应用信息
+     */
+    public void setAddedRunningApp(ProcessRecord mProcessRecord, AppInfo appInfo) {
         if (mProcessRecord != null) {
             // 设置主进程的最大adj(保活)
             mProcessRecord.setDefaultMaxAdj();
@@ -240,9 +259,74 @@ public class RunningInfo implements ILogger {
                 getLogger().warn(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的mProcessRecord为空");
             }
         }
+    }
 
-        // 添加到运行列表
-        runningApps.put(appInfo.getUid(), appInfo);
+    /**
+     * 设置添加到 {@link #runningApps} 中的 {@link AppInfo}的基本属性
+     *
+     * @param appInfo 要处理的应用信息
+     */
+    public void setAddedRunningApp(AppInfo appInfo) {
+        // 找到主进程进行必要设置
+        ProcessRecord mProcessRecord = findMProcessRecord(appInfo);
+        setAddedRunningApp(mProcessRecord, appInfo);
+    }
+
+    /**
+     * 若 {@link #runningApps} 中没有此uid记录, 将进行计算创建
+     *
+     * @param uid      目标app的uid
+     * @return 生成的目标app信息(可能为空)
+     */
+    @Nullable
+    public AppInfo computeRunningAppIfAbsent(int uid) {
+        return runningApps.computeIfAbsent(uid, key -> {
+            AppInfo[] apps = new AppInfo[]{null};
+            Collection<NormalAppResult> normalAppResults = getNormalAppResults();
+            /*
+                从normalAppResults中查询而不是添加。这个Function只负责当app进入后台并被清理后台之后[自启动]时进行appInfo信息补全。
+                对于[开机自启动]的app, 模块暂时不做处理, 一切交由系统。
+             */
+            normalAppResults.forEach(normalAppResult -> {
+                ApplicationInfo applicationInfo = normalAppResult.getApplicationInfo();
+                if (applicationInfo == null || applicationInfo.uid != uid) {
+                    return;
+                }
+                String packageName = normalAppResult.getApplicationInfo().getPackageName();
+                ProcessRecord mProcessRecord = activityManagerService.findMProcessRecord(packageName, uid);
+                if (mProcessRecord == null) {
+                    return;
+                }
+                int userId = mProcessRecord.getUserId();
+
+                apps[0] = new AppInfo(userId, packageName, this).setUid(uid);
+                setAddedRunningApp(mProcessRecord, apps[0]);
+                apps[0].setAppSwitchEvent(ActivityManagerServiceHook.ACTIVITY_PAUSED);
+                putIntoIdleAppGroup(apps[0]);
+            });
+
+            return apps[0];
+        });
+    }
+
+    /**
+     * 若 {@link #runningApps} 中没有此uid记录, 将进行计算创建
+     *
+     * @param userId      目标app对应用户id
+     * @param packageName 目标app包名
+     * @param uid         目标app的uid
+     * @return 生成的目标app信息
+     */
+    @NotNull
+    public AppInfo computeRunningAppIfAbsent(int userId, String packageName, int uid) {
+        return runningApps.computeIfAbsent(uid, key -> {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("创建新进程: " + packageName + ", uid: " + uid);
+            }
+            AppInfo appInfo = new AppInfo(userId, packageName, this).setUid(uid);
+            setAddedRunningApp(appInfo);
+            return appInfo;
+        });
     }
 
     /**
@@ -310,20 +394,18 @@ public class RunningInfo implements ILogger {
     // 后台分组
     private final Set<AppInfo> idleAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    public void putIntoActiveAppGroup(AppInfo appInfo, boolean firstRunning) {
+    public void putIntoActiveAppGroup(AppInfo appInfo) {
         boolean switchActivity = false;  // 是否是应用内activity的切换
         /*
             处理当前元素
          */
-        if (firstRunning) { // 第一次运行直接添加
+        if (Objects.equals(AppGroupEnum.NONE, appInfo.getAppGroupEnum())) { // 第一次运行直接添加
             handlePutInfoActiveAppGroup(appInfo, true);
-        } else {
-            if (tmpAppGroup.remove(appInfo)) {  // app: Activity切换
-                handlePutInfoActiveAppGroup(appInfo, false);
-                switchActivity = true;
-            } else if (idleAppGroup.remove(appInfo)) {  // 从后台组移除
-                handlePutInfoActiveAppGroup(appInfo, true);
-            }
+        } else if (tmpAppGroup.remove(appInfo)) {  // app: Activity切换
+            handlePutInfoActiveAppGroup(appInfo, false);
+            switchActivity = true;
+        } else if (idleAppGroup.remove(appInfo)) {  // 从后台组移除
+            handlePutInfoActiveAppGroup(appInfo, true);
         }
 
         /*
@@ -385,7 +467,7 @@ public class RunningInfo implements ILogger {
         processManager.startForegroundAppTrimTask(appInfo.getmProcessRecord());
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid()  + " 被放入ActiveGroup");
+            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入ActiveGroup");
         }
     }
 
@@ -405,44 +487,51 @@ public class RunningInfo implements ILogger {
             putIntoIdleAppGroup(appInfo);
         } else {
             if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid()  + " 被放入TmpGroup");
+                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入TmpGroup");
             }
         }
     }
 
-    private void putIntoIdleAppGroup(AppInfo appInfo) {
+    public void putIntoIdleAppGroup(AppInfo appInfo) {
         // 做app清理工作
-        handleLastApp(appInfo);
+        boolean valid = handleLastApp(appInfo);
+        if (valid) {
+            idleAppGroup.add(appInfo);
+            appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
 
-        idleAppGroup.add(appInfo);
-        appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
-
-        if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid()  + "  被放入IdleGroup");
+            if (BuildConfig.DEBUG) {
+                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + "  被放入IdleGroup");
+            }
         }
     }
 
-    private void handleLastApp(AppInfo appInfo) {
+    /**
+     * 处理上个app
+     *
+     * @param appInfo app信息
+     * @return appInfo是否合法
+     */
+    private boolean handleLastApp(AppInfo appInfo) {
         if (appInfo == null) {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("待执行app已被杀死, 不执行处理");
             }
 
-            return;
+            return false;
         }
 
         if (Objects.equals(getActiveLaunchPackageName(), appInfo.getPackageName())) {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("当前操作的app为默认桌面, 不进行处理");
             }
-            return;
+            return true;
         }
 
         if (appInfo.isSwitchEventHandled()) {
             if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid()  + " 的切换事件已经处理过");
+                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的切换事件已经处理过");
             }
-            return;
+            return true;
         }
 
         processManager.startBackgroundAppTrimTask(appInfo.getmProcessRecord());
@@ -450,6 +539,8 @@ public class RunningInfo implements ILogger {
 //        processManager.setAppToBackgroundProcessGroup(appInfo);
 
         appInfo.setSwitchEventHandled(true);
+
+        return true;
     }
 
     /* *************************************************************************
