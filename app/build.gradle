@@ -57,7 +57,7 @@ def getVersionInfo(String releaseKey, String debugKey, KeyType keyType) {
 
 // 生成版本信息
 def generateVersionCode() {
-    return getVersionInfo("STABLE_VERSION_CODE", "ALPHA_VERSION_CODE", KeyType.Integer)
+    return getVersionInfo("RELEASE_VERSION_CODE", "DEBUG_VERSION_CODE", KeyType.Integer)
 }
 
 def generateVersionName() {
@@ -75,7 +75,7 @@ static def isShrinkResources() {
 
 // 后缀
 def generateSuffix() {
-    return getVersionInfo("STABLE_SUFFIX", "ALPHA_SUFFIX", KeyType.String)
+    return getVersionInfo("RELEASE_SUFFIX", "DEBUG_SUFFIX", KeyType.String)
 }
 
 android {
