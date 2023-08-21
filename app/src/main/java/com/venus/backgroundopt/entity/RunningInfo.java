@@ -187,9 +187,8 @@ public class RunningInfo implements ILogger {
      *                                                                         *
      **************************************************************************/
     /**
-     * 只有非重要系统进程才能放置于此
+     * 只有非重要系统进程通过key取值才是非null
      * uid, AppInfo
-     * 对此map的访问应加锁
      */
     private final Map<Integer, AppInfo> runningApps = new ConcurrentHashMap<>();
     private final Collection<AppInfo> runningAppsInfo = runningApps.values();
