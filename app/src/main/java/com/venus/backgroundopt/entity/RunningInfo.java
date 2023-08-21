@@ -23,7 +23,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -277,12 +276,37 @@ public class RunningInfo implements ILogger {
      * 若 {@link #runningApps} 中没有此uid记录, 将进行计算创建
      *
      * @param uid      目标app的uid
-     * @param function 生成目标app {@link AppInfo} 的方法
      * @return 生成的目标app信息(可能为空)
      */
     @Nullable
-    public AppInfo computeRunningAppIfAbsent(int uid, Function<Integer, AppInfo> function) {
-        return runningApps.computeIfAbsent(uid, function);
+    public AppInfo computeRunningAppIfAbsent(int uid) {
+        return runningApps.computeIfAbsent(uid, key -> {
+            AppInfo[] apps = new AppInfo[]{null};
+            Collection<NormalAppResult> normalAppResults = getNormalAppResults();
+            /*
+                从normalAppResults中查询而不是添加。这个Function只负责当app进入后台并被清理后台之后[自启动]时进行appInfo信息补全。
+                对于[开机自启动]的app, 模块暂时不做处理, 一切交由系统。
+             */
+            normalAppResults.forEach(normalAppResult -> {
+                ApplicationInfo applicationInfo = normalAppResult.getApplicationInfo();
+                if (applicationInfo == null || applicationInfo.uid != uid) {
+                    return;
+                }
+                String packageName = normalAppResult.getApplicationInfo().getPackageName();
+                ProcessRecord mProcessRecord = activityManagerService.findMProcessRecord(packageName, uid);
+                if (mProcessRecord == null) {
+                    return;
+                }
+                int userId = mProcessRecord.getUserId();
+
+                apps[0] = new AppInfo(userId, packageName, this).setUid(uid);
+                setAddedRunningApp(mProcessRecord, apps[0]);
+                apps[0].setAppSwitchEvent(ActivityManagerServiceHook.ACTIVITY_PAUSED);
+                putIntoIdleAppGroup(apps[0]);
+            });
+
+            return apps[0];
+        });
     }
 
     /**

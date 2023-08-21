@@ -1,6 +1,5 @@
 package com.venus.backgroundopt.hook.handle.android;
 
-import static com.venus.backgroundopt.entity.RunningInfo.NormalAppResult;
 import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 
 import com.venus.backgroundopt.BuildConfig;
@@ -13,12 +12,8 @@ import com.venus.backgroundopt.hook.base.action.BeforeHookAction;
 import com.venus.backgroundopt.hook.base.action.HookAction;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
-import com.venus.backgroundopt.hook.handle.android.entity.ApplicationInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
-
-import java.util.Collection;
-import java.util.function.Function;
 
 import de.robv.android.xposed.XC_MethodHook;
 
@@ -49,39 +44,10 @@ public class ProcessListHook extends MethodHook {
         };
     }
 
-    private final Function<Integer, AppInfo> appInfoFunction = uid -> {
-        RunningInfo runningInfo = getRunningInfo();
-        AppInfo[] apps = new AppInfo[]{null};
-        Collection<NormalAppResult> normalAppResults = runningInfo.getNormalAppResults();
-        /*
-            从normalAppResults中查询而不是添加。这个Function只负责当app进入后台并被清理后台之后[自启动]时进行appInfo信息补全。
-            对于[开机自启动]的app, 模块暂时不做处理, 一切交由系统。
-         */
-        normalAppResults.forEach(normalAppResult -> {
-            ApplicationInfo applicationInfo = normalAppResult.getApplicationInfo();
-            if (applicationInfo == null || applicationInfo.uid != uid) {
-                return;
-            }
-            String packageName = normalAppResult.getApplicationInfo().getPackageName();
-            ProcessRecord mProcessRecord = runningInfo.getActivityManagerService().findMProcessRecord(packageName, uid);
-            if (mProcessRecord == null) {
-                return;
-            }
-            int userId = mProcessRecord.getUserId();
-
-            apps[0] = new AppInfo(userId, packageName, runningInfo).setUid(uid);
-            runningInfo.setAddedRunningApp(mProcessRecord, apps[0]);
-            apps[0].setAppSwitchEvent(ActivityManagerServiceHook.ACTIVITY_PAUSED);
-            runningInfo.putIntoIdleAppGroup(apps[0]);
-        });
-
-        return apps[0];
-    };
-
     private Object handleSetOomAdj(XC_MethodHook.MethodHookParam param) {
         int uid = (int) param.args[1];
         RunningInfo runningInfo = getRunningInfo();
-        AppInfo appInfo = runningInfo.computeRunningAppIfAbsent(uid, appInfoFunction);
+        AppInfo appInfo = runningInfo.computeRunningAppIfAbsent(uid);
 
         if (appInfo == null) {
             return null;
