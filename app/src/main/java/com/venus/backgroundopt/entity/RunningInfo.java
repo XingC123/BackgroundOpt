@@ -207,11 +207,7 @@ public class RunningInfo implements ILogger {
     }
 
     public AppInfo getAppInfoFromRunningApps(AppInfo appInfo) {
-        return getAppInfoFromRunningApps(appInfo.getUid());
-    }
-
-    public AppInfo getAppInfoFromRunningApps(int repairedUid) {
-        return getRunningAppInfo(repairedUid);
+        return getRunningAppInfo(appInfo.getUid());
     }
 
     /**
