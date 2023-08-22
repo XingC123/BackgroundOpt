@@ -122,7 +122,7 @@ public class ActivityManagerService implements ILogger {
             normalAppResult.setNormalApp(true);
             normalAppResult.setApplicationInfo(applicationInfo);
 
-            NormalAppResult.normalAppUidMap.put(applicationInfo.uid, normalAppResult);
+            NormalAppResult.normalAppUidMap.put(uid, normalAppResult);
 
             return normalAppResult;
         }

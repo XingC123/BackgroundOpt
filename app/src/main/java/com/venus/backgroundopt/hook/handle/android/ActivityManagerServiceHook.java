@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.hook.handle.android;
 
+import static com.venus.backgroundopt.entity.RunningInfo.NormalAppResult;
+
 import android.app.usage.UsageEvents;
 import android.content.ComponentName;
 
@@ -136,7 +138,7 @@ public class ActivityManagerServiceHook extends MethodHook {
 
         RunningInfo runningInfo = getRunningInfo();
         // 检查是否是系统重要进程
-        RunningInfo.NormalAppResult normalAppResult = runningInfo.isNormalApp(userId, packageName);
+        NormalAppResult normalAppResult = runningInfo.isNormalApp(userId, packageName);
         if (!normalAppResult.isNormalApp()) {
             return null;
         }

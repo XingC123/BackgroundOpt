@@ -59,13 +59,16 @@ public class ProcessHook extends MethodHook {
         RunningInfo runningInfo = getRunningInfo();
         AppInfo appInfo = runningInfo.getRunningAppInfo(uid);
         if (appInfo != null) {
-            // 有问题。有时候会只杀主进程，但子进程仍然存在，且oom_adj=-1000
             /*
-                分析: 主进程被杀导致runningInfo.removeRunningApp(appInfo);
-                使得UpdateOomAdjHook: if (appInfo == null) 从而设置为-1000
-                问题: 为什么主进程被杀而子进程无事。目标应该是内存不足时杀子进程以保留更多主进程
-                后续(23.3.6): 设置进程最大adj之后解决
-                问题(23.8.19): 类原生从最近任务杀掉qq, 其实实际上并不能停止qq, 但此方法依然会执行, 导致qq的AppInfo被移除, 从而使得OOM管理失效
+                有问题。有时候会只杀主进程，但子进程仍然存在，且oom_adj=-1000
+                该问题在官核(Redmi K30P MIUI13 22.7.8)没有发生, 在tv内核存在
+                尝试复现:
+                    ① 打开哔哩哔哩, 使用"kill -9 主进程pid"使得"主进程被杀死, 子进程存在"
+                        现象: 子进程oom正常(不为-1000)
+                    ② 重新打开哔哩哔哩。观察进程oom
+                        现象: 主进程oom=700
+                        分析: 使用诸如"kill"命令或内核层面致使app主进程被杀死, 并不会被hook到, 因此模块内依然存放有
+                                相应AppInfo, 导致再次打开app时误以为是子进程, 从而产生错误的设置
              */
             int mPid = Integer.MIN_VALUE;
             boolean flag = false;
@@ -98,9 +101,6 @@ public class ProcessHook extends MethodHook {
                 }
             }
         }
-//                String pkgName = (String) param.args[0];
-//                getRunningInfo().removeRunningApp(pkgName);
-//                getLogger().info("kill " + pkgName);
 
         return null;
     }
