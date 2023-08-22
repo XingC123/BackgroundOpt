@@ -142,7 +142,7 @@ class AppMemoryTrimManagerKt : ILogger {
                             backgroundTrimManagerName,
                             processRecord
                         )
-                    }添加Task失败"
+                    }添加Task失败或Task已存在"
                 )
             }
         }
