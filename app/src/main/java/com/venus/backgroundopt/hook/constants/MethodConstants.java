@@ -68,6 +68,7 @@ public interface MethodConstants {
     String updateUseCompaction = "updateUseCompaction";
     String deletePackageX = "deletePackageX";
     String deletePackageLIF = "deletePackageLIF";
+    String cleanUpApplicationRecordLocked = "cleanUpApplicationRecordLocked";
 
     /**
      * miui
