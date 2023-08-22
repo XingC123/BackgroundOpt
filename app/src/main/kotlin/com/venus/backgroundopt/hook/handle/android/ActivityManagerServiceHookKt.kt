@@ -83,11 +83,25 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
 
         appInfo ?: return
 
-        if (appInfo.getmPid() == pid) {
+        var mPid = Int.MIN_VALUE
+        var flag = false
+
+        try {
+            mPid = appInfo.getmPid()
+        } catch (e: Exception) {
+            // app已清理过一次后台
+            flag = true
+        }
+
+        if (mPid == pid || flag) {
             runningInfo.removeRunningApp(appInfo)
 
             if (BuildConfig.DEBUG) {
                 logger.debug("kill: ${appInfo.packageName}, uid: $uid >>> 杀死App")
+            }
+        } else if (mPid == Int.MIN_VALUE) {
+            if (BuildConfig.DEBUG) {
+                logger.warn("kill: ${appInfo.packageName}, uid: $uid >>> 再次杀死App")
             }
         } else {
             // 移除进程记录
