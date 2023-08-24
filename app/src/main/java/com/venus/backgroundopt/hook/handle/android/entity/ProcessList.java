@@ -238,7 +238,7 @@ public class ProcessList implements ILogger {
 
     public ProcessRecord getMProcessRecordLocked(String packageName) {
         synchronized (activityManagerService.getmProcLock()) {
-            return getMProcessRecordLocked(packageName);
+            return getMProcessRecord(packageName);
         }
     }
 
