@@ -89,6 +89,7 @@
 >![主进程oom_score_adj=100](https://github.com/XingC123/BackgroundOpt/assets/59412916/ee2904bc-228f-4178-9f73-64b6f6b55efe)
 >
 >    子进程此处是大于等于700的
+> 
 >![子进程oom_score_adj](https://github.com/XingC123/BackgroundOpt/assets/59412916/6e33d5eb-f755-447f-b68b-bf8b2048640d)
 >
 > 6. Q: 我用了以后特别卡怎么解决呢？
