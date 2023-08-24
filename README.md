@@ -55,8 +55,8 @@
 
 ## 致谢
 
-- [Don-t-Kil by UISSD](https://github.com/UISSD/Don-t-Kill)
-- [NoActive-UI by myflavor](https://github.com/myflavor/NoActive-UI)
+- [Don-t-Kill](https://github.com/UISSD/Don-t-Kill)
+- [NoActive-UI](https://github.com/myflavor/NoActive-UI)
 
 
 
