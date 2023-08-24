@@ -273,7 +273,7 @@ public class ActivityManagerService implements ILogger {
 //            if (process != null) {
 //                mProcessRecord = new ProcessRecord(process);
 //            } else {
-            mProcessRecord = processList.getMProcessRecordLockedWhenThrowException(packageName);
+            mProcessRecord = processList.getMProcessRecordLocked(packageName);
 //            }
         }
 
