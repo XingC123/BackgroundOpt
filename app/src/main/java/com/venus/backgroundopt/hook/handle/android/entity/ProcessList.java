@@ -225,11 +225,21 @@ public class ProcessList implements ILogger {
     }
 
     private ProcessRecord getMProcessRecord(String packageName) {
-        Optional<ProcessRecord> processRecord = processRecordList.parallelStream()
-                .filter(proc -> ProcessRecord.isProcessNameSame(packageName, proc))
-                .findAny()
-                .map(ProcessRecord::new);
-        return processRecord.orElse(null);
+        Object process;
+        for (int i = 0; i < processRecordList.size(); i++) {
+            process = processRecordList.get(i);
+            if (ProcessRecord.isProcessNameSame(packageName, process)) {
+                return new ProcessRecord(process);
+            }
+        }
+
+        return null;
+    }
+
+    public ProcessRecord getMProcessRecordLocked(String packageName) {
+        synchronized (activityManagerService.getmProcLock()) {
+            return getMProcessRecord(packageName);
+        }
     }
 
     public ProcessRecord getMProcessRecordLockedWhenThrowException(AppInfo appInfo) {
