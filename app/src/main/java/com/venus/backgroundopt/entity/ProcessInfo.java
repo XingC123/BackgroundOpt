@@ -25,6 +25,8 @@ public class ProcessInfo {
      */
     private int fixedOomAdjScore = Integer.MIN_VALUE;
 
+    private boolean mainProcess = false;    // app主进程
+
     private ProcessInfo(ProcessRecord processRecord) {
         this(processRecord.getUid(), processRecord.getPid(), Integer.MIN_VALUE);
     }
@@ -46,6 +48,11 @@ public class ProcessInfo {
 
     public static ProcessInfo newInstance(AppInfo appInfo, RunningInfo runningInfo, int uid, int pid, int oomAdjScore) {
         ProcessInfo processInfo = new ProcessInfo(uid, pid, oomAdjScore, Integer.MIN_VALUE);
+        try {
+            processInfo.mainProcess = (pid == appInfo.getmPid());
+        } catch (Exception ignore) {
+        }
+
         if (Objects.equals(AppGroupEnum.IDLE, appInfo.getAppGroupEnum())) { // 若该进程创建时, app处于IDLE, 则将此进程添加到待压缩列表
             return processInfo.addCompactProcessInfo(runningInfo);
         }
@@ -101,5 +108,9 @@ public class ProcessInfo {
 
     public void setUid(int uid) {
         this.uid = uid;
+    }
+
+    public boolean isMainProcess() {
+        return mainProcess;
     }
 }

@@ -5,7 +5,6 @@ import android.content.pm.ApplicationInfo;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
-import com.venus.backgroundopt.utils.PackageUtils;
 
 import java.util.Objects;
 
@@ -46,6 +45,17 @@ public class ProcessRecord {
     // 该进程对应的pid
     private final int pid;
     // 进程名称
+    /*
+        com.ktcp.video
+        com.ktcp.video:push
+        com.ktcp.video:upgrade
+        第一个很明显，是主应用的进程，下边带冒号":"的一般都是通过在manifest中声明android:process来指定的一个独立进程。
+        这里每一个进程在系统framework中都有一个对应的ProcessRecord数据结构来维护各个进程的状态信息等。
+
+        另外需要注意的是: ProcessRecord.processName获取的是每个独立进程的完整名字，也就是带冒号":"的名字;
+        而通过ProcessRecord.info.processName获取的是主应用进程的进程名，也就是不带有冒号":"的名字
+        来源: https://blog.csdn.net/weixin_35831256/article/details/117644536
+     */
     private final String processName;
     // 进程所属程序的用户id
     private final int userId;
@@ -83,7 +93,7 @@ public class ProcessRecord {
         ApplicationInfo applicationInfo = (ApplicationInfo) XposedHelpers.getObjectField(processRecord, FieldConstants.info);
         this.packageName = applicationInfo.packageName;
 
-        this.processName = getAbsoluteProcessName(packageName, processRecord);
+        this.processName = getProcessName(processRecord);
 //        this.processStateRecord = XposedHelpers.getObjectField(processRecord, FieldConstants.mState);
         this.processStateRecord = new ProcessStateRecord(XposedHelpers.getObjectField(processRecord, FieldConstants.mState));
     }
@@ -110,46 +120,11 @@ public class ProcessRecord {
     /**
      * 获取进程名
      *
-     * @param processRecord 安卓源码中进程记录器
-     * @return 进程名
-     */
-    public static String getAbsoluteProcessName(Object processRecord) {
-        return PackageUtils.absoluteProcessName(
-                getPkgName(processRecord),
-                (String) XposedHelpers.getObjectField(processRecord, FieldConstants.processName)
-        );
-    }
-
-    public static String getAbsoluteProcessName(String packageName, Object processRecord) {
-        return PackageUtils.absoluteProcessName(packageName, getProcessName(processRecord));
-    }
-
-    public String getAbsoluteProcessName() {
-        return PackageUtils.absoluteProcessName(packageName, processName);
-    }
-
-    /**
-     * 获取进程名
-     *
      * @param processRecord 安卓的ProcessRecord 对象
      * @return 进程名
      */
     public static String getProcessName(Object processRecord) {
         return (String) XposedHelpers.getObjectField(processRecord, FieldConstants.processName);
-    }
-
-    /**
-     * 判断进程名是否相同
-     *
-     * @param expectProcName 期望进程名
-     * @param processRecord  要比较的、安卓的ProcessRecord
-     * @return 相同 -> true
-     */
-    public static boolean isProcessAbsoluteNameSame(String expectProcName, Object processRecord) {
-//        String packageName = getPkgName(processRecord);
-//        return packageName.contains(expectProcName) &&
-//                expectProcName.equals(getAbsoluteProcessName(packageName, processRecord));
-        return expectProcName.equals(getAbsoluteProcessName(processRecord));
     }
 
     public static boolean isProcessNameSame(String expectProcName, Object processRecord) {

@@ -262,19 +262,35 @@ public class ActivityManagerService implements ILogger {
     }
 
     public ProcessRecord findMProcessRecord(String packageName, int uid) {
-        ProcessRecord mProcessRecord = getProcessRecordLocked(packageName, uid);
+        return findMProcessRecord(1, packageName, uid);
+    }
 
-        if (mProcessRecord == null) {   // 目前已知, 双开的app必走这里
-//            Object uidRecord = XposedHelpers.newInstance(
-//                    UidRecord.getUidRecordClass(classLoader),
-//                    uid,
-//                    activityManagerService.getActivityManagerService());
-//            Object process = XposedHelpers.callMethod(uidRecord, MethodConstants.getProcessInPackage, packageName);
-//            if (process != null) {
-//                mProcessRecord = new ProcessRecord(process);
-//            } else {
-            mProcessRecord = processList.getMProcessRecordLockedWhenThrowException(packageName);
-//            }
+    /**
+     * 查找主进程
+     *
+     * @param depth       查找深度
+     * @param packageName 包名
+     * @param uid         进程所属uid
+     * @return 进程记录
+     */
+    private ProcessRecord findMProcessRecord(int depth, String packageName, int uid) {
+        // 根据进程名查找, 速度最快
+        ProcessRecord mProcessRecord = getProcessRecordLocked(packageName, uid);
+        if (mProcessRecord == null) {
+            if (depth <= 2) {
+                mProcessRecord = findMProcessRecord(++depth, packageName, uid);
+            } else {    // 保底措施, 遍历进程列表查找进程。效率不够高
+//                Object uidRecord = XposedHelpers.newInstance(
+//                        UidRecord.getUidRecordClass(classLoader),
+//                        uid,
+//                        activityManagerService.getActivityManagerService());
+//                Object process = XposedHelpers.callMethod(uidRecord, MethodConstants.getProcessInPackage, packageName);
+//                if (process != null) {
+//                    mProcessRecord = new ProcessRecord(process);
+//                } else {
+                mProcessRecord = processList.getMProcessRecordLocked(packageName);
+//                }
+            }
         }
 
         return mProcessRecord;

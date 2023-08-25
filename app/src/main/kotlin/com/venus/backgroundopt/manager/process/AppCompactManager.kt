@@ -49,6 +49,10 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         compactScheduledFuture = executor.scheduleWithFixedDelay({
             var compactCount = 0
             compactProcessInfos.forEach {
+                if (it.isMainProcess) { // 主进程由于暂时的策略, oom_score_adj不会大于100, 永远不会满足条件
+                    cancelCompactProcessInfo(it)
+                    return@forEach
+                }
                 /*
                     result: 0 -> 异常
                             1 -> 成功
