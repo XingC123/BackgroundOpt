@@ -5,6 +5,7 @@ import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 进程信息
@@ -17,7 +18,7 @@ import java.util.Objects;
 public class ProcessInfo {
     private int uid = Integer.MIN_VALUE;
     private int pid = Integer.MIN_VALUE;
-    private int oomAdjScore = Integer.MIN_VALUE;
+    private final AtomicInteger oomAdjScore = new AtomicInteger(Integer.MIN_VALUE);
 
     /**
      * 修正过的oomAdjScore。
@@ -38,7 +39,7 @@ public class ProcessInfo {
     private ProcessInfo(int uid, int pid, int oomAdjScore, int fixedOomAdjScore) {
         this.uid = uid;
         this.pid = pid;
-        this.oomAdjScore = oomAdjScore;
+        this.oomAdjScore.set(oomAdjScore);
         this.fixedOomAdjScore = fixedOomAdjScore;
     }
 
@@ -87,11 +88,11 @@ public class ProcessInfo {
     }
 
     public int getOomAdjScore() {
-        return oomAdjScore;
+        return oomAdjScore.get();
     }
 
     public void setOomAdjScore(int oomAdjScore) {
-        this.oomAdjScore = oomAdjScore;
+        this.oomAdjScore.set(oomAdjScore);
     }
 
     public int getFixedOomAdjScore() {

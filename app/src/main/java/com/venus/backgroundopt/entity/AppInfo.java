@@ -75,7 +75,7 @@ public class AppInfo implements ILogger {
      **************************************************************************/
 
     // 当前app在本模块内的内存分组
-    private AppGroupEnum appGroupEnum = AppGroupEnum.NONE;
+    private volatile AppGroupEnum appGroupEnum = AppGroupEnum.NONE;
     private final Object appGroupSetLock = new Object();
 
     public void setAppGroupEnum(AppGroupEnum appGroupEnum) {
