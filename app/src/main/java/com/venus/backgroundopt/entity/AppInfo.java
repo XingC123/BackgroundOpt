@@ -107,8 +107,8 @@ public class AppInfo implements ILogger {
     private Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
 
     public ProcessInfo addProcessInfo(int pid, int oomAdjScore) {
-        ProcessInfo processInfo = ProcessInfo.newInstance(this, runningInfo, uid, pid, oomAdjScore);
-        processInfoMap.put(pid, processInfo);
+        ProcessInfo processInfo = processInfoMap.computeIfAbsent(pid,
+                key -> ProcessInfo.newInstance(this, runningInfo, uid, pid, oomAdjScore));
 
         return processInfo;
     }
