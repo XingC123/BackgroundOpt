@@ -44,6 +44,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
      * 压缩任务处理                                                               *
      *                                                                         *
      **************************************************************************/
+    @Volatile
     private var compactScheduledFuture: ScheduledFuture<*>? = null
     private fun startCompactTask() {
         compactScheduledFuture = executor.scheduleWithFixedDelay({

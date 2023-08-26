@@ -75,16 +75,13 @@ public class AppInfo implements ILogger {
      **************************************************************************/
 
     // 当前app在本模块内的内存分组
-    private AppGroupEnum appGroupEnum = AppGroupEnum.NONE;
+    private volatile AppGroupEnum appGroupEnum = AppGroupEnum.NONE;
     private final Object appGroupSetLock = new Object();
 
     public void setAppGroupEnum(AppGroupEnum appGroupEnum) {
         synchronized (appGroupSetLock) {
             this.appGroupEnum = appGroupEnum;
-            /*
-            添加切后台时所创建的所有进程, 意味着当app进入后台后, 又有子进程被创建的情况将被忽视
-            (即新创建的进程永远不会加入模块的内存压缩名单, 而是交由系统/内核处理)
-         */
+            // 添加 切后台时所创建的所有进程(当app进入后台后, 新创建的子进程会自动被添加到待压缩列表中)
             if (!Objects.equals(runningInfo.getActiveLaunchPackageName(), packageName)) {   // 不是桌面进程
                 switch (appGroupEnum) {
                     case IDLE ->
@@ -107,8 +104,8 @@ public class AppInfo implements ILogger {
     private Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
 
     public ProcessInfo addProcessInfo(int pid, int oomAdjScore) {
-        ProcessInfo processInfo = ProcessInfo.newInstance(this, runningInfo, uid, pid, oomAdjScore);
-        processInfoMap.put(pid, processInfo);
+        ProcessInfo processInfo = processInfoMap.computeIfAbsent(pid,
+                key -> ProcessInfo.newInstance(this, runningInfo, uid, pid, oomAdjScore));
 
         return processInfo;
     }
