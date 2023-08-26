@@ -108,18 +108,18 @@ public class ProcessListHook extends MethodHook {
             return null;
         } else { // 子进程的处理
             int expectedOomAdjScore = ProcessRecord.SUB_PROC_ADJ;
+            processInfo = appInfo.getProcessInfo(pid);
             // 子进程信息尚未记录
-            if (!appInfo.isRecordedProcessInfo(pid)) {
-                int finalOomAdjScore = expectedOomAdjScore;
+            if (processInfo == null) {
                 if (oomAdjScore > expectedOomAdjScore) {
-                    finalOomAdjScore = oomAdjScore;
+                    expectedOomAdjScore = oomAdjScore;
                 } else {
                     param.args[2] = expectedOomAdjScore;
                 }
 
                 processInfo = appInfo.addProcessInfo(pid, oomAdjScore);
-                processInfo.setFixedOomAdjScore(finalOomAdjScore);
-                processInfo.setOomAdjScore(finalOomAdjScore);
+                processInfo.setFixedOomAdjScore(expectedOomAdjScore);
+                processInfo.setOomAdjScore(expectedOomAdjScore);
 
 //                if (Objects.equals(AppGroupEnum.IDLE, appInfo.getAppGroupEnum())) {
 //                    runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, appInfo);
@@ -127,18 +127,9 @@ public class ProcessListHook extends MethodHook {
 
                 if (BuildConfig.DEBUG) {
                     getLogger().debug("设置子进程: [" + appInfo.getPackageName() + ", uid: " + uid
-                            + "] ->>> pid: " + pid + ", adj: " + finalOomAdjScore);
+                            + "] ->>> pid: " + pid + ", adj: " + expectedOomAdjScore);
                 }
             } else {
-                processInfo = appInfo.getProcessInfo(pid);
-
-                if (processInfo == null) {
-                    if (BuildConfig.DEBUG) {
-                        getLogger().warn("子进程 [" + appInfo.getPackageName() + ", uid: " + uid + ", pid: " + pid + " ]为空, 无法调整oom");
-                    }
-                    return null;
-                }
-
                 int fixedOomAdjScore = processInfo.getFixedOomAdjScore();
                 // 新的oomAdj小于修正过的adj 或 修正过的adj为不可能取值
                 if (oomAdjScore < fixedOomAdjScore || fixedOomAdjScore == ProcessList.IMPOSSIBLE_ADJ) {
