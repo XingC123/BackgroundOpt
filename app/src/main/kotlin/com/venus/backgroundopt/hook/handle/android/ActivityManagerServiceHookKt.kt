@@ -5,6 +5,7 @@ import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.afterHookAction
+import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
@@ -45,6 +46,17 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
                 Boolean::class.java,    /* replacingPid */
                 Boolean::class.java /* fromBinderDied */
             ),
+            HookPoint(
+                ClassConstants.ActivityManagerService,
+                MethodConstants.killProcessesBelowAdj,
+                arrayOf(
+                    beforeHookAction {
+                        handleKillProcessesBelowAdj(it)
+                    }
+                ),
+                Int::class.java,
+                String::class.java
+            )
         )
     }
 
@@ -112,5 +124,10 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
                 logger.debug("kill: ${appInfo.packageName}, uid: ${uid}, pid: $pid >>> 子进程被杀")
             }
         }
+    }
+
+    private fun handleKillProcessesBelowAdj(param: MethodHookParam) {
+        // 拔高adj分数
+        param.args[0] = ProcessRecord.SUB_PROC_ADJ
     }
 }
