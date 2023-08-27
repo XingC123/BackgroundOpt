@@ -40,8 +40,8 @@ public interface ClassConstants {
     String PackageRemovedInfo = "com.android.server.pm.PackageRemovedInfo";
     String PackageRemovedInfo_A12 = "com.android.server.pm.PackageManagerService.PackageRemovedInfo";
     String ParsedPackage = "com.android.server.pm.parsing.pkg.ParsedPackage";
-    String ProcessMemoryCleanerHook = "com.android.server.am.ProcessMemoryCleaner";
-    String PressureStateSettings = "android.os.spc.PressureStateSettings";
+    String RoleControllerManager = "android.app.role.RoleControllerManager";
+    String RemoteCallback = "android.os.RemoteCallback";
 
     /**
      * miui

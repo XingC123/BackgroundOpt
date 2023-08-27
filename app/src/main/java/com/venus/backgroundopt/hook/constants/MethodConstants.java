@@ -70,6 +70,7 @@ public interface MethodConstants {
     String deletePackageX = "deletePackageX";
     String deletePackageLIF = "deletePackageLIF";
     String cleanUpApplicationRecordLocked = "cleanUpApplicationRecordLocked";
+    String onAddRoleHolder = "onAddRoleHolder";
 
     /**
      * miui

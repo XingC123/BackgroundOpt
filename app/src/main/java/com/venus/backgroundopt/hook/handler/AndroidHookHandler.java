@@ -13,6 +13,7 @@ import com.venus.backgroundopt.hook.handle.android.PackageManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.PhantomProcessListHook;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHook;
 import com.venus.backgroundopt.hook.handle.android.RecentTasksHook;
+import com.venus.backgroundopt.hook.handle.android.RoleControllerManagerHook;
 import com.venus.backgroundopt.hook.handle.android.SystemPropertiesHook;
 
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
@@ -64,5 +65,7 @@ public class AndroidHookHandler extends PackageHook {
         }
 
         new SystemPropertiesHook(classLoader, runningInfo);
+
+        new RoleControllerManagerHook(classLoader, runningInfo);
     }
 }

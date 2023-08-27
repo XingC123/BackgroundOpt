@@ -23,8 +23,10 @@ public interface FieldConstants {
     String mOptRecord = "mOptRecord";
     String mCompactionHandler = "mCompactionHandler";
     String mUseCompaction = "mUseCompaction";
+    String applicationInfo = "applicationInfo";
+    String packageName = "packageName";
     /**
-     *  {@link ClassConstants#ActivityManagerConstants}
+     * {@link ClassConstants#ActivityManagerConstants}
      */
     String CUR_MAX_CACHED_PROCESSES = "CUR_MAX_CACHED_PROCESSES";
     String mOverrideMaxCachedProcesses = "mOverrideMaxCachedProcesses";

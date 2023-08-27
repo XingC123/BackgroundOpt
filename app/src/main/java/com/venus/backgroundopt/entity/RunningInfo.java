@@ -559,7 +559,7 @@ public class RunningInfo implements ILogger {
      * 默认桌面                                                                  *
      *                                                                         *
      **************************************************************************/
-    private String activeLaunchPackageName = null;
+    private volatile String activeLaunchPackageName = null;
 
     public String getActiveLaunchPackageName() {
         return activeLaunchPackageName;
