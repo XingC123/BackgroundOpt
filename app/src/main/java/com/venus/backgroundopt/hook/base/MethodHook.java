@@ -25,9 +25,7 @@ public abstract class MethodHook extends AbstractHook {
 
         for (HookPoint hookPoint : getHookPoint()) {
             if (hookPoint instanceof IneffectiveHookPoint) {
-                if (BuildConfig.DEBUG) {
-                    getLogger().debug("因不满足条件, [" + hookPoint.getClassName() + "." + hookPoint.getMethodName() + "]不进行hook");
-                }
+                getLogger().debug("因不满足条件, [" + hookPoint.getClassName() + "." + hookPoint.getMethodName() + "]不进行hook");
             } else {
                 hookPoint.hook(classLoader, HookPoint.MethodType.Member);
             }
@@ -35,6 +33,7 @@ public abstract class MethodHook extends AbstractHook {
     }
 
     private static final HookPoint[] defaultHookPoint = new HookPoint[0];
+
     public HookPoint[] getConstructorHookPoint() {
         return defaultHookPoint;
     }

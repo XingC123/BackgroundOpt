@@ -33,6 +33,7 @@ public interface MethodConstants {
     String set = "set";
 
     String get = "get";
+    String getBoolean = "getBoolean";
     String setOverrideMaxCachedProcesses = "setOverrideMaxCachedProcesses";
     String getProperty = "getProperty";
     String sendSignal = "sendSignal";
@@ -69,6 +70,7 @@ public interface MethodConstants {
     String deletePackageX = "deletePackageX";
     String deletePackageLIF = "deletePackageLIF";
     String cleanUpApplicationRecordLocked = "cleanUpApplicationRecordLocked";
+    String onAddRoleHolder = "onAddRoleHolder";
 
     /**
      * miui
