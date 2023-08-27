@@ -133,7 +133,11 @@ public class RunningInfo implements ILogger {
      * @param key 见{@link #getNormalAppKey}
      */
     public void removeRecordedNormalApp(String key) {
-        normalApps.remove(key);
+        NormalAppResult remove = normalApps.remove(key);
+        if (remove != null) {
+            NormalAppResult.normalAppUidMap.remove(remove.applicationInfo.uid);
+        }
+
         if (BuildConfig.DEBUG) {
             getLogger().debug("移除\"普通app记录\": " + key);
         }
