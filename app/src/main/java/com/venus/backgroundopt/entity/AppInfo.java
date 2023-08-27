@@ -236,9 +236,7 @@ public class AppInfo implements ILogger {
                     }
                 }
             } catch (IllegalAccessException | IllegalArgumentException e) {
-                if (BuildConfig.DEBUG) {
-                    getLogger().error("AppInfo的map清理失败", e);
-                }
+                getLogger().error("AppInfo清理失败", e);
             }
         } catch (Exception ignore) {
         }
