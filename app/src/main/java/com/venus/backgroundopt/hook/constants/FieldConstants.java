@@ -47,4 +47,6 @@ public interface FieldConstants {
     String mThread = "mThread";
     String mPidsSelfLocked = "mPidsSelfLocked";
     String mProcLock = "mProcLock";
+
+    String PROCESS_CLEANER_ENABLED = "PROCESS_CLEANER_ENABLED";
 }

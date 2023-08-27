@@ -13,6 +13,7 @@ import com.venus.backgroundopt.hook.handle.android.PackageManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.PhantomProcessListHook;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHook;
 import com.venus.backgroundopt.hook.handle.android.RecentTasksHook;
+import com.venus.backgroundopt.hook.handle.android.SystemPropertiesHook;
 
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
@@ -30,35 +31,38 @@ public class AndroidHookHandler extends PackageHook {
     @Override
     public void hook(XC_LoadPackage.LoadPackageParam packageParam) {
         RunningInfo runningInfo = new RunningInfo();
+        ClassLoader classLoader = packageParam.classLoader;
 
         // hook获取
-        new DeviceConfigHook(packageParam.classLoader, runningInfo);
+        new DeviceConfigHook(classLoader, runningInfo);
 
         // 抓取AMS, 前后台切换
-        new ActivityManagerServiceHook(packageParam.classLoader, runningInfo);
-        new ActivityManagerServiceHookKt(packageParam.classLoader, runningInfo);
+        new ActivityManagerServiceHook(classLoader, runningInfo);
+        new ActivityManagerServiceHookKt(classLoader, runningInfo);
 
         // 默认桌面
-        new PackageManagerServiceHookKt(packageParam.classLoader, runningInfo);
+        new PackageManagerServiceHookKt(classLoader, runningInfo);
 
         // 杀后台hook
-//        new ProcessHook(packageParam.classLoader, runningInfo);
+//        new ProcessHook(classLoader, runningInfo);
 
         // oom_adj更新hook
-        new ProcessListHook(packageParam.classLoader, runningInfo);
+        new ProcessListHook(classLoader, runningInfo);
 
         // 安卓虚进程处理hook
-        new PhantomProcessListHook(packageParam.classLoader, runningInfo);
+        new PhantomProcessListHook(classLoader, runningInfo);
 
-        new ActivityManagerConstantsHook(packageParam.classLoader, runningInfo);
+        new ActivityManagerConstantsHook(classLoader, runningInfo);
 
         // 最近任务可见性hook
-        new RecentTasksHook(packageParam.classLoader, runningInfo);
+        new RecentTasksHook(classLoader, runningInfo);
 
         // 软件卸载
         // 安卓12在PackageManagerServiceHook完成
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {    // 安卓13
-            new DeletePackageHelperHook(packageParam.classLoader, runningInfo);
+            new DeletePackageHelperHook(classLoader, runningInfo);
         }
+
+        new SystemPropertiesHook(classLoader, runningInfo);
     }
 }

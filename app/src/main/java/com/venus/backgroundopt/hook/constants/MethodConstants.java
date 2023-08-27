@@ -33,6 +33,7 @@ public interface MethodConstants {
     String set = "set";
 
     String get = "get";
+    String getBoolean = "getBoolean";
     String setOverrideMaxCachedProcesses = "setOverrideMaxCachedProcesses";
     String getProperty = "getProperty";
     String sendSignal = "sendSignal";
