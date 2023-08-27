@@ -1,7 +1,7 @@
 package com.venus.backgroundopt.factory;
 
 import com.venus.backgroundopt.utils.log.Logger;
-import com.venus.backgroundopt.utils.log.LoggerFactory;
+import com.venus.backgroundopt.utils.log.LoggerFactoryBaseXposedLog;
 
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
@@ -20,7 +20,7 @@ public class SingletonLoggerFactory {
         WeakReference<Logger> weakReference = loggerMap.get(clazz);
         Logger logger = weakReference == null ? null : weakReference.get();
         if (logger == null) {
-            logger = LoggerFactory.getLogger(clazz);
+            logger = LoggerFactoryBaseXposedLog.getLogger(clazz);
             loggerMap.put(clazz, new WeakReference<>(logger));
         }
 
