@@ -71,6 +71,7 @@ public interface MethodConstants {
     String deletePackageLIF = "deletePackageLIF";
     String cleanUpApplicationRecordLocked = "cleanUpApplicationRecordLocked";
     String onAddRoleHolder = "onAddRoleHolder";
+    String killProcessesBelowAdj = "killProcessesBelowAdj";
 
     /**
      * miui
