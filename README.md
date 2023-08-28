@@ -24,7 +24,7 @@
 
 ## 特性
 
-> 1. **oom管理**：app进入后台以后，设置其主进程oom_score=0，子进程oom_score>=700
+> 1. **oom管理**：app进入后台以后，设置其主进程oom_score=0(最大为100)，子进程oom_score>=100(即子进程min_score=主进程max_score)
 >
 > 2. **内存紧张:** app进入前/后台后，被加入内存紧张列表。该列表以10min为间隔进行轮循，每次运行，会向列表中的app发送特定内存紧张级别。
 >
@@ -83,11 +83,11 @@
 >
 >    A: 如果你有scene，那么进入如下页面。
 >
->    看右下角的"oom_score_adj"，如果主进程此处是"0或100"，则正常。
+>    - 看右下角的"oom_score_adj"，如果主进程此处是"0或100"，则正常。
 >![主进程oom_score_adj=0](https://github.com/XingC123/BackgroundOpt/assets/59412916/a7fe42fa-d510-4c8c-b07e-fb6d4865a068)
 >![主进程oom_score_adj=100](https://github.com/XingC123/BackgroundOpt/assets/59412916/ee2904bc-228f-4178-9f73-64b6f6b55efe)
 >
->    子进程此处是大于等于700的
+>    - 子进程是大于等于100的
 >![子进程oom_score_adj](https://github.com/XingC123/BackgroundOpt/assets/59412916/6e33d5eb-f755-447f-b68b-bf8b2048640d)
 >
 > 6. Q: 我用了以后特别卡怎么解决呢？
@@ -115,6 +115,6 @@
 
 > 1. [Release](https://github.com/XingC123/BackgroundOpt/releases)
 >
-> 2. [蓝奏]([后台优化 (lanzoub.com)](https://wwok.lanzoub.com/b0fb3n5cf))
+> 2. [蓝奏](https://wwok.lanzoub.com/b0fb3n5cf)
 >
 >    密码: 87qt
