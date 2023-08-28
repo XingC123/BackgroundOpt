@@ -2,7 +2,6 @@ package com.venus.backgroundopt.hook.base;
 
 import androidx.annotation.NonNull;
 
-import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.base.action.AfterHookAction;
 import com.venus.backgroundopt.hook.base.action.BeforeHookAction;
 import com.venus.backgroundopt.hook.base.action.HookAction;
