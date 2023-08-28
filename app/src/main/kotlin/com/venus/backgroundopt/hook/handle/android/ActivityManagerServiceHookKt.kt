@@ -54,8 +54,8 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
                         handleKillProcessesBelowAdj(it)
                     }
                 ),
-                Int::class.java,
-                String::class.java
+                Int::class.java,    /* belowAdj */
+                String::class.java  /* reason */
             )
         )
     }
