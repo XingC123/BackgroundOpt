@@ -5,7 +5,9 @@ import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 进程信息
@@ -19,6 +21,10 @@ public class ProcessInfo {
     private int uid = Integer.MIN_VALUE;
     private int pid = Integer.MIN_VALUE;
     private final AtomicInteger oomAdjScore = new AtomicInteger(Integer.MIN_VALUE);
+    // 上次压缩时间
+    private final AtomicLong lastCompactTime = new AtomicLong(0L);
+    // 压缩间隔
+    private static final long compactInterval = TimeUnit.MINUTES.toMillis(10);
 
     /**
      * 修正过的oomAdjScore。
@@ -64,6 +70,10 @@ public class ProcessInfo {
     private ProcessInfo addCompactProcessInfo(RunningInfo runningInfo) {
         runningInfo.getProcessManager().addCompactProcessInfo(this);
         return this;
+    }
+
+    public boolean isAllowedCompact(long time) {
+        return ((time - getLastCompactTime()) > compactInterval);
     }
 
     @Override
@@ -113,5 +123,13 @@ public class ProcessInfo {
 
     public boolean isMainProcess() {
         return mainProcess;
+    }
+
+    public long getLastCompactTime() {
+        return lastCompactTime.get();
+    }
+
+    public void setLastCompactTime(long time) {
+        lastCompactTime.set(time);
     }
 }

@@ -84,8 +84,14 @@ public class AppInfo implements ILogger {
             // 添加 切后台时所创建的所有进程(当app进入后台后, 新创建的子进程会自动被添加到待压缩列表中)
             if (!Objects.equals(runningInfo.getActiveLaunchPackageName(), packageName)) {   // 不是桌面进程
                 switch (appGroupEnum) {
-                    case IDLE ->
-                            runningInfo.getProcessManager().addCompactProcessInfo(getProcessInfos());
+                    case IDLE -> {
+                        // 更新主进程压缩时间
+                        if (mProcessInfo != null) {
+                            mProcessInfo.setLastCompactTime(System.currentTimeMillis());
+                        }
+
+                        runningInfo.getProcessManager().addCompactProcessInfo(getProcessInfos());
+                    }
                     case ACTIVE ->  /* 若为第一次打开app, 此时也会执行这里。此时无需考虑是否能移除, 因为还没开始添加(至少也要在app第一次进入后台才会开始添加) */
                             runningInfo.getProcessManager().cancelCompactProcessInfo(getProcessInfos());
                 }
@@ -186,8 +192,6 @@ public class AppInfo implements ILogger {
         setmProcessRecord(processRecord);
         // 保存进程信息
         setmProcessInfo(processRecord);
-        // 保存主进程
-        setmProcessRecord(processRecord);
     }
 
     @Override
