@@ -182,6 +182,8 @@ public class AppInfo implements ILogger {
      * 设置主进程信息
      */
     public void setMProcessInfoAndMProcessRecord(ProcessRecord processRecord) {
+        // 保存主进程
+        setmProcessRecord(processRecord);
         // 保存进程信息
         setmProcessInfo(processRecord);
         // 保存主进程
