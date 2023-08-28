@@ -1,6 +1,5 @@
 package com.venus.backgroundopt.hook.base;
 
-import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.RunningInfo;
 
 /**

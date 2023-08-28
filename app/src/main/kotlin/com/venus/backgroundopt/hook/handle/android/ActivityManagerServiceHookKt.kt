@@ -54,8 +54,8 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
                         handleKillProcessesBelowAdj(it)
                     }
                 ),
-                Int::class.java,
-                String::class.java
+                Int::class.java,    /* belowAdj */
+                String::class.java  /* reason */
             )
         )
     }
@@ -88,13 +88,12 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
 
     private fun handleCleanUpApplicationRecordLocked(param: MethodHookParam) {
         val processRecord = param.args[0] as Any
-        val pid = param.args[1] as Int
-
         val uid = ProcessRecord.getUID(processRecord)
         val appInfo = runningInfo.getRunningAppInfo(uid)
 
         appInfo ?: return
 
+        val pid = param.args[1] as Int
         var mPid = Int.MIN_VALUE
         var flag = false
 

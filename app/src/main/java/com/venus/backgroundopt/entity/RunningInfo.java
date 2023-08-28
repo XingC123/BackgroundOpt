@@ -146,7 +146,12 @@ public class RunningInfo implements ILogger {
     public void removeAllRecordedNormalApp(String packageName) {
         normalApps.keySet().stream()
                 .filter(key -> key.contains(packageName))
-                .forEach(normalApps::remove);
+                .forEach(key -> {
+                    NormalAppResult remove = normalApps.remove(key);
+                    if (remove != null) {
+                        NormalAppResult.normalAppUidMap.remove(remove.applicationInfo.uid);
+                    }
+                });
         if (BuildConfig.DEBUG) {
             getLogger().debug("移除\"普通app记录\": " + packageName);
         }

@@ -50,9 +50,20 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         compactScheduledFuture = executor.scheduleWithFixedDelay({
             var compactCount = 0
             compactProcessInfos.forEach {
-                if (it.isMainProcess) { // 主进程由于暂时的策略, oom_score_adj不会大于100, 永远不会满足条件
-                    cancelCompactProcessInfo(it)
-                    return@forEach
+                // 根据默认规则压缩
+                var compactMethod: (processInfo: ProcessInfo) -> Boolean = ::compactAppFull
+
+                if (it.isMainProcess) {
+                    val currentTime = System.currentTimeMillis()
+                    if (!it.isAllowedCompact(currentTime)) {  // 若压缩间隔不满足, 则跳过等待下一轮
+                        return@forEach
+                    }
+                    // 压缩条件由ProcessInfo.isAllowedCompact判断。因此, 符合条件后直接调用压缩
+                    compactMethod = ::compactAppFullNoCheck
+
+                    it.lastCompactTime = currentTime
+                } else {
+                    logger.warn("uid: ${it.uid}, pid: ${it.pid}, 不是主进程")
                 }
                 /*
                     result: 0 -> 异常
@@ -61,7 +72,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                  */
                 var result = 2
                 try {
-                    result = if (compactAppFull(it)) 1 else 2
+                    result = if (compactMethod(it)) 1 else 2
                     if (BuildConfig.DEBUG) {
                         if (result == 1) {
                             logger.debug("uid: ${it.uid}, pid: ${it.pid} >>> 因[OOM_SCORE] 而内存压缩")
@@ -222,8 +233,9 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         return false
     }
 
-    fun compactAppFullNoCheck(pid: Int) {
+    fun compactAppFullNoCheck(pid: Int): Boolean {
         compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL)
+        return true
     }
 
 //    public boolean compactAppFull(ProcessInfo processInfo) {
@@ -237,7 +249,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         return compactAppFull(processInfo.pid, processInfo.oomAdjScore)
     }
 
-    fun compactAppFullNoCheck(processInfo: ProcessInfo) {
-        compactAppFullNoCheck(processInfo.pid)
+    fun compactAppFullNoCheck(processInfo: ProcessInfo): Boolean {
+        return compactAppFullNoCheck(processInfo.pid)
     }
 }

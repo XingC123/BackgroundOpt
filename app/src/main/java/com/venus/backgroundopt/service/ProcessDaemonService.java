@@ -1,8 +1,8 @@
 package com.venus.backgroundopt.service;
 
 import com.venus.backgroundopt.entity.MemoryInfo;
-import com.venus.backgroundopt.utils.log.ILogger;
 import com.venus.backgroundopt.utils.FileUtils;
+import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.io.File;
 import java.io.IOException;

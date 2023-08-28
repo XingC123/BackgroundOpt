@@ -1,7 +1,7 @@
 package com.venus.backgroundopt.entity;
 
-import com.venus.backgroundopt.utils.log.ILogger;
 import com.venus.backgroundopt.utils.FileUtils;
+import com.venus.backgroundopt.utils.log.ILogger;
 import com.venus.backgroundopt.utils.reference.ObjectReference;
 
 import java.nio.file.Paths;
