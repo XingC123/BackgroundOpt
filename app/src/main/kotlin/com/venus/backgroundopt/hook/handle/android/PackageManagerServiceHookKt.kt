@@ -52,14 +52,14 @@ class PackageManagerServiceHookKt(
                         handleDeletePackageLIF(it)
                     }
                 ),
-                String::class.java, /* packageName */
-                UserHandle::class.java, /* user */
-                Boolean::class.java,    /* deleteCodeAndResources */
-                IntArray::class.java,   /* allUserHandles */
-                Int::class.java,    /* flags */
+                String::class.java,                     /* packageName */
+                UserHandle::class.java,                 /* user */
+                Boolean::class.java,                    /* deleteCodeAndResources */
+                IntArray::class.java,                   /* allUserHandles */
+                Int::class.java,                        /* flags */
                 ClassConstants.PackageRemovedInfo_A12,  /* outInfo */
-                Boolean::class.java,    /* writeSettings */
-                ClassConstants.ParsedPackage /* replacingPackage */
+                Boolean::class.java,                    /* writeSettings */
+                ClassConstants.ParsedPackage            /* replacingPackage */
             ),
         )
     }
@@ -93,9 +93,8 @@ class PackageManagerServiceHookKt(
         val args: Array<Any> = param.args
         val packageName = args[0] as String
         val userIds = args[3] as IntArray
-        val runningInfo = runningInfo
 
-        for (userId in userIds) {
+        userIds.forEach { userId ->
             runningInfo.removeRecordedNormalApp(userId, packageName)
         }
     }
