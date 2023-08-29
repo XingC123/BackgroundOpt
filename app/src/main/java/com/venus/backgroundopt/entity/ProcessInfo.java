@@ -117,8 +117,9 @@ public class ProcessInfo {
         return uid;
     }
 
-    public void setUid(int uid) {
+    public ProcessInfo setUid(int uid) {
         this.uid = uid;
+        return this;
     }
 
     public boolean isMainProcess() {

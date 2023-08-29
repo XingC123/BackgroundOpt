@@ -109,18 +109,25 @@ public class AppInfo implements ILogger {
      */
     private Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
 
-    public ProcessInfo addProcessInfo(int pid, int oomAdjScore) {
-        ProcessInfo processInfo = processInfoMap.computeIfAbsent(pid,
-                key -> ProcessInfo.newInstance(this, runningInfo, uid, pid, oomAdjScore));
+    /**
+     * 生成ProcessInfo
+     * 注意: 确保你的操作是线程安全的
+     *
+     * @param pid         进程pid
+     * @param oomAdjScore 进程oom_score_adj
+     * @return 生成后的ProcessInfo
+     */
+    private ProcessInfo addProcessInfoDirectly(int pid, int oomAdjScore) {
+        return ProcessInfo.newInstance(this, runningInfo, uid, pid, oomAdjScore);
+    }
 
-        return processInfo;
+    public ProcessInfo addProcessInfo(int pid, int oomAdjScore) {
+        return processInfoMap.computeIfAbsent(pid,
+                key -> addProcessInfoDirectly(pid, oomAdjScore));
     }
 
     public void addProcessInfo(ProcessInfo processInfo) {
-        // 纠正processInfo的uid
-        processInfo.setUid(uid);
-        // 添加
-        processInfoMap.put(processInfo.getPid(), processInfo);
+        processInfoMap.computeIfAbsent(processInfo.getPid(), key -> /*纠正processInfo的uid*/ processInfo.setUid(uid));
     }
 
     @Nullable
@@ -136,14 +143,11 @@ public class AppInfo implements ILogger {
 //            return;
 //        }
 
-        if (processInfoMap.containsKey(pid)) {
-            ProcessInfo processInfo = processInfoMap.get(pid);
-            processInfo.setOomAdjScore(oomAdjScore);
-        } else {
-            addProcessInfo(pid, oomAdjScore);
-
+        ProcessInfo processInfo = processInfoMap.computeIfAbsent(pid, key -> {
 //            runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, this);
-        }
+            return addProcessInfoDirectly(key, oomAdjScore);
+        });
+        processInfo.setOomAdjScore(oomAdjScore);
     }
 
     public boolean isRecordedProcessInfo(int pid) {
