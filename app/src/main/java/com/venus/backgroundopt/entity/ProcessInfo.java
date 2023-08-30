@@ -24,7 +24,7 @@ public class ProcessInfo {
     // 上次压缩时间
     private final AtomicLong lastCompactTime = new AtomicLong(0L);
     // 压缩间隔
-    private static final long compactInterval = TimeUnit.MINUTES.toMillis(10);
+    private static final long compactInterval = TimeUnit.MINUTES.toMillis(7);
 
     /**
      * 修正过的oomAdjScore。
@@ -117,8 +117,9 @@ public class ProcessInfo {
         return uid;
     }
 
-    public void setUid(int uid) {
+    public ProcessInfo setUid(int uid) {
         this.uid = uid;
+        return this;
     }
 
     public boolean isMainProcess() {

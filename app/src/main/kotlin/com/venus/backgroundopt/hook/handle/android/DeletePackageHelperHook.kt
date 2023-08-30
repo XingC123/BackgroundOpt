@@ -42,13 +42,13 @@ class DeletePackageHelperHook(
                         handleDeletePackageLIF(it)
                     }
                 ),
-                String::class.java, /* packageName */
-                UserHandle::class.java, /* user */
-                Boolean::class.java,    /* deleteCodeAndResources */
-                IntArray::class.java,   /* allUserHandles */
-                Int::class.java,    /* flags */
+                String::class.java,                 /* packageName */
+                UserHandle::class.java,             /* user */
+                Boolean::class.java,                /* deleteCodeAndResources */
+                IntArray::class.java,               /* allUserHandles */
+                Int::class.java,                    /* flags */
                 ClassConstants.PackageRemovedInfo,  /* outInfo */
-                Boolean::class.java /* writeSettings */
+                Boolean::class.java                 /* writeSettings */
             ),
         )
     }
@@ -69,7 +69,7 @@ class DeletePackageHelperHook(
         val userIds = args[3] as IntArray
 
         userIds.forEach { userId ->
-            runningInfo.removeRecordedNormalApp(runningInfo.getNormalAppKey(userId, packageName))
+            runningInfo.removeRecordedNormalApp(userId, packageName)
         }
     }
 }
