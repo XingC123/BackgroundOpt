@@ -510,7 +510,7 @@ public class RunningInfo implements ILogger {
         }
     }
 
-    public void putIntoIdleAppGroup(AppInfo appInfo) {
+    private void putIntoIdleAppGroup(AppInfo appInfo) {
         // 做app清理工作
         boolean valid = handleLastApp(appInfo);
         if (valid) {
