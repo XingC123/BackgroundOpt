@@ -453,6 +453,40 @@ public class RunningInfo implements ILogger {
         }
     }
 
+    public void putIntoTmpAppGroup(AppInfo appInfo) {
+        tmpAppGroup.add(appInfo);
+        activeAppGroup.remove(appInfo);
+//        idleAppGroup.remove(appInfo); // 没有app在后台也能进入这个方法吧
+
+        appInfo.setAppGroupEnum(AppGroupEnum.TMP);
+
+        /*
+            息屏触发 UsageEvents.Event.ACTIVITY_PAUSED 事件。则对当前app按照进入后台处理
+            boolean isScreenOn = pm.isInteractive();
+            如果isScreenOn值为true，屏幕状态为亮屏或者亮屏未解锁，反之为黑屏。
+         */
+        if (!getPowerManager().isInteractive()) {
+            putIntoIdleAppGroup(appInfo);
+        } else {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入TmpGroup");
+            }
+        }
+    }
+
+    private void putIntoIdleAppGroup(AppInfo appInfo) {
+        // 做app清理工作
+        boolean valid = handleLastApp(appInfo);
+        if (valid) {
+            idleAppGroup.add(appInfo);
+            appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
+
+            if (BuildConfig.DEBUG) {
+                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + "  被放入IdleGroup");
+            }
+        }
+    }
+
     private void handlePutInfoActiveAppGroup(AppInfo appInfo, boolean needHandleCurApp) {
         // 重置切换事件处理状态
         appInfo.setSwitchEventHandled(false);
@@ -486,40 +520,6 @@ public class RunningInfo implements ILogger {
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入ActiveGroup");
-        }
-    }
-
-    public void putIntoTmpAppGroup(AppInfo appInfo) {
-        tmpAppGroup.add(appInfo);
-        activeAppGroup.remove(appInfo);
-//        idleAppGroup.remove(appInfo); // 没有app在后台也能进入这个方法吧
-
-        appInfo.setAppGroupEnum(AppGroupEnum.TMP);
-
-        /*
-            息屏触发 UsageEvents.Event.ACTIVITY_PAUSED 事件。则对当前app按照进入后台处理
-            boolean isScreenOn = pm.isInteractive();
-            如果isScreenOn值为true，屏幕状态为亮屏或者亮屏未解锁，反之为黑屏。
-         */
-        if (!getPowerManager().isInteractive()) {
-            putIntoIdleAppGroup(appInfo);
-        } else {
-            if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入TmpGroup");
-            }
-        }
-    }
-
-    private void putIntoIdleAppGroup(AppInfo appInfo) {
-        // 做app清理工作
-        boolean valid = handleLastApp(appInfo);
-        if (valid) {
-            idleAppGroup.add(appInfo);
-            appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
-
-            if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + "  被放入IdleGroup");
-            }
         }
     }
 
