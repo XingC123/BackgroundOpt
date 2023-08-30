@@ -62,8 +62,6 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                     compactMethod = ::compactAppFullNoCheck
 
                     it.lastCompactTime = currentTime
-                } else {
-                    logger.warn("uid: ${it.uid}, pid: ${it.pid}, 不是主进程")
                 }
                 /*
                     result: 0 -> 异常

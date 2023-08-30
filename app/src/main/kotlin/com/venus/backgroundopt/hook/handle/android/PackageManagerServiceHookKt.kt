@@ -52,28 +52,24 @@ class PackageManagerServiceHookKt(
                         handleDeletePackageLIF(it)
                     }
                 ),
-                String::class.java, /* packageName */
-                UserHandle::class.java, /* user */
-                Boolean::class.java,    /* deleteCodeAndResources */
-                IntArray::class.java,   /* allUserHandles */
-                Int::class.java,    /* flags */
+                String::class.java,                     /* packageName */
+                UserHandle::class.java,                 /* user */
+                Boolean::class.java,                    /* deleteCodeAndResources */
+                IntArray::class.java,                   /* allUserHandles */
+                Int::class.java,                        /* flags */
                 ClassConstants.PackageRemovedInfo_A12,  /* outInfo */
-                Boolean::class.java,    /* writeSettings */
-                ClassConstants.ParsedPackage /* replacingPackage */
+                Boolean::class.java,                    /* writeSettings */
+                ClassConstants.ParsedPackage            /* replacingPackage */
             ),
         )
     }
 
     private fun getActiveLaunchPackageName(param: MethodHookParam) {
         // 在ActivityManagerService加载完毕后再获取
-        if (runningInfo.activityManagerService == null) {
-            return
-        }
+        runningInfo.activityManagerService ?: return
 
         // 若已获取默认桌面的包名, 则不进行任何操作
-        if (runningInfo.activeLaunchPackageName != null) {
-            return
-        }
+        runningInfo.activeLaunchPackageName?.let { return }
 
         val mPackageManagerService = param.thisObject
         val mInjector =
@@ -87,21 +83,19 @@ class PackageManagerServiceHookKt(
             0
         ) as String
 
+        runningInfo.activeLaunchPackageName = packageName
         if (BuildConfig.DEBUG) {
             logger.debug("默认启动器为: $packageName")
         }
-
-        runningInfo.activeLaunchPackageName = packageName
     }
 
     private fun handleDeletePackageLIF(param: MethodHookParam) {
         val args: Array<Any> = param.args
         val packageName = args[0] as String
         val userIds = args[3] as IntArray
-        val runningInfo = runningInfo
 
-        for (userId in userIds) {
-            runningInfo.removeRecordedNormalApp(runningInfo.getNormalAppKey(userId, packageName))
+        userIds.forEach { userId ->
+            runningInfo.removeRecordedNormalApp(userId, packageName)
         }
     }
 }

@@ -92,7 +92,7 @@ public class PackageManagerServiceHook extends MethodHook {
         RunningInfo runningInfo = getRunningInfo();
 
         for (int userId : userIds) {
-            runningInfo.removeRecordedNormalApp(runningInfo.getNormalAppKey(userId, packageName));
+            runningInfo.removeRecordedNormalApp(userId, packageName);
         }
 
         return null;

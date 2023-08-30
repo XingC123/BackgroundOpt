@@ -130,9 +130,11 @@ public class RunningInfo implements ILogger {
     /**
      * 移除给定key匹配的{@link NormalAppResult}
      *
-     * @param key 见{@link #getNormalAppKey}
+     * @param userId      用户id
+     * @param packageName 包名
      */
-    public void removeRecordedNormalApp(String key) {
+    public void removeRecordedNormalApp(int userId, String packageName) {
+        String key = getNormalAppKey(userId, packageName);
         NormalAppResult remove = normalApps.remove(key);
         if (remove != null) {
             NormalAppResult.normalAppUidMap.remove(remove.applicationInfo.uid);
