@@ -104,15 +104,16 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
             flag = true
         }
 
+        val packageName = appInfo.packageName
         if (mPid == pid || flag) {
             runningInfo.removeRunningApp(appInfo)
 
             if (BuildConfig.DEBUG) {
-                logger.debug("kill: ${appInfo.packageName}, uid: $uid >>> 杀死App")
+                logger.debug("kill: ${packageName}, uid: $uid >>> 杀死App")
             }
         } else if (mPid == Int.MIN_VALUE) {
             if (BuildConfig.DEBUG) {
-                logger.warn("kill: ${appInfo.packageName}, uid: $uid >>> 再次杀死App")
+                logger.warn("kill: ${packageName}, uid: $uid >>> 再次杀死App")
             }
         } else {
             // 移除进程记录
@@ -120,7 +121,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
             // 取消进程的待压缩任务
             runningInfo.processManager.cancelCompactProcessInfo(processInfo)
             if (BuildConfig.DEBUG) {
-                logger.debug("kill: ${appInfo.packageName}, uid: ${uid}, pid: $pid >>> 子进程被杀")
+                logger.debug("kill: ${packageName}, uid: ${uid}, pid: $pid >>> 子进程被杀")
             }
         }
     }

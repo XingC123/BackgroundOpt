@@ -10,7 +10,9 @@ import com.venus.backgroundopt.utils.log.ILogger;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -52,6 +54,7 @@ public class AppInfo implements ILogger {
      * app进程信息                                                               *
      *                                                                         *
      **************************************************************************/
+    @SuppressWarnings("all")    // 别显示未final啦, 烦死辣
     private RunningInfo runningInfo;
     private volatile ProcessRecord mProcessRecord;   // 主进程记录
 
@@ -107,6 +110,7 @@ public class AppInfo implements ILogger {
      * 进程信息映射<pid, ProcessInfo>
      * 没有设置为 final, 因为在{@link AppInfo#clearAppInfo()}中需要反射来置空
      */
+    @SuppressWarnings("all")    // 别显示未final啦, 烦死辣
     private Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
 
     /**
@@ -216,39 +220,46 @@ public class AppInfo implements ILogger {
      * 当前appInfo清理状态                                                       *
      *                                                                         *
      **************************************************************************/
-    private static final Field[] fields = AppInfo.class.getDeclaredFields();
+    private static final Field[] fields;
 
     static {
-        for (Field field : fields) {
+        Field[] declaredFields = AppInfo.class.getDeclaredFields();
+        int length = declaredFields.length;
+        List<Field> f = new ArrayList<>(length);
+        Class<?> type;
+        Field[] tmp = new Field[0];
+        Class<? extends Field[]> aClass = tmp.getClass();
+        for (Field field : declaredFields) {
+            if ((type = field.getType()).isPrimitive() || type == aClass) {
+                continue;
+            }
             field.setAccessible(true);
+            f.add(field);
         }
+        fields = f.toArray(tmp);
     }
 
+    /**
+     * jvm的可达性分析会回收对象的。此方法只是确保在调用后将对象内引用指针置空, 当发生可能的对某属性执行获取操作时会收到异常。
+     */
     public void clearAppInfo() {
         try {
-            runningInfo = null;
-            mProcessRecord = null;
-            mProcessInfo = null;
-
-            try {
-                Object obj;
-                for (Field field : fields) {
-                    obj = field.get(this);
-                    if (obj instanceof Map<?, ?> map) {
-                        map.clear();
-                        field.set(this, null);
-                    } else if (obj instanceof Collection<?> collection) {
-                        collection.clear();
-                    } else if (obj instanceof AtomicReference<?> ap) {
-                        ap.set(null);
-                    } else if (obj instanceof Enum<?>) {
-                        field.set(this, null);
-                    }
+            Object obj;
+            for (Field field : fields) {
+                obj = field.get(this);
+                if (obj instanceof Map<?, ?> map) {
+                    map.clear();
+                } else if (obj instanceof Collection<?> collection) {
+                    collection.clear();
+                } else if (obj instanceof AtomicReference<?> ap) {
+                    ap.set(null);
                 }
-            } catch (IllegalAccessException | IllegalArgumentException e) {
-                getLogger().error("AppInfo清理失败", e);
+                field.set(this, null);
             }
-        } catch (Exception ignore) {
+        } catch (Throwable t) {
+            if (BuildConfig.DEBUG) {    // 正式发布版无需关注这里
+                getLogger().error("AppInfo清理失败", t);
+            }
         }
     }
 

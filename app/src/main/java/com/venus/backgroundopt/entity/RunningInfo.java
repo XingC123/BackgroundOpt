@@ -371,6 +371,7 @@ public class RunningInfo implements ILogger {
         AppInfo remove = runningApps.remove(appInfo.getUid());
 
         if (remove != null) {
+            String packageName = remove.getPackageName();
             // 从待处理列表中移除
             activeAppGroup.remove(appInfo);
             tmpAppGroup.remove(appInfo);
@@ -384,7 +385,7 @@ public class RunningInfo implements ILogger {
             appInfo.clearAppInfo();
 
             if (BuildConfig.DEBUG) {
-                getLogger().debug("移除: " + remove.getPackageName() + ", uid: " + remove.getUid());
+                getLogger().debug("移除: " + packageName + ", uid: " + remove.getUid());
             }
         } else {
             if (BuildConfig.DEBUG) {
