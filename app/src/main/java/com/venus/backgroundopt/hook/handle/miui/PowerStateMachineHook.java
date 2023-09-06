@@ -2,6 +2,7 @@ package com.venus.backgroundopt.hook.handle.miui;
 
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
+import com.venus.backgroundopt.hook.base.action.DoNotingHookAction;
 import com.venus.backgroundopt.hook.base.action.HookAction;
 import com.venus.backgroundopt.hook.base.action.ReplacementHookAction;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
@@ -26,14 +27,14 @@ public class PowerStateMachineHook extends MethodHook {
                         ClassConstants.PowerStateMachine,
                         MethodConstants.clearAppWhenScreenOffTimeOut,
                         new HookAction[]{
-                                (ReplacementHookAction) this::handleClearAppWhenScreenOffTimeOut
+                                new DoNotingHookAction()
                         }
                 ),
                 new HookPoint(
                         ClassConstants.PowerStateMachine,
                         MethodConstants.clearAppWhenScreenOffTimeOutInNight,
                         new HookAction[]{
-                                (ReplacementHookAction) this::handleClearAppWhenScreenOffTimeOutInNight
+                                new DoNotingHookAction()
                         }
                 )
         };

@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.venus.backgroundopt.hook.base.action.AfterHookAction;
 import com.venus.backgroundopt.hook.base.action.BeforeHookAction;
+import com.venus.backgroundopt.hook.base.action.DoNotingHookAction;
 import com.venus.backgroundopt.hook.base.action.HookAction;
 import com.venus.backgroundopt.hook.base.action.ReplacementHookAction;
 import com.venus.backgroundopt.utils.log.ILogger;
@@ -121,6 +122,8 @@ public class HookPoint implements ILogger {
                     return hookAction.execute(methodHookParam);
                 }
             };
+        } else if (hookAction instanceof DoNotingHookAction) {
+            xc_methodHook = XC_MethodReplacement.DO_NOTHING;
         } else {
             throw new IllegalArgumentException("hookAction 类型错误");
         }

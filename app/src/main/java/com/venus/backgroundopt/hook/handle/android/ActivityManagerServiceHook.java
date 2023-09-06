@@ -11,6 +11,7 @@ import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
 import com.venus.backgroundopt.hook.base.action.BeforeHookAction;
+import com.venus.backgroundopt.hook.base.action.DoNotingHookAction;
 import com.venus.backgroundopt.hook.base.action.HookAction;
 import com.venus.backgroundopt.hook.base.action.ReplacementHookAction;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
@@ -79,7 +80,7 @@ public class ActivityManagerServiceHook extends MethodHook {
                         ClassConstants.ActivityManagerService,
                         MethodConstants.checkExcessivePowerUsage,
                         new HookAction[]{
-                                (ReplacementHookAction) this::handleCheckExcessivePowerUsage
+                                new DoNotingHookAction()
                         }
                 ),
         };
