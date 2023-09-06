@@ -133,9 +133,9 @@ public class ActivityManagerServiceHook extends MethodHook {
 
         // 本次事件包名
         String packageName = ((ComponentName) args[0]).getPackageName();
-        if (packageName == null) {
-            return null;
-        }
+//        if (packageName == null) {
+//            return null;
+//        }
 
         // 本次事件用户
         int userId = (int) args[1];
