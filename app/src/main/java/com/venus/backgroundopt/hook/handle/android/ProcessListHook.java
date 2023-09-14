@@ -107,19 +107,18 @@ public class ProcessListHook extends MethodHook {
 
             return null;
         } else { // 子进程的处理
-            int expectedOomAdjScore = ProcessRecord.SUB_PROC_ADJ;
             processInfo = appInfo.getProcessInfo(pid);
             // 子进程信息尚未记录
             if (processInfo == null) {
+                int expectedOomAdjScore = ProcessRecord.SUB_PROC_ADJ;
                 if (oomAdjScore > expectedOomAdjScore) {
                     expectedOomAdjScore = oomAdjScore;
                 } else {
                     param.args[2] = expectedOomAdjScore;
                 }
 
-                processInfo = appInfo.addProcessInfo(pid, oomAdjScore);
+                processInfo = appInfo.addProcessInfo(pid, expectedOomAdjScore);
                 processInfo.setFixedOomAdjScore(expectedOomAdjScore);
-                processInfo.setOomAdjScore(expectedOomAdjScore);
 
 //                if (Objects.equals(AppGroupEnum.IDLE, appInfo.getAppGroupEnum())) {
 //                    runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, appInfo);
