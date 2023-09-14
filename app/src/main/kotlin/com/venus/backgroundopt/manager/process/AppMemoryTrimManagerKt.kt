@@ -18,22 +18,23 @@ import java.util.concurrent.TimeUnit
 class AppMemoryTrimManagerKt : ILogger {
     companion object {
         // 前台
-        const val foregroundInitialDelay = 1L;
-        const val foregroundDelay = 10L;
+        const val foregroundInitialDelay = 0L
+        const val foregroundDelay = 10L
         val foregroundTimeUnit = TimeUnit.MINUTES
         const val foregroundTrimLevel = ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL
         const val foregroundTrimManagerName = "ForegroundAppMemoryTrimManager"
 
         // 后台
-        const val backgroundInitialDelay = 1L;
-        const val backgroundDelay = 10L;
+        const val backgroundInitialDelay = 2L  // 初始时间相比前台任务延后2个单位时间
+        const val backgroundDelay = 10L
         val backgroundTimeUnit = TimeUnit.MINUTES
         const val backgroundTrimLevel = ComponentCallbacks2.TRIM_MEMORY_MODERATE
         const val backgroundTrimManagerName = "BackgroundAppMemoryTrimManager"
     }
 
     // 线程池
-    private val executor = ScheduledThreadPoolExecutor(2)
+    // 23.9.14: 仅分配一个线程, 防止前后台任务同时进行造成可能的掉帧
+    private val executor = ScheduledThreadPoolExecutor(1)
 
     private val foregroundTasks = Collections.newSetFromMap<ProcessRecord>(ConcurrentHashMap())
     private val backgroundTasks = Collections.newSetFromMap<ProcessRecord>(ConcurrentHashMap())
@@ -51,14 +52,14 @@ class AppMemoryTrimManagerKt : ILogger {
             foregroundTasks.forEach {
                 executeForegroundTask(it)
             }
-        }, 0, foregroundDelay, foregroundTimeUnit)
+        }, foregroundInitialDelay, foregroundDelay, foregroundTimeUnit)
 
         // 后台任务
         executor.scheduleWithFixedDelay({
             backgroundTasks.forEach {
                 executeBackgroundTask(it)
             }
-        }, 0, backgroundDelay, backgroundTimeUnit)
+        }, backgroundInitialDelay, backgroundDelay, backgroundTimeUnit)
     }
 
     /**
