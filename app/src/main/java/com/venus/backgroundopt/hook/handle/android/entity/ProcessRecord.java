@@ -23,7 +23,7 @@ public class ProcessRecord {
     // 默认的主进程要设置的adj
     public static final int DEFAULT_MAIN_ADJ = ProcessList.FOREGROUND_APP_ADJ;
     // 默认的子进程要设置的adj
-    public static final int SUB_PROC_ADJ = DEFAULT_MAX_ADJ;
+    public static final int SUB_PROC_ADJ = DEFAULT_MAX_ADJ + 1;
 
     /**
      * 安卓的ProcessRecord类
