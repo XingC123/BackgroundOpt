@@ -10,9 +10,8 @@ import com.venus.backgroundopt.utils.log.ILogger;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -223,20 +222,11 @@ public class AppInfo implements ILogger {
     private static final Field[] fields;
 
     static {
-        Field[] declaredFields = AppInfo.class.getDeclaredFields();
-        int length = declaredFields.length;
-        List<Field> f = new ArrayList<>(length);
-        Class<?> type;
-        Field[] tmp = new Field[0];
-        Class<? extends Field[]> aClass = tmp.getClass();
-        for (Field field : declaredFields) {
-            if ((type = field.getType()).isPrimitive() || type == aClass) {
-                continue;
-            }
-            field.setAccessible(true);
-            f.add(field);
-        }
-        fields = f.toArray(tmp);
+        Class<Field[]> aClass = Field[].class;
+        fields = Arrays.stream(AppInfo.class.getDeclaredFields())
+                .filter(field -> !(field.getType().isPrimitive() || field.getType() == aClass))
+                .peek(field -> field.setAccessible(true))
+                .toArray(Field[]::new);
     }
 
     /**
