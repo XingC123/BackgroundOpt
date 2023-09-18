@@ -427,6 +427,8 @@ public class RunningInfo implements ILogger {
             handlePutInfoActiveAppGroup(appInfo, true);
         }
 
+//        handlePutInfoActiveAppGroup(appInfo, !switchActivity);
+
         /*
             处理其他分组
          */
