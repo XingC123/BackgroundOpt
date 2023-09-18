@@ -222,9 +222,8 @@ public class AppInfo implements ILogger {
     private static final Field[] fields;
 
     static {
-        Class<Field[]> aClass = Field[].class;
         fields = Arrays.stream(AppInfo.class.getDeclaredFields())
-                .filter(field -> !(field.getType().isPrimitive() || field.getType() == aClass))
+                .filter(field -> !(field.getType().isPrimitive() || field.getType() == Field[].class))
                 .peek(field -> field.setAccessible(true))
                 .toArray(Field[]::new);
     }
