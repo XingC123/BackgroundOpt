@@ -48,6 +48,10 @@ class AppMemoryTrimManagerKt : ILogger {
      */
     private fun init() {
         // 前台任务
+        /*
+            23.9.18: 前台任务并没有严格的单独提交ScheduledFuture, 而是加入到统一检查组,
+                这意味着某些情况下, 个别前台甚至不会被执行(前台那么积极干嘛)
+         */
         executor.scheduleWithFixedDelay({
             foregroundTasks.forEach {
                 executeForegroundTask(it)
