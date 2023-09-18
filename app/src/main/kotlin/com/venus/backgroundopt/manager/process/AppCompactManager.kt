@@ -219,6 +219,9 @@ class AppCompactManager(// 封装的CachedAppOptimizer
 
     /**
      * 全量压缩
+     * 源码中(com.android.server.am.CachedAppOptimizer.DefaultProcessDependencies.performCompaction(String action, int pid)),
+     * 传入到compactApp(pid: Int, compactAction: Int)中的compactAction为: [CachedAppOptimizer.COMPACT_ACTION_FILE] | [CachedAppOptimizer.COMPACT_ACTION_ANON],
+     * 即最终结果为: [CachedAppOptimizer.COMPACT_ACTION_FULL]
      *
      * @param pid 要压缩的pid
      */
