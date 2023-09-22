@@ -134,18 +134,22 @@
     public void onResume();
     public void onPause();
 }
-#-keep class android.support.v4.app.Fragment {
-#    public void setUserVisibleHint(boolean);
-#    public void onHiddenChanged(boolean);
-#    public void onResume();
-#    public void onPause();
-#}
-#-keep class * extends android.support.v4.app.Fragment {
-#    public void setUserVisibleHint(boolean);
-#    public void onHiddenChanged(boolean);
-#    public void onResume();
-#    public void onPause();
-#}
+-keep class android.support.v4.app.Fragment {
+    public void setUserVisibleHint(boolean);
+    public void onHiddenChanged(boolean);
+    public void onResume();
+    public void onPause();
+}
+-keep class * extends android.support.v4.app.Fragment {
+    public void setUserVisibleHint(boolean);
+    public void onHiddenChanged(boolean);
+    public void onResume();
+    public void onPause();
+}
+
+-dontwarn java.awt.Color
+-dontwarn java.awt.Font
+-dontwarn java.awt.Point
 
 -keep class kotlin.** { *; }
 -keep class org.jetbrains.** { *; }
