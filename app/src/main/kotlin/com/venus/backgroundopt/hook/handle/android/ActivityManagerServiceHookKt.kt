@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.hook.handle.android
 
+import android.content.Intent
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.hook.base.HookPoint
@@ -9,6 +10,8 @@ import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
+import com.venus.backgroundopt.utils.message.MessageKeyConstants
+import com.venus.backgroundopt.utils.message.createResponse
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
@@ -56,6 +59,20 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
                 ),
                 Int::class.java,    /* belowAdj */
                 String::class.java  /* reason */
+            ),
+            HookPoint(
+                ClassConstants.ActivityManagerService,
+                "startService",
+                arrayOf(
+                    beforeHookAction { handleStartService(it) }
+                ),
+                ClassConstants.IApplicationThread,      // caller
+                Intent::class.java,                     // service
+                String::class.java,                     // resolvedType
+                Boolean::class.java,                    // requireForeground
+                String::class.java,                     // callingPackage
+                String::class.java,                     // callingFeatureId
+                Int::class.java                         // userId
             )
         )
     }
@@ -129,5 +146,30 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
     private fun handleKillProcessesBelowAdj(param: MethodHookParam) {
         // 拔高adj分数
         param.args[0] = ProcessRecord.SUB_PROC_ADJ
+    }
+
+    /**
+     * ui消息监听
+     * TODO 从统一的工具类中做赋值/取值操作
+     */
+    private fun handleStartService(param: MethodHookParam) {
+        val dataIntent = param.args[1] as Intent
+        if (dataIntent.`package` != BuildConfig.APPLICATION_ID) {
+            return
+        }
+
+        val key = dataIntent.type       // 此次请求的key
+        val value = dataIntent.action   // 请求的值
+
+        when (key) {
+            MessageKeyConstants.isRecordedProcessInfo -> {
+                createResponse(param, value) { v: Int ->
+                    runningInfo.getRunningAppInfo(v)
+                }
+            }
+
+            else -> {
+            }
+        }
     }
 }
