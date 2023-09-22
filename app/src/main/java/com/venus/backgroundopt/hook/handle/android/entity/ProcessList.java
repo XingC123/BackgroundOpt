@@ -3,6 +3,7 @@ package com.venus.backgroundopt.hook.handle.android.entity;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.ApplicationIdentity;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
+import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.utils.log.ILogger;
 import com.venus.backgroundopt.utils.reference.ObjectReference;
 
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
 import de.robv.android.xposed.XposedHelpers;
 
 /**
- * 封装了{@link com.venus.backgroundopt.hook.constants.ClassConstants#ProcessList}
+ * 封装了{@link ClassConstants#ProcessList}
  *
  * @author XingC
  * @version 1.0
