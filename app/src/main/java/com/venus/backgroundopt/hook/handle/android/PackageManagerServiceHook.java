@@ -22,6 +22,7 @@ import de.robv.android.xposed.XposedHelpers;
  * @version 1.0
  * @date 2023/6/1
  */
+@Deprecated
 public class PackageManagerServiceHook extends MethodHook {
     public PackageManagerServiceHook(ClassLoader classLoader, RunningInfo hookInfo) {
         super(classLoader, hookInfo);
