@@ -22,6 +22,7 @@ import de.robv.android.xposed.XC_MethodHook;
  * @version 1.0
  * @date 2023/6/1
  */
+@Deprecated
 public class ProcessListHook extends MethodHook {
     public ProcessListHook(ClassLoader classLoader, RunningInfo hookInfo) {
         super(classLoader, hookInfo);
