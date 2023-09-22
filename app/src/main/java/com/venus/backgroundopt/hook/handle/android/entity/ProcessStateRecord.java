@@ -1,11 +1,12 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
+import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 
 import de.robv.android.xposed.XposedHelpers;
 
 /**
- * 对{@link com.venus.backgroundopt.hook.constants.ClassConstants#ProcessStateRecord}的包装
+ * 对{@link ClassConstants#ProcessStateRecord}的包装
  *
  * @author XingC
  * @date 2023/7/11

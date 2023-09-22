@@ -42,6 +42,7 @@ public interface ClassConstants {
     String ParsedPackage = "com.android.server.pm.parsing.pkg.ParsedPackage";
     String RoleControllerManager = "android.app.role.RoleControllerManager";
     String RemoteCallback = "android.os.RemoteCallback";
+    String IApplicationThread = "android.app.IApplicationThread";
 
     /**
      * miui

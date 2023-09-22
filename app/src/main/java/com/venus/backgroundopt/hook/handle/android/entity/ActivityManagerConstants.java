@@ -1,7 +1,9 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
+import com.venus.backgroundopt.hook.constants.ClassConstants;
+
 /**
- * 封装了 {@link com.venus.backgroundopt.hook.constants.ClassConstants#ActivityManagerConstants}
+ * 封装了 {@link ClassConstants#ActivityManagerConstants}
  * @author XingC
  * @date 2023/7/21
  */

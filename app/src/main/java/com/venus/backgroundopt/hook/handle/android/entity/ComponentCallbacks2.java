@@ -1,7 +1,9 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
+import com.venus.backgroundopt.hook.constants.ClassConstants;
+
 /**
- * 封装自安卓{@link com.venus.backgroundopt.hook.constants.ClassConstants#ComponentCallbacks2}
+ * 封装自安卓{@link ClassConstants#ComponentCallbacks2}
  *
  * @author XingC
  * @version 1.0
