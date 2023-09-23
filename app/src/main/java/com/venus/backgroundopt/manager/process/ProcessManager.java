@@ -66,6 +66,7 @@ public class ProcessManager implements ILogger {
 
     /**
      * 移除压缩进程
+     *
      * @param processInfo 进程信息
      */
     public void cancelCompactProcessInfo(@Nullable ProcessInfo processInfo) {
@@ -142,6 +143,14 @@ public class ProcessManager implements ILogger {
      *                                                                         *
      **************************************************************************/
     private final AppMemoryTrimManagerKt appMemoryTrimManager = new AppMemoryTrimManagerKt();
+
+    public Set<ProcessRecord> getForegroundTasks() {
+        return appMemoryTrimManager.getForegroundTasks();
+    }
+
+    public Set<ProcessRecord> getBackgroundTasks() {
+        return appMemoryTrimManager.getBackgroundTasks();
+    }
 
     public void startBackgroundAppTrimTask(ProcessRecord processRecord) {
         appMemoryTrimManager.addBackgroundTask(processRecord);

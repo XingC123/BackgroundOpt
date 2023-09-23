@@ -2,6 +2,7 @@ package com.venus.backgroundopt.hook.handle.android.entity;
 
 import android.content.pm.ApplicationInfo;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
@@ -41,9 +42,9 @@ public class ProcessRecord {
     }
 
     // 程序的uid
-    private final int uid;  // uid of process; may be different from 'info' if isolated
+    private int uid;  // uid of process; may be different from 'info' if isolated
     // 该进程对应的pid
-    private final int pid;
+    private int pid;
     // 进程名称
     /*
         com.ktcp.video
@@ -56,22 +57,25 @@ public class ProcessRecord {
         而通过ProcessRecord.info.processName获取的是主应用进程的进程名，也就是不带有冒号":"的名字
         来源: https://blog.csdn.net/weixin_35831256/article/details/117644536
      */
-    private final String processName;
+    private String processName;
     // 进程所属程序的用户id
-    private final int userId;
+    private int userId;
     // 进程所在的程序的包名
-    private final String packageName;
+    private String packageName;
     // 反射拿到的安卓的processRecord对象
-    private final Object processRecord;
+    @JSONField(serialize = false)
+    private Object processRecord;
     // 反射拿到的安卓的processStateRecord对象
 //    private final Object processStateRecord;
-    private final ProcessStateRecord processStateRecord;
+    @JSONField(serialize = false)
+    private ProcessStateRecord processStateRecord;
     // 当前ProcessRecord已记录的最大adj
     private int recordMaxAdj;
 
     /**
      * All about the state info of the optimizer when the process is cached.
      */
+    @JSONField(serialize = false)
     private ProcessCachedOptimizerRecord processCachedOptimizerRecord;
 
     public ProcessCachedOptimizerRecord getProcessCachedOptimizerRecord() {
@@ -82,6 +86,9 @@ public class ProcessRecord {
         }
 
         return processCachedOptimizerRecord;
+    }
+
+    public ProcessRecord() {
     }
 
     public ProcessRecord(Object processRecord) {
@@ -138,6 +145,7 @@ public class ProcessRecord {
     /**
      * 设置默认的最大adj
      */
+    @JSONField(serialize = false)
     public void setDefaultMaxAdj() {
         setMaxAdj(DEFAULT_MAX_ADJ);
     }
@@ -153,6 +161,7 @@ public class ProcessRecord {
      *
      * @param maxAdj 最大adj的值
      */
+    @JSONField(serialize = false)
     public void setMaxAdj(int maxAdj) {
         boolean setSucceed = false;
         try {
@@ -177,6 +186,7 @@ public class ProcessRecord {
      *
      * @return 进程的最大adj
      */
+    @JSONField(serialize = false)
     public int getMaxAdj() {
         try {
             return this.processStateRecord.getMaxAdj();
@@ -188,13 +198,6 @@ public class ProcessRecord {
                 return ProcessList.UNKNOWN_ADJ;
             }
         }
-    }
-
-    /**
-     * 获取已记录的最大adj
-     */
-    public int getRecordMaxAdj() {
-        return this.recordMaxAdj;
     }
 
     /**
@@ -234,6 +237,7 @@ public class ProcessRecord {
      *
      * @return 若已设置的最大adj!=当前所使用的最大adj => true
      */
+    @JSONField(serialize = false)
     public boolean isNeedAdjustMaxAdj() {
         return getMaxAdj() != this.recordMaxAdj;
     }
@@ -247,6 +251,7 @@ public class ProcessRecord {
         }
     }
 
+    @JSONField(serialize = false)
     public int getCurAdj() {
         return (int) XposedHelpers.callMethod(this.processRecord, MethodConstants.getCurAdj);
     }
@@ -268,27 +273,63 @@ public class ProcessRecord {
         return uid;
     }
 
+    public void setUid(int uid) {
+        this.uid = uid;
+    }
+
     public int getPid() {
         return pid;
+    }
+
+    public void setPid(int pid) {
+        this.pid = pid;
     }
 
     public String getProcessName() {
         return processName;
     }
 
+    public void setProcessName(String processName) {
+        this.processName = processName;
+    }
+
     public int getUserId() {
         return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public String getPackageName() {
         return packageName;
     }
 
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+
     public Object getProcessRecord() {
         return processRecord;
     }
 
+    public void setProcessRecord(Object processRecord) {
+        this.processRecord = processRecord;
+    }
+
     public ProcessStateRecord getProcessStateRecord() {
         return processStateRecord;
+    }
+
+    public void setProcessStateRecord(ProcessStateRecord processStateRecord) {
+        this.processStateRecord = processStateRecord;
+    }
+
+    public int getRecordMaxAdj() {
+        return this.recordMaxAdj;
+    }
+
+    public void setRecordMaxAdj(int recordMaxAdj) {
+        this.recordMaxAdj = recordMaxAdj;
     }
 }

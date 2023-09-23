@@ -10,5 +10,6 @@ interface MessageKeyConstants {
     companion object {
         const val getRunningAppInfo = "getRunningAppInfo"
         const val getTargetAppGroup = "getTargetAppGroup"
+        const val getBackgroundTasks = "getBackgroundTasks"
     }
 }

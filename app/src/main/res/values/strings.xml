@@ -6,4 +6,9 @@
     <string name="queryInfoEditTextHint">application uid</string>
     <string name="doQueryBtn">Query</string>
     <string name="queryResultText">Launch a query~</string>
+    <string name="getBackgroundTasks">getBackgroundTasks</string>
+    <string name="getBackgroundTasksTipText1">tip1:</string>
+    <string name="getBackgroundTasksTipText2">tip2:</string>
+    <string name="backgroundTasksTipText1">"package name: "</string>
+    <string name="backgroundTasksTipText2">pid:</string>
 </resources>

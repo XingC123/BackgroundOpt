@@ -7,4 +7,9 @@
     <string name="queryInfoEditTextHint">输入UID(纯数字)</string>
     <string name="doQueryBtn">查询</string>
     <string name="queryResultText">快发起查询吧~</string>
+    <string name="getBackgroundTasks">获取后台任务列表</string>
+    <string name="getBackgroundTasksTipText1">tip1:</string>
+    <string name="getBackgroundTasksTipText2">"tip2: "</string>
+    <string name="backgroundTasksTipText1">"包名: "</string>
+    <string name="backgroundTasksTipText2">"pid: "</string>
 </resources>
