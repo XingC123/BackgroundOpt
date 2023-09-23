@@ -127,11 +127,7 @@ class QueryInfoDialog {
          */
         @JvmStatic
         fun getQueryData(rootView: View): String? {
-            rootView.findViewById<EditText>(R.id.queryInfoEditText)?.let {
-                return it.text.toString().trim()
-            } ?: kotlin.run {
-                return null
-            }
+             return rootView.findViewById<EditText>(R.id.queryInfoEditText)?.text?.toString()?.trim()
         }
 
         /**
