@@ -33,9 +33,13 @@ class QueryInfoDialog {
                     return@createQueryInfoDialog
                 }
 
-                val data = dataStr.toInt()
-                val message = sendMessage(alertDialog.context, messageKey, data)
-                setMessage(alertDialog, message)
+                try {
+                    val data = dataStr.toInt()
+                    val message = sendMessage(alertDialog.context, messageKey, data)
+                    setMessage(alertDialog, message)
+                } catch (t: Throwable) {
+//                    Toast.makeText(context, "数据不合法", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
@@ -127,7 +131,7 @@ class QueryInfoDialog {
          */
         @JvmStatic
         fun getQueryData(rootView: View): String? {
-             return rootView.findViewById<EditText>(R.id.queryInfoEditText)?.text?.toString()?.trim()
+            return rootView.findViewById<EditText>(R.id.queryInfoEditText)?.text?.toString()?.trim()
         }
 
         /**
