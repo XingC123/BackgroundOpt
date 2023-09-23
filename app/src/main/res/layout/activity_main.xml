@@ -13,28 +13,27 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
             android:orientation="vertical">
 
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <EditText
-                    android:id="@+id/packageNameText"
+                <Button
+                    android:id="@+id/getRunningAppInfoBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:ems="10"
-                    android:inputType="text"
-                    android:text="包名" />
+                    android:layout_weight="0"
+                    android:text="@string/getRunningAppInfoBtn" />
 
                 <Button
-                    android:id="@+id/recordedProcessInfoBtn"
+                    android:id="@+id/getTargetAppGroupBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="是否记录进程信息" />
+                    android:layout_weight="0"
+                    android:text="@string/getTargetAppGroupBtn" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

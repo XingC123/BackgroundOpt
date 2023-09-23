@@ -2,6 +2,8 @@ package com.venus.backgroundopt.entity;
 
 import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 
+import androidx.annotation.NonNull;
+
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
@@ -212,6 +214,18 @@ public class AppInfo implements ILogger {
     @Override
     public int hashCode() {
         return Objects.hash(uid, packageName, userId);
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "AppInfo{" +
+                "uid=" + uid +
+                ", packageName='" + packageName + '\'' +
+                ", userId=" + userId +
+                ", appGroupEnum=" + appGroupEnum +
+                ", mPid=" + getmPid() +
+                '}';
     }
 
     /* *************************************************************************

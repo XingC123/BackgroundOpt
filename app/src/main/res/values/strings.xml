@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">后台优化</string>
+    <string name="getRunningAppInfoBtn">getRunningAppInfoBtn</string>
+    <string name="getTargetAppGroupBtn">getTargetAppGroup</string>
+    <string name="queryInfoTipText">application uid for querying</string>
+    <string name="queryInfoEditTextHint">application uid</string>
+    <string name="doQueryBtn">Query</string>
+    <string name="queryResultText">Launch a query~</string>
 </resources>

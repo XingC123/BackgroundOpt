@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">后台优化</string>
+    <string name="getRunningAppInfoBtn">获取运行中应用的信息</string>
+    <string name="getTargetAppGroupBtn">获取应用内存分组</string>
+    <string name="queryInfoTipText">请输入要查询app的UID</string>
+    <string name="queryInfoEditTextHint">输入UID(纯数字)</string>
+    <string name="doQueryBtn">查询</string>
+    <string name="queryResultText">快发起查询吧~</string>
+</resources>

@@ -13,4 +13,11 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+
+    <style name="Theme.AppTheme" parent="Theme.Material3.Light">
+        <item name="colorPrimary">@color/duRuo</item>
+        <item name="colorPrimaryVariant">@color/ganJieGeng</item>
+        <item name="colorOnPrimary">@color/white</item>
+    </style>
+
 </resources>

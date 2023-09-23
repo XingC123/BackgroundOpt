@@ -10,8 +10,7 @@ import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
-import com.venus.backgroundopt.utils.message.MessageKeyConstants
-import com.venus.backgroundopt.utils.message.createResponse
+import com.venus.backgroundopt.utils.message.registeredMessageHandler
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
@@ -150,7 +149,6 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
 
     /**
      * ui消息监听
-     * TODO 从统一的工具类中做赋值/取值操作
      */
     private fun handleStartService(param: MethodHookParam) {
         val dataIntent = param.args[1] as Intent
@@ -161,15 +159,6 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
         val key = dataIntent.type       // 此次请求的key
         val value = dataIntent.action   // 请求的值
 
-        when (key) {
-            MessageKeyConstants.isRecordedProcessInfo -> {
-                createResponse(param, value) { v: Int ->
-                    runningInfo.getRunningAppInfo(v)
-                }
-            }
-
-            else -> {
-            }
-        }
+        registeredMessageHandler[key]?.handle(runningInfo, param, value)
     }
 }

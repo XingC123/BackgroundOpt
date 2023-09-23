@@ -8,7 +8,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.BackgroundOpt">
+        android:theme="@style/Theme.AppTheme">
 
         <!-- 是否是xposed模块 -->
         <meta-data
