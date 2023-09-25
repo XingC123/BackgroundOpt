@@ -1,10 +1,12 @@
 package com.venus.backgroundopt.entity.base;
 
+import com.venus.backgroundopt.utils.message.MessageFlag;
+
 /**
  * @author XingC
  * @date 2023/9/25
  */
-public class BaseProcessInfo {
+public class BaseProcessInfo implements MessageFlag {
     // 程序的uid
     protected int uid = Integer.MIN_VALUE;
     // 该进程对应的pid

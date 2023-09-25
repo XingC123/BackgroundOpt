@@ -158,3 +158,9 @@
 -keepattributes Signature
 -dontwarn com.alibaba.fastjson.**
 -keep class com.alibaba.fastjson.**{*; }
+
+################################################################
+# 自定义规则                                                     #
+################################################################
+# 不混淆实现了此接口的类
+-keep class * implements com.venus.backgroundopt.utils.message.MessageFlag
