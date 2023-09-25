@@ -221,7 +221,7 @@ public class ProcessManager implements ILogger {
             return;
         }
 
-        processInfoPids.parallelStream().forEach(this::setPidToBackgroundProcessGroup);
+        processInfoPids.forEach(this::setPidToBackgroundProcessGroup);
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + " 进行进程组设置 >>> THREAD_GROUP_BACKGROUND");

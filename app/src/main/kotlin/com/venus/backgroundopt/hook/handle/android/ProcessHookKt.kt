@@ -2,11 +2,14 @@ package com.venus.backgroundopt.hook.handle.android
 
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.RunningInfo
+import com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
+import com.venus.backgroundopt.hook.handle.android.entity.Process
+import com.venus.backgroundopt.manager.process.ProcessManager
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
@@ -15,6 +18,15 @@ import de.robv.android.xposed.XC_MethodHook.MethodHookParam
  */
 class ProcessHookKt(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
     MethodHook(classLoader, hookInfo) {
+    companion object {
+        // 在此处的App内存状态将不会允许系统设置ProcessGroup
+        val ignoreSetProcessGroupAppGroups = arrayOf(
+            AppGroupEnum.IDLE,
+            AppGroupEnum.TMP,
+            AppGroupEnum.ACTIVE
+        )
+    }
+
     override fun getHookPoint(): Array<HookPoint> {
         return arrayOf(
             HookPoint(
@@ -28,6 +40,15 @@ class ProcessHookKt(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
                 Int::class.java,
                 Int::class.java
             ),
+            /*HookPoint(
+                ClassConstants.Process,
+                MethodConstants.setProcessGroup,
+                arrayOf(
+                    beforeHookAction { handleSetProcessGroup(it) }
+                ),
+                Int::class.javaPrimitiveType,   // pid
+                Int::class.javaPrimitiveType    // group
+            ),*/
         )
     }
 
@@ -55,6 +76,27 @@ class ProcessHookKt(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
                 if (BuildConfig.DEBUG) {
                     logger.debug("kill: ${appInfo.packageName}, uid: ${uid}, pid: $pid >>> 子进程被杀")
                 }
+            }
+        }
+    }
+
+    private fun handleSetProcessGroup(param: MethodHookParam) {
+        val pid = param.args[0] as Int
+        val group = param.args[1] as Int
+
+        if (group > Process.THREAD_GROUP_RESTRICTED) {  //若是模块控制的行为, 则直接处理
+            //若是模块控制的行为, 则直接处理
+            param.args[1] = group - ProcessManager.THREAD_GROUP_LEVEL_OFFSET
+            if (BuildConfig.DEBUG) {
+                logger.debug("pid: ${pid}设置ProcessGroup >>> ${param.args[1]}")
+            }
+        } else {
+            val uid = Process.getUidForPid(pid)
+            val appInfo = runningInfo.getRunningAppInfo(uid)
+
+            // 模块接管此处行为
+            if (appInfo != null && appInfo.appGroupEnum in ignoreSetProcessGroupAppGroups) {
+                param.result = null
             }
         }
     }
