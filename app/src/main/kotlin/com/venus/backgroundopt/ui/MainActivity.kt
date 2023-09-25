@@ -10,6 +10,7 @@ import com.venus.backgroundopt.ui.widget.ShowBackgroundTasksActivity
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.sendMessage
+import com.venus.backgroundopt.utils.setIntentData
 
 
 class MainActivity : AppCompatActivity(), ILogger {
@@ -40,7 +41,7 @@ class MainActivity : AppCompatActivity(), ILogger {
                 MessageKeyConstants.getBackgroundTasks,
             )
             startActivity(Intent(this, ShowBackgroundTasksActivity::class.java).apply {
-                putExtra("data", listStr)
+                setIntentData(this, listStr)
             })
         }
     }

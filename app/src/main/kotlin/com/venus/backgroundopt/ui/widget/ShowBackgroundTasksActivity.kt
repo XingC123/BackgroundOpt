@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.alibaba.fastjson2.JSON
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
+import com.venus.backgroundopt.utils.getIntentData
 import com.venus.backgroundopt.utils.getTargetApps
 
 
@@ -26,7 +27,7 @@ class ShowBackgroundTasksActivity : AppCompatActivity() {
 
 
     private fun init() {
-        val stringExtra = intent.getStringExtra("data")
+        val stringExtra = getIntentData(intent)
         stringExtra ?: return
 
         val list = JSON.parseArray(stringExtra, ProcessRecord::class.java)
