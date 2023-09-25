@@ -12,7 +12,6 @@ import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
-import kotlin.math.min
 
 /**
  * @author XingC
@@ -85,14 +84,10 @@ class ProcessListHookKt(
                                 "pid: ${pid}, adj: ${param.args[2]}"
                     )
                 }
-            }
-            /**
-             * [OomAdjusterHook.handleComputeOomAdjLSP]中已阻止app主进程而此计算, 因此此情况不再成立
-             */
-            /*else {
+            } else {
                 param.result = null
                 appInfo.modifyProcessInfoAndAddIfNull(pid, oomAdjScore)
-            }*/
+            }
         } else if (pid == Int.MIN_VALUE) {
             if (BuildConfig.DEBUG) {
                 logger.warn("${appInfo.packageName}, uid: $uid 的pid = $pid 不符合规范, 无法添加至进程列表")
