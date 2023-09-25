@@ -1,6 +1,5 @@
 package com.venus.backgroundopt.hook.handle.android
 
-import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
@@ -44,7 +43,12 @@ class OomAdjusterHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
 
         // 如果此次调节的不是主进程, 则返回
         val pid = ProcessRecord.getPid(app)
-        if (pid != appInfo.getmPid()) {
+        val mPid = try {
+            appInfo.getmPid()
+        } catch (t: Throwable) {
+            return
+        }
+        if (pid != mPid) {
             return
         }
 
