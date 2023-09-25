@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.alibaba.fastjson2.JSON
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
+import com.venus.backgroundopt.utils.getTargetApps
 
 
 /**
@@ -31,12 +32,14 @@ class ShowBackgroundTasksActivity : AppCompatActivity() {
         val list = JSON.parseArray(stringExtra, ProcessRecord::class.java)
         list ?: return
 
+        val appItems = getTargetApps(this, list)
+
         val layoutManager = LinearLayoutManager(this).apply {
             orientation = LinearLayoutManager.VERTICAL
         }
         findViewById<RecyclerView>(R.id.recyclerView).apply {
             this.layoutManager = layoutManager
-            adapter = GetBackgroundTasksAdapter(list)
+            adapter = GetBackgroundTasksAdapter(appItems)
         }
     }
 }
