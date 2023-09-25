@@ -72,6 +72,7 @@ public interface MethodConstants {
     String cleanUpApplicationRecordLocked = "cleanUpApplicationRecordLocked";
     String onAddRoleHolder = "onAddRoleHolder";
     String killProcessesBelowAdj = "killProcessesBelowAdj";
+    String trimInactiveRecentTasks = "trimInactiveRecentTasks";
 
     /**
      * miui
