@@ -132,7 +132,7 @@ public class AppInfo implements ILogger {
     }
 
     public void addProcessInfo(ProcessInfo processInfo) {
-        processInfoMap.computeIfAbsent(processInfo.getPid(), key -> /*纠正processInfo的uid*/ processInfo.setUid(uid));
+        processInfoMap.computeIfAbsent(processInfo.getPid(), key -> /*纠正processInfo的uid*/ processInfo.setUidStream(uid));
     }
 
     @Nullable

@@ -1,19 +1,15 @@
 package com.venus.backgroundopt.ui.widget
 
-import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.ui.widget.base.ShowInfoFromAppItemActivity
 import com.venus.backgroundopt.ui.widget.base.ShowInfoFromAppItemAdapter
 
-
 /**
- * 用于展示后台任务列表的Activity
- *
  * @author XingC
- * @date 2023/9/23
+ * @date 2023/9/25
  */
-class ShowBackgroundTasksActivity : ShowInfoFromAppItemActivity() {
+class ShowAppCompactListActivity : ShowInfoFromAppItemActivity() {
     override fun getShowInfoAdapter(appItems: List<AppItem>): ShowInfoFromAppItemAdapter {
-        return GetBackgroundTasksAdapter(appItems)
+        return GetAppCompactListAdapter(appItems)
     }
 }

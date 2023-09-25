@@ -11,5 +11,6 @@ interface MessageKeyConstants {
         const val getRunningAppInfo = "getRunningAppInfo"
         const val getTargetAppGroup = "getTargetAppGroup"
         const val getBackgroundTasks = "getBackgroundTasks"
+        const val getAppCompactList = "getAppCompactList"
     }
 }

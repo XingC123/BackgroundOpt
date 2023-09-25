@@ -5,7 +5,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import com.venus.backgroundopt.entity.AppItem
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
+import com.venus.backgroundopt.entity.base.BaseProcessInfo
 import java.util.Objects
 import java.util.stream.Collectors
 
@@ -29,13 +29,13 @@ private fun getPackageInfo(
     }
 }
 
-fun getTargetApps(context: Context, list: List<ProcessRecord>): List<AppItem> {
+fun getTargetApps(context: Context, list: List<BaseProcessInfo>): List<AppItem> {
     val packageManager = context.packageManager
 
     return list.stream()
-        .map { processRecord ->
+        .map { baseProcessInfo ->
             getPackageInfo(
-                packageManager, processRecord.packageName,
+                packageManager, baseProcessInfo.packageName,
                 PackageManager.MATCH_UNINSTALLED_PACKAGES or PackageManager.GET_ACTIVITIES
             )?.let { packageInfo ->
                 val applicationInfo = packageInfo.applicationInfo
@@ -45,7 +45,8 @@ fun getTargetApps(context: Context, list: List<ProcessRecord>): List<AppItem> {
                     applicationInfo.loadIcon(packageManager),
                     packageInfo
                 ).apply {
-                    pid = processRecord.pid
+                    pid = baseProcessInfo.pid
+                    processName = baseProcessInfo.processName ?: null
                 }
             }
         }

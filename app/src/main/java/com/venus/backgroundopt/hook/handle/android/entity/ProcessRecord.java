@@ -3,6 +3,7 @@ package com.venus.backgroundopt.hook.handle.android.entity;
 import android.content.pm.ApplicationInfo;
 
 import com.alibaba.fastjson2.annotation.JSONField;
+import com.venus.backgroundopt.entity.base.BaseProcessInfo;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
@@ -18,7 +19,7 @@ import de.robv.android.xposed.XposedHelpers;
  * @version 1.0
  * @date 2023/2/10
  */
-public class ProcessRecord {
+public class ProcessRecord extends BaseProcessInfo {
     // 默认的最大adj
     public static final int DEFAULT_MAX_ADJ = ProcessList.VISIBLE_APP_ADJ;
     // 默认的主进程要设置的adj
@@ -41,27 +42,6 @@ public class ProcessRecord {
         return ProcessRecordClass;
     }
 
-    // 程序的uid
-    private int uid;  // uid of process; may be different from 'info' if isolated
-    // 该进程对应的pid
-    private int pid;
-    // 进程名称
-    /*
-        com.ktcp.video
-        com.ktcp.video:push
-        com.ktcp.video:upgrade
-        第一个很明显，是主应用的进程，下边带冒号":"的一般都是通过在manifest中声明android:process来指定的一个独立进程。
-        这里每一个进程在系统framework中都有一个对应的ProcessRecord数据结构来维护各个进程的状态信息等。
-
-        另外需要注意的是: ProcessRecord.processName获取的是每个独立进程的完整名字，也就是带冒号":"的名字;
-        而通过ProcessRecord.info.processName获取的是主应用进程的进程名，也就是不带有冒号":"的名字
-        来源: https://blog.csdn.net/weixin_35831256/article/details/117644536
-     */
-    private String processName;
-    // 进程所属程序的用户id
-    private int userId;
-    // 进程所在的程序的包名
-    private String packageName;
     // 反射拿到的安卓的processRecord对象
     @JSONField(serialize = false)
     private Object processRecord;
@@ -267,46 +247,6 @@ public class ProcessRecord {
     @Override
     public int hashCode() {
         return Objects.hash(uid, pid, processName, userId, packageName);
-    }
-
-    public int getUid() {
-        return uid;
-    }
-
-    public void setUid(int uid) {
-        this.uid = uid;
-    }
-
-    public int getPid() {
-        return pid;
-    }
-
-    public void setPid(int pid) {
-        this.pid = pid;
-    }
-
-    public String getProcessName() {
-        return processName;
-    }
-
-    public void setProcessName(String processName) {
-        this.processName = processName;
-    }
-
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-    public String getPackageName() {
-        return packageName;
-    }
-
-    public void setPackageName(String packageName) {
-        this.packageName = packageName;
     }
 
     public Object getProcessRecord() {

@@ -44,6 +44,10 @@
         <activity
             android:name=".ui.widget.ShowBackgroundTasksActivity"
             android:exported="true" />
+
+        <activity
+            android:name=".ui.widget.ShowAppCompactListActivity"
+            android:exported="true" />
     </application>
 
 </manifest>

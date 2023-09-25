@@ -6,6 +6,7 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.ui.widget.QueryInfoDialog
+import com.venus.backgroundopt.ui.widget.ShowAppCompactListActivity
 import com.venus.backgroundopt.ui.widget.ShowBackgroundTasksActivity
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
@@ -41,6 +42,17 @@ class MainActivity : AppCompatActivity(), ILogger {
                 MessageKeyConstants.getBackgroundTasks,
             )
             startActivity(Intent(this, ShowBackgroundTasksActivity::class.java).apply {
+                setIntentData(this, listStr)
+            })
+        }
+
+        // 获取后台内存压缩任务列表
+        findViewById<Button>(R.id.getAppCompactItemsBtn)?.setOnClickListener { _ ->
+            val listStr = sendMessage(
+                this,
+                MessageKeyConstants.getAppCompactList,
+            )
+            startActivity(Intent(this, ShowAppCompactListActivity::class.java).apply {
                 setIntentData(this, listStr)
             })
         }

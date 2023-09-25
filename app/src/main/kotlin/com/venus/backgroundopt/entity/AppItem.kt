@@ -16,4 +16,5 @@ data class AppItem(
     val packageInfo: PackageInfo?
 ) {
     var pid: Int = Int.MIN_VALUE
+    var processName: String? = null
 }

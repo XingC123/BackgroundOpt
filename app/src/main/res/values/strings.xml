@@ -11,4 +11,5 @@
     <string name="getBackgroundTasksTipText2">tip2:</string>
     <string name="backgroundTasksTipText1">"package name: "</string>
     <string name="backgroundTasksTipText2">pid:</string>
+    <string name="getAppCompactItemsBtn">get compact app  items</string>
 </resources>

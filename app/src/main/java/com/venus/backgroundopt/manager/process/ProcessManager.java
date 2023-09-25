@@ -53,6 +53,10 @@ public class ProcessManager implements ILogger {
      **************************************************************************/
     private final AppCompactManager appCompactManager;
 
+    public Set<ProcessInfo> getCompactProcessInfos() {
+        return appCompactManager.getCompactProcessInfos();
+    }
+
     /**
      * 添加压缩进程
      */

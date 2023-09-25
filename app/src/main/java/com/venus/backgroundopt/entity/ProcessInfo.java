@@ -2,6 +2,8 @@ package com.venus.backgroundopt.entity;
 
 import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 
+import com.alibaba.fastjson2.annotation.JSONField;
+import com.venus.backgroundopt.entity.base.BaseProcessInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 
 import java.util.Objects;
@@ -17,11 +19,11 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 1.0
  * @date 2023/6/3
  */
-public class ProcessInfo {
-    private int uid = Integer.MIN_VALUE;
-    private int pid = Integer.MIN_VALUE;
+public class ProcessInfo extends BaseProcessInfo {
+    @JSONField(serialize = false)
     private final AtomicInteger oomAdjScore = new AtomicInteger(Integer.MIN_VALUE);
     // 上次压缩时间
+    @JSONField(serialize = false)
     private final AtomicLong lastCompactTime = new AtomicLong(0L);
     // 压缩间隔
     private static final long compactInterval = TimeUnit.MINUTES.toMillis(7);
@@ -35,14 +37,15 @@ public class ProcessInfo {
     private boolean mainProcess = false;    // app主进程
 
     private ProcessInfo(ProcessRecord processRecord) {
-        this(processRecord.getUid(), processRecord.getPid(), Integer.MIN_VALUE);
+        this(processRecord.getPackageName(), processRecord.getUid(), processRecord.getPid(), Integer.MIN_VALUE);
     }
 
-    private ProcessInfo(int uid, int pid, int oomAdjScore) {
-        this(uid, pid, oomAdjScore, Integer.MIN_VALUE);
+    private ProcessInfo(String packageName, int uid, int pid, int oomAdjScore) {
+        this(packageName, uid, pid, oomAdjScore, Integer.MIN_VALUE);
     }
 
-    private ProcessInfo(int uid, int pid, int oomAdjScore, int fixedOomAdjScore) {
+    private ProcessInfo(String packageName, int uid, int pid, int oomAdjScore, int fixedOomAdjScore) {
+        this.packageName = packageName;
         this.uid = uid;
         this.pid = pid;
         this.oomAdjScore.set(oomAdjScore);
@@ -54,7 +57,7 @@ public class ProcessInfo {
     }
 
     public static ProcessInfo newInstance(AppInfo appInfo, RunningInfo runningInfo, int uid, int pid, int oomAdjScore) {
-        ProcessInfo processInfo = new ProcessInfo(uid, pid, oomAdjScore, Integer.MIN_VALUE);
+        ProcessInfo processInfo = new ProcessInfo(appInfo.getPackageName(), uid, pid, oomAdjScore, Integer.MIN_VALUE);
         try {
             processInfo.mainProcess = (pid == appInfo.getmPid());
         } catch (Exception ignore) {
@@ -117,7 +120,7 @@ public class ProcessInfo {
         return uid;
     }
 
-    public ProcessInfo setUid(int uid) {
+    public ProcessInfo setUidStream(int uid) {
         this.uid = uid;
         return this;
     }

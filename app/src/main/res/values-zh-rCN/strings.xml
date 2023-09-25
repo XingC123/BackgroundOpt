@@ -12,4 +12,5 @@
     <string name="getBackgroundTasksTipText2">"tip2: "</string>
     <string name="backgroundTasksTipText1">"包名: "</string>
     <string name="backgroundTasksTipText2">"pid: "</string>
+    <string name="getAppCompactItemsBtn">获取压缩任务列表</string>
 </resources>

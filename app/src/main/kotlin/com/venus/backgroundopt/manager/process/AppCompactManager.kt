@@ -37,7 +37,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
 
     // 待压缩的进程信息列表
     // 注意: 是"进程信息"而不是"应用信息", 其size代表的是进程数不是app数
-    private val compactProcessInfos = Collections.newSetFromMap<ProcessInfo>(ConcurrentHashMap())
+    val compactProcessInfos: MutableSet<ProcessInfo> = Collections.newSetFromMap(ConcurrentHashMap())
 
     /* *************************************************************************
      *                                                                         *
