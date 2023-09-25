@@ -9,7 +9,8 @@
     <string name="getBackgroundTasks">getBackgroundTasks</string>
     <string name="getBackgroundTasksTipText1">tip1:</string>
     <string name="getBackgroundTasksTipText2">tip2:</string>
-    <string name="backgroundTasksTipText1">"package name: "</string>
-    <string name="backgroundTasksTipText2">pid:</string>
+    <string name="packageName">"name of package: "</string>
+    <string name="pid">pid:</string>
     <string name="getAppCompactItemsBtn">get compact app  items</string>
+    <string name="processName">"name of process: "</string>
 </resources>

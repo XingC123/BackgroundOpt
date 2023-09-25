@@ -36,12 +36,12 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
      * 提示信息的内容                                                             *
      *                                                                         *
      **************************************************************************/
-    private fun getTipText1ResId(): Int {
-        return R.string.backgroundTasksTipText1
+    protected open fun getTipText1ResId(): Int {
+        return R.string.packageName
     }
 
-    private fun getTipText2ResId(): Int {
-        return R.string.backgroundTasksTipText2
+    protected open fun getTipText2ResId(): Int {
+        return R.string.pid
     }
 
     /* *************************************************************************
@@ -49,7 +49,7 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
      * 具体的内容                                                                *
      *                                                                         *
      **************************************************************************/
-    abstract fun getText1Content(appItem: AppItem): String
+    abstract fun getText1Content(appItem: AppItem): String?
     abstract fun getText2Content(appItem: AppItem): String
 
     /* *************************************************************************

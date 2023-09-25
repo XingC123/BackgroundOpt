@@ -10,7 +10,8 @@
     <string name="getBackgroundTasks">获取后台任务列表</string>
     <string name="getBackgroundTasksTipText1">tip1:</string>
     <string name="getBackgroundTasksTipText2">"tip2: "</string>
-    <string name="backgroundTasksTipText1">"包名: "</string>
-    <string name="backgroundTasksTipText2">"pid: "</string>
+    <string name="packageName">"包名: "</string>
+    <string name="pid">"pid: "</string>
     <string name="getAppCompactItemsBtn">获取压缩任务列表</string>
+    <string name="processName">"进程名: "</string>
 </resources>
