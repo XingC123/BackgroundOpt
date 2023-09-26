@@ -1,7 +1,6 @@
 package com.venus.backgroundopt.hook.handle.android
 
 import com.venus.backgroundopt.BuildConfig
-import com.venus.backgroundopt.entity.ProcessInfo
 import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.hook.base.HookPoint
@@ -52,7 +51,6 @@ class ProcessListHookKt(
 
         val pid = param.args[0] as Int
         val oomAdjScore = param.args[2] as Int
-        var processInfo: ProcessInfo?
         var mPid = Int.MIN_VALUE
         try {
             mPid = appInfo.getmPid()
@@ -75,9 +73,12 @@ class ProcessListHookKt(
         if (pid == mPid) { // 主进程
             if (appInfo.mainProcCurAdj != ProcessRecord.DEFAULT_MAIN_ADJ) {    // 第一次打开app
                 param.args[2] = ProcessRecord.DEFAULT_MAIN_ADJ
-                processInfo = appInfo.getmProcessInfo()
-                processInfo.fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
-                processInfo.oomAdjScore = oomAdjScore
+
+                appInfo.getmProcessInfo()?.let { processInfo ->
+                    processInfo.fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
+                    processInfo.oomAdjScore = oomAdjScore
+                }
+
                 if (BuildConfig.DEBUG) {
                     logger.debug(
                         "设置主进程: [${appInfo.packageName}, uid: ${uid}] ->>> " +
@@ -94,17 +95,23 @@ class ProcessListHookKt(
             }
             return
         } else { // 子进程的处理
-            processInfo = appInfo.getProcessInfo(pid)
-            // 子进程信息尚未记录
-            if (processInfo == null) {
-                var expectedOomAdjScore = ProcessRecord.SUB_PROC_ADJ
-                if (oomAdjScore > expectedOomAdjScore) {
-                    expectedOomAdjScore = oomAdjScore
-                } else {
-                    param.args[2] = expectedOomAdjScore
+            appInfo.getProcessInfo(pid)?.let { processInfo ->
+                val fixedOomAdjScore = processInfo.fixedOomAdjScore
+                // 新的oomAdj小于修正过的adj 或 修正过的adj为不可能取值
+                if (oomAdjScore < fixedOomAdjScore || fixedOomAdjScore == ProcessList.IMPOSSIBLE_ADJ) {
+                    param.result = null
                 }
-                processInfo = appInfo.addProcessInfo(pid, expectedOomAdjScore)
-                processInfo.fixedOomAdjScore = expectedOomAdjScore
+                appInfo.modifyProcessInfoAndAddIfNull(pid, oomAdjScore)
+            } ?: run {
+                val expectedOomAdjScore = ProcessRecord.SUB_PROC_ADJ
+                var finalOomAdjScore = expectedOomAdjScore
+                if (oomAdjScore > expectedOomAdjScore) {
+                    finalOomAdjScore = oomAdjScore
+                } else {
+                    param.args[2] = finalOomAdjScore
+                }
+                appInfo.addProcessInfo(pid, finalOomAdjScore)?.fixedOomAdjScore =
+                    expectedOomAdjScore
 
 //                if (Objects.equals(AppGroupEnum.IDLE, appInfo.getAppGroupEnum())) {
 //                    runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, appInfo);
@@ -112,16 +119,9 @@ class ProcessListHookKt(
                 if (BuildConfig.DEBUG) {
                     logger.debug(
                         "设置子进程: [${appInfo.packageName}, uid: ${uid}] ->>> " +
-                                "pid: ${pid}, adj: $expectedOomAdjScore"
+                                "pid: ${pid}, adj: $finalOomAdjScore"
                     )
                 }
-            } else {
-                val fixedOomAdjScore = processInfo.fixedOomAdjScore
-                // 新的oomAdj小于修正过的adj 或 修正过的adj为不可能取值
-                if (oomAdjScore < fixedOomAdjScore || fixedOomAdjScore == ProcessList.IMPOSSIBLE_ADJ) {
-                    param.result = null
-                }
-                appInfo.modifyProcessInfoAndAddIfNull(pid, oomAdjScore)
             }
         }
         return
