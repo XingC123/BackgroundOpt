@@ -3,6 +3,7 @@ package com.venus.backgroundopt.hook.handle.android
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum
+import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
@@ -96,21 +97,47 @@ class ProcessListHookKt(
             return
         } else { // 子进程的处理
             appInfo.getProcess(pid)?.let { processRecord ->
-                val fixedOomAdjScore = processRecord.fixedOomAdjScore
-                // 新的oomAdj小于修正过的adj 或 修正过的adj为不可能取值
-                if (oomAdjScore < fixedOomAdjScore || fixedOomAdjScore == ProcessList.IMPOSSIBLE_ADJ) {
+                val upgradeSubProcessLevel =
+                    processRecord.getFullPackageName() in CommonProperties.WHITE_SUB_PROCESSES
+
+                if (upgradeSubProcessLevel) {
                     param.result = null
+                } else {
+                    val fixedOomAdjScore = processRecord.fixedOomAdjScore
+                    // 新的oomAdj小于修正过的adj 或 修正过的adj为不可能取值
+                    if (oomAdjScore < fixedOomAdjScore || fixedOomAdjScore == ProcessList.IMPOSSIBLE_ADJ) {
+                        param.result = null
+                    }
                 }
                 appInfo.modifyProcessRecord(pid, oomAdjScore)
             } ?: run {
-                val expectedOomAdjScore = ProcessRecordKt.SUB_PROC_ADJ
-                var finalOomAdjScore = expectedOomAdjScore
-                if (oomAdjScore > expectedOomAdjScore) {
-                    finalOomAdjScore = oomAdjScore
-                } else {
+                val processRecordKt = runningInfo.activityManagerService.getProcessRecord(pid)
+
+                // 子进程oom调整白名单(拥有和主进程一样的oom_adj_score, 不是模块不对其进行设置的意思)
+                val upgradeSubProcessLevel =
+                    processRecordKt?.getFullPackageName() in CommonProperties.WHITE_SUB_PROCESSES
+
+                val expectedOomAdjScore: Int
+                var finalOomAdjScore: Int
+                if (upgradeSubProcessLevel) {
+                    expectedOomAdjScore = ProcessRecordKt.DEFAULT_MAIN_ADJ
+                    finalOomAdjScore = expectedOomAdjScore
                     param.args[2] = finalOomAdjScore
+                } else {
+                    expectedOomAdjScore = ProcessRecordKt.SUB_PROC_ADJ
+                    finalOomAdjScore = expectedOomAdjScore
+                    if (oomAdjScore > expectedOomAdjScore) {
+                        finalOomAdjScore = oomAdjScore
+                    } else {
+                        param.args[2] = finalOomAdjScore
+                    }
                 }
-                appInfo.addProcess(pid, finalOomAdjScore)?.fixedOomAdjScore = expectedOomAdjScore
+
+                processRecordKt?.let {
+                    it.oomAdjScore = oomAdjScore
+                    it.fixedOomAdjScore = expectedOomAdjScore
+                    appInfo.addProcess(processRecordKt)
+                }
 
 //                if (Objects.equals(AppGroupEnum.IDLE, appInfo.getAppGroupEnum())) {
 //                    runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, appInfo);

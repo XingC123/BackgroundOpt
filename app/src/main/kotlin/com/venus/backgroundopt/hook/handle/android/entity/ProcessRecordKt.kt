@@ -9,6 +9,7 @@ import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_NEWLINE_TERM
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_OUT_LONG
+import com.venus.backgroundopt.utils.PackageUtils
 import de.robv.android.xposed.XposedHelpers
 import java.util.Objects
 import java.util.concurrent.TimeUnit
@@ -157,6 +158,20 @@ class ProcessRecordKt() : BaseProcessInfoKt() {
             )
             return longOut[0].toInt()
         }
+
+        /**
+         * 获取完整进程名
+         *
+         * @param processRecord 安卓的ProcessRecord
+         * @return 包名:进程名
+         */
+        @JvmStatic
+        fun getFullPackageName(processRecord: Any?): String {
+            return PackageUtils.absoluteProcessName(
+                getPkgName(processRecord),
+                getProcessName(processRecord)
+            )
+        }
     }
 
     // 反射拿到的安卓的processRecord对象
@@ -297,6 +312,11 @@ class ProcessRecordKt() : BaseProcessInfoKt() {
     @JSONField(serialize = false)
     fun getCurAdjNative(): Int {
         return Companion.getCurAdjNative(pid)
+    }
+
+    @JSONField(serialize = false)
+    fun getFullPackageName(): String {
+        return PackageUtils.absoluteProcessName(packageName, processName)
     }
 
     /* *************************************************************************

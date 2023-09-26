@@ -120,14 +120,16 @@ public class AppInfo implements ILogger {
         if (processRecord != null) {
             processRecord.setOomAdjScoreToAtomicInteger(oomAdjScore);
             addProcess(processRecord);
-            ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
         }
 
         return processRecord;
     }
 
     public void addProcess(@NotNull ProcessRecordKt processRecord) {
-        processRecordMap.computeIfAbsent(processRecord.getPid(), k -> ProcessRecordKt.setMainProcess(this, processRecord));
+        processRecordMap.computeIfAbsent(processRecord.getPid(), k -> {
+            ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
+            return ProcessRecordKt.setMainProcess(this, processRecord);
+        });
     }
 
     @Nullable
