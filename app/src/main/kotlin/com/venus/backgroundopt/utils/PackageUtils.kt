@@ -19,13 +19,17 @@ private fun getPackageInfo(
     packageName: String,
     packageInfoFlag: Int
 ): PackageInfo? {
-    return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-        packageManager.getPackageInfo(packageName, packageInfoFlag)
-    } else {
-        packageManager.getPackageInfo(
-            packageName,
-            PackageManager.PackageInfoFlags.of(packageInfoFlag.toLong())
-        )
+    return try {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            packageManager.getPackageInfo(packageName, packageInfoFlag)
+        } else {
+            packageManager.getPackageInfo(
+                packageName,
+                PackageManager.PackageInfoFlags.of(packageInfoFlag.toLong())
+            )
+        }
+    } catch (t: Throwable) {
+        null
     }
 }
 
