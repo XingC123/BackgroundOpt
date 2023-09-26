@@ -12,7 +12,7 @@ import com.venus.backgroundopt.hook.base.action.HookAction;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -93,7 +93,7 @@ public class ProcessHook extends MethodHook {
                 }
             } else {
                 // 移除进程记录
-                ProcessRecord processRecord = appInfo.removeProcess(pid);
+                ProcessRecordKt processRecord = appInfo.removeProcess(pid);
                 // 取消进程的待压缩任务
                 runningInfo.getProcessManager().cancelCompactProcess(processRecord);
 

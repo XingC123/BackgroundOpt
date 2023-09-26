@@ -9,7 +9,7 @@ import com.venus.backgroundopt.hook.base.action.afterHookAction
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.message.registeredMessageHandler
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
@@ -104,7 +104,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
 
     private fun handleCleanUpApplicationRecordLocked(param: MethodHookParam) {
         val processRecord = param.args[0] as Any
-        val uid = ProcessRecord.getUID(processRecord)
+        val uid = ProcessRecordKt.getUID(processRecord)
         val appInfo = runningInfo.getRunningAppInfo(uid)
 
         appInfo ?: return
@@ -144,7 +144,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
 
     private fun handleKillProcessesBelowAdj(param: MethodHookParam) {
         // 拔高adj分数
-        param.args[0] = ProcessRecord.SUB_PROC_ADJ
+        param.args[0] = ProcessRecordKt.SUB_PROC_ADJ
     }
 
     /**

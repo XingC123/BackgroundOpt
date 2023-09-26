@@ -9,7 +9,7 @@ import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
@@ -71,11 +71,11 @@ class ProcessListHookKt(
             }
         }
         if (pid == mPid) { // 主进程
-            if (appInfo.mainProcCurAdj != ProcessRecord.DEFAULT_MAIN_ADJ) {    // 第一次打开app
-                param.args[2] = ProcessRecord.DEFAULT_MAIN_ADJ
+            if (appInfo.mainProcCurAdj != ProcessRecordKt.DEFAULT_MAIN_ADJ) {    // 第一次打开app
+                param.args[2] = ProcessRecordKt.DEFAULT_MAIN_ADJ
 
                 appInfo.getmProcess()?.let { processRecord ->
-                    processRecord.fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
+                    processRecord.fixedOomAdjScore = ProcessRecordKt.DEFAULT_MAIN_ADJ
                     processRecord.oomAdjScore = oomAdjScore
                 }
 
@@ -103,7 +103,7 @@ class ProcessListHookKt(
                 }
                 appInfo.modifyProcessRecord(pid, oomAdjScore)
             } ?: run {
-                val expectedOomAdjScore = ProcessRecord.SUB_PROC_ADJ
+                val expectedOomAdjScore = ProcessRecordKt.SUB_PROC_ADJ
                 var finalOomAdjScore = expectedOomAdjScore
                 if (oomAdjScore > expectedOomAdjScore) {
                     finalOomAdjScore = oomAdjScore

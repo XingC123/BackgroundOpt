@@ -7,7 +7,7 @@ import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import org.jetbrains.annotations.Nullable;
@@ -52,18 +52,18 @@ public class ProcessManager implements ILogger {
      **************************************************************************/
     private final AppCompactManager appCompactManager;
 
-    public Set<ProcessRecord> getCompactProcessInfos() {
+    public Set<ProcessRecordKt> getCompactProcessInfos() {
         return appCompactManager.getCompactProcesses();
     }
 
     /**
      * 添加压缩进程
      */
-    public void addCompactProcess(Collection<ProcessRecord> processRecords) {
+    public void addCompactProcess(Collection<ProcessRecordKt> processRecords) {
         appCompactManager.addCompactProcess(processRecords);
     }
 
-    public void addCompactProcess(ProcessRecord processRecord) {
+    public void addCompactProcess(ProcessRecordKt processRecord) {
         appCompactManager.addCompactProcess(processRecord);
     }
 
@@ -72,11 +72,11 @@ public class ProcessManager implements ILogger {
      *
      * @param processRecord 进程记录
      */
-    public void cancelCompactProcess(@Nullable ProcessRecord processRecord) {
+    public void cancelCompactProcess(@Nullable ProcessRecordKt processRecord) {
         appCompactManager.cancelCompactProcess(processRecord);
     }
 
-    public void cancelCompactProcess(Collection<ProcessRecord> processRecords) {
+    public void cancelCompactProcess(Collection<ProcessRecordKt> processRecords) {
         appCompactManager.cancelCompactProcess(processRecords);
     }
 
@@ -84,7 +84,7 @@ public class ProcessManager implements ILogger {
         appCompactManager.cancelCompactProcess(appInfo);
     }
 
-    public void compactApp(ProcessRecord processRecord) {
+    public void compactApp(ProcessRecordKt processRecord) {
         appCompactManager.compactApp(processRecord);
     }
 
@@ -132,11 +132,11 @@ public class ProcessManager implements ILogger {
 //        return cachedAppOptimizer.compactApp(processInfo.getProcessRecord(), true, "Full");
 //    }
 
-    public boolean compactAppFull(ProcessRecord processRecord) {
+    public boolean compactAppFull(ProcessRecordKt processRecord) {
         return appCompactManager.compactAppFull(processRecord);
     }
 
-    public void compactAppFullNoCheck(ProcessRecord processRecord) {
+    public void compactAppFullNoCheck(ProcessRecordKt processRecord) {
         appCompactManager.compactAppFullNoCheck(processRecord);
     }
 
@@ -147,19 +147,19 @@ public class ProcessManager implements ILogger {
      **************************************************************************/
     private final AppMemoryTrimManagerKt appMemoryTrimManager = new AppMemoryTrimManagerKt();
 
-    public Set<ProcessRecord> getForegroundTasks() {
+    public Set<ProcessRecordKt> getForegroundTasks() {
         return appMemoryTrimManager.getForegroundTasks();
     }
 
-    public Set<ProcessRecord> getBackgroundTasks() {
+    public Set<ProcessRecordKt> getBackgroundTasks() {
         return appMemoryTrimManager.getBackgroundTasks();
     }
 
-    public void startBackgroundAppTrimTask(ProcessRecord processRecord) {
+    public void startBackgroundAppTrimTask(ProcessRecordKt processRecord) {
         appMemoryTrimManager.addBackgroundTask(processRecord);
     }
 
-    public void startForegroundAppTrimTask(ProcessRecord processRecord) {
+    public void startForegroundAppTrimTask(ProcessRecordKt processRecord) {
         appMemoryTrimManager.addForegroundTask(processRecord);
     }
 
@@ -173,7 +173,7 @@ public class ProcessManager implements ILogger {
      * @param appInfo app信息
      */
     public void handleGC(AppInfo appInfo) {
-        ProcessRecord processRecord = appInfo.getmProcessRecord();
+        ProcessRecordKt processRecord = appInfo.getmProcessRecord();
         if (processRecord == null) {
             if (BuildConfig.DEBUG) {
                 getLogger().warn(appInfo.getPackageName() + " processRecord为空设置个屁的gc");
@@ -184,7 +184,7 @@ public class ProcessManager implements ILogger {
         handleGCNoNullCheck(processRecord);
     }
 
-    public static void handleGC(ProcessRecord processRecord) {
+    public static void handleGC(ProcessRecordKt processRecord) {
         if (processRecord == null) {
             return;
         }
@@ -192,7 +192,7 @@ public class ProcessManager implements ILogger {
         handleGCNoNullCheck(processRecord);
     }
 
-    public static void handleGCNoNullCheck(ProcessRecord processRecord) {
+    public static void handleGCNoNullCheck(ProcessRecordKt processRecord) {
         // kill -10 pid
         try {
             Process.sendSignal(processRecord.getPid(), SIGNAL_10);

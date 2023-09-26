@@ -76,9 +76,9 @@ public class ActivityManagerService implements ILogger {
     private final Object mPidsSelfLocked; // PidMap
 
     @Nullable
-    public ProcessRecord getProcessRecord(int pid) {
+    public ProcessRecordKt getProcessRecord(int pid) {
         Object process = XposedHelpers.callMethod(mPidsSelfLocked, MethodConstants.get, pid);
-        return process == null ? null : new ProcessRecord(process);
+        return process == null ? null : new ProcessRecordKt(process);
     }
 
     private final Object mProcLock;
@@ -207,9 +207,9 @@ public class ActivityManagerService implements ILogger {
         );
     }
 
-    public ProcessRecord getTopApp() {
+    public ProcessRecordKt getTopApp() {
         Object androProcessRecord = XposedHelpers.callMethod(getActivityManagerService(), MethodConstants.getTopApp);
-        return androProcessRecord == null ? null : new ProcessRecord(androProcessRecord);
+        return androProcessRecord == null ? null : new ProcessRecordKt(androProcessRecord);
     }
 
     /**
@@ -219,7 +219,7 @@ public class ActivityManagerService implements ILogger {
      * @param userId   用户id
      * @param callName 调用方名字
      */
-    public ProcessRecord findProcessLOSP(String process, int userId, String callName) {
+    public ProcessRecordKt findProcessLOSP(String process, int userId, String callName) {
         Object processRecord = XposedHelpers.callMethod(
                 activityManagerService,
                 MethodConstants.findProcessLOSP,
@@ -228,10 +228,10 @@ public class ActivityManagerService implements ILogger {
                 callName
         );
 
-        return processRecord == null ? null : new ProcessRecord(processRecord);
+        return processRecord == null ? null : new ProcessRecordKt(processRecord);
     }
 
-    public ProcessRecord findProcessLOSP(String process, int userId) {
+    public ProcessRecordKt findProcessLOSP(String process, int userId) {
         return findProcessLOSP(process, userId, "setProcessMemoryTrimLevel");
     }
 
@@ -258,7 +258,7 @@ public class ActivityManagerService implements ILogger {
      * @param uid         uid
      * @return 封装后的ProcessRecord
      */
-    public ProcessRecord getProcessRecordLocked(String processName, int uid) {
+    public ProcessRecordKt getProcessRecordLocked(String processName, int uid) {
         Object process = XposedHelpers.callMethod(
                 activityManagerService,
                 MethodConstants.getProcessRecordLocked,
@@ -266,10 +266,10 @@ public class ActivityManagerService implements ILogger {
                 uid
         );
 
-        return process == null ? null : new ProcessRecord(process);
+        return process == null ? null : new ProcessRecordKt(process);
     }
 
-    public ProcessRecord findMProcessRecord(String packageName, int uid) {
+    public ProcessRecordKt findMProcessRecord(String packageName, int uid) {
         return findMProcessRecord(1, packageName, uid);
     }
 
@@ -281,9 +281,9 @@ public class ActivityManagerService implements ILogger {
      * @param uid         进程所属uid
      * @return 进程记录
      */
-    private ProcessRecord findMProcessRecord(int depth, String packageName, int uid) {
+    private ProcessRecordKt findMProcessRecord(int depth, String packageName, int uid) {
         // 根据进程名查找, 速度最快
-        ProcessRecord mProcessRecord = getProcessRecordLocked(packageName, uid);
+        ProcessRecordKt mProcessRecord = getProcessRecordLocked(packageName, uid);
         if (mProcessRecord == null) {
             if (depth <= 2) {
                 mProcessRecord = findMProcessRecord(++depth, packageName, uid);
@@ -310,7 +310,7 @@ public class ActivityManagerService implements ILogger {
      * @param appInfo app信息
      * @return 主进程的记录
      */
-    public ProcessRecord findMProcessRecord(AppInfo appInfo) {
+    public ProcessRecordKt findMProcessRecord(AppInfo appInfo) {
         return findMProcessRecord(appInfo.getPackageName(), appInfo.getUid());
     }
 }

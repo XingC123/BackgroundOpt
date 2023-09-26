@@ -6,7 +6,7 @@ import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ApplicationInfo;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.service.ProcessDaemonService;
 import com.venus.backgroundopt.utils.log.ILogger;
@@ -267,7 +267,7 @@ public class RunningInfo implements ILogger {
      * @param mProcessRecord app的主进程
      * @param appInfo        要处理的应用信息
      */
-    public void setAddedRunningApp(ProcessRecord mProcessRecord, AppInfo appInfo) {
+    public void setAddedRunningApp(ProcessRecordKt mProcessRecord, AppInfo appInfo) {
         if (mProcessRecord != null) {
             // 设置主进程的最大adj(保活)
             mProcessRecord.setDefaultMaxAdj();
@@ -286,7 +286,7 @@ public class RunningInfo implements ILogger {
      */
     public void setAddedRunningApp(AppInfo appInfo) {
         // 找到主进程进行必要设置
-        ProcessRecord mProcessRecord = findMProcessRecord(appInfo);
+        ProcessRecordKt mProcessRecord = findMProcessRecord(appInfo);
         setAddedRunningApp(mProcessRecord, appInfo);
     }
 
@@ -311,7 +311,7 @@ public class RunningInfo implements ILogger {
                 ApplicationInfo applicationInfo = normalAppResult.getApplicationInfo();
                 if (applicationInfo != null) {
                     String packageName = normalAppResult.getApplicationInfo().getPackageName();
-                    ProcessRecord mProcessRecord = activityManagerService.findMProcessRecord(packageName, uid);
+                    ProcessRecordKt mProcessRecord = activityManagerService.findMProcessRecord(packageName, uid);
                     if (mProcessRecord != null) {
                         int userId = mProcessRecord.getUserId();
 
@@ -353,11 +353,11 @@ public class RunningInfo implements ILogger {
      * @param appInfo app信息
      * @return 主进程的记录
      */
-    public ProcessRecord findMProcessRecord(AppInfo appInfo) {
+    public ProcessRecordKt findMProcessRecord(AppInfo appInfo) {
         return activityManagerService.findMProcessRecord(appInfo);
     }
 
-    public ProcessRecord getTargetProcessRecord(int pid) {
+    public ProcessRecordKt getTargetProcessRecord(int pid) {
         return getActivityManagerService().getProcessList().getTargetProcessRecord(pid);
     }
 

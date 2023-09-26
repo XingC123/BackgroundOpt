@@ -87,7 +87,7 @@ public class CachedAppOptimizer {
 //        }
 //    }
 
-    public static boolean isOomAdjEnteredCached(ProcessRecord processRecord) {
+    public static boolean isOomAdjEnteredCached(ProcessRecordKt processRecord) {
         return isOomAdjEnteredCached(processRecord.getCurAdj());
     }
 
@@ -102,7 +102,7 @@ public class CachedAppOptimizer {
      * @param app   ProcessRecord
      * @param force 是否强制
      */
-    public void compactAppFull(ProcessRecord app, boolean force) {
+    public void compactAppFull(ProcessRecordKt app, boolean force) {
         boolean oomAdjEnteredCached = isOomAdjEnteredCached(app);
 
         ++mFullCompactRequest;
@@ -114,7 +114,7 @@ public class CachedAppOptimizer {
         }
     }
 
-    public boolean compactApp(ProcessRecord app, boolean force, String compactRequestType) {
+    public boolean compactApp(ProcessRecordKt app, boolean force, String compactRequestType) {
         return (boolean) XposedHelpers.callMethod(
                 this.cachedAppOptimizer,
                 MethodConstants.compactApp,

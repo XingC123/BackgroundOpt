@@ -7,7 +7,7 @@ import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +58,7 @@ public class AppInfo implements ILogger {
      **************************************************************************/
     @SuppressWarnings("all")    // 别显示未final啦, 烦死辣
     private RunningInfo runningInfo;
-    private volatile ProcessRecord mProcessRecord;   // 主进程记录
+    private volatile ProcessRecordKt mProcessRecord;   // 主进程记录
 
     private final AtomicInteger appSwitchEvent = new AtomicInteger(Integer.MIN_VALUE); // app切换事件
 
@@ -112,31 +112,31 @@ public class AppInfo implements ILogger {
      * 没有设置为 final, 因为在{@link AppInfo#clearAppInfo()}中需要反射来置空
      */
     @SuppressWarnings("all")    // 别显示未final啦, 烦死辣
-    private Map<Integer, ProcessRecord> processRecordMap = new ConcurrentHashMap<>();
+    private Map<Integer, ProcessRecordKt> processRecordMap = new ConcurrentHashMap<>();
 
-    public ProcessRecord addProcess(int pid, int oomAdjScore) {
-        ProcessRecord processRecord = runningInfo.getActivityManagerService().getProcessRecord(pid);
+    public ProcessRecordKt addProcess(int pid, int oomAdjScore) {
+        ProcessRecordKt processRecord = runningInfo.getActivityManagerService().getProcessRecord(pid);
 
         if (processRecord != null) {
             processRecord.setOomAdjScore(oomAdjScore);
             addProcess(processRecord);
-            ProcessRecord.addCompactProcess(runningInfo, this, processRecord);
+            ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
         }
 
         return processRecord;
     }
 
-    public void addProcess(@NotNull ProcessRecord processRecord) {
-        processRecordMap.computeIfAbsent(processRecord.getPid(), k -> ProcessRecord.setMainProcess(this, processRecord));
+    public void addProcess(@NotNull ProcessRecordKt processRecord) {
+        processRecordMap.computeIfAbsent(processRecord.getPid(), k -> ProcessRecordKt.setMainProcess(this, processRecord));
     }
 
     @Nullable
-    public ProcessRecord getProcess(int pid) {
+    public ProcessRecordKt getProcess(int pid) {
         return processRecordMap.get(pid);
     }
 
     public void modifyProcessRecord(int pid, int oomAdjScore) {
-        ProcessRecord processRecord = processRecordMap.get(pid);
+        ProcessRecordKt processRecord = processRecordMap.get(pid);
         if (processRecord != null) {
             processRecord.setOomAdjScore(oomAdjScore);
         }
@@ -146,7 +146,7 @@ public class AppInfo implements ILogger {
         return processRecordMap.containsKey(pid);
     }
 
-    public ProcessRecord removeProcess(int pid) {
+    public ProcessRecordKt removeProcess(int pid) {
         return processRecordMap.remove(pid);
     }
 
@@ -154,7 +154,7 @@ public class AppInfo implements ILogger {
         return processRecordMap.keySet();
     }
 
-    public Collection<ProcessRecord> getProcesses() {
+    public Collection<ProcessRecordKt> getProcesses() {
         return processRecordMap.values();
     }
 
@@ -172,14 +172,14 @@ public class AppInfo implements ILogger {
     }
 
     @Nullable
-    public ProcessRecord getmProcess() {
+    public ProcessRecordKt getmProcess() {
         return mProcessRecord;
     }
 
     /**
      * 设置主进程信息
      */
-    public void setMProcess(@NotNull ProcessRecord processRecord) {
+    public void setMProcess(@NotNull ProcessRecordKt processRecord) {
         // 保存主进程
         setmProcessRecord(processRecord);
         addProcess(processRecord);
@@ -317,11 +317,11 @@ public class AppInfo implements ILogger {
         }
     }
 
-    public ProcessRecord getmProcessRecord() {
+    public ProcessRecordKt getmProcessRecord() {
         return mProcessRecord;
     }
 
-    public void setmProcessRecord(ProcessRecord mProcessRecord) {
+    public void setmProcessRecord(ProcessRecordKt mProcessRecord) {
         this.mProcessRecord = mProcessRecord;
 
         if (BuildConfig.DEBUG) {

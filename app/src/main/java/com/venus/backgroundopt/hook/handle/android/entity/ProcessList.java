@@ -157,15 +157,15 @@ public class ProcessList implements ILogger {
         return new CopyOnWriteArrayList<>(processRecordList);
     }
 
-    public Map<ApplicationIdentity, List<ProcessRecord>> getProcessMap() {
-        Map<ApplicationIdentity, List<ProcessRecord>> processMap = new HashMap<>();
+    public Map<ApplicationIdentity, List<ProcessRecordKt>> getProcessMap() {
+        Map<ApplicationIdentity, List<ProcessRecordKt>> processMap = new HashMap<>();
         List<?> procList = getProcList();
         try {
-            ProcessRecord processRecord;
+            ProcessRecordKt processRecord;
             ApplicationIdentity applicationIdentity;
-            List<ProcessRecord> list;
+            List<ProcessRecordKt> list;
             for (Object proc : procList) {
-                processRecord = new ProcessRecord(proc);
+                processRecord = new ProcessRecordKt(proc);
                 applicationIdentity = new ApplicationIdentity(processRecord.getUserId(), processRecord.getPackageName());
                 list = processMap.computeIfAbsent(applicationIdentity, k -> new ArrayList<>());
                 list.add(processRecord);
@@ -177,12 +177,12 @@ public class ProcessList implements ILogger {
         return processMap;
     }
 
-    public List<ProcessRecord> getProcessList(AppInfo appInfo) {
+    public List<ProcessRecordKt> getProcessList(AppInfo appInfo) {
         List<?> procList = getProcList();
 
         return procList.parallelStream()
-                .filter(process -> Objects.equals(ProcessRecord.getPkgName(process), appInfo.getPackageName()))
-                .map(ProcessRecord::new)
+                .filter(process -> Objects.equals(ProcessRecordKt.getPkgName(process), appInfo.getPackageName()))
+                .map(ProcessRecordKt::new)
                 .collect(Collectors.toList());
     }
 
@@ -193,18 +193,18 @@ public class ProcessList implements ILogger {
      * @param appInfo app信息
      * @return 匹配的进程的列表
      */
-    public List<ProcessRecord> getProcessRecords(AppInfo appInfo) {
-        List<ProcessRecord> processRecords = new ArrayList<>();
+    public List<ProcessRecordKt> getProcessRecords(AppInfo appInfo) {
+        List<ProcessRecordKt> processRecords = new ArrayList<>();
         List<?> procList = getProcList();
 
         procList.stream()
                 .filter(process ->
-                        Objects.equals(appInfo.getUserId(), ProcessRecord.getUserId(process))
-                                && Objects.equals(appInfo.getPackageName(), ProcessRecord.getPkgName(process)))
+                        Objects.equals(appInfo.getUserId(), ProcessRecordKt.getUserId(process))
+                                && Objects.equals(appInfo.getPackageName(), ProcessRecordKt.getPkgName(process)))
                 .forEach(process -> {
-                    ProcessRecord processRecord = new ProcessRecord(process);
+                    ProcessRecordKt processRecord = new ProcessRecordKt(process);
 
-                    if (ProcessRecord.isProcessNameSame(appInfo.getPackageName(), process)) {
+                    if (ProcessRecordKt.isProcessNameSame(appInfo.getPackageName(), process)) {
                         processRecords.add(0, processRecord);
                     } else {
                         processRecords.add(processRecord);
@@ -220,33 +220,33 @@ public class ProcessList implements ILogger {
      * @param appInfo app信息
      * @return 主进程
      */
-    private ProcessRecord getMProcessRecord(AppInfo appInfo) {
+    private ProcessRecordKt getMProcessRecord(AppInfo appInfo) {
         return getMProcessRecord(appInfo.getPackageName());
     }
 
-    private ProcessRecord getMProcessRecord(String packageName) {
+    private ProcessRecordKt getMProcessRecord(String packageName) {
         Object process;
         for (int i = 0; i < processRecordList.size(); i++) {
             process = processRecordList.get(i);
-            if (ProcessRecord.isProcessNameSame(packageName, process)) {
-                return new ProcessRecord(process);
+            if (ProcessRecordKt.isProcessNameSame(packageName, process)) {
+                return new ProcessRecordKt(process);
             }
         }
 
         return null;
     }
 
-    public ProcessRecord getMProcessRecordLocked(String packageName) {
+    public ProcessRecordKt getMProcessRecordLocked(String packageName) {
         synchronized (activityManagerService.getmProcLock()) {
             return getMProcessRecord(packageName);
         }
     }
 
-    public ProcessRecord getMProcessRecordLockedWhenThrowException(AppInfo appInfo) {
+    public ProcessRecordKt getMProcessRecordLockedWhenThrowException(AppInfo appInfo) {
         return getMProcessRecordLockedWhenThrowException(appInfo.getPackageName());
     }
 
-    public ProcessRecord getMProcessRecordLockedWhenThrowException(String packageName) {
+    public ProcessRecordKt getMProcessRecordLockedWhenThrowException(String packageName) {
         try {   // 先不使用锁来获取
             return getMProcessRecord(packageName);
         } catch (ConcurrentModificationException e) {   // 出现异常, 加锁获取
@@ -264,14 +264,14 @@ public class ProcessList implements ILogger {
      *
      * @param pid 进程pid
      */
-    public ProcessRecord getTargetProcessRecord(int pid) {
-        ObjectReference<ProcessRecord> processRecord = new ObjectReference<>();
+    public ProcessRecordKt getTargetProcessRecord(int pid) {
+        ObjectReference<ProcessRecordKt> processRecord = new ObjectReference<>();
         List<?> procList = getProcList();
 
         procList.stream()
-                .filter(process -> Objects.equals(ProcessRecord.getPid(process), pid))
+                .filter(process -> Objects.equals(ProcessRecordKt.getPid(process), pid))
                 .findAny()
-                .ifPresent(process -> processRecord.set(new ProcessRecord(processRecord)));
+                .ifPresent(process -> processRecord.set(new ProcessRecordKt(processRecord)));
 
         return processRecord.get();
     }

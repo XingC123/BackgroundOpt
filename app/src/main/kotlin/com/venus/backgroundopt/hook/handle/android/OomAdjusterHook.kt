@@ -6,7 +6,7 @@ import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
@@ -38,11 +38,11 @@ class OomAdjusterHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
         val app = param.args[0]
 
         val runningInfo = runningInfo
-        val appInfo = runningInfo.getRunningAppInfo(ProcessRecord.getUID(app))
+        val appInfo = runningInfo.getRunningAppInfo(ProcessRecordKt.getUID(app))
         appInfo ?: return
 
         // 如果此次调节的不是主进程, 则返回
-        val pid = ProcessRecord.getPid(app)
+        val pid = ProcessRecordKt.getPid(app)
         val mPid = try {
             appInfo.getmPid()
         } catch (t: Throwable) {
@@ -53,7 +53,7 @@ class OomAdjusterHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
         }
 
         // 如果app的主进程已设置过oom_adj_score, 则使系统不进行任何操作
-        if (appInfo.mainProcCurAdj == ProcessRecord.DEFAULT_MAIN_ADJ) {
+        if (appInfo.mainProcCurAdj == ProcessRecordKt.DEFAULT_MAIN_ADJ) {
             param.result = false
 
             // 日志打印非常猛烈。在Redmi Note5 pro(whyred) Nusantara rom上, 被com.android.launcher3刷屏

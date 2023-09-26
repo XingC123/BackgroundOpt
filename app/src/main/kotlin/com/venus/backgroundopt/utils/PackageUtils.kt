@@ -5,7 +5,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import com.venus.backgroundopt.entity.AppItem
-import com.venus.backgroundopt.entity.base.BaseProcessInfo
+import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import java.util.Objects
 import java.util.stream.Collectors
 
@@ -33,7 +33,7 @@ private fun getPackageInfo(
     }
 }
 
-fun getTargetApps(context: Context, list: List<BaseProcessInfo>): List<AppItem> {
+fun getTargetApps(context: Context, list: List<BaseProcessInfoKt>): List<AppItem> {
     val packageManager = context.packageManager
 
     return list.stream()
@@ -51,7 +51,7 @@ fun getTargetApps(context: Context, list: List<BaseProcessInfo>): List<AppItem> 
                     packageInfo
                 ).apply {
                     pid = baseProcessInfo.pid
-                    processName = baseProcessInfo.processName ?: null
+                    processName = baseProcessInfo.processName
                 }
             }
         }

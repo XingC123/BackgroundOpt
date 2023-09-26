@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.alibaba.fastjson2.JSON
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
-import com.venus.backgroundopt.entity.base.BaseProcessInfo
+import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.utils.getIntentData
 import com.venus.backgroundopt.utils.getTargetApps
 
@@ -28,7 +28,7 @@ abstract class ShowInfoFromAppItemActivity : AppCompatActivity() {
         val stringExtra = getIntentData(intent)
         stringExtra ?: return
 
-        val list = JSON.parseArray(stringExtra, BaseProcessInfo::class.java)
+        val list = JSON.parseArray(stringExtra, BaseProcessInfoKt::class.java)
         list ?: return
 
         val appItems = getTargetApps(this, list)
