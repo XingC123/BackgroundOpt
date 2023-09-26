@@ -16,12 +16,6 @@ open class BaseProcessInfoKt(
      * 子进程 -> 真实oom_adj_score
      */
     var oomAdjScore: Int = Int.MIN_VALUE
-        set(value) {
-            if (!mainProcess) {
-                curAdj = value
-            }
-            field = value
-        }
 
     // 当前oom
     var curAdj: Int = Int.MIN_VALUE
@@ -31,12 +25,6 @@ open class BaseProcessInfoKt(
      * 即本模块为了优化后台而对进程的oomAdjScore修改的值
      */
     var fixedOomAdjScore = Int.MIN_VALUE
-        set(value) {
-            if (mainProcess) {
-                curAdj = value
-            }
-            field = value
-        }
 
     // app主进程
     var mainProcess = false
