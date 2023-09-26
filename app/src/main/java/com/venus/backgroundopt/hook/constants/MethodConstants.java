@@ -46,6 +46,7 @@ public interface MethodConstants {
     String configureSystemServerDexReporter = "configureSystemServerDexReporter";
     String isFirstBoot = "isFirstBoot";
     String readProcLines = "readProcLines";
+    String readProcFile = "readProcFile";
     String getFreeMemory = "getFreeMemory";
     String getTotalMemory = "getTotalMemory";
     String setSwappiness = "setSwappiness";

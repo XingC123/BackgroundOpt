@@ -88,7 +88,7 @@ public class CachedAppOptimizer {
 //    }
 
     public static boolean isOomAdjEnteredCached(ProcessRecordKt processRecord) {
-        return isOomAdjEnteredCached(processRecord.getCurAdj());
+        return isOomAdjEnteredCached(processRecord.getCurAdjNative());
     }
 
     public static boolean isOomAdjEnteredCached(int curAdj) {

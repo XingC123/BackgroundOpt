@@ -23,7 +23,7 @@ class GetBackgroundTasksAdapter(override val items: List<AppItem>) :
     }
 
     override fun getText4Content(appItem: AppItem): String {
-        return appItem.oomAdjScore.toString()
+        return appItem.curAdj.toString()
     }
 
     override fun getTipText1ResId(): Int {

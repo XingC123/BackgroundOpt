@@ -19,4 +19,5 @@ data class AppItem(
     var pid: Int = Int.MIN_VALUE
     var processName: String? = null
     var oomAdjScore:Int = Int.MIN_VALUE
+    var curAdj:Int = Int.MIN_VALUE
 }

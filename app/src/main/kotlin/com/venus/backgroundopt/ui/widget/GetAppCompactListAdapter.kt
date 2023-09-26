@@ -22,7 +22,7 @@ class GetAppCompactListAdapter(items: List<AppItem>) : ShowInfoFromAppItemAdapte
     }
 
     override fun getText4Content(appItem: AppItem): String {
-        return appItem.oomAdjScore.toString()
+        return appItem.curAdj.toString()
     }
 
     override fun getTipText1ResId(): Int {

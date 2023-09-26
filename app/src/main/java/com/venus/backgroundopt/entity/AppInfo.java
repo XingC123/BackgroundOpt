@@ -118,7 +118,7 @@ public class AppInfo implements ILogger {
         ProcessRecordKt processRecord = runningInfo.getActivityManagerService().getProcessRecord(pid);
 
         if (processRecord != null) {
-            processRecord.setOomAdjScore(oomAdjScore);
+            processRecord.setOomAdjScoreToAtomicInteger(oomAdjScore);
             addProcess(processRecord);
             ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
         }
@@ -138,7 +138,7 @@ public class AppInfo implements ILogger {
     public void modifyProcessRecord(int pid, int oomAdjScore) {
         ProcessRecordKt processRecord = processRecordMap.get(pid);
         if (processRecord != null) {
-            processRecord.setOomAdjScore(oomAdjScore);
+            processRecord.setOomAdjScoreToAtomicInteger(oomAdjScore);
         }
     }
 

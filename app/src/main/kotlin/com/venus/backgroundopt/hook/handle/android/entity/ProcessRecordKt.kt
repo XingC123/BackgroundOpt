@@ -7,6 +7,8 @@ import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
+import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_NEWLINE_TERM
+import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_OUT_LONG
 import de.robv.android.xposed.XposedHelpers
 import java.util.Objects
 import java.util.concurrent.TimeUnit
@@ -19,6 +21,9 @@ import java.util.concurrent.atomic.AtomicLong
  */
 class ProcessRecordKt() : BaseProcessInfoKt() {
     companion object {
+        @JvmField
+        val LONG_FORMAT = intArrayOf(PROC_NEWLINE_TERM or PROC_OUT_LONG)
+
         // 默认的最大adj
         const val DEFAULT_MAX_ADJ = ProcessList.VISIBLE_APP_ADJ
 
@@ -120,6 +125,37 @@ class ProcessRecordKt() : BaseProcessInfoKt() {
         @JvmStatic
         fun getPid(processRecord: Any?): Int {
             return XposedHelpers.getIntField(processRecord, FieldConstants.mPid)
+        }
+
+        /**
+         * 设置实际的oom_adj_score
+         *
+         * @param collection 待设置的集合
+         */
+        @JvmStatic
+        fun setActualAdj(collection: Collection<ProcessRecordKt>) {
+            collection.forEach {
+                it.curAdj = it.getCurAdjNative()
+            }
+        }
+
+        /**
+         * 获取当前oom_adj_score
+         *
+         * @param pid 要查询的进程的pid
+         * @return 进程的oom_adj_score
+         */
+        @JvmStatic
+        fun getCurAdjNative(pid: Int): Int {
+            val longOut = LongArray(1)
+            Process.readProcFile(
+                "/proc/${pid}/oom_score_adj",
+                LONG_FORMAT,
+                null,
+                longOut,
+                null
+            )
+            return longOut[0].toInt()
         }
     }
 
@@ -259,8 +295,8 @@ class ProcessRecordKt() : BaseProcessInfoKt() {
     }
 
     @JSONField(serialize = false)
-    fun getCurAdj(): Int {
-        return XposedHelpers.callMethod(processRecord, MethodConstants.getCurAdj) as Int
+    fun getCurAdjNative(): Int {
+        return Companion.getCurAdjNative(pid)
     }
 
     /* *************************************************************************
@@ -295,6 +331,7 @@ class ProcessRecordKt() : BaseProcessInfoKt() {
     @JvmName("setOomAdjScoreToAtomicInteger")
     fun setOomAdjScore(oomAdjScore: Int) {
         this.oomAdjScoreAtomicInteger.set(oomAdjScore)
+        this.oomAdjScore = oomAdjScore
     }
 
     private fun getLastCompactTime(): Long {

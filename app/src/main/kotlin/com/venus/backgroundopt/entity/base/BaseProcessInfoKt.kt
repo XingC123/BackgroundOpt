@@ -11,15 +11,35 @@ open class BaseProcessInfoKt(
     var pid: Int = Int.MIN_VALUE,
     var userId: Int = 0,
 ) : MessageFlag {
+    /**
+     * 主进程 -> 系统将要进行设置的oom_adj_score
+     * 子进程 -> 真实oom_adj_score
+     */
     var oomAdjScore: Int = Int.MIN_VALUE
+        set(value) {
+            if (!mainProcess) {
+                curAdj = value
+            }
+            field = value
+        }
+
+    // 当前oom
+    var curAdj: Int = Int.MIN_VALUE
 
     /**
      * 修正过的oomAdjScore。
      * 即本模块为了优化后台而对进程的oomAdjScore修改的值
      */
     var fixedOomAdjScore = Int.MIN_VALUE
+        set(value) {
+            if (mainProcess) {
+                curAdj = value
+            }
+            field = value
+        }
 
-    var mainProcess = false // app主进程
+    // app主进程
+    var mainProcess = false
 
     lateinit var packageName: String
     lateinit var processName: String
