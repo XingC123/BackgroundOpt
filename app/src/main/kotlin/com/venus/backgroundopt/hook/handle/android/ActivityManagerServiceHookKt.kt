@@ -133,9 +133,9 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
             }
         } else {
             // 移除进程记录
-            val processInfo = appInfo.removeProcessInfo(pid)
+            val processInfo = appInfo.removeProcess(pid)
             // 取消进程的待压缩任务
-            runningInfo.processManager.cancelCompactProcessInfo(processInfo)
+            runningInfo.processManager.cancelCompactProcess(processInfo)
             if (BuildConfig.DEBUG) {
                 logger.debug("kill: ${packageName}, uid: ${uid}, pid: $pid >>> 子进程被杀")
             }

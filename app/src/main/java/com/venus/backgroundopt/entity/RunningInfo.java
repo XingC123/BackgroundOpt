@@ -271,7 +271,7 @@ public class RunningInfo implements ILogger {
         if (mProcessRecord != null) {
             // 设置主进程的最大adj(保活)
             mProcessRecord.setDefaultMaxAdj();
-            appInfo.setMProcessInfoAndMProcessRecord(mProcessRecord);
+            appInfo.setMProcess(mProcessRecord);
         } else {
             if (BuildConfig.DEBUG) {
                 getLogger().warn(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的mProcessRecord为空");
@@ -379,7 +379,7 @@ public class RunningInfo implements ILogger {
             processManager.removeAllAppMemoryTrimTask(appInfo);
 
             // 清理待压缩进程
-            processManager.cancelCompactProcessInfo(appInfo);
+            processManager.cancelCompactProcess(appInfo);
 
             // 清理AppInfo。也许有助于gc
             appInfo.clearAppInfo();

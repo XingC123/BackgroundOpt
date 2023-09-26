@@ -4,7 +4,6 @@ import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.AppInfo;
-import com.venus.backgroundopt.entity.ProcessInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
@@ -53,36 +52,36 @@ public class ProcessManager implements ILogger {
      **************************************************************************/
     private final AppCompactManager appCompactManager;
 
-    public Set<ProcessInfo> getCompactProcessInfos() {
-        return appCompactManager.getCompactProcessInfos();
+    public Set<ProcessRecord> getCompactProcessInfos() {
+        return appCompactManager.getCompactProcesses();
     }
 
     /**
      * 添加压缩进程
      */
-    public void addCompactProcessInfo(Collection<ProcessInfo> processInfos) {
-        appCompactManager.addCompactProcessInfo(processInfos);
+    public void addCompactProcess(Collection<ProcessRecord> processRecords) {
+        appCompactManager.addCompactProcess(processRecords);
     }
 
-    public void addCompactProcessInfo(ProcessInfo processInfo) {
-        appCompactManager.addCompactProcessInfo(processInfo);
+    public void addCompactProcess(ProcessRecord processRecord) {
+        appCompactManager.addCompactProcess(processRecord);
     }
 
     /**
      * 移除压缩进程
      *
-     * @param processInfo 进程信息
+     * @param processRecord 进程记录
      */
-    public void cancelCompactProcessInfo(@Nullable ProcessInfo processInfo) {
-        appCompactManager.cancelCompactProcessInfo(processInfo);
+    public void cancelCompactProcess(@Nullable ProcessRecord processRecord) {
+        appCompactManager.cancelCompactProcess(processRecord);
     }
 
-    public void cancelCompactProcessInfo(Collection<ProcessInfo> processInfos) {
-        appCompactManager.cancelCompactProcessInfo(processInfos);
+    public void cancelCompactProcess(Collection<ProcessRecord> processRecords) {
+        appCompactManager.cancelCompactProcess(processRecords);
     }
 
-    public void cancelCompactProcessInfo(AppInfo appInfo) {
-        appCompactManager.cancelCompactProcessInfo(appInfo);
+    public void cancelCompactProcess(AppInfo appInfo) {
+        appCompactManager.cancelCompactProcess(appInfo);
     }
 
     public void compactApp(ProcessRecord processRecord) {
@@ -133,12 +132,12 @@ public class ProcessManager implements ILogger {
 //        return cachedAppOptimizer.compactApp(processInfo.getProcessRecord(), true, "Full");
 //    }
 
-    public boolean compactAppFull(ProcessInfo processInfo) {
-        return appCompactManager.compactAppFull(processInfo);
+    public boolean compactAppFull(ProcessRecord processRecord) {
+        return appCompactManager.compactAppFull(processRecord);
     }
 
-    public void compactAppFullNoCheck(ProcessInfo processInfo) {
-        appCompactManager.compactAppFullNoCheck(processInfo);
+    public void compactAppFullNoCheck(ProcessRecord processRecord) {
+        appCompactManager.compactAppFullNoCheck(processRecord);
     }
 
     /* *************************************************************************
@@ -217,7 +216,7 @@ public class ProcessManager implements ILogger {
      */
     public void setAppToBackgroundProcessGroup(AppInfo appInfo) {
         Set<Integer> processInfoPids;
-        if (appInfo == null || (processInfoPids = appInfo.getProcessInfoPids()) == null) {
+        if (appInfo == null || (processInfoPids = appInfo.getProcessPids()) == null) {
             return;
         }
 

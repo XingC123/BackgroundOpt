@@ -91,7 +91,7 @@ public class ActivityManagerServiceHook extends MethodHook {
      */
     private Object getAMSObj(XC_MethodHook.MethodHookParam param) {
         RunningInfo runningInfo = getRunningInfo();
-        ActivityManagerService ams = new ActivityManagerService(param.thisObject, classLoader);
+        ActivityManagerService ams = new ActivityManagerService(param.thisObject, classLoader, runningInfo);
 
         runningInfo.setActivityManagerService(ams);
         runningInfo.initProcessManager();

@@ -3,13 +3,14 @@ package com.venus.backgroundopt.entity;
 import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.utils.log.ILogger;
 
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -59,7 +60,6 @@ public class AppInfo implements ILogger {
     private RunningInfo runningInfo;
     private volatile ProcessRecord mProcessRecord;   // 主进程记录
 
-    private volatile ProcessInfo mProcessInfo;   // 主进程信息
     private final AtomicInteger appSwitchEvent = new AtomicInteger(Integer.MIN_VALUE); // app切换事件
 
     private final AtomicBoolean switchEventHandled = new AtomicBoolean(false);    // 切换事件处理完毕
@@ -90,14 +90,14 @@ public class AppInfo implements ILogger {
                 switch (appGroupEnum) {
                     case IDLE -> {
                         // 更新主进程压缩时间
-                        if (mProcessInfo != null) {
-                            mProcessInfo.setLastCompactTime(System.currentTimeMillis());
+                        if (mProcessRecord != null) {
+                            mProcessRecord.setLastCompactTime(System.currentTimeMillis());
                         }
 
-                        runningInfo.getProcessManager().addCompactProcessInfo(getProcessInfos());
+                        runningInfo.getProcessManager().addCompactProcess(getProcesses());
                     }
                     case ACTIVE ->  /* 若为第一次打开app, 此时也会执行这里。此时无需考虑是否能移除, 因为还没开始添加(至少也要在app第一次进入后台才会开始添加) */
-                            runningInfo.getProcessManager().cancelCompactProcessInfo(getProcessInfos());
+                            runningInfo.getProcessManager().cancelCompactProcess(getProcesses());
                 }
             }
         }
@@ -112,63 +112,50 @@ public class AppInfo implements ILogger {
      * 没有设置为 final, 因为在{@link AppInfo#clearAppInfo()}中需要反射来置空
      */
     @SuppressWarnings("all")    // 别显示未final啦, 烦死辣
-    private Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
+    private Map<Integer, ProcessRecord> processRecordMap = new ConcurrentHashMap<>();
 
-    /**
-     * 生成ProcessInfo
-     * 注意: 确保你的操作是线程安全的
-     *
-     * @param pid         进程pid
-     * @param oomAdjScore 进程oom_score_adj
-     * @return 生成后的ProcessInfo
-     */
-    private ProcessInfo addProcessInfoDirectly(int pid, int oomAdjScore) {
-        return ProcessInfo.newInstance(this, runningInfo, uid, pid, oomAdjScore);
+    public ProcessRecord addProcess(int pid, int oomAdjScore) {
+        ProcessRecord processRecord = runningInfo.getActivityManagerService().getProcessRecord(pid);
+
+        if (processRecord != null) {
+            processRecord.setOomAdjScore(oomAdjScore);
+            addProcess(processRecord);
+            ProcessRecord.addCompactProcess(runningInfo, this, processRecord);
+        }
+
+        return processRecord;
     }
 
-    public ProcessInfo addProcessInfo(int pid, int oomAdjScore) {
-        return processInfoMap.computeIfAbsent(pid,
-                key -> addProcessInfoDirectly(pid, oomAdjScore));
-    }
-
-    public void addProcessInfo(ProcessInfo processInfo) {
-        processInfoMap.computeIfAbsent(processInfo.getPid(), key -> /*纠正processInfo的uid*/ processInfo.setUidStream(uid));
+    public void addProcess(@NotNull ProcessRecord processRecord) {
+        processRecordMap.computeIfAbsent(processRecord.getPid(), k -> ProcessRecord.setMainProcess(this, processRecord));
     }
 
     @Nullable
-    public ProcessInfo getProcessInfo(int pid) {
-        return processInfoMap.get(pid);
+    public ProcessRecord getProcess(int pid) {
+        return processRecordMap.get(pid);
     }
 
-    public void modifyProcessInfoAndAddIfNull(int pid, int oomAdjScore) {
-//        if (pid == Integer.MIN_VALUE) {
-//            if (BuildConfig.DEBUG) {
-//                getLogger().warn("pid = " + pid + " 不符合规范, 无法添加至进程列表");
-//            }
-//            return;
-//        }
-
-        ProcessInfo processInfo = processInfoMap.computeIfAbsent(pid, key -> {
-//            runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, this);
-            return addProcessInfoDirectly(key, oomAdjScore);
-        });
-        processInfo.setOomAdjScore(oomAdjScore);
+    public void modifyProcessRecord(int pid, int oomAdjScore) {
+        ProcessRecord processRecord = processRecordMap.get(pid);
+        if (processRecord != null) {
+            processRecord.setOomAdjScore(oomAdjScore);
+        }
     }
 
-    public boolean isRecordedProcessInfo(int pid) {
-        return processInfoMap.containsKey(pid);
+    public boolean isRecordedProcess(int pid) {
+        return processRecordMap.containsKey(pid);
     }
 
-    public ProcessInfo removeProcessInfo(int pid) {
-        return processInfoMap.remove(pid);
+    public ProcessRecord removeProcess(int pid) {
+        return processRecordMap.remove(pid);
     }
 
-    public Set<Integer> getProcessInfoPids() {
-        return processInfoMap.keySet();
+    public Set<Integer> getProcessPids() {
+        return processRecordMap.keySet();
     }
 
-    public Collection<ProcessInfo> getProcessInfos() {
-        return processInfoMap.values();
+    public Collection<ProcessRecord> getProcesses() {
+        return processRecordMap.values();
     }
 
     public ApplicationIdentity getApplicationIdentity() {
@@ -181,26 +168,21 @@ public class AppInfo implements ILogger {
      * @return 主进程当前记录的adj
      */
     public int getMainProcCurAdj() {
-        return this.mProcessInfo.getFixedOomAdjScore();
+        return this.mProcessRecord.getFixedOomAdjScore();
     }
 
-    public void setmProcessInfo(ProcessRecord processRecord) {
-        this.mProcessInfo = ProcessInfo.newInstance(this, runningInfo, processRecord);
-        addProcessInfo(mProcessInfo);
-    }
-
-    public ProcessInfo getmProcessInfo() {
-        return mProcessInfo;
+    @Nullable
+    public ProcessRecord getmProcess() {
+        return mProcessRecord;
     }
 
     /**
      * 设置主进程信息
      */
-    public void setMProcessInfoAndMProcessRecord(ProcessRecord processRecord) {
+    public void setMProcess(@NotNull ProcessRecord processRecord) {
         // 保存主进程
         setmProcessRecord(processRecord);
-        // 保存进程信息
-        setmProcessInfo(processRecord);
+        addProcess(processRecord);
     }
 
     @Override

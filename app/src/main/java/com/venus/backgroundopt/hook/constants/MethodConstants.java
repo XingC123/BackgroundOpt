@@ -73,6 +73,7 @@ public interface MethodConstants {
     String onAddRoleHolder = "onAddRoleHolder";
     String killProcessesBelowAdj = "killProcessesBelowAdj";
     String trimInactiveRecentTasks = "trimInactiveRecentTasks";
+    String setCurRawAdj = "setCurRawAdj";
 
     /**
      * miui

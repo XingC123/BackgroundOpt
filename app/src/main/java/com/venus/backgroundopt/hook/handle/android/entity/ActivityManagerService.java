@@ -5,8 +5,11 @@ import static com.venus.backgroundopt.entity.RunningInfo.NormalAppResult;
 import android.content.Context;
 import android.content.pm.PackageManager;
 
+import androidx.annotation.Nullable;
+
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.AppInfo;
+import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
@@ -36,7 +39,7 @@ public class ActivityManagerService implements ILogger {
         return activityManagerService;
     }
 
-    public ActivityManagerService(Object activityManagerService, ClassLoader classLoader) {
+    public ActivityManagerService(Object activityManagerService, ClassLoader classLoader, RunningInfo runningInfo) {
         this.activityManagerService = activityManagerService;
         this.processList = new ProcessList(
                 XposedHelpers.getObjectField(activityManagerService, FieldConstants.mProcessList),
@@ -46,7 +49,11 @@ public class ActivityManagerService implements ILogger {
                 XposedHelpers.getObjectField(activityManagerService, FieldConstants.mOomAdjuster), classLoader);
         this.mPidsSelfLocked = XposedHelpers.getObjectField(activityManagerService, FieldConstants.mPidsSelfLocked);
         this.mProcLock = XposedHelpers.getObjectField(activityManagerService, FieldConstants.mProcLock);
+
+        this.runningInfo = runningInfo;
     }
+
+    private final RunningInfo runningInfo;
 
     private final OomAdjuster oomAdjuster;
 
@@ -68,6 +75,7 @@ public class ActivityManagerService implements ILogger {
 
     private final Object mPidsSelfLocked; // PidMap
 
+    @Nullable
     public ProcessRecord getProcessRecord(int pid) {
         Object process = XposedHelpers.callMethod(mPidsSelfLocked, MethodConstants.get, pid);
         return process == null ? null : new ProcessRecord(process);

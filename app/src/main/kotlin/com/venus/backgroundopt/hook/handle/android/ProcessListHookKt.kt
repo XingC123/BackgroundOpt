@@ -74,9 +74,9 @@ class ProcessListHookKt(
             if (appInfo.mainProcCurAdj != ProcessRecord.DEFAULT_MAIN_ADJ) {    // 第一次打开app
                 param.args[2] = ProcessRecord.DEFAULT_MAIN_ADJ
 
-                appInfo.getmProcessInfo()?.let { processInfo ->
-                    processInfo.fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
-                    processInfo.oomAdjScore = oomAdjScore
+                appInfo.getmProcess()?.let { processRecord ->
+                    processRecord.fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
+                    processRecord.oomAdjScore = oomAdjScore
                 }
 
                 if (BuildConfig.DEBUG) {
@@ -87,7 +87,7 @@ class ProcessListHookKt(
                 }
             } else {
                 param.result = null
-                appInfo.modifyProcessInfoAndAddIfNull(pid, oomAdjScore)
+                appInfo.modifyProcessRecord(pid, oomAdjScore)
             }
         } else if (pid == Int.MIN_VALUE) {
             if (BuildConfig.DEBUG) {
@@ -95,13 +95,13 @@ class ProcessListHookKt(
             }
             return
         } else { // 子进程的处理
-            appInfo.getProcessInfo(pid)?.let { processInfo ->
-                val fixedOomAdjScore = processInfo.fixedOomAdjScore
+            appInfo.getProcess(pid)?.let { processRecord ->
+                val fixedOomAdjScore = processRecord.fixedOomAdjScore
                 // 新的oomAdj小于修正过的adj 或 修正过的adj为不可能取值
                 if (oomAdjScore < fixedOomAdjScore || fixedOomAdjScore == ProcessList.IMPOSSIBLE_ADJ) {
                     param.result = null
                 }
-                appInfo.modifyProcessInfoAndAddIfNull(pid, oomAdjScore)
+                appInfo.modifyProcessRecord(pid, oomAdjScore)
             } ?: run {
                 val expectedOomAdjScore = ProcessRecord.SUB_PROC_ADJ
                 var finalOomAdjScore = expectedOomAdjScore
@@ -110,8 +110,7 @@ class ProcessListHookKt(
                 } else {
                     param.args[2] = finalOomAdjScore
                 }
-                appInfo.addProcessInfo(pid, finalOomAdjScore)?.fixedOomAdjScore =
-                    expectedOomAdjScore
+                appInfo.addProcess(pid, finalOomAdjScore)?.fixedOomAdjScore = expectedOomAdjScore
 
 //                if (Objects.equals(AppGroupEnum.IDLE, appInfo.getAppGroupEnum())) {
 //                    runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, appInfo);
