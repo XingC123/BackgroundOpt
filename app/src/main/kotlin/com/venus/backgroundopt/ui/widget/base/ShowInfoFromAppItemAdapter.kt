@@ -20,13 +20,15 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
     companion object {
         class ShowInfoFromAppItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             var appIcon: ImageView
-            var getBackgroundTasksText1: TextView
-            var getBackgroundTasksText2: TextView
+            var appItemTasksText1: TextView
+            var appItemTasksText2: TextView
+            var appItemTasksText3: TextView
 
             init {
-                appIcon = itemView.findViewById(R.id.getBackgroundTasksAppIcon)
-                getBackgroundTasksText1 = itemView.findViewById(R.id.getBackgroundTasksText1)
-                getBackgroundTasksText2 = itemView.findViewById(R.id.getBackgroundTasksText2)
+                appIcon = itemView.findViewById(R.id.appItemAppIcon)
+                appItemTasksText1 = itemView.findViewById(R.id.appItemTasksText1)
+                appItemTasksText2 = itemView.findViewById(R.id.appItemTasksText2)
+                appItemTasksText3 = itemView.findViewById(R.id.appItemTasksText3)
             }
         }
     }
@@ -37,11 +39,15 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
      *                                                                         *
      **************************************************************************/
     protected open fun getTipText1ResId(): Int {
-        return R.string.packageName
+        return R.string.appItemTipPackageName
     }
 
     protected open fun getTipText2ResId(): Int {
-        return R.string.pid
+        return R.string.appItemTipPid
+    }
+
+    protected open fun getTipText3ResId(): Int {
+        return R.string.appItemTipUid
     }
 
     /* *************************************************************************
@@ -51,6 +57,7 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
      **************************************************************************/
     abstract fun getText1Content(appItem: AppItem): String?
     abstract fun getText2Content(appItem: AppItem): String
+    abstract fun getText3Content(appItem: AppItem): String
 
     /* *************************************************************************
      *                                                                         *
@@ -67,20 +74,22 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
     ): ShowInfoFromAppItemViewHolder {
         val view: View =
             LayoutInflater.from(parent.context)
-                .inflate(R.layout.get_background_tasks_recycler_item, parent, false)
+                .inflate(R.layout.recycler_app_item, parent, false)
         // 修改tip内容
-        view.findViewById<TextView>(R.id.getBackgroundTasksTipText1)
+        view.findViewById<TextView>(R.id.appItemTipText1)
             ?.setText(getTipText1ResId())
-        view.findViewById<TextView>(R.id.getBackgroundTasksTipText2)
+        view.findViewById<TextView>(R.id.appItemTipText2)
             ?.setText(getTipText2ResId())
+        view.findViewById<TextView>(R.id.appItemTipText3)
+            ?.setText(getTipText3ResId())
         return ShowInfoFromAppItemViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ShowInfoFromAppItemViewHolder, position: Int) {
         val appItem = items[position]
         holder.appIcon.setImageDrawable(appItem.appIcon)
-        holder.getBackgroundTasksText1.text = getText1Content(appItem)
-        holder.getBackgroundTasksText2.text = getText2Content(appItem)
+        holder.appItemTasksText1.text = getText1Content(appItem)
+        holder.appItemTasksText2.text = getText2Content(appItem)
+        holder.appItemTasksText3.text = getText3Content(appItem)
     }
-
 }

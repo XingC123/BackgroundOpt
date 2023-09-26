@@ -45,7 +45,8 @@ fun getTargetApps(context: Context, list: List<BaseProcessInfo>): List<AppItem> 
                 val applicationInfo = packageInfo.applicationInfo
                 AppItem(
                     applicationInfo.loadLabel(packageManager).toString(),
-                    packageInfo.packageName,
+                    baseProcessInfo.packageName,
+                    baseProcessInfo.uid,
                     applicationInfo.loadIcon(packageManager),
                     packageInfo
                 ).apply {

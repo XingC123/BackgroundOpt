@@ -18,7 +18,11 @@ class GetBackgroundTasksAdapter(override val items: List<AppItem>) :
         return appItem.pid.toString()
     }
 
+    override fun getText3Content(appItem: AppItem): String {
+        return appItem.uid.toString()
+    }
+
     override fun getTipText1ResId(): Int {
-        return R.string.processName
+        return R.string.appItemTipProcessName
     }
 }

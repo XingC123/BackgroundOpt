@@ -18,7 +18,7 @@ import com.venus.backgroundopt.utils.getTargetApps
 abstract class ShowInfoFromAppItemActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.get_background_tasks_recycler_view)
+        setContentView(R.layout.recycler_app_view)
 
         init()
     }

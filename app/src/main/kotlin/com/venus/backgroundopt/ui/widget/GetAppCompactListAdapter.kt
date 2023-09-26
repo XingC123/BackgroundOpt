@@ -17,7 +17,11 @@ class GetAppCompactListAdapter(items: List<AppItem>) : ShowInfoFromAppItemAdapte
         return appItem.pid.toString()
     }
 
+    override fun getText3Content(appItem: AppItem): String {
+        return appItem.uid.toString()
+    }
+
     override fun getTipText1ResId(): Int {
-        return R.string.processName
+        return R.string.appItemTipProcessName
     }
 }

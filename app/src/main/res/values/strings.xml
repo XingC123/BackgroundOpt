@@ -7,10 +7,12 @@
     <string name="doQueryBtn">Query</string>
     <string name="queryResultText">Launch a query~</string>
     <string name="getBackgroundTasks">getBackgroundTasks</string>
-    <string name="getBackgroundTasksTipText1">tip1:</string>
-    <string name="getBackgroundTasksTipText2">tip2:</string>
-    <string name="packageName">"name of package: "</string>
-    <string name="pid">pid:</string>
+    <string name="appItemTipText1">tip1:</string>
+    <string name="appItemTipText2">tip2:</string>
+    <string name="appItemTipPackageName">"name of package: "</string>
+    <string name="appItemTipPid">pid:</string>
     <string name="getAppCompactItemsBtn">get compact app  items</string>
-    <string name="processName">"name of process: "</string>
+    <string name="appItemTipProcessName">"name of process: "</string>
+    <string name="appItemTipText3">"tip3: "</string>
+    <string name="appItemTipUid">uid:</string>
 </resources>
