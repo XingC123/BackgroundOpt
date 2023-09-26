@@ -26,6 +26,13 @@ class ProcessStateRecordHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) 
                 ),
                 Int::class.javaPrimitiveType    // curAdj
             ),
+            HookPoint(
+                ClassConstants.ProcessStateRecord,
+                MethodConstants.getCurAdj,
+                arrayOf(
+                    beforeHookAction { handleGetCurAdj(it) }
+                )
+            ),
         )
     }
 
@@ -49,6 +56,28 @@ class ProcessStateRecordHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) 
             } else {
                 param.result = null
             }
+        }
+    }
+
+    private fun handleGetCurAdj(param: MethodHookParam) {
+        val processStateRecord = param.thisObject
+        val processRecordKt =
+            ProcessRecordKt(ProcessStateRecord.getProcessRecord(processStateRecord))
+        val appInfo = runningInfo.getRunningAppInfo(processRecordKt.uid)
+        // 主进程首次创建时appInfo还未初始化, 此情况无需关心
+        appInfo ?: return
+
+        val mPid = try {
+            appInfo.getmPid()
+        } catch (t: Throwable) {
+            Int.MIN_VALUE
+        }
+
+        if (processRecordKt.pid == mPid) {
+            /*if (BuildConfig.DEBUG) {
+                logger.debug("getCurAdj() >>> 包名: ${processRecordKt.packageName}, uid: ${processRecordKt.uid}, pid: ${processRecordKt.pid}, 目标主进程, 给你返回${ProcessRecordKt.DEFAULT_MAIN_ADJ}")
+            }*/
+            param.result = ProcessRecordKt.DEFAULT_MAIN_ADJ
         }
     }
 }
