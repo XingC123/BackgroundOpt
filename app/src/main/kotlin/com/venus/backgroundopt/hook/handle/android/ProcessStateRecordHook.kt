@@ -22,16 +22,17 @@ class ProcessStateRecordHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) 
                 ClassConstants.ProcessStateRecord,
                 MethodConstants.setCurAdj,
                 arrayOf(
-                    beforeHookAction { handleSetOomAdj(it) }
+                    beforeHookAction { handleSetCurAdj(it) }
                 ),
                 Int::class.javaPrimitiveType    // curAdj
             ),
         )
     }
 
-    private fun handleSetOomAdj(param: MethodHookParam) {
+    private fun handleSetCurAdj(param: MethodHookParam) {
         val processStateRecord = param.thisObject
-        val processRecordKt = ProcessRecordKt(ProcessStateRecord.getProcessRecord(processStateRecord))
+        val processRecordKt =
+            ProcessRecordKt(ProcessStateRecord.getProcessRecord(processStateRecord))
         val appInfo = runningInfo.getRunningAppInfo(processRecordKt.uid)
         // 主进程首次创建时appInfo还未初始化, 此情况无需关心
         appInfo ?: return
