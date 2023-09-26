@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.entity.base
 
+import com.venus.backgroundopt.utils.message.MessageFlag
+
 /**
  * @author XingC
  * @date 2023/9/26
@@ -8,7 +10,7 @@ open class BaseProcessInfoKt(
     var uid: Int = Int.MIN_VALUE,
     var pid: Int = Int.MIN_VALUE,
     var userId: Int = 0,
-) {
+) : MessageFlag {
     var oomAdjScore: Int = Int.MIN_VALUE
 
     /**
