@@ -42,10 +42,12 @@ class ProcessStateRecordHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) 
             Int.MIN_VALUE
         }
 
-        if (processRecord.pid == mPid && appInfo.mainProcCurAdj != ProcessRecord.DEFAULT_MAIN_ADJ) {
-            // 放行
-        } else {
-            param.result = null
+        if (processRecord.pid == mPid) {
+            if (appInfo.mainProcCurAdj != ProcessRecord.DEFAULT_MAIN_ADJ) {
+                // 放行
+            } else {
+                param.result = null
+            }
         }
     }
 }
