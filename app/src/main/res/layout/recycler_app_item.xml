@@ -43,7 +43,7 @@
                     android:text="tip1" />
 
                 <TextView
-                    android:id="@+id/appItemTasksText1"
+                    android:id="@+id/appItemText1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
@@ -70,7 +70,7 @@
                         android:text="@string/appItemTipText2" />
 
                     <TextView
-                        android:id="@+id/appItemTasksText2"
+                        android:id="@+id/appItemText2"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="0" />
@@ -90,7 +90,7 @@
                         android:text="@string/appItemTipText3" />
 
                     <TextView
-                        android:id="@+id/appItemTasksText3"
+                        android:id="@+id/appItemText3"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="0" />

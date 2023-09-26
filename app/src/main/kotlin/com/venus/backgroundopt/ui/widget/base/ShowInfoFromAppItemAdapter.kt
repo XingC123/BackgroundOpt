@@ -26,9 +26,9 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
 
             init {
                 appIcon = itemView.findViewById(R.id.appItemAppIcon)
-                appItemTasksText1 = itemView.findViewById(R.id.appItemTasksText1)
-                appItemTasksText2 = itemView.findViewById(R.id.appItemTasksText2)
-                appItemTasksText3 = itemView.findViewById(R.id.appItemTasksText3)
+                appItemTasksText1 = itemView.findViewById(R.id.appItemText1)
+                appItemTasksText2 = itemView.findViewById(R.id.appItemText2)
+                appItemTasksText3 = itemView.findViewById(R.id.appItemText3)
             }
         }
     }
