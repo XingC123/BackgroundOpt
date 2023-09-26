@@ -16,4 +16,6 @@
     <string name="appItemTipProcessName">"进程名: "</string>
     <string name="appItemTipText3">"tip3: "</string>
     <string name="appItemTipUid">"uid: "</string>
+    <string name="appItemTipText4">tip4:</string>
+    <string name="appItemTipOomAdjScore">"oomAdjScore: "</string>
 </resources>

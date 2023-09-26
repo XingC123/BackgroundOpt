@@ -15,4 +15,6 @@
     <string name="appItemTipProcessName">"name of process: "</string>
     <string name="appItemTipText3">"tip3: "</string>
     <string name="appItemTipUid">uid:</string>
+    <string name="appItemTipText4">tip4:</string>
+    <string name="appItemTipOomAdjScore">"oom_adj_score: "</string>
 </resources>

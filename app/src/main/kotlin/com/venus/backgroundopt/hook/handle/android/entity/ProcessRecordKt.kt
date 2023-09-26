@@ -287,10 +287,12 @@ class ProcessRecordKt() : BaseProcessInfoKt() {
         return time - getLastCompactTime() > compactInterval
     }
 
+    @JvmName("getOomAdjScoreFromAtomicInteger")
     fun getOomAdjScore(): Int {
         return oomAdjScoreAtomicInteger.get()
     }
 
+    @JvmName("setOomAdjScoreToAtomicInteger")
     fun setOomAdjScore(oomAdjScore: Int) {
         this.oomAdjScoreAtomicInteger.set(oomAdjScore)
     }

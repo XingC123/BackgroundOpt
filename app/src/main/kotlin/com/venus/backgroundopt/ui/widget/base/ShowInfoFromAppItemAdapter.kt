@@ -23,12 +23,14 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
             var appItemTasksText1: TextView
             var appItemTasksText2: TextView
             var appItemTasksText3: TextView
+            var appItemTasksText4: TextView
 
             init {
                 appIcon = itemView.findViewById(R.id.appItemAppIcon)
                 appItemTasksText1 = itemView.findViewById(R.id.appItemText1)
                 appItemTasksText2 = itemView.findViewById(R.id.appItemText2)
                 appItemTasksText3 = itemView.findViewById(R.id.appItemText3)
+                appItemTasksText4 = itemView.findViewById(R.id.appItemText4)
             }
         }
     }
@@ -50,6 +52,10 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
         return R.string.appItemTipUid
     }
 
+    protected open fun getTipText4ResId(): Int {
+        return R.string.appItemTipOomAdjScore
+    }
+
     /* *************************************************************************
      *                                                                         *
      * 具体的内容                                                                *
@@ -58,6 +64,7 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
     abstract fun getText1Content(appItem: AppItem): String?
     abstract fun getText2Content(appItem: AppItem): String
     abstract fun getText3Content(appItem: AppItem): String
+    abstract fun getText4Content(appItem: AppItem): String
 
     /* *************************************************************************
      *                                                                         *
@@ -82,6 +89,8 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
             ?.setText(getTipText2ResId())
         view.findViewById<TextView>(R.id.appItemTipText3)
             ?.setText(getTipText3ResId())
+        view.findViewById<TextView>(R.id.appItemTipText4)
+            ?.setText(getTipText4ResId())
         return ShowInfoFromAppItemViewHolder(view)
     }
 
@@ -91,5 +100,6 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
         holder.appItemTasksText1.text = getText1Content(appItem)
         holder.appItemTasksText2.text = getText2Content(appItem)
         holder.appItemTasksText3.text = getText3Content(appItem)
+        holder.appItemTasksText4.text = getText4Content(appItem)
     }
 }

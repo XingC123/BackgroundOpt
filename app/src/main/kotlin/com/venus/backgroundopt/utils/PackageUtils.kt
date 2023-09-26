@@ -52,6 +52,7 @@ fun getTargetApps(context: Context, list: List<BaseProcessInfoKt>): List<AppItem
                 ).apply {
                     pid = baseProcessInfo.pid
                     processName = baseProcessInfo.processName
+                    oomAdjScore = baseProcessInfo.oomAdjScore
                 }
             }
         }
