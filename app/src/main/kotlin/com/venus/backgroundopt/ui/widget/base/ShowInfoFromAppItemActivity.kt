@@ -18,7 +18,7 @@ import com.venus.backgroundopt.utils.getTargetApps
  * @date 2023/9/25
  */
 abstract class ShowInfoFromAppItemActivity : AppCompatActivity() {
-    private lateinit var progressBarDialog:AlertDialog
+    private lateinit var progressBarDialog: AlertDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,8 +29,14 @@ abstract class ShowInfoFromAppItemActivity : AppCompatActivity() {
         progressBarDialog.show()
 
         // 加载数据
-        init()
+        try {
+            init()
+        } catch (ignore: Throwable) {
+        } finally {
+            progressBarDialog.dismiss()
+        }
     }
+
     abstract fun getShowInfoAdapter(appItems: List<AppItem>): ShowInfoFromAppItemAdapter
 
     private fun init() {
@@ -49,7 +55,5 @@ abstract class ShowInfoFromAppItemActivity : AppCompatActivity() {
             this.layoutManager = layoutManager
             adapter = getShowInfoAdapter(appItems)
         }
-
-        progressBarDialog.dismiss()
     }
 }
