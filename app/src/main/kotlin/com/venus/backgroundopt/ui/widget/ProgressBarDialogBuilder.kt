@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.venus.backgroundopt.R
+import com.venus.backgroundopt.environment.newThreadTask
 
 /**
  * @author XingC
@@ -25,5 +26,27 @@ class ProgressBarDialogBuilder {
                 .setView(view)
                 .create()
         }
+
+        @JvmStatic
+        fun showProgressBarViewForAction(context: Context, text: String, action: () -> Unit) {
+            val dialog = createProgressBarView(context, text)
+            dialog.show()
+            newThreadTask {
+                try {
+                    action()
+                } catch (ignore: Exception) {
+                } finally {
+                    dialog.dismiss()
+                }
+            }
+        }
     }
+}
+
+fun createProgressBarView(context: Context, text: String): AlertDialog {
+    return ProgressBarDialogBuilder.createProgressBarView(context, text)
+}
+
+fun showProgressBarViewForAction(context: Context, text: String, action: () -> Unit) {
+    ProgressBarDialogBuilder.showProgressBarViewForAction(context, text, action)
 }

@@ -18,4 +18,12 @@
     <string name="appItemTipUid">"uid: "</string>
     <string name="appItemTipText4">tip4:</string>
     <string name="appItemTipOomAdjScore">"oomAdjScore: "</string>
+    <string name="configureappProcessAppNameText">应用名</string>
+    <string name="configureAppProcessVersionNameTipText">"versionName: "</string>
+    <string name="configureAppProcessVersionCodeTipText">"versionCode: "</string>
+    <string name="configureAppProcessItemProcessNameText">processName</string>
+    <string name="configureAppProcessItemApplyConfigureNameText">配置名</string>
+    <string name="configureAppProcessItemSelectConfigBtn">选择</string>
+    <string name="gotoConfigureAppProcessActivityBtn">设置应用进程</string>
+    <string name="installedAppItemAppNameText">appName</string>
 </resources>

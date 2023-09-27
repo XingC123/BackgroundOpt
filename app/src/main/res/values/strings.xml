@@ -17,4 +17,12 @@
     <string name="appItemTipUid">uid:</string>
     <string name="appItemTipText4">tip4:</string>
     <string name="appItemTipOomAdjScore">"oom_adj_score: "</string>
+    <string name="configureappProcessAppNameText">name of application</string>
+    <string name="configureAppProcessVersionNameTipText">"versionName: "</string>
+    <string name="configureAppProcessVersionCodeTipText">"versionCode: "</string>
+    <string name="configureAppProcessItemProcessNameText">processName</string>
+    <string name="configureAppProcessItemApplyConfigureNameText">name of configure</string>
+    <string name="configureAppProcessItemSelectConfigBtn">select</string>
+    <string name="gotoConfigureAppProcessActivityBtn">go to configure app processes</string>
+    <string name="installedAppItemAppNameText">appName</string>
 </resources>

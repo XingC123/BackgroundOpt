@@ -56,5 +56,10 @@ class MainActivity : AppCompatActivity(), ILogger {
                 setIntentData(this, listStr)
             })
         }
+
+        // 转去设置应用进程页面
+        findViewById<Button>(R.id.gotoConfigureAppProcessActivityBtn)?.setOnClickListener { _ ->
+            startActivity(Intent(this, ShowAllInstalledAppsActivity::class.java))
+        }
     }
 }
