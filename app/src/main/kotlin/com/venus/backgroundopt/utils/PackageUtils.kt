@@ -84,7 +84,10 @@ fun getTargetApps(context: Context, list: List<BaseProcessInfoKt>): List<AppItem
         .collect(Collectors.toList())
 }
 
-fun getInstalledPackages(context: Context): List<AppItem> {
+fun getInstalledPackages(
+    context: Context,
+    filter: ((PackageInfo) -> Boolean)? = null
+): List<AppItem> {
     val packageManager = context.packageManager
     val packageInfos = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         packageManager.getInstalledPackages(
@@ -97,6 +100,7 @@ fun getInstalledPackages(context: Context): List<AppItem> {
     }
 
     return packageInfos.stream()
+        .filterNullable(filter)
         .map { packageInfo ->
             val applicationInfo = packageInfo.applicationInfo
             AppItem(

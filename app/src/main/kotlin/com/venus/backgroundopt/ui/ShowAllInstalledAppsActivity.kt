@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
+import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
 import com.venus.backgroundopt.utils.getInstalledPackages
 
@@ -23,7 +24,9 @@ class ShowAllInstalledAppsActivity : AppCompatActivity() {
     }
 
     private fun init() {
-        val appItems = getInstalledPackages(this)
+        val appItems = getInstalledPackages(this) { packageInfo ->
+            !ActivityManagerService.isImportantSystemApp(packageInfo.applicationInfo)
+        }
 
         runOnUiThread {
             findViewById<RecyclerView>(R.id.recyclerView).apply {

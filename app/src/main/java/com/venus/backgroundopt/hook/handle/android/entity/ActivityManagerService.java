@@ -92,6 +92,16 @@ public class ActivityManagerService implements ILogger {
 
     private final NormalAppResult notNormalAppResult = new NormalAppResult().setNormalApp(false);
 
+    public static boolean isImportantSystemApp(android.content.pm.ApplicationInfo applicationInfo) {
+        return applicationInfo == null ||
+                applicationInfo.uid < USER_APP_UID_START_NUM && (
+                        applicationInfo.flags & (
+                                android.content.pm.ApplicationInfo.FLAG_SYSTEM |
+                                        android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP
+                        )
+                ) != 0;
+    }
+
     public NormalAppResult isImportantSystemApp(int userId, String packageName) {
         ApplicationInfo applicationInfo = getApplicationInfo(userId, packageName);
 
