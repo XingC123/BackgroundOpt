@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import com.alibaba.fastjson2.JSON
+import com.alibaba.fastjson2.JSONObject
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.utils.log.logDebug
 import com.venus.backgroundopt.utils.log.logDebugAndroid
@@ -13,6 +14,7 @@ import com.venus.backgroundopt.utils.log.logWarnAndroid
 import com.venus.backgroundopt.utils.message.handle.AppCompactListMessageHandler
 import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandler
 import com.venus.backgroundopt.utils.message.handle.RunningAppInfoMessageHandler
+import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMessageHandler
 import com.venus.backgroundopt.utils.message.handle.TargetAppGroupMessageHandler
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
@@ -39,6 +41,7 @@ val registeredMessageHandler = mapOf(
     MessageKeyConstants.getTargetAppGroup to TargetAppGroupMessageHandler(),
     MessageKeyConstants.getBackgroundTasks to BackgroundTasksMessageHandler(),
     MessageKeyConstants.getAppCompactList to AppCompactListMessageHandler(),
+    MessageKeyConstants.subProcessOomConfigChange to SubProcessOomConfigChangeMessageHandler(),
 )
 
 // json传输的载体
@@ -129,24 +132,29 @@ inline fun <reified E> sendMessageAcceptList(
  * @param value ui发送过来的消息
  * @param generateData 生成数据使用的方法
  */
-@Suppress("UNCHECKED_CAST")
-inline fun <E> createResponse(
+inline fun <reified E> createResponse(
     param: MethodHookParam,
     value: String?,
     setJsonData: Boolean = false,
-    generateData: (value: E) -> Any
+    generateData: (value: E) -> Any?
 ) {
     if (BuildConfig.DEBUG) {
         logDebug("${CUR_CLASS_PREFIX}createResponse", "模块进程接收的数据为: $value")
     }
     try {
         param.result = value?.let { v ->
-            ((JSON.parseObject(v, Message::class.java)).v as? E)?.let {
-                val d = generateData(it)
-                ComponentName(
-                    if (setJsonData) JSON.toJSONString(d) else d.toString(),
-                    NULL_FLAG
-                )
+            ((JSON.parseObject(v, Message::class.java)).v as? E)?.let { e ->
+                val final: E? = if (e is JSONObject) {
+                    JSON.parseObject(e.toString(), E::class.java)
+                } else {
+                    null
+                }
+                generateData(final ?: e)?.let { data ->
+                    ComponentName(
+                        if (setJsonData) JSON.toJSONString(data) else data.toString(),
+                        NULL_FLAG
+                    )
+                } ?: nullComponentName
             } ?: nullComponentName
         } ?: nullComponentName
     } catch (t: Throwable) {
