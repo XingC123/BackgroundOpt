@@ -156,18 +156,9 @@ inline fun <reified E> createResponse(
                         if (setJsonData) JSON.toJSONString(responseObj) else responseObj.toString(),
                         NULL_FLAG
                     )
-                } ?: run {
-                    logDebug("${CUR_CLASS_PREFIX}createResponse", "走的1")
-                    nullComponentName
-                }
-            } ?: run {
-                logDebug("${CUR_CLASS_PREFIX}createResponse", "走的2")
-                nullComponentName
-            }
-        } ?: run {
-            logDebug("${CUR_CLASS_PREFIX}createResponse", "走的3")
-            nullComponentName
-        }
+                } ?: nullComponentName
+            } ?: nullComponentName
+        } ?: nullComponentName
     } catch (t: Throwable) {
         logError("${CUR_CLASS_PREFIX}createResponse", "响应对象创建错误", t)
         param.result = nullComponentName
