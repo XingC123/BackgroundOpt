@@ -12,5 +12,6 @@ interface MessageKeyConstants {
         const val getTargetAppGroup = "getTargetAppGroup"
         const val getBackgroundTasks = "getBackgroundTasks"
         const val getAppCompactList = "getAppCompactList"
+        const val subProcessOomConfigChange = "subProcessOomConfigChange"
     }
 }

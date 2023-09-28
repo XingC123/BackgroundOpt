@@ -1,9 +1,11 @@
 package com.venus.backgroundopt.ui.widget
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.environment.newThreadTask
 
@@ -35,6 +37,11 @@ class ProgressBarDialogBuilder {
                 try {
                     action()
                 } catch (ignore: Exception) {
+                    Log.e(
+                        BuildConfig.APPLICATION_ID,
+                        "showProgressBarViewForAction: 进度条事件执行出错",
+                        ignore
+                    )
                 } finally {
                     dialog.dismiss()
                 }

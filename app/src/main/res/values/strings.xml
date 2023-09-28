@@ -25,4 +25,8 @@
     <string name="configureAppProcessItemSelectConfigBtn">select</string>
     <string name="gotoConfigureAppProcessActivityBtn">go to configure app processes</string>
     <string name="installedAppItemAppNameText">appName</string>
+    <string name="subProcessOomPolicyDialogDefaultBtn">Default</string>
+    <string name="subProcessOomPolicyDialogMainProcessBtn">Main Process</string>
+    <string name="subProcessOomPolicyDialogDoNothingBtn">Do nothing</string>
+    <string name="subProcessOomPolicyDialogCustomBtn">Custom</string>
 </resources>

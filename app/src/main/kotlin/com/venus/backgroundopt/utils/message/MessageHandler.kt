@@ -1,6 +1,7 @@
 package com.venus.backgroundopt.utils.message
 
 import com.venus.backgroundopt.entity.RunningInfo
+import com.venus.backgroundopt.utils.log.ILogger
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
@@ -9,6 +10,6 @@ import de.robv.android.xposed.XC_MethodHook.MethodHookParam
  * @author XingC
  * @date 2023/9/23
  */
-interface MessageHandler {
+interface MessageHandler:ILogger {
     fun handle(runningInfo: RunningInfo, param: MethodHookParam, value: String?)
 }

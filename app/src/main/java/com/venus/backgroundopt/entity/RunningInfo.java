@@ -270,7 +270,9 @@ public class RunningInfo implements ILogger {
     public void setAddedRunningApp(ProcessRecordKt mProcessRecord, AppInfo appInfo) {
         if (mProcessRecord != null) {
             // 设置主进程的最大adj(保活)
+            // 23.9.28: 实际已在调节oom得分时进行设置, 此处已无意义?
             mProcessRecord.setDefaultMaxAdj();
+            // 写入主进程
             appInfo.setMProcess(mProcessRecord);
         } else {
             if (BuildConfig.DEBUG) {

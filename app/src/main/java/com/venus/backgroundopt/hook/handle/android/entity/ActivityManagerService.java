@@ -5,7 +5,7 @@ import static com.venus.backgroundopt.entity.RunningInfo.NormalAppResult;
 import android.content.Context;
 import android.content.pm.PackageManager;
 
-import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.AppInfo;
@@ -75,10 +75,9 @@ public class ActivityManagerService implements ILogger {
 
     private final Object mPidsSelfLocked; // PidMap
 
-    @Nullable
+    @NonNull
     public ProcessRecordKt getProcessRecord(int pid) {
-        Object process = XposedHelpers.callMethod(mPidsSelfLocked, MethodConstants.get, pid);
-        return process == null ? null : new ProcessRecordKt(process);
+        return new ProcessRecordKt(XposedHelpers.callMethod(mPidsSelfLocked, MethodConstants.get, pid));
     }
 
     private final Object mProcLock;

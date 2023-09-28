@@ -7,17 +7,24 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
+import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 
 /**
  * @author XingC
  * @date 2023/9/27
  */
-class ConfigureAppProcessAdapter(val processes: List<String>) :
+class ConfigureAppProcessAdapter(
+    private val processes: List<String>,
+    private val subProcessOomPolicyList: List<SubProcessOomPolicy>
+) :
     RecyclerView.Adapter<ConfigureAppProcessAdapter.Companion.AppProcessConfigureViewHolder>() {
     companion object {
         class AppProcessConfigureViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             var processNameTextView: TextView
             var applyConfigNameTextView: TextView
+
+            lateinit var processName: String
+            lateinit var subProcessOomPolicy: SubProcessOomPolicy
 
             init {
                 processNameTextView =
@@ -25,9 +32,15 @@ class ConfigureAppProcessAdapter(val processes: List<String>) :
                 applyConfigNameTextView =
                     itemView.findViewById(R.id.appProcessConfigureItemApplyConfigureNameText)
 
+                // 为策略选择按钮绑定事件
                 itemView.findViewById<Button>(R.id.appProcessConfigureItemSelectConfigBtn)
                     ?.setOnClickListener { _ ->
-                        // TODO 弹出框选择配置: 1. 默认    2. 主进程  3. 不作为(观望)
+                        ConfigureAppProcessDialogBuilder.createDialog(
+                            itemView.context,
+                            applyConfigNameTextView,
+                            processName,
+                            subProcessOomPolicy
+                        ).show()
                     }
             }
         }
@@ -50,6 +63,10 @@ class ConfigureAppProcessAdapter(val processes: List<String>) :
     override fun onBindViewHolder(holder: AppProcessConfigureViewHolder, position: Int) {
         val processName = processes[position]
         holder.processNameTextView.text = processName
-        // TODO 根据进程名查找存储在本地的配置
+        holder.processName = processName
+        // 显示策略的名字
+        val subProcessOomPolicy = subProcessOomPolicyList[position]
+        holder.applyConfigNameTextView.text = subProcessOomPolicy.policyEnum.configName
+        holder.subProcessOomPolicy = subProcessOomPolicy
     }
 }

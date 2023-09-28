@@ -26,4 +26,8 @@
     <string name="configureAppProcessItemSelectConfigBtn">选择</string>
     <string name="gotoConfigureAppProcessActivityBtn">设置应用进程</string>
     <string name="installedAppItemAppNameText">appName</string>
+    <string name="subProcessOomPolicyDialogDefaultBtn">默认</string>
+    <string name="subProcessOomPolicyDialogMainProcessBtn">主进程</string>
+    <string name="subProcessOomPolicyDialogDoNothingBtn">不作为</string>
+    <string name="subProcessOomPolicyDialogCustomBtn">自定义</string>
 </resources>

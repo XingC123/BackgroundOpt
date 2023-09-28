@@ -1,6 +1,9 @@
 package com.venus.backgroundopt.utils
 
+import android.content.Context
 import android.content.Intent
+import android.view.LayoutInflater
+import android.view.View
 import com.alibaba.fastjson2.JSON
 
 /**
@@ -11,6 +14,25 @@ import com.alibaba.fastjson2.JSON
 // 临时数据。在两个Activity之间使用。有线程安全问题
 @JvmField
 var TMP_DATA: Any? = null
+
+@JvmField
+var TMP_DATA_LIST: ArrayList<Any>? = null
+
+fun putTmpListData(vararg value: Any) {
+    TMP_DATA_LIST = arrayListOf(*value)
+}
+
+fun getTmpListData(): ArrayList<Any>? {
+    val list = TMP_DATA_LIST
+    TMP_DATA_LIST = null
+
+    return list
+}
+
+@Suppress("UNCHECKED_CAST")
+fun <E> getTmpListData(index: Int): E? {
+    return TMP_DATA_LIST?.get(index) as? E
+}
 
 fun setIntentData(intent: Intent, data: String?) {
     intent.putExtra("data", data)
@@ -35,3 +57,6 @@ inline fun <reified E> getIntentDataToList(intent: Intent): List<E>? {
         JSON.parseArray(it, E::class.java)
     }
 }
+
+fun getView(context: Context, layoutResId: Int): View =
+    LayoutInflater.from(context).inflate(layoutResId, null)

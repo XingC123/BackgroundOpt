@@ -8,11 +8,16 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
+import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
+import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
 import com.venus.backgroundopt.utils.TMP_DATA
 import com.venus.backgroundopt.utils.getAppProcesses
+import com.venus.backgroundopt.utils.preference.prefValue
 
 class ConfigureAppProcessActivity : AppCompatActivity() {
+    private lateinit var appItem: AppItem
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_configure_app_process)
@@ -23,8 +28,7 @@ class ConfigureAppProcessActivity : AppCompatActivity() {
     }
 
     private fun init() {
-        val appItem = TMP_DATA as? AppItem
-        appItem ?: return
+        appItem = TMP_DATA as AppItem
 
         // 设置基本数据
         runOnUiThread {
@@ -46,13 +50,38 @@ class ConfigureAppProcessActivity : AppCompatActivity() {
         // 获取进程列表
         getAppProcesses(this, appItem)
 
+        // 获取本地配置
+        // 这种写法导致了配置界面崩溃
+//        val subProcessOomPolicyList = appItem.processes.stream()
+//            .filter { processName ->
+//                // 只保留子进程
+//                processName.contains(":")
+//            }
+//            .map { processName ->
+//                prefValue<SubProcessOomPolicy>(SUB_PROCESS_OOM_POLICY, processName) ?: run {
+//                    // 不存在则使用默认
+//                    SubProcessOomPolicy()
+//                }
+//            }
+//            .collect(Collectors.toList())
+        val subProcessOomPolicyList = arrayListOf<SubProcessOomPolicy>()
+        appItem.processes.forEach { processName ->
+            subProcessOomPolicyList.add(
+                prefValue<SubProcessOomPolicy>(SUB_PROCESS_OOM_POLICY, processName) ?: run {
+                    // 不存在则使用默认
+                    SubProcessOomPolicy()
+                }
+            )
+        }
+
         // 设置view
         runOnUiThread {
             findViewById<RecyclerView>(R.id.configureAppProcessRecycleView).apply {
                 layoutManager = LinearLayoutManager(this@ConfigureAppProcessActivity).apply {
                     orientation = LinearLayoutManager.VERTICAL
                 }
-                adapter = ConfigureAppProcessAdapter(appItem.processes.toList())
+                adapter =
+                    ConfigureAppProcessAdapter(appItem.processes.toList(), subProcessOomPolicyList)
             }
         }
     }

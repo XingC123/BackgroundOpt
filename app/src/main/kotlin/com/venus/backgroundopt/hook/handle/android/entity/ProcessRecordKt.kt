@@ -2,6 +2,7 @@ package com.venus.backgroundopt.hook.handle.android.entity
 
 import android.content.pm.ApplicationInfo
 import com.alibaba.fastjson2.annotation.JSONField
+import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
@@ -10,6 +11,7 @@ import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_NEWLINE_TERM
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_OUT_LONG
 import com.venus.backgroundopt.utils.PackageUtils
+import com.venus.backgroundopt.utils.log.ILogger
 import de.robv.android.xposed.XposedHelpers
 import java.util.Objects
 import java.util.concurrent.TimeUnit
@@ -20,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong
  * @author XingC
  * @date 2023/9/26
  */
-class ProcessRecordKt() : BaseProcessInfoKt() {
+class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     companion object {
         @JvmField
         val LONG_FORMAT = intArrayOf(PROC_NEWLINE_TERM or PROC_OUT_LONG)
@@ -249,6 +251,36 @@ class ProcessRecordKt() : BaseProcessInfoKt() {
             }
         }
         recordMaxAdj = if (setSucceed) maxAdj else ProcessList.UNKNOWN_ADJ
+    }
+
+    /**
+     * 是否已经对该进程设置过maxAdj
+     *
+     * @return
+     */
+    @JSONField(serialize = false)
+    fun hasSetMaxAdj(): Boolean = recordMaxAdj != 0
+
+    /**
+     * 重置进程的maxAdj
+     *
+     */
+    fun resetMaxAdj() {
+        if (hasSetMaxAdj()) {
+            try {
+                processStateRecord?.let { psr ->
+                    psr.maxAdj = ProcessList.UNKNOWN_ADJ
+
+                    if (BuildConfig.DEBUG) {
+                        logger.debug("pid: [${pid}] >>> maxAdj重置成功")
+                    }
+                } ?: run {
+                    logger.warn("pid: [${pid}] >>> psr为空, 重置进程maxAdj失败")
+                }
+            } catch (t: Throwable) {
+                logger.error("pid: [${pid}] >>> maxAdj重置失败", t)
+            }
+        }
     }
 
     /**
