@@ -14,6 +14,7 @@ import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
 import com.venus.backgroundopt.utils.TMP_DATA
 import com.venus.backgroundopt.utils.getAppProcesses
 import com.venus.backgroundopt.utils.preference.prefValue
+import com.venus.backgroundopt.utils.processNameSeparator
 
 class ConfigureAppProcessActivity : AppCompatActivity() {
     private lateinit var appItem: AppItem
@@ -51,21 +52,16 @@ class ConfigureAppProcessActivity : AppCompatActivity() {
         getAppProcesses(this, appItem)
 
         // 获取本地配置
-        // 这种写法导致了配置界面崩溃
-//        val subProcessOomPolicyList = appItem.processes.stream()
-//            .filter { processName ->
-//                // 只保留子进程
-//                processName.contains(":")
-//            }
-//            .map { processName ->
-//                prefValue<SubProcessOomPolicy>(SUB_PROCESS_OOM_POLICY, processName) ?: run {
-//                    // 不存在则使用默认
-//                    SubProcessOomPolicy()
-//                }
-//            }
-//            .collect(Collectors.toList())
         val subProcessOomPolicyList = arrayListOf<SubProcessOomPolicy>()
-        appItem.processes.forEach { processName ->
+        val iterator = appItem.processes.iterator()
+        var processName: String
+        while (iterator.hasNext()) {
+            processName = iterator.next()
+            // 剔除主进程
+            if (!processName.contains(processNameSeparator)) {
+                iterator.remove()
+                continue
+            }
             subProcessOomPolicyList.add(
                 prefValue<SubProcessOomPolicy>(SUB_PROCESS_OOM_POLICY, processName) ?: run {
                     // 不存在则使用默认

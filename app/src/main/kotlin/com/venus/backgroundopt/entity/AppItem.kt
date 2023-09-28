@@ -22,7 +22,7 @@ data class AppItem(
     var curAdj: Int = Int.MIN_VALUE
 
     // 清单文件中注册的所有进程
-    lateinit var processes: Set<String>
+    lateinit var processes: MutableSet<String>
 
     var versionName: String? = null
     var versionCode: Int = Int.MIN_VALUE

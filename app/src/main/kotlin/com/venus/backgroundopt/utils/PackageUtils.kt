@@ -16,6 +16,8 @@ import java.util.stream.Collectors
  * @date 2023/9/25
  */
 
+const val processNameSeparator: String = ":"
+
 /**
  * 绝对进程名
  *
@@ -26,7 +28,7 @@ fun absoluteProcessName(packageName: String, processName: String): String {
     // 相对进程名
     return if (processName.startsWith(".")) {
         // 拼成绝对进程名
-        packageName + ":" + processName.substring(1)
+        "${packageName}${processNameSeparator}${processName.substring(1)}"
     } else {
         // 是绝对进程直接返回
         processName
