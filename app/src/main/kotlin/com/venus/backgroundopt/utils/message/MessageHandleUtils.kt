@@ -143,20 +143,31 @@ inline fun <reified E> createResponse(
     }
     try {
         param.result = value?.let { v ->
-            ((JSON.parseObject(v, Message::class.java)).v as? E)?.let { e ->
-                val final: E? = if (e is JSONObject) {
-                    JSON.parseObject(e.toString(), E::class.java)
-                } else {
-                    null
-                }
-                generateData(final ?: e)?.let { data ->
+            val message = JSON.parseObject(v, Message::class.java)
+            val final = if (message.v is JSONObject) {
+                JSON.parseObject(message.v.toString(), E::class.java)
+            } else {
+                message.v as? E
+            }
+
+            final?.let { eData ->
+                generateData(eData)?.let { responseObj ->
                     ComponentName(
-                        if (setJsonData) JSON.toJSONString(data) else data.toString(),
+                        if (setJsonData) JSON.toJSONString(responseObj) else responseObj.toString(),
                         NULL_FLAG
                     )
-                } ?: nullComponentName
-            } ?: nullComponentName
-        } ?: nullComponentName
+                } ?: run {
+                    logDebug("${CUR_CLASS_PREFIX}createResponse", "走的1")
+                    nullComponentName
+                }
+            } ?: run {
+                logDebug("${CUR_CLASS_PREFIX}createResponse", "走的2")
+                nullComponentName
+            }
+        } ?: run {
+            logDebug("${CUR_CLASS_PREFIX}createResponse", "走的3")
+            nullComponentName
+        }
     } catch (t: Throwable) {
         logError("${CUR_CLASS_PREFIX}createResponse", "响应对象创建错误", t)
         param.result = nullComponentName
