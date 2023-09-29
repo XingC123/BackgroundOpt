@@ -1,12 +1,10 @@
 package com.venus.backgroundopt.hook.handle.self
 
-import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.base.generateHookPoint
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
-import kotlin.reflect.jvm.javaGetter
 
 /**
  * @author XingC
@@ -16,13 +14,13 @@ class ModuleActiveStateHook(classLoader: ClassLoader?) : MethodHook(classLoader)
     override fun getHookPoint(): Array<HookPoint> {
         return arrayOf(
             generateHookPoint(
-                CommonProperties::class.qualifiedName != null,
-                CommonProperties::class.qualifiedName!!,
-                CommonProperties::moduleActive.javaGetter!!.name,
+                true,
+                "com.venus.backgroundopt.environment.CommonProperties",
+                "isModuleActive",
                 arrayOf(
                     beforeHookAction { handleModuleActiveState(it) }
                 )
-            )
+            ),
         )
     }
 

@@ -11,7 +11,9 @@ import java.util.concurrent.ConcurrentHashMap
  */
 object CommonProperties {
     // 模块是否激活
-    var moduleActive = false
+    fun isModuleActive(): Boolean {
+        return false
+    }
 
     // 默认白名单
     val subProcessDefaultUpgradeSet: Set<String> by lazy {

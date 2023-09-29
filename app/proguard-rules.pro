@@ -164,3 +164,7 @@
 ################################################################
 # 不混淆实现了此接口的类
 -keep class * implements com.venus.backgroundopt.utils.message.MessageFlag
+# 模块激活状态的检测
+-keepclasseswithmembers class com.venus.backgroundopt.environment.CommonProperties {
+    public final boolean isModuleActive();
+}

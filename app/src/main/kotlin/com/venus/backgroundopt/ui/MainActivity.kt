@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity(), ILogger {
 
     private fun init() {
         // app激活状态
-        val moduleActive = CommonProperties.moduleActive
+        val moduleActive = CommonProperties.isModuleActive()
         if (moduleActive) {
             findViewById<TextView>(R.id.mainActivityModuleActiveText)?.setText(R.string.moduleActive)
         }
