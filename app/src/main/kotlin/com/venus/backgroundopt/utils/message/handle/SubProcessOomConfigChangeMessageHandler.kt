@@ -4,6 +4,7 @@ import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
 import de.robv.android.xposed.XC_MethodHook
@@ -16,7 +17,7 @@ import de.robv.android.xposed.XC_MethodHook
  */
 class SubProcessOomConfigChangeMessageHandler : MessageHandler {
     companion object {
-        class SubProcessOomConfigChangeMessage {
+        class SubProcessOomConfigChangeMessage : MessageFlag {
             lateinit var processName: String
             lateinit var subProcessOomPolicy: SubProcessOomPolicy
         }
@@ -33,12 +34,10 @@ class SubProcessOomConfigChangeMessageHandler : MessageHandler {
         ) { subProcessOomConfigChangeMessage ->
             // 移除或添加oom策略。在下次调整进程oom_adj_score时生效
             if (subProcessOomConfigChangeMessage.subProcessOomPolicy.policyEnum != SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT) {
-                CommonProperties.subProcessOomPolicyMap?.put(
-                    subProcessOomConfigChangeMessage.processName,
+                CommonProperties.subProcessOomPolicyMap[subProcessOomConfigChangeMessage.processName] =
                     subProcessOomConfigChangeMessage.subProcessOomPolicy
-                )
             } else {
-                CommonProperties.subProcessOomPolicyMap?.remove(subProcessOomConfigChangeMessage.processName)
+                CommonProperties.subProcessOomPolicyMap.remove(subProcessOomConfigChangeMessage.processName)
             }
 
             if (BuildConfig.DEBUG) {

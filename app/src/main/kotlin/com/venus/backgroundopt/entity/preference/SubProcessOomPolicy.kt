@@ -1,6 +1,7 @@
 package com.venus.backgroundopt.entity.preference
 
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.utils.message.MessageFlag
 
 /**
  *  子进程oom配置策略
@@ -8,7 +9,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
  * @author XingC
  * @date 2023/9/28
  */
-class SubProcessOomPolicy {
+class SubProcessOomPolicy : MessageFlag {
     var policyEnum: SubProcessOomPolicyEnum = SubProcessOomPolicyEnum.DEFAULT
     var targetOomAdjScore: Int = ProcessRecordKt.SUB_PROC_ADJ
 

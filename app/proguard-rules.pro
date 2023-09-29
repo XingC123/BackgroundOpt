@@ -156,8 +156,8 @@
 
 #FastJson反混淆
 -keepattributes Signature
--dontwarn com.alibaba.fastjson.**
--keep class com.alibaba.fastjson.**{*; }
+-dontwarn com.alibaba.fastjson2.**
+-keep class com.alibaba.fastjson2.**{*; }
 
 ################################################################
 # 自定义规则                                                     #

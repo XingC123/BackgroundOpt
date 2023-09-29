@@ -138,20 +138,26 @@ inline fun <reified E> createResponse(
     setJsonData: Boolean = false,
     generateData: (value: E) -> Any?
 ) {
-    if (BuildConfig.DEBUG) {
-        logDebug("${CUR_CLASS_PREFIX}createResponse", "模块进程接收的数据为: $value")
-    }
+//    if (BuildConfig.DEBUG) {
+    logDebug("${CUR_CLASS_PREFIX}createResponse", "模块进程接收的数据为: $value")
+//    }
+    var errorMsg:String? = null
     try {
         param.result = value?.let { v ->
+            errorMsg = "Message转换异常"
             val message = JSON.parseObject(v, Message::class.java)
             val final = if (message.v is JSONObject) {
+                errorMsg = "Message.v转换异常"
                 JSON.parseObject(message.v.toString(), E::class.java)
             } else {
+                errorMsg = "Message.v类型转换异常"
                 message.v as? E
             }
 
             final?.let { eData ->
+                errorMsg = "数据处理异常"
                 generateData(eData)?.let { responseObj ->
+                    errorMsg = "组件生成异常"
                     ComponentName(
                         if (setJsonData) JSON.toJSONString(responseObj) else responseObj.toString(),
                         NULL_FLAG
@@ -160,7 +166,7 @@ inline fun <reified E> createResponse(
             } ?: nullComponentName
         } ?: nullComponentName
     } catch (t: Throwable) {
-        logError("${CUR_CLASS_PREFIX}createResponse", "响应对象创建错误", t)
+        logError("${CUR_CLASS_PREFIX}createResponse", "响应对象创建错误。errorMsg: $errorMsg", t)
         param.result = nullComponentName
     }
 }
