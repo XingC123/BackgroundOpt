@@ -1,8 +1,8 @@
-package com.venus.backgroundopt.ui.widget
+package com.venus.backgroundopt.ui
 
 import com.venus.backgroundopt.entity.AppItem
-import com.venus.backgroundopt.ui.widget.base.ShowInfoFromAppItemActivity
-import com.venus.backgroundopt.ui.widget.base.ShowInfoFromAppItemAdapter
+import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemActivity
+import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
 
 /**
  * @author XingC
@@ -10,6 +10,6 @@ import com.venus.backgroundopt.ui.widget.base.ShowInfoFromAppItemAdapter
  */
 class ShowAppCompactListActivity : ShowInfoFromAppItemActivity() {
     override fun getShowInfoAdapter(appItems: List<AppItem>): ShowInfoFromAppItemAdapter {
-        return GetAppCompactListAdapter(appItems)
+        return ShowAppCompactListAdapter(appItems)
     }
 }

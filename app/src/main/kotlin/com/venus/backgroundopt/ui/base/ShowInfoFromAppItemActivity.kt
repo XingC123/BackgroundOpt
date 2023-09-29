@@ -1,4 +1,4 @@
-package com.venus.backgroundopt.ui.widget.base
+package com.venus.backgroundopt.ui.base
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

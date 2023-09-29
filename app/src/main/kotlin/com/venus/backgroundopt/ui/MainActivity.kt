@@ -6,8 +6,6 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.ui.widget.QueryInfoDialog
-import com.venus.backgroundopt.ui.widget.ShowAppCompactListActivity
-import com.venus.backgroundopt.ui.widget.ShowBackgroundTasksActivity
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.sendMessage

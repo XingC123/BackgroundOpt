@@ -46,11 +46,11 @@
         </activity>
 
         <activity
-            android:name=".ui.widget.ShowBackgroundTasksActivity"
+            android:name=".ui.ShowBackgroundTasksActivity"
             android:exported="true" />
 
         <activity
-            android:name=".ui.widget.ShowAppCompactListActivity"
+            android:name=".ui.ShowAppCompactListActivity"
             android:exported="true" />
 
         <activity

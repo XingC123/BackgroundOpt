@@ -1,4 +1,4 @@
-package com.venus.backgroundopt.ui.widget.base
+package com.venus.backgroundopt.ui.base
 
 import android.view.LayoutInflater
 import android.view.View

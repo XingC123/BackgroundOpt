@@ -1,16 +1,17 @@
-package com.venus.backgroundopt.ui.widget
+package com.venus.backgroundopt.ui
 
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
-import com.venus.backgroundopt.ui.widget.base.ShowInfoFromAppItemAdapter
+import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
 
 /**
  * @author XingC
- * @date 2023/9/25
+ * @date 2023/9/23
  */
-class GetAppCompactListAdapter(items: List<AppItem>) : ShowInfoFromAppItemAdapter(items) {
-    override fun getText1Content(appItem: AppItem): String {
-        return appItem.processName ?: appItem.packageName
+class ShowBackgroundTasksAdapter(override val items: List<AppItem>) :
+    ShowInfoFromAppItemAdapter(items) {
+    override fun getText1Content(appItem: AppItem): String? {
+        return appItem.processName
     }
 
     override fun getText2Content(appItem: AppItem): String {
