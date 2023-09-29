@@ -17,50 +17,46 @@ class ConfigureAppProcessAdapter(
     private val processes: List<String>,
     private val subProcessOomPolicyList: List<SubProcessOomPolicy>
 ) :
-    RecyclerView.Adapter<ConfigureAppProcessAdapter.Companion.AppProcessConfigureViewHolder>() {
-    companion object {
-        class AppProcessConfigureViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            var processNameTextView: TextView
-            var applyConfigNameTextView: TextView
+    RecyclerView.Adapter<ConfigureAppProcessAdapter.ConfigureAppProcessViewHolder>() {
+    class ConfigureAppProcessViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val processNameTextView: TextView by lazy {
+            itemView.findViewById(R.id.appProcessConfigureItemProcessNameText)
+        }
+        val applyConfigNameTextView: TextView by lazy {
+            itemView.findViewById(R.id.appProcessConfigureItemApplyConfigureNameText)
+        }
 
-            lateinit var processName: String
-            lateinit var subProcessOomPolicy: SubProcessOomPolicy
+        lateinit var processName: String
+        lateinit var subProcessOomPolicy: SubProcessOomPolicy
 
-            init {
-                processNameTextView =
-                    itemView.findViewById(R.id.appProcessConfigureItemProcessNameText)
-                applyConfigNameTextView =
-                    itemView.findViewById(R.id.appProcessConfigureItemApplyConfigureNameText)
-
-                // 为策略选择按钮绑定事件
-                itemView.findViewById<Button>(R.id.appProcessConfigureItemSelectConfigBtn)
-                    ?.setOnClickListener { _ ->
-                        ConfigureAppProcessDialogBuilder.createDialog(
-                            itemView.context,
-                            applyConfigNameTextView,
-                            processName,
-                            subProcessOomPolicy
-                        ).show()
-                    }
-            }
+        init {
+            itemView.findViewById<Button>(R.id.appProcessConfigureItemSelectConfigBtn)
+                ?.setOnClickListener { _ ->
+                    ConfigureAppProcessDialogBuilder.createDialog(
+                        itemView.context,
+                        applyConfigNameTextView,
+                        processName,
+                        subProcessOomPolicy
+                    ).show()
+                }
         }
     }
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): AppProcessConfigureViewHolder {
+    ): ConfigureAppProcessViewHolder {
         val view: View =
             LayoutInflater.from(parent.context)
                 .inflate(R.layout.configure_app_process_item, parent, false)
-        return AppProcessConfigureViewHolder(view)
+        return ConfigureAppProcessViewHolder(view)
     }
 
     override fun getItemCount(): Int {
         return processes.size
     }
 
-    override fun onBindViewHolder(holder: AppProcessConfigureViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ConfigureAppProcessViewHolder, position: Int) {
         val processName = processes[position]
         holder.processNameTextView.text = processName
         holder.processName = processName
