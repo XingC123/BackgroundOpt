@@ -79,7 +79,7 @@ inline fun <reified E> prefAll(path: String): MutableMap<String, E>? {
  **************************************************************************/
 fun Context.pref(name: String): SharedPreferences =
     try {
-        getSharedPreferences(name, Context.MODE_WORLD_READABLE or Context.MODE_PRIVATE)
+        getSharedPreferences(name, Context.MODE_WORLD_READABLE)
     } catch (e: SecurityException) {
         getSharedPreferences(name, Context.MODE_PRIVATE)
     }
