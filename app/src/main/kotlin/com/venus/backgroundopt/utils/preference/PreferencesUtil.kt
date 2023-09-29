@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.utils.preference
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
@@ -14,59 +15,41 @@ import de.robv.android.xposed.XposedBridge
  * @author XingC
  * @date 2023/9/18
  */
-
-/**
- * 获取配置
- *
- * @param path
- * @return
- */
-fun getPref(path: String): XSharedPreferences? {
-    val pref = XSharedPreferences(BuildConfig.APPLICATION_ID, path)
-    return if (pref.file.canRead()) pref else {
-        XposedBridge.log("${BuildConfig.APPLICATION_ID}: 配置文件不可读!文件: $path")
-        null
+object PreferencesUtil {
+    /**
+     * 获取配置
+     *
+     * @param path
+     * @return
+     */
+    fun getPref(path: String): XSharedPreferences? {
+        val pref = XSharedPreferences(BuildConfig.APPLICATION_ID, path)
+        return if (pref.file.canRead()) pref else {
+            XposedBridge.log("${BuildConfig.APPLICATION_ID}: 配置文件不可读!文件: $path")
+            null
+        }
     }
-}
 
-fun getString(path: String, key: String): String? {
-    val preferences = getPref(path)
-    preferences ?: return null
-    return preferences.getString(key, null)
-}
+    fun getString(path: String, key: String): String? = getPref(path)?.getString(key, null)
 
-fun getBoolean(path: String, key: String): Boolean {
-    val preferences = getPref(path)
-    preferences ?: return false
-    return preferences.getBoolean(key, false)
-}
+    fun getBoolean(path: String, key: String): Boolean =
+        getPref(path)?.getBoolean(key, false) ?: false
 
-fun getInt(path: String, key: String): Int {
-    val preferences = getPref(path)
-    preferences ?: return Int.MIN_VALUE
-    return preferences.getInt(key, Int.MIN_VALUE)
-}
+    fun getInt(path: String, key: String): Int =
+        getPref(path)?.getInt(key, Int.MIN_VALUE) ?: Int.MIN_VALUE
 
-fun getFloat(path: String, key: String): Float {
-    val preferences = getPref(path)
-    preferences ?: return Float.MIN_VALUE
-    return preferences.getFloat(key, Float.MIN_VALUE)
-}
+    fun getFloat(path: String, key: String): Float =
+        getPref(path)?.getFloat(key, Float.MIN_VALUE) ?: Float.MIN_VALUE
 
-fun getLong(path: String, key: String): Long {
-    val preferences = getPref(path)
-    preferences ?: return Long.MIN_VALUE
-    return preferences.getLong(key, Long.MIN_VALUE)
-}
+    fun getLong(path: String, key: String): Long =
+        getPref(path)?.getLong(key, Long.MIN_VALUE) ?: Long.MIN_VALUE
 
-fun getStringSet(path: String, key: String): MutableSet<String>? {
-    val preferences = getPref(path)
-    preferences ?: return null
-    return preferences.getStringSet(key, null)
+    fun getStringSet(path: String, key: String): MutableSet<String>? =
+        getPref(path)?.getStringSet(key, null)
 }
 
 inline fun <reified E> prefAll(path: String): MutableMap<String, E>? {
-    val preferences = getPref(path)
+    val preferences = PreferencesUtil.getPref(path)
     preferences ?: return null
 
     return convertValueToTargetType(preferences.all, enableConcurrent = true)
@@ -77,6 +60,7 @@ inline fun <reified E> prefAll(path: String): MutableMap<String, E>? {
  * 安卓SharedPreference                                                     *
  *                                                                         *
  **************************************************************************/
+@SuppressLint("WorldReadableFiles")
 fun Context.pref(name: String): SharedPreferences =
     try {
         getSharedPreferences(name, Context.MODE_WORLD_READABLE)
@@ -84,7 +68,7 @@ fun Context.pref(name: String): SharedPreferences =
         getSharedPreferences(name, Context.MODE_PRIVATE)
     }
 
-fun Context.prefEdit(
+inline fun Context.prefEdit(
     name: String,
     commit: Boolean = false,
     action: SharedPreferences.Editor.() -> Unit
