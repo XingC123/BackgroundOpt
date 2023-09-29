@@ -16,11 +16,9 @@ import de.robv.android.xposed.XC_MethodHook
  * @date 2023/9/28
  */
 class SubProcessOomConfigChangeMessageHandler : MessageHandler {
-    companion object {
-        class SubProcessOomConfigChangeMessage : MessageFlag {
-            lateinit var processName: String
-            lateinit var subProcessOomPolicy: SubProcessOomPolicy
-        }
+    class SubProcessOomConfigChangeMessage : MessageFlag {
+        lateinit var processName: String
+        lateinit var subProcessOomPolicy: SubProcessOomPolicy
     }
 
     override fun handle(

@@ -78,10 +78,10 @@ object ConfigureAppProcessDialogBuilder {
                     applyConfigNameTextView.text = subProcessOomPolicy.policyEnum.configName
 
                     // 向模块主进程发送消息
-                    sendMessage<SubProcessOomConfigChangeMessageHandler.Companion.SubProcessOomConfigChangeMessage>(
+                    sendMessage<SubProcessOomConfigChangeMessageHandler.SubProcessOomConfigChangeMessage>(
                         context,
                         MessageKeyConstants.subProcessOomConfigChange,
-                        SubProcessOomConfigChangeMessageHandler.Companion.SubProcessOomConfigChangeMessage().apply {
+                        SubProcessOomConfigChangeMessageHandler.SubProcessOomConfigChangeMessage().apply {
                             this.processName = processName
                             this.subProcessOomPolicy = subProcessOomPolicy
                         }
