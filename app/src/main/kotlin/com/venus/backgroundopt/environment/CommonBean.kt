@@ -8,11 +8,10 @@ import java.util.concurrent.Executors
  * @date 2023/9/27
  */
 
-@JvmField
-val threadPoolExecutor: ExecutorService = Executors.newFixedThreadPool(2)
+val commonThreadPoolExecutor: ExecutorService = Executors.newFixedThreadPool(2)
 
 inline fun newThreadTask(crossinline block: () -> Unit) {
-    threadPoolExecutor.execute {
+    commonThreadPoolExecutor.execute {
         block()
     }
 }
