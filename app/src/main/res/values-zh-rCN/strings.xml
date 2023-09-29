@@ -31,4 +31,6 @@
     <string name="subProcessOomPolicyDialogDoNothingBtn">不作为</string>
     <string name="subProcessOomPolicyDialogCustomBtn">自定义</string>
     <string name="showAllInstalledAppsSearchBtn">查找</string>
+    <string name="moduleActive">模块已激活</string>
+    <string name="moduleInActive">模块未激活</string>
 </resources>

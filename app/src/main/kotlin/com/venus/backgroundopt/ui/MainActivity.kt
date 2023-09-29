@@ -3,9 +3,12 @@ package com.venus.backgroundopt.ui
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.venus.backgroundopt.R
+import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.ui.widget.QueryInfoDialog
+import com.venus.backgroundopt.utils.findViewById
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.sendMessage
@@ -21,20 +24,26 @@ class MainActivity : AppCompatActivity(), ILogger {
     }
 
     private fun init() {
+        // app激活状态
+        val moduleActive = CommonProperties.moduleActive
+        if (moduleActive) {
+            findViewById<TextView>(R.id.mainActivityModuleActiveText)?.setText(R.string.moduleActive)
+        }
+
         // 查询运行中app的信息
-        findViewById<Button>(R.id.getRunningAppInfoBtn)?.setOnClickListener { _ ->
+        findViewById<Button>(R.id.getRunningAppInfoBtn, moduleActive)?.setOnClickListener { _ ->
             QueryInfoDialog.createQueryIntDataDialog(this, MessageKeyConstants.getRunningAppInfo)
                 .show()
         }
 
         // 获取应用内存分组
-        findViewById<Button>(R.id.getTargetAppGroupBtn)?.setOnClickListener { _ ->
+        findViewById<Button>(R.id.getTargetAppGroupBtn, moduleActive)?.setOnClickListener { _ ->
             QueryInfoDialog.createQueryIntDataDialog(this, MessageKeyConstants.getTargetAppGroup)
                 .show()
         }
 
         // 获取后台任务列表
-        findViewById<Button>(R.id.getBackgroundTasksBtn)?.setOnClickListener { _ ->
+        findViewById<Button>(R.id.getBackgroundTasksBtn, moduleActive)?.setOnClickListener { _ ->
             val listStr = sendMessage(
                 this,
                 MessageKeyConstants.getBackgroundTasks,
@@ -45,7 +54,7 @@ class MainActivity : AppCompatActivity(), ILogger {
         }
 
         // 获取后台内存压缩任务列表
-        findViewById<Button>(R.id.getAppCompactItemsBtn)?.setOnClickListener { _ ->
+        findViewById<Button>(R.id.getAppCompactItemsBtn, moduleActive)?.setOnClickListener { _ ->
             val listStr = sendMessage(
                 this,
                 MessageKeyConstants.getAppCompactList,
@@ -56,7 +65,9 @@ class MainActivity : AppCompatActivity(), ILogger {
         }
 
         // 转去设置应用进程页面
-        findViewById<Button>(R.id.gotoConfigureAppProcessActivityBtn)?.setOnClickListener { _ ->
+        findViewById<Button>(
+            R.id.gotoConfigureAppProcessActivityBtn, moduleActive
+        )?.setOnClickListener { _ ->
             startActivity(Intent(this, ShowAllInstalledAppsActivity::class.java))
         }
     }

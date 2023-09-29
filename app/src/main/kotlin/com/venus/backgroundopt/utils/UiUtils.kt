@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.utils
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.view.LayoutInflater
@@ -60,3 +61,13 @@ inline fun <reified E> getIntentDataToList(intent: Intent): List<E>? {
 
 fun getView(context: Context, layoutResId: Int): View =
     LayoutInflater.from(context).inflate(layoutResId, null)
+
+fun <E : View> Activity.findViewById(resId: Int, enable: Boolean = true): E? {
+    return if (enable) {
+        this.findViewById(resId)
+    } else {
+        findViewById<E>(resId)?.apply {
+            this.isEnabled = false
+        }
+    }
+}

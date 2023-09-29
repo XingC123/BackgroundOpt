@@ -10,6 +10,9 @@ import java.util.concurrent.ConcurrentHashMap
  * @date 2023/9/26
  */
 object CommonProperties {
+    // 模块是否激活
+    var moduleActive = false
+
     // 默认白名单
     val subProcessDefaultUpgradeSet: Set<String> by lazy {
         setOf(

@@ -30,4 +30,6 @@
     <string name="subProcessOomPolicyDialogDoNothingBtn">Do nothing</string>
     <string name="subProcessOomPolicyDialogCustomBtn">Custom</string>
     <string name="showAllInstalledAppsSearchBtn">Search</string>
+    <string name="moduleActive">Module is active</string>
+    <string name="moduleInActive">Module is not active</string>
 </resources>
