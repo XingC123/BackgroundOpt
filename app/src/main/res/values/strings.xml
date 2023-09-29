@@ -29,4 +29,5 @@
     <string name="subProcessOomPolicyDialogMainProcessBtn">Main Process</string>
     <string name="subProcessOomPolicyDialogDoNothingBtn">Do nothing</string>
     <string name="subProcessOomPolicyDialogCustomBtn">Custom</string>
+    <string name="showAllInstalledAppsSearchBtn">Search</string>
 </resources>

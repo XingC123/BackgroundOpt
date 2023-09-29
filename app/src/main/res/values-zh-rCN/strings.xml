@@ -30,4 +30,5 @@
     <string name="subProcessOomPolicyDialogMainProcessBtn">主进程</string>
     <string name="subProcessOomPolicyDialogDoNothingBtn">不作为</string>
     <string name="subProcessOomPolicyDialogCustomBtn">自定义</string>
+    <string name="showAllInstalledAppsSearchBtn">查找</string>
 </resources>
