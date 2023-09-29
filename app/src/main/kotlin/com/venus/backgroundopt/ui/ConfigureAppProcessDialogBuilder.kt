@@ -7,6 +7,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
+import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.utils.getView
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
@@ -14,6 +15,7 @@ import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMes
 import com.venus.backgroundopt.utils.message.sendMessage
 import com.venus.backgroundopt.utils.preference.prefEdit
 import com.venus.backgroundopt.utils.preference.prefPut
+import com.venus.backgroundopt.utils.preference.putObject
 
 /**
  * @author XingC
@@ -51,12 +53,20 @@ object ConfigureAppProcessDialogBuilder {
                     when (checkedBtnResId) {
                         defaultBtnId -> {
                             if (curPolicy != SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT) {
-                                // 删除原有配置
-                                context.prefEdit(SUB_PROCESS_OOM_POLICY, commit = true) {
-                                    remove(processName)
-                                }
                                 subProcessOomPolicy.policyEnum =
                                     SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT
+                                // 删除原有配置
+                                context.prefEdit(SUB_PROCESS_OOM_POLICY, commit = true) {
+                                    if (CommonProperties.subProcessDefaultUpgradeSet.contains(
+                                            processName
+                                        )
+                                    ) {
+                                        // 白名单进程则覆盖设置
+                                        putObject(processName, subProcessOomPolicy)
+                                    } else {
+                                        remove(processName)
+                                    }
+                                }
                             }
                         }
 
@@ -81,10 +91,11 @@ object ConfigureAppProcessDialogBuilder {
                     sendMessage<SubProcessOomConfigChangeMessageHandler.SubProcessOomConfigChangeMessage>(
                         context,
                         MessageKeyConstants.subProcessOomConfigChange,
-                        SubProcessOomConfigChangeMessageHandler.SubProcessOomConfigChangeMessage().apply {
-                            this.processName = processName
-                            this.subProcessOomPolicy = subProcessOomPolicy
-                        }
+                        SubProcessOomConfigChangeMessageHandler.SubProcessOomConfigChangeMessage()
+                            .apply {
+                                this.processName = processName
+                                this.subProcessOomPolicy = subProcessOomPolicy
+                            }
                     )
                 }
             })

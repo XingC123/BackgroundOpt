@@ -111,3 +111,7 @@ inline fun <reified E> Context.prefAll(name: String): MutableMap<String, E> {
     return convertValueToTargetType(pref(name).all)
 }
 
+fun SharedPreferences.Editor.putObject(key: String, value: Any) {
+    putString(key, JSON.toJSONString(value))
+}
+

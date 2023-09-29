@@ -47,11 +47,9 @@ class ProcessListHookKt(
      * @param processName 进程名
      * @return 升级 -> true
      */
-    private fun isUpgradeSubProcessLevel(processName: String?): Boolean =
-        processName?.let { procName ->
-            CommonProperties.subProcessOomPolicyMap?.let { map ->
-                map[procName]?.policyEnum == SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
-            } ?: false
+    private fun isUpgradeSubProcessLevel(processName: String): Boolean =
+        CommonProperties.subProcessOomPolicyMap[processName]?.let {
+            it.policyEnum == SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
         } ?: false
 
     private fun logProcessOomChanged(
