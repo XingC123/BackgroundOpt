@@ -9,10 +9,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
+import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
 import com.venus.backgroundopt.utils.TMP_DATA
 import com.venus.backgroundopt.utils.getAppProcesses
+import com.venus.backgroundopt.utils.preference.prefPut
 import com.venus.backgroundopt.utils.preference.prefValue
 import com.venus.backgroundopt.utils.processNameSeparator
 
@@ -64,8 +66,17 @@ class ConfigureAppProcessActivity : AppCompatActivity() {
             }
             subProcessOomPolicyList.add(
                 prefValue<SubProcessOomPolicy>(SUB_PROCESS_OOM_POLICY, processName) ?: run {
-                    // 不存在则使用默认
-                    SubProcessOomPolicy()
+                    // 不存在
+                    SubProcessOomPolicy().apply {
+                        // 当前进程是否在默认白名单
+                        if (CommonProperties.subProcessDefaultUpgradeSet.contains(processName)) {
+                            this.policyEnum =
+                                SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
+
+                            // 保存到本地
+                            prefPut(SUB_PROCESS_OOM_POLICY, commit = true, processName, this)
+                        }
+                    }
                 }
             )
         }

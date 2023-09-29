@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 object CommonProperties {
     // 默认白名单
-    val subProcessNameDefaultUpgrade: Set<String> by lazy {
+    val subProcessDefaultUpgradeSet: Set<String> by lazy {
         setOf(
             "com.tencent.mobileqq:MSF", /* qq */
             "com.tencent.mm:push", /* 微信 */
@@ -22,7 +22,7 @@ object CommonProperties {
     val subProcessOomPolicyMap: MutableMap<String, SubProcessOomPolicy> by lazy {
         (prefAll(PreferenceNameConstants.SUB_PROCESS_OOM_POLICY)
             ?: ConcurrentHashMap<String, SubProcessOomPolicy>()).apply {
-            subProcessNameDefaultUpgrade.forEach { processName ->
+            subProcessDefaultUpgradeSet.forEach { processName ->
                 if (!this.containsKey(processName)) {
                     this[processName] = SubProcessOomPolicy().apply {
                         policyEnum = SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
