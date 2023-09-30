@@ -1,8 +1,11 @@
 package com.venus.backgroundopt.ui.widget
 
+import android.app.Activity
 import android.content.Context
+import android.content.DialogInterface
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.venus.backgroundopt.BuildConfig
@@ -24,8 +27,12 @@ class ProgressBarDialogBuilder {
             }
 
             return AlertDialog.Builder(context)
-                .setCancelable(true)
+                .setCancelable(false)
                 .setView(view)
+                .setNegativeButton("放弃") { dialogInterface: DialogInterface, _: Int ->
+                    dialogInterface.dismiss()
+                    (context as Activity).finish()
+                }
                 .create()
         }
 
