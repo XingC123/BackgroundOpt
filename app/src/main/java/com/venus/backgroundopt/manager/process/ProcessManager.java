@@ -42,7 +42,11 @@ public class ProcessManager implements ILogger {
     public static final int THREAD_GROUP_BACKGROUND = Process.THREAD_GROUP_BACKGROUND + THREAD_GROUP_LEVEL_OFFSET;
 
     public ProcessManager(ActivityManagerService activityManagerService) {
-        appCompactManager = new AppCompactManager(activityManagerService.getOomAdjuster().getCachedAppOptimizer());
+        appCompactManager = new AppCompactManager(
+                activityManagerService.getOomAdjuster().getCachedAppOptimizer(),
+                activityManagerService
+        );
+        appMemoryTrimManager = new AppMemoryTrimManagerKt(activityManagerService);
     }
 
     /* *************************************************************************
@@ -145,7 +149,7 @@ public class ProcessManager implements ILogger {
      * app内存回收管理                                                           *
      *                                                                         *
      **************************************************************************/
-    private final AppMemoryTrimManagerKt appMemoryTrimManager = new AppMemoryTrimManagerKt();
+    private final AppMemoryTrimManagerKt appMemoryTrimManager;
 
     public Set<ProcessRecordKt> getForegroundTasks() {
         return appMemoryTrimManager.getForegroundTasks();

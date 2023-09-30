@@ -328,7 +328,7 @@ public class RunningInfo implements ILogger {
     public AppInfo computeRunningAppIfAbsent(int userId, String packageName, int uid) {
         return runningApps.computeIfAbsent(uid, key -> {
             if (BuildConfig.DEBUG) {
-                getLogger().debug("创建新进程: " + packageName + ", uid: " + uid);
+                getLogger().debug("打开新App: " + packageName + ", uid: " + uid);
             }
             AppInfo appInfo = new AppInfo(userId, packageName, this).setUid(uid);
             setAddedRunningApp(appInfo);

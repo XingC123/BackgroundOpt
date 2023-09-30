@@ -10,8 +10,6 @@ import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
@@ -116,7 +114,7 @@ public class AppInfo implements ILogger {
         return processRecord;
     }
 
-    public ProcessRecordKt addProcess(@NotNull ProcessRecordKt processRecord) {
+    public ProcessRecordKt addProcess(@NonNull ProcessRecordKt processRecord) {
         return processRecordMap.computeIfAbsent(processRecord.getPid(), k -> {
             ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
             if (processRecord.getMainProcess()) {
@@ -175,7 +173,7 @@ public class AppInfo implements ILogger {
     /**
      * 设置主进程信息
      */
-    public void setMProcessAndAdd(@NotNull ProcessRecordKt processRecord) {
+    public void setMProcessAndAdd(@NonNull ProcessRecordKt processRecord) {
         // 保存主进程
         setmProcessRecord(processRecord);
         addProcess(processRecord);

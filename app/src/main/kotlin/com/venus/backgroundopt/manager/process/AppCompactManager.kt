@@ -3,6 +3,8 @@ package com.venus.backgroundopt.manager.process
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook
+import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.log.ILogger
@@ -18,7 +20,8 @@ import java.util.concurrent.TimeUnit
  * @date 2023/8/8
  */
 class AppCompactManager(// 封装的CachedAppOptimizer
-    private var cachedAppOptimizer: CachedAppOptimizer
+    private var cachedAppOptimizer: CachedAppOptimizer,
+    private var activityManagerService: ActivityManagerService
 ) : ILogger {
     companion object {
         // 默认压缩级别
@@ -52,9 +55,21 @@ class AppCompactManager(// 封装的CachedAppOptimizer
             var compactCount = 0
             val upgradeSubProcessNames = CommonProperties.getUpgradeSubProcessNames()
             compactProcesses.forEach {
+
                 // 根据默认规则压缩
                 var compactMethod: (processRecordKt: ProcessRecordKt) -> Boolean = ::compactAppFull
+                val mainProcess = it.mainProcess
 
+                /**
+                 * [ActivityManagerServiceHook.handleAppSwitch]获取的主进程pid可能为0
+                 * 在[ProcessListHookKt.handleSetOomAdj]已做处理, 此处为兜底措施
+                 */
+                if (mainProcess && it.pid == 0) {
+                    it.pid = activityManagerService.findMProcessRecord(
+                        it.packageName,
+                        it.uid
+                    ).pid
+                }
                 if (it.mainProcess || upgradeSubProcessNames.contains(it.processName)) {
                     val currentTime = System.currentTimeMillis()
                     if (!it.isAllowedCompact(currentTime)) {  // 若压缩间隔不满足, 则跳过等待下一轮

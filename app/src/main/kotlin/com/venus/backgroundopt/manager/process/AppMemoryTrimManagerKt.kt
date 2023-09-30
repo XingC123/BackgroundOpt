@@ -1,6 +1,8 @@
 package com.venus.backgroundopt.manager.process
 
 import com.venus.backgroundopt.BuildConfig
+import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook
+import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.log.ILogger
@@ -15,7 +17,7 @@ import java.util.concurrent.TimeUnit
  * @author XingC
  * @date 2023/8/3
  */
-class AppMemoryTrimManagerKt : ILogger {
+class AppMemoryTrimManagerKt(private val activityManagerService: ActivityManagerService) : ILogger {
     companion object {
         // 前台
         const val foregroundInitialDelay = 0L
@@ -239,6 +241,16 @@ class AppMemoryTrimManagerKt : ILogger {
         trimLevel: Int,
         list: MutableSet<ProcessRecordKt>
     ) {
+        /**
+         * [ActivityManagerServiceHook.handleAppSwitch]获取的主进程pid可能为0
+         * 在[ProcessListHookKt.handleSetOomAdj]已做处理, 此处为兜底措施
+         */
+        if (processRecordKt.pid == 0) {
+            processRecordKt.pid = activityManagerService.findMProcessRecord(
+                processRecordKt.packageName,
+                processRecordKt.uid
+            ).pid
+        }
         val result = processRecordKt.scheduleTrimMemory(trimLevel)
 
         if (result) {
