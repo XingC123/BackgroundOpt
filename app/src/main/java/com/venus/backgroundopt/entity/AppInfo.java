@@ -136,10 +136,10 @@ public class AppInfo implements ILogger {
     }
 
     public void modifyProcessRecord(int pid, int oomAdjScore) {
-        ProcessRecordKt processRecord = processRecordMap.get(pid);
-        if (processRecord != null) {
+        processRecordMap.computeIfPresent(pid, (key, processRecord) -> {
             processRecord.setOomAdjScoreToAtomicInteger(oomAdjScore);
-        }
+            return processRecord;
+        });
     }
 
     public boolean isRecordedProcess(int pid) {
