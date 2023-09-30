@@ -2,6 +2,7 @@ package com.venus.backgroundopt.manager.process
 
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.AppInfo
+import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.log.ILogger
@@ -49,11 +50,12 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     private fun startCompactTask() {
         compactScheduledFuture = executor.scheduleWithFixedDelay({
             var compactCount = 0
+            val upgradeSubProcessNames = CommonProperties.getUpgradeSubProcessNames()
             compactProcesses.forEach {
                 // 根据默认规则压缩
                 var compactMethod: (processRecordKt: ProcessRecordKt) -> Boolean = ::compactAppFull
 
-                if (it.mainProcess) {
+                if (it.mainProcess || upgradeSubProcessNames.contains(it.processName)) {
                     val currentTime = System.currentTimeMillis()
                     if (!it.isAllowedCompact(currentTime)) {  // 若压缩间隔不满足, 则跳过等待下一轮
                         return@forEach
@@ -122,7 +124,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
      */
     fun addCompactProcess(processRecordKts: Collection<ProcessRecordKt>) {
         if (processRecordKts.isNotEmpty()) {
-            compactProcesses.addAll(processRecordKts)
+            processRecordKts.forEach { addCompactProcessImpl(it) }
             checkCompactTask()
 
             if (BuildConfig.DEBUG) {
@@ -132,12 +134,17 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     }
 
     fun addCompactProcess(processRecordKt: ProcessRecordKt) {
-        compactProcesses.add(processRecordKt)
+        addCompactProcessImpl(processRecordKt)
         checkCompactTask()
 
         if (BuildConfig.DEBUG) {
             logger.debug("uid: ${processRecordKt.uid}, pid: ${processRecordKt.pid} >>> 加入待压缩列表")
         }
+    }
+
+    private fun addCompactProcessImpl(processRecordKt: ProcessRecordKt) {
+        processRecordKt.setLastCompactTime(System.currentTimeMillis())
+        compactProcesses.add(processRecordKt)
     }
 
     /**

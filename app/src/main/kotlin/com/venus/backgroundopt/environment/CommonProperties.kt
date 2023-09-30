@@ -36,4 +36,14 @@ object CommonProperties {
             }
         }
     }
+
+    fun getUpgradeSubProcessNames(): Set<String> {
+        return HashSet<String>().apply {
+            subProcessOomPolicyMap.forEach { (processName, policy) ->
+                if (policy.policyEnum == SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS) {
+                    add(processName)
+                }
+            }
+        }
+    }
 }
