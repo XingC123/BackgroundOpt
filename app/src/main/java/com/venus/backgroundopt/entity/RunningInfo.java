@@ -260,7 +260,7 @@ public class RunningInfo implements ILogger {
     public void setAddedRunningApp(ProcessRecordKt mProcessRecord, AppInfo appInfo) {
         if (mProcessRecord != null) {
             // 写入主进程
-            appInfo.setMProcess(mProcessRecord);
+            appInfo.setMProcessAndAdd(mProcessRecord);
         } else {
             if (BuildConfig.DEBUG) {
                 getLogger().warn(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的mProcessRecord为空");

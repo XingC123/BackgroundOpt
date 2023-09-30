@@ -101,6 +101,16 @@ class ProcessListHookKt(
         val mainProcess = process.mainProcess
 
         if (mainProcess || isUpgradeSubProcessLevel(process.processName)) { // 主进程
+            if (mainProcess) {
+                val mPid = appInfo.getmPid()
+                if (pid != mPid) {  // 需要纠错
+                    // 移除错误进程
+                    appInfo.removeProcess(mPid)
+                    // 设置新主进程
+                    appInfo.setMProcessAndAdd(process)
+                }
+            }
+
             if (process.fixedOomAdjScore != ProcessRecordKt.DEFAULT_MAIN_ADJ) {
                 process.oomAdjScore = oomAdjScore
                 process.fixedOomAdjScore = ProcessRecordKt.DEFAULT_MAIN_ADJ

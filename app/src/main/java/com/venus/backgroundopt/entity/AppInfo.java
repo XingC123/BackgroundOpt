@@ -126,6 +126,9 @@ public class AppInfo implements ILogger {
     public ProcessRecordKt addProcess(@NotNull ProcessRecordKt processRecord) {
         return processRecordMap.computeIfAbsent(processRecord.getPid(), k -> {
             ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
+            if (processRecord.getMainProcess()) {
+                setmProcessRecord(processRecord);
+            }
             return processRecord;
         });
     }
@@ -179,7 +182,7 @@ public class AppInfo implements ILogger {
     /**
      * 设置主进程信息
      */
-    public void setMProcess(@NotNull ProcessRecordKt processRecord) {
+    public void setMProcessAndAdd(@NotNull ProcessRecordKt processRecord) {
         // 保存主进程
         setmProcessRecord(processRecord);
         addProcess(processRecord);
