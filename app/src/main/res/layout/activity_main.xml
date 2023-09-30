@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,11 +8,15 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:divider="@drawable/item_space_horizontal"
             android:gravity="center_horizontal"
             android:orientation="vertical"
@@ -32,64 +37,42 @@
                 android:orientation="vertical"
                 android:showDividers="middle">
 
-                <LinearLayout
+                <Button
+                    android:id="@+id/getRunningAppInfoBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:divider="@drawable/item_space_vertical"
-                    android:orientation="horizontal"
-                    android:showDividers="middle">
+                    android:layout_weight="0"
+                    android:enabled="true"
+                    android:text="@string/getRunningAppInfoBtn" />
 
-                    <Button
-                        android:id="@+id/getRunningAppInfoBtn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0"
-                        android:enabled="true"
-                        android:text="@string/getRunningAppInfoBtn" />
-
-                    <Button
-                        android:id="@+id/getTargetAppGroupBtn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0"
-                        android:text="@string/getTargetAppGroupBtn" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:divider="@drawable/item_space_vertical"
-                    android:gravity="center_horizontal"
-                    android:orientation="horizontal"
-                    android:showDividers="middle">
-
-                    <Button
-                        android:id="@+id/getBackgroundTasksBtn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0"
-                        android:text="@string/getBackgroundTasks" />
-
-                    <Button
-                        android:id="@+id/getAppCompactItemsBtn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0"
-                        android:text="@string/getAppCompactItemsBtn" />
-                </LinearLayout>
-
-                <LinearLayout
+                <Button
+                    android:id="@+id/getTargetAppGroupBtn"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal">
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/getTargetAppGroupBtn" />
 
-                    <Button
-                        android:id="@+id/gotoConfigureAppProcessActivityBtn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0"
-                        android:text="@string/gotoConfigureAppProcessActivityBtn" />
-                </LinearLayout>
+                <Button
+                    android:id="@+id/getBackgroundTasksBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/getBackgroundTasks" />
+
+                <Button
+                    android:id="@+id/getAppCompactItemsBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/getAppCompactItemsBtn" />
+
+                <Button
+                    android:id="@+id/gotoConfigureAppProcessActivityBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/gotoConfigureAppProcessActivityBtn" />
+
             </LinearLayout>
 
         </LinearLayout>
