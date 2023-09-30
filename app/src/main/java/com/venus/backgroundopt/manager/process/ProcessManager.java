@@ -184,15 +184,15 @@ public class ProcessManager implements ILogger {
         handleGCNoNullCheck(processRecord);
     }
 
-    public static void handleGC(ProcessRecordKt processRecord) {
+    public static boolean handleGC(ProcessRecordKt processRecord) {
         if (processRecord == null) {
-            return;
+            return false;
         }
 
-        handleGCNoNullCheck(processRecord);
+        return handleGCNoNullCheck(processRecord);
     }
 
-    public static void handleGCNoNullCheck(ProcessRecordKt processRecord) {
+    public static boolean handleGCNoNullCheck(ProcessRecordKt processRecord) {
         // kill -10 pid
         try {
             Process.sendSignal(processRecord.getPid(), SIGNAL_10);
@@ -201,12 +201,15 @@ public class ProcessManager implements ILogger {
                 ILogger.getLoggerStatic(ProcessManager.class)
                         .debug(processRecord.getPackageName() + " 触发gc, pid = " + processRecord.getPid());
             }
+            return true;
         } catch (Throwable t) {
             if (BuildConfig.DEBUG) {
                 ILogger.getLoggerStatic(ProcessManager.class)
                         .error(processRecord.getPackageName() + " 存在问题, 无法执行gc", t);
             }
         }
+
+        return false;
     }
 
     /**

@@ -36,8 +36,10 @@ class AppMemoryTrimManagerKt : ILogger {
     // 23.9.14: 仅分配一个线程, 防止前后台任务同时进行造成可能的掉帧
     private val executor = ScheduledThreadPoolExecutor(1)
 
-    val foregroundTasks: MutableSet<ProcessRecordKt> = Collections.newSetFromMap(ConcurrentHashMap())
-    val backgroundTasks: MutableSet<ProcessRecordKt> = Collections.newSetFromMap(ConcurrentHashMap())
+    val foregroundTasks: MutableSet<ProcessRecordKt> =
+        Collections.newSetFromMap(ConcurrentHashMap())
+    val backgroundTasks: MutableSet<ProcessRecordKt> =
+        Collections.newSetFromMap(ConcurrentHashMap())
 
     init {
         init()
@@ -266,7 +268,9 @@ class AppMemoryTrimManagerKt : ILogger {
     }
 
     private fun gc(processRecordKt: ProcessRecordKt) {
-        ProcessManager.handleGC(processRecordKt)
+        if (!ProcessManager.handleGC(processRecordKt)) {
+            backgroundTasks.remove(processRecordKt)
+        }
     }
 
     private fun logStrPrefix(trimManagerName: String, processRecordKt: ProcessRecordKt): String {
