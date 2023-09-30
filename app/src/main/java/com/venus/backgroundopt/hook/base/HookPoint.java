@@ -2,6 +2,7 @@ package com.venus.backgroundopt.hook.base;
 
 import androidx.annotation.NonNull;
 
+import com.venus.backgroundopt.environment.CommonProperties;
 import com.venus.backgroundopt.hook.base.action.AfterHookAction;
 import com.venus.backgroundopt.hook.base.action.BeforeHookAction;
 import com.venus.backgroundopt.hook.base.action.DoNotingHookAction;
@@ -13,7 +14,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -25,6 +28,12 @@ import de.robv.android.xposed.XposedHelpers;
  * @date 2023/4/27
  */
 public class HookPoint implements ILogger {
+    private static final Set<String> dontPrintLogHookList = new HashSet<>() {
+        {
+            add(CommonProperties.class.getTypeName() + ".isModuleActive");
+        }
+    };
+
     private final String className;
     private final String methodName;
 
@@ -86,9 +95,13 @@ public class HookPoint implements ILogger {
                 );
             }
 
-            getLogger().info("[" + hookClassName + "." + hookMethodName + "]hook成功");
+            if (!dontPrintLogHookList.contains(hookClassName + "." + hookMethodName)) {
+                getLogger().info("[" + hookClassName + "." + hookMethodName + "]hook成功");
+            }
         } catch (Throwable t) {
-            getLogger().error("[" + hookClassName + "." + hookMethodName + "]hook失败", t);
+            if (!dontPrintLogHookList.contains(hookClassName + "." + hookMethodName)) {
+                getLogger().error("[" + hookClassName + "." + hookMethodName + "]hook失败", t);
+            }
         }
     }
 
