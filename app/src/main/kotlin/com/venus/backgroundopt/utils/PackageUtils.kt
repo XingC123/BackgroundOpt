@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import android.os.Build
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
@@ -57,10 +58,28 @@ private fun getPackageInfo(
     }
 }
 
+/**
+ * 用于获取[AppItem]时部分信息的缓存
+ *
+ */
+private class AppInfoCache {
+    lateinit var appName: String
+    lateinit var appIcon: Drawable
+}
+
+/**
+ * 获取指定的应用的信息
+ *
+ * @param context 需要上下文来获取包管理器
+ * @param list 要获取的应用的列表
+ * @return 封装了应用名称/图标等信息的列表
+ */
 fun getTargetApps(context: Context, list: List<BaseProcessInfoKt>): List<AppItem> {
     val packageManager = context.packageManager
+    // 应用部分信息缓存
+    val infoCache = HashMap<String, AppInfoCache>()
 
-    return list.stream()
+    val appItems = list.stream()
         .map { baseProcessInfo ->
             getPackageInfo(
                 packageManager,
@@ -68,11 +87,19 @@ fun getTargetApps(context: Context, list: List<BaseProcessInfoKt>): List<AppItem
                 PACKAGE_INFO_FLAG
             )?.let { packageInfo ->
                 val applicationInfo = packageInfo.applicationInfo
+                // 保存应用信息
+                val appInfo =
+                    infoCache.computeIfAbsent(baseProcessInfo.packageName) { _ ->
+                        AppInfoCache().apply {
+                            appName = applicationInfo.loadLabel(packageManager).toString()
+                            appIcon = applicationInfo.loadIcon(packageManager)
+                        }
+                    }
                 AppItem(
-                    applicationInfo.loadLabel(packageManager).toString(),
+                    appInfo.appName,
                     baseProcessInfo.packageName,
                     baseProcessInfo.uid,
-                    applicationInfo.loadIcon(packageManager),
+                    appInfo.appIcon,
                     packageInfo
                 ).apply {
                     pid = baseProcessInfo.pid
@@ -84,8 +111,18 @@ fun getTargetApps(context: Context, list: List<BaseProcessInfoKt>): List<AppItem
         }
         .filter(Objects::nonNull)
         .collect(Collectors.toList())
+    // 清空缓存
+    infoCache.clear()
+    return appItems
 }
 
+/**
+ * 获取已安装app的信息列表
+ *
+ * @param context 需要上下文来获取包管理器
+ * @param filter 根据传入的条件过滤掉不需要的数据
+ * @return 封装了应用名称/图标等信息的列表
+ */
 fun getInstalledPackages(
     context: Context,
     filter: ((PackageInfo) -> Boolean)? = null
@@ -101,15 +138,26 @@ fun getInstalledPackages(
         packageManager.getInstalledPackages(PACKAGE_INFO_FLAG)
     }
 
-    return packageInfos.stream()
+    // 应用部分信息缓存
+    val infoCache = HashMap<String, AppInfoCache>()
+
+    val appItems = packageInfos.stream()
         .filterNullable(filter)
         .map { packageInfo ->
             val applicationInfo = packageInfo.applicationInfo
+            // 保存应用信息
+            val appInfo =
+                infoCache.computeIfAbsent(packageInfo.packageName) { _ ->
+                    AppInfoCache().apply {
+                        appName = applicationInfo.loadLabel(packageManager).toString()
+                        appIcon = applicationInfo.loadIcon(packageManager)
+                    }
+                }
             AppItem(
-                applicationInfo.loadLabel(packageManager).toString(),
+                appInfo.appName,
                 packageInfo.packageName,
                 applicationInfo.uid,
-                applicationInfo.loadIcon(packageManager),
+                appInfo.appIcon,
                 packageInfo
             ).apply {
                 versionName = packageInfo.versionName
@@ -117,6 +165,9 @@ fun getInstalledPackages(
             }
         }
         .collect(Collectors.toList())
+    // 清空缓存
+    infoCache.clear()
+    return appItems
 }
 
 fun getAppProcesses(context: Context, appItem: AppItem) {
