@@ -99,9 +99,8 @@ class ProcessListHookKt(
             appInfo.getProcess(pid)
                 ?: appInfo.addProcess(runningInfo.activityManagerService.getProcessRecord(pid))
         val mainProcess = pid == mPid
-        val upgradeSubProcessLevel = isUpgradeSubProcessLevel(process.processName)
 
-        if (mainProcess || upgradeSubProcessLevel) { // 主进程
+        if (mainProcess || isUpgradeSubProcessLevel(process.processName)) { // 主进程
             if (process.fixedOomAdjScore != ProcessRecordKt.DEFAULT_MAIN_ADJ) {
                 process.oomAdjScore = oomAdjScore;
                 process.fixedOomAdjScore = ProcessRecordKt.DEFAULT_MAIN_ADJ
