@@ -3,6 +3,7 @@ package com.venus.backgroundopt.entity;
 import android.os.PowerManager;
 
 import com.venus.backgroundopt.BuildConfig;
+import com.venus.backgroundopt.annotation.UsageComment;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ApplicationInfo;
@@ -251,17 +252,6 @@ public class RunningInfo implements ILogger {
     }
 
     /**
-     * 添加app信息到运行列表
-     *
-     * @param appInfo app信息
-     */
-    public void addRunningApp(AppInfo appInfo) {
-        setAddedRunningApp(appInfo);
-        // 添加到运行列表
-        runningApps.put(appInfo.getUid(), appInfo);
-    }
-
-    /**
      * 设置添加到 {@link #runningApps} 中的 {@link AppInfo}的基本属性
      *
      * @param mProcessRecord app的主进程
@@ -269,9 +259,6 @@ public class RunningInfo implements ILogger {
      */
     public void setAddedRunningApp(ProcessRecordKt mProcessRecord, AppInfo appInfo) {
         if (mProcessRecord != null) {
-            // 设置主进程的最大adj(保活)
-            // 23.9.28: 实际已在调节oom得分时进行设置, 此处已无意义?
-            mProcessRecord.setDefaultMaxAdj();
             // 写入主进程
             appInfo.setMProcess(mProcessRecord);
         } else {
@@ -288,8 +275,7 @@ public class RunningInfo implements ILogger {
      */
     public void setAddedRunningApp(AppInfo appInfo) {
         // 找到主进程进行必要设置
-        ProcessRecordKt mProcessRecord = findMProcessRecord(appInfo);
-        setAddedRunningApp(mProcessRecord, appInfo);
+        setAddedRunningApp(activityManagerService.findMProcessRecord(appInfo), appInfo);
     }
 
     /**
@@ -299,6 +285,7 @@ public class RunningInfo implements ILogger {
      * @param uid 目标app的uid
      * @return 生成的目标app信息(可能为空)
      */
+    @UsageComment("仅供OOM调节方法使用")
     @Nullable
     public AppInfo computeRunningAppIfAbsent(int uid) {
         return runningApps.computeIfAbsent(uid, key -> {
@@ -347,20 +334,6 @@ public class RunningInfo implements ILogger {
             setAddedRunningApp(appInfo);
             return appInfo;
         });
-    }
-
-    /**
-     * 根据{@link AppInfo}找到其主进程
-     *
-     * @param appInfo app信息
-     * @return 主进程的记录
-     */
-    public ProcessRecordKt findMProcessRecord(AppInfo appInfo) {
-        return activityManagerService.findMProcessRecord(appInfo);
-    }
-
-    public ProcessRecordKt getTargetProcessRecord(int pid) {
-        return getActivityManagerService().getProcessList().getTargetProcessRecord(pid);
     }
 
     /**

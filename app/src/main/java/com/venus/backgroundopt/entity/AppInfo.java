@@ -126,7 +126,7 @@ public class AppInfo implements ILogger {
     public ProcessRecordKt addProcess(@NotNull ProcessRecordKt processRecord) {
         return processRecordMap.computeIfAbsent(processRecord.getPid(), k -> {
             ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
-            return ProcessRecordKt.setMainProcess(this, processRecord);
+            return processRecord;
         });
     }
 

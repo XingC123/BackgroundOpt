@@ -43,18 +43,27 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             processRecord: Any?
         ): ProcessRecordKt {
             val record = ProcessRecordKt(processRecord)
-            setMainProcess(appInfo, record)
             addCompactProcess(runningInfo, appInfo, record)
             return record
         }
 
         @JvmStatic
-        fun setMainProcess(appInfo: AppInfo, processRecord: ProcessRecordKt): ProcessRecordKt {
+        fun setMainProcess(processRecord: ProcessRecordKt): ProcessRecordKt {
             try {
-                processRecord.mainProcess = processRecord.pid == appInfo.getmPid()
+                processRecord.mainProcess = isMainProcess(processRecord)
             } catch (ignore: Exception) {
             }
             return processRecord
+        }
+
+        @JvmStatic
+        fun isMainProcess(processRecord: ProcessRecordKt): Boolean {
+            return isMainProcess(processRecord.packageName, processRecord.processName)
+        }
+
+        @JvmStatic
+        fun isMainProcess(packageName: String, processName: String): Boolean {
+            return packageName == processName
         }
 
         /**
@@ -212,6 +221,8 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         processName = getProcessName(processRecord)
         processStateRecord =
             ProcessStateRecord(XposedHelpers.getObjectField(processRecord, FieldConstants.mState))
+
+        mainProcess = isMainProcess(packageName, processName)
     }
 
     /**
