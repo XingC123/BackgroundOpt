@@ -4,10 +4,12 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
+import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
 import com.venus.backgroundopt.utils.getInstalledPackages
 
@@ -15,14 +17,21 @@ import com.venus.backgroundopt.utils.getInstalledPackages
  * @author XingC
  * @date 2023/9/27
  */
-class ShowAllInstalledAppsActivity : AppCompatActivity() {
+class ShowAllInstalledAppsActivity : BaseActivity() {
+    override fun initToolBar(): Toolbar? {
+        return findViewById(R.id.showAllInstalledAppsToolBar)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_show_all_installer_apps)
 
         showProgressBarViewForAction(this, "正在获取已安装应用...") {
             init()
         }
+    }
+
+    override fun getContentView(): Int {
+        return R.layout.activity_show_all_installer_apps
     }
 
     private fun init() {

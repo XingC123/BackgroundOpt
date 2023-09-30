@@ -11,6 +11,7 @@ import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
+import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
 import com.venus.backgroundopt.utils.TMP_DATA
 import com.venus.backgroundopt.utils.getAppProcesses
@@ -18,17 +19,21 @@ import com.venus.backgroundopt.utils.preference.prefPut
 import com.venus.backgroundopt.utils.preference.prefValue
 import com.venus.backgroundopt.utils.processNameSeparator
 
-class ConfigureAppProcessActivity : AppCompatActivity() {
+class ConfigureAppProcessActivity : BaseActivity() {
     private lateinit var appItem: AppItem
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_configure_app_process)
 
         showProgressBarViewForAction(this, "正在加载...") {
             init()
         }
     }
+
+    override fun getContentView(): Int {
+        return R.layout.activity_configure_app_process
+    }
+
 
     private fun init() {
         appItem = TMP_DATA as AppItem

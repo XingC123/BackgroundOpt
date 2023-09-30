@@ -6,75 +6,100 @@
     android:layout_height="match_parent"
     tools:context=".ui.MainActivity">
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <LinearLayout
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:divider="@drawable/item_space_horizontal"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:showDividers="middle">
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary">
 
             <TextView
-                android:id="@+id/mainActivityModuleActiveText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/moduleInActive" />
-
-            <LinearLayout
-                android:id="@+id/mainActivityFunctionLayout"
+                android:id="@+id/toolbar_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="center"
+                android:text="@string/app_name"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+        </androidx.appcompat.widget.Toolbar>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:divider="@drawable/item_space_horizontal"
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
                 android:showDividers="middle">
 
-                <Button
-                    android:id="@+id/getRunningAppInfoBtn"
+                <TextView
+                    android:id="@+id/mainActivityModuleActiveText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0"
-                    android:enabled="true"
-                    android:text="@string/getRunningAppInfoBtn" />
+                    android:text="@string/moduleInActive" />
 
-                <Button
-                    android:id="@+id/getTargetAppGroupBtn"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:id="@+id/mainActivityFunctionLayout"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0"
-                    android:text="@string/getTargetAppGroupBtn" />
+                    android:divider="@drawable/item_space_horizontal"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:showDividers="middle">
 
-                <Button
-                    android:id="@+id/getBackgroundTasksBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0"
-                    android:text="@string/getBackgroundTasks" />
+                    <Button
+                        android:id="@+id/getRunningAppInfoBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        android:enabled="true"
+                        android:text="@string/getRunningAppInfoBtn" />
 
-                <Button
-                    android:id="@+id/getAppCompactItemsBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0"
-                    android:text="@string/getAppCompactItemsBtn" />
+                    <Button
+                        android:id="@+id/getTargetAppGroupBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        android:text="@string/getTargetAppGroupBtn" />
 
-                <Button
-                    android:id="@+id/gotoConfigureAppProcessActivityBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0"
-                    android:text="@string/gotoConfigureAppProcessActivityBtn" />
+                    <Button
+                        android:id="@+id/getBackgroundTasksBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        android:text="@string/getBackgroundTasks" />
+
+                    <Button
+                        android:id="@+id/getAppCompactItemsBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        android:text="@string/getAppCompactItemsBtn" />
+
+                    <Button
+                        android:id="@+id/gotoConfigureAppProcessActivityBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        android:text="@string/gotoConfigureAppProcessActivityBtn" />
+
+                </LinearLayout>
 
             </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
 
-        </LinearLayout>
-    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

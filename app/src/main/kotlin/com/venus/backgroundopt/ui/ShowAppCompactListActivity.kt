@@ -12,4 +12,8 @@ class ShowAppCompactListActivity : ShowInfoFromAppItemActivity() {
     override fun getShowInfoAdapter(appItems: List<AppItem>): ShowInfoFromAppItemAdapter {
         return ShowAppCompactListAdapter(appItems)
     }
+
+    override fun getToolBarTitle(): String {
+        return "待压缩进程列表"
+    }
 }

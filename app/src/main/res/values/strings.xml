@@ -32,4 +32,6 @@
     <string name="showAllInstalledAppsSearchBtn">Search</string>
     <string name="moduleActive">Module is active</string>
     <string name="moduleInActive">Module is not active</string>
+    <string name="configureAppProcessToolBar">processes of Application</string>
+    <string name="showAllInstalledAppToolBar">Installed applications</string>
 </resources>

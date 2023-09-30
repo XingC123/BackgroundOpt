@@ -33,4 +33,6 @@
     <string name="showAllInstalledAppsSearchBtn">查找</string>
     <string name="moduleActive">模块已激活</string>
     <string name="moduleInActive">模块未激活</string>
+    <string name="configureAppProcessToolBar">应用进程</string>
+    <string name="showAllInstalledAppToolBar">已安装应用</string>
 </resources>
