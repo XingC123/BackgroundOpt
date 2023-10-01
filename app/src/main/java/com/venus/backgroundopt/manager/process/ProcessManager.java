@@ -12,7 +12,6 @@ import com.venus.backgroundopt.utils.log.ILogger;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -63,8 +62,8 @@ public class ProcessManager implements ILogger {
     /**
      * 添加压缩进程
      */
-    public void addCompactProcess(Collection<ProcessRecordKt> processRecords) {
-        appCompactManager.addCompactProcess(processRecords);
+    private void addCompactProcess(AppInfo appInfo) {
+        appCompactManager.addCompactProcess(appInfo);
     }
 
     public void addCompactProcess(ProcessRecordKt processRecord) {
@@ -80,11 +79,7 @@ public class ProcessManager implements ILogger {
         appCompactManager.cancelCompactProcess(processRecord);
     }
 
-    public void cancelCompactProcess(Collection<ProcessRecordKt> processRecords) {
-        appCompactManager.cancelCompactProcess(processRecords);
-    }
-
-    public void cancelCompactProcess(AppInfo appInfo) {
+    private void cancelCompactProcess(AppInfo appInfo) {
         appCompactManager.cancelCompactProcess(appInfo);
     }
 
@@ -159,15 +154,15 @@ public class ProcessManager implements ILogger {
         return appMemoryTrimManager.getBackgroundTasks();
     }
 
-    public void startBackgroundAppTrimTask(ProcessRecordKt processRecord) {
+    private void startBackgroundAppTrimTask(ProcessRecordKt processRecord) {
         appMemoryTrimManager.addBackgroundTask(processRecord);
     }
 
-    public void startForegroundAppTrimTask(ProcessRecordKt processRecord) {
+    private void startForegroundAppTrimTask(ProcessRecordKt processRecord) {
         appMemoryTrimManager.addForegroundTask(processRecord);
     }
 
-    public void removeAllAppMemoryTrimTask(AppInfo appInfo) {
+    private void removeAllAppMemoryTrimTask(AppInfo appInfo) {
         appMemoryTrimManager.removeAllTask(appInfo.getmProcessRecord());
     }
 
@@ -214,6 +209,30 @@ public class ProcessManager implements ILogger {
         }
 
         return false;
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 统一调度处                                                                *
+     *                                                                         *
+     **************************************************************************/
+    public void appActive(AppInfo appInfo) {
+        // 移除压缩任务
+        cancelCompactProcess(appInfo);
+        // 添加前台任务
+        startForegroundAppTrimTask(appInfo.getmProcessRecord());
+    }
+
+    public void appIdle(AppInfo appInfo) {
+        // 添加后台任务
+        startBackgroundAppTrimTask(appInfo.getmProcessRecord());
+        // 添加压缩任务
+        addCompactProcess(appInfo);
+    }
+
+    public void appDie(AppInfo appInfo) {
+        removeAllAppMemoryTrimTask(appInfo);
+        cancelCompactProcess(appInfo);
     }
 
     /**

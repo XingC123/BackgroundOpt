@@ -80,6 +80,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             processRecord: ProcessRecordKt
         ) {
             if (RunningInfo.AppGroupEnum.IDLE == appInfo.appGroupEnum) { // 若该进程创建时, app处于IDLE, 则将此进程添加到待压缩列表
+                processRecord.appInfo = appInfo
                 processRecord.addCompactProcess(runningInfo)
             }
         }
@@ -213,6 +214,9 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
     @JSONField(serialize = false)
     private lateinit var activityManagerService: ActivityManagerService
+
+    @JSONField(serialize = false)
+    lateinit var appInfo: AppInfo
 
     constructor(activityManagerService: ActivityManagerService, processRecord: Any?) : this() {
         this.processRecord = processRecord

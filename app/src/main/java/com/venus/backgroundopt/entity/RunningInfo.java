@@ -351,10 +351,9 @@ public class RunningInfo implements ILogger {
             activeAppGroup.remove(appInfo);
             tmpAppGroup.remove(appInfo);
             idleAppGroup.remove(appInfo);
-            processManager.removeAllAppMemoryTrimTask(appInfo);
 
-            // 清理待压缩进程
-            processManager.cancelCompactProcess(appInfo);
+            // app被杀死
+            processManager.appDie(remove);
 
             // 清理AppInfo。也许有助于gc
             appInfo.clearAppInfo();
@@ -493,8 +492,8 @@ public class RunningInfo implements ILogger {
             return;
         }
 
-        // 启动MemoryTrimTask任务
-        processManager.startForegroundAppTrimTask(appInfo.getmProcessRecord());
+        // 启动前台工作
+        processManager.appActive(appInfo);
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入ActiveGroup");
@@ -530,8 +529,8 @@ public class RunningInfo implements ILogger {
             return true;
         }
 
-        processManager.startBackgroundAppTrimTask(appInfo.getmProcessRecord());
-//        processManager.handleGC(appInfo);
+        // 启动后台工作
+        processManager.appIdle(appInfo);
 //        processManager.setAppToBackgroundProcessGroup(appInfo);
 
         appInfo.setSwitchEventHandled(true);

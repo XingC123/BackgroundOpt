@@ -82,17 +82,18 @@ public class AppInfo implements ILogger {
     private final Object appGroupSetLock = new Object();
 
     public void setAppGroupEnum(AppGroupEnum appGroupEnum) {
-        synchronized (appGroupSetLock) {
-            this.appGroupEnum = appGroupEnum;
-            // 添加 切后台时所创建的所有进程(当app进入后台后, 新创建的子进程会自动被添加到待压缩列表中)
-            if (!Objects.equals(runningInfo.getActiveLaunchPackageName(), packageName)) {   // 不是桌面进程
-                switch (appGroupEnum) {
-                    case IDLE -> runningInfo.getProcessManager().addCompactProcess(getProcesses());
-                    case ACTIVE ->  /* 若为第一次打开app, 此时也会执行这里。此时无需考虑是否能移除, 因为还没开始添加(至少也要在app第一次进入后台才会开始添加) */
-                            runningInfo.getProcessManager().cancelCompactProcess(getProcesses());
-                }
-            }
-        }
+//        synchronized (appGroupSetLock) {
+//            this.appGroupEnum = appGroupEnum;
+//            // 添加 切后台时所创建的所有进程(当app进入后台后, 新创建的子进程会自动被添加到待压缩列表中)
+//            if (!Objects.equals(runningInfo.getActiveLaunchPackageName(), packageName)) {   // 不是桌面进程
+//                switch (appGroupEnum) {
+//                    case IDLE -> runningInfo.getProcessManager().addCompactProcess(getProcesses());
+//                    case ACTIVE ->  /* 若为第一次打开app, 此时也会执行这里。此时无需考虑是否能移除, 因为还没开始添加(至少也要在app第一次进入后台才会开始添加) */
+//                            runningInfo.getProcessManager().cancelCompactProcess(getProcesses());
+//                }
+//            }
+//        }
+        this.appGroupEnum = appGroupEnum;
     }
 
     public AppGroupEnum getAppGroupEnum() {
@@ -121,6 +122,7 @@ public class AppInfo implements ILogger {
             if (processRecord.getMainProcess()) {
                 setmProcessRecord(processRecord);
             }
+            processRecord.setAppInfo(this);
             return processRecord;
         });
     }
