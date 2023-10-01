@@ -15,31 +15,28 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:theme="@style/Theme.AppTheme"
-            app:menu="@menu/menu_main_activity_toolbar"
-            app:popupTheme="@style/OverflowMenuStyle">
+            android:layout_height="wrap_content">
 
-            <Space
-                android:layout_width="24sp"
-                android:layout_height="wrap_content"
-                android:visibility="visible" />
-
-            <TextView
-                android:id="@+id/toolbar_title"
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
+                android:background="?attr/colorPrimary"
+                android:theme="@style/Theme.AppTheme"
+                app:menu="@menu/menu_main_activity_toolbar"
+                app:popupTheme="@style/OverflowMenuStyle"/>
+
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:gravity="center"
                 android:text="@string/app_name"
-                android:textAlignment="center"
-                android:textColor="@color/white"
+                android:textColor="#FFFFFF"
                 android:textSize="18sp" />
-        </androidx.appcompat.widget.Toolbar>
+        </FrameLayout>
 
         <ScrollView
             android:layout_width="match_parent"
