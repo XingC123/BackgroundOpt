@@ -1,7 +1,6 @@
 package com.venus.backgroundopt.manager.process
 
 import com.venus.backgroundopt.BuildConfig
-import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
@@ -241,16 +240,7 @@ class AppMemoryTrimManagerKt(private val activityManagerService: ActivityManager
         trimLevel: Int,
         list: MutableSet<ProcessRecordKt>
     ) {
-        /**
-         * [ActivityManagerServiceHook.handleAppSwitch]获取的主进程pid可能为0
-         * 在[ProcessListHookKt.handleSetOomAdj]已做处理, 此处为兜底措施
-         */
-        if (processRecordKt.pid == 0) {
-            processRecordKt.pid = activityManagerService.findMProcessRecord(
-                processRecordKt.packageName,
-                processRecordKt.uid
-            ).pid
-        }
+        processRecordKt.removeIfRedundant(list)
         val result = processRecordKt.scheduleTrimMemory(trimLevel)
 
         if (result) {

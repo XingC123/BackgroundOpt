@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
+import com.venus.backgroundopt.annotation.UsageComment;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.utils.log.ILogger;
@@ -150,6 +151,28 @@ public class AppInfo implements ILogger {
 
     public Collection<ProcessRecordKt> getProcesses() {
         return processRecordMap.values();
+    }
+
+    @UsageComment("尽量避免直接操作map, 推荐用提供好的方法")
+    public Map<Integer, ProcessRecordKt> getProcessRecordMap() {
+        return processRecordMap;
+    }
+
+    /**
+     * 安卓ProcessRecord的pid并不是在构造方法中赋值, 而是使用了setPid(int pid)的方式
+     * 因而可能导致 {@link com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook}.handleAppSwitch 获取的主进程pid=0
+     */
+    public ProcessRecordKt correctMainProcess(int correctPid) {
+        try {
+            return processRecordMap.computeIfPresent(correctPid, ((pid, redundantProcessRecord) -> {
+                ProcessRecordKt process = removeProcess(getmPid());
+                process.setPid(correctPid);
+                process.setRedundantProcessRecord(redundantProcessRecord);
+                return process;
+            }));
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public ApplicationIdentity getApplicationIdentity() {

@@ -42,7 +42,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             appInfo: AppInfo,
             processRecord: Any?
         ): ProcessRecordKt {
-            val record = ProcessRecordKt(processRecord)
+            val record = ProcessRecordKt(runningInfo.activityManagerService, processRecord)
             addCompactProcess(runningInfo, appInfo, record)
             return record
         }
@@ -210,7 +210,10 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             return field
         }
 
-    constructor(processRecord: Any?) : this() {
+    @JSONField(serialize = false)
+    private lateinit var activityManagerService: ActivityManagerService
+
+    constructor(activityManagerService: ActivityManagerService, processRecord: Any?) : this() {
         this.processRecord = processRecord
         pid = getPid(processRecord)
         uid = getUID(processRecord)
@@ -221,7 +224,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         processName = getProcessName(processRecord)
         processStateRecord =
             ProcessStateRecord(XposedHelpers.getObjectField(processRecord, FieldConstants.mState))
-
+        this.activityManagerService = activityManagerService
         mainProcess = isMainProcess(packageName, processName)
     }
 
@@ -376,6 +379,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     private val lastCompactTimeAtomicLong = AtomicLong(0L)
 
     // 压缩间隔
+    @JSONField(serialize = false)
     private val compactInterval = TimeUnit.MINUTES.toMillis(7)
 
     fun addCompactProcess(runningInfo: RunningInfo) {
@@ -403,6 +407,23 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
     fun setLastCompactTime(time: Long) {
         lastCompactTimeAtomicLong.set(time)
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 若过早获取ProcessRecord, 可能导致pid=0, 因此需要进行修正                       *
+     *                                                                         *
+     **************************************************************************/
+    // 修正之前会有一个多余但是正确pid的进程记录, 那么使用这个进程进行修正
+    @JSONField(serialize = false)
+    var redundantProcessRecord: ProcessRecordKt? = null
+
+    fun correctMainProcess() {
+        pid = activityManagerService.findMProcessRecord(packageName, uid).pid
+    }
+
+    fun removeIfRedundant(collection: MutableCollection<ProcessRecordKt>) {
+        redundantProcessRecord?.let { collection.remove(it) }
     }
 
     override fun equals(other: Any?): Boolean {

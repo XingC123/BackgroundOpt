@@ -3,7 +3,6 @@ package com.venus.backgroundopt.manager.process
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.environment.CommonProperties
-import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
@@ -60,15 +59,8 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                 var compactMethod: (processRecordKt: ProcessRecordKt) -> Boolean = ::compactAppFull
                 val mainProcess = it.mainProcess
 
-                /**
-                 * [ActivityManagerServiceHook.handleAppSwitch]获取的主进程pid可能为0
-                 * 在[ProcessListHookKt.handleSetOomAdj]已做处理, 此处为兜底措施
-                 */
-                if (mainProcess && it.pid == 0) {
-                    it.pid = activityManagerService.findMProcessRecord(
-                        it.packageName,
-                        it.uid
-                    ).pid
+                if (mainProcess) {
+                    it.removeIfRedundant(compactProcesses)
                 }
                 if (it.mainProcess || upgradeSubProcessNames.contains(it.processName)) {
                     val currentTime = System.currentTimeMillis()

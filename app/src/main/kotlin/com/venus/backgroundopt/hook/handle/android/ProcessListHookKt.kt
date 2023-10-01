@@ -95,28 +95,12 @@ class ProcessListHookKt(
         }*/
 
         // 获取当前进程对象
-        val process =
+        var process =
             appInfo.getProcess(pid)
                 ?: appInfo.addProcess(runningInfo.activityManagerService.getProcessRecord(pid))
-        val mainProcess = process.mainProcess
-        if (mainProcess) {
-            try {
-                val mPid = appInfo.getmPid()
-//                if (mPid == 0) {
-                if (pid != mPid) {  // 需要纠错
-                    // 移除错误进程
-                    // appInfo.removeProcess(mPid)
-                    // 设置新主进程
-                    // appInfo.setMProcessAndAdd(process)
-                    // 考虑前后台任务/内存压缩
-                    /**
-                     * 重新赋值即可
-                     * 安卓ProcessRecord的pid并不是在构造方法中赋值, 而是使用了setPid(int pid)的方式
-                     * 因而可能导致[ActivityManagerServiceHook.handleAppSwitch]获取的主进程pid=0
-                     */
-                    appInfo.getmProcess()!!.pid = pid
-                }
-            } catch (ignore: Exception) {
+        val mainProcess = process.mainProcess.also { b ->
+            if (b) {
+                appInfo.correctMainProcess(pid)?.let { process = it }
             }
         }
 

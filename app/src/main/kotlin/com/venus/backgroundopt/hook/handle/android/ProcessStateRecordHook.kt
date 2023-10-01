@@ -39,7 +39,10 @@ class ProcessStateRecordHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) 
     private fun handleSetCurAdj(param: MethodHookParam) {
         val processStateRecord = param.thisObject
         val processRecordKt =
-            ProcessRecordKt(ProcessStateRecord.getProcessRecord(processStateRecord))
+            ProcessRecordKt(
+                runningInfo.activityManagerService,
+                ProcessStateRecord.getProcessRecord(processStateRecord)
+            )
         val appInfo = runningInfo.getRunningAppInfo(processRecordKt.uid)
         // 主进程首次创建时appInfo还未初始化, 此情况无需关心
         appInfo ?: return
@@ -62,7 +65,10 @@ class ProcessStateRecordHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) 
     private fun handleGetCurAdj(param: MethodHookParam) {
         val processStateRecord = param.thisObject
         val processRecordKt =
-            ProcessRecordKt(ProcessStateRecord.getProcessRecord(processStateRecord))
+            ProcessRecordKt(
+                runningInfo.activityManagerService,
+                ProcessStateRecord.getProcessRecord(processStateRecord)
+            )
         val appInfo = runningInfo.getRunningAppInfo(processRecordKt.uid)
         // 主进程首次创建时appInfo还未初始化, 此情况无需关心
         appInfo ?: return

@@ -2,8 +2,8 @@ package com.venus.backgroundopt.hook.handle.android.entity;
 
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.ApplicationIdentity;
-import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
+import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.utils.log.ILogger;
 import com.venus.backgroundopt.utils.reference.ObjectReference;
 
@@ -165,7 +165,7 @@ public class ProcessList implements ILogger {
             ApplicationIdentity applicationIdentity;
             List<ProcessRecordKt> list;
             for (Object proc : procList) {
-                processRecord = new ProcessRecordKt(proc);
+                processRecord = new ProcessRecordKt(activityManagerService, proc);
                 applicationIdentity = new ApplicationIdentity(processRecord.getUserId(), processRecord.getPackageName());
                 list = processMap.computeIfAbsent(applicationIdentity, k -> new ArrayList<>());
                 list.add(processRecord);
@@ -182,7 +182,7 @@ public class ProcessList implements ILogger {
 
         return procList.parallelStream()
                 .filter(process -> Objects.equals(ProcessRecordKt.getPkgName(process), appInfo.getPackageName()))
-                .map(ProcessRecordKt::new)
+                .map(process -> new ProcessRecordKt(activityManagerService, process))
                 .collect(Collectors.toList());
     }
 
@@ -202,7 +202,7 @@ public class ProcessList implements ILogger {
                         Objects.equals(appInfo.getUserId(), ProcessRecordKt.getUserId(process))
                                 && Objects.equals(appInfo.getPackageName(), ProcessRecordKt.getPkgName(process)))
                 .forEach(process -> {
-                    ProcessRecordKt processRecord = new ProcessRecordKt(process);
+                    ProcessRecordKt processRecord = new ProcessRecordKt(activityManagerService, process);
 
                     if (ProcessRecordKt.isProcessNameSame(appInfo.getPackageName(), process)) {
                         processRecords.add(0, processRecord);
@@ -229,7 +229,7 @@ public class ProcessList implements ILogger {
         for (int i = 0; i < processRecordList.size(); i++) {
             process = processRecordList.get(i);
             if (ProcessRecordKt.isProcessNameSame(packageName, process)) {
-                return new ProcessRecordKt(process);
+                return new ProcessRecordKt(activityManagerService, process);
             }
         }
 
@@ -271,7 +271,7 @@ public class ProcessList implements ILogger {
         procList.stream()
                 .filter(process -> Objects.equals(ProcessRecordKt.getPid(process), pid))
                 .findAny()
-                .ifPresent(process -> processRecord.set(new ProcessRecordKt(processRecord)));
+                .ifPresent(process -> processRecord.set(new ProcessRecordKt(activityManagerService, processRecord)));
 
         return processRecord.get();
     }
