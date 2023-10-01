@@ -45,7 +45,7 @@ val registeredMessageHandler = mapOf(
 )
 
 // json传输的载体
-data class Message<T>(var v: T?)
+data class Message<T>(var v: T?) : MessageFlag
 
 /* *************************************************************************
  *                                                                         *
@@ -141,7 +141,7 @@ inline fun <reified E> createResponse(
 //    if (BuildConfig.DEBUG) {
     logDebug("${CUR_CLASS_PREFIX}createResponse", "模块进程接收的数据为: $value")
 //    }
-    var errorMsg:String? = null
+    var errorMsg: String? = null
     try {
         param.result = value?.let { v ->
             errorMsg = "Message转换异常"

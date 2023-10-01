@@ -194,6 +194,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     var processStateRecord: ProcessStateRecord? = null
 
     // 当前ProcessRecord已记录的最大adj
+    @JSONField(serialize = false)
     var recordMaxAdj = 0
 
     /**
@@ -272,7 +273,6 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
      *
      * @return
      */
-    @JSONField(serialize = false)
     fun hasSetMaxAdj(): Boolean = recordMaxAdj != 0
 
     /**
@@ -386,25 +386,30 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         runningInfo.processManager.addCompactProcess(this)
     }
 
+    @JSONField(serialize = false)
     fun isAllowedCompact(time: Long): Boolean {
         return time - getLastCompactTime() > compactInterval
     }
 
     @JvmName("getOomAdjScoreFromAtomicInteger")
+    @JSONField(serialize = false)
     fun getOomAdjScore(): Int {
         return oomAdjScoreAtomicInteger.get()
     }
 
     @JvmName("setOomAdjScoreToAtomicInteger")
+    @JSONField(serialize = false)
     fun setOomAdjScore(oomAdjScore: Int) {
         this.oomAdjScoreAtomicInteger.set(oomAdjScore)
         this.oomAdjScore = oomAdjScore
     }
 
+    @JSONField(serialize = false)
     private fun getLastCompactTime(): Long {
         return lastCompactTimeAtomicLong.get()
     }
 
+    @JSONField(serialize = false)
     fun setLastCompactTime(time: Long) {
         lastCompactTimeAtomicLong.set(time)
     }

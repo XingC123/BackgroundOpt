@@ -67,30 +67,30 @@
     native <methods>;
 }
 # 保留了继承自Activity、Application这些类的子类
--keep public class * extends android.app.Activity
--keep public class * extends android.app.Application
--keep public class * extends android.app.Service
--keep public class * extends android.content.BroadcastReceiver
--keep public class * extends android.content.ContentProvider
--keep public class * extends android.preference.Preference
--keep public class * extends android.view.View
--keep public class * extends android.database.sqlite.SQLiteOpenHelper{*;}
+-keepclasseswithmembers public class * extends android.app.Activity
+-keepclasseswithmembers public class * extends android.app.Application
+-keepclasseswithmembers public class * extends android.app.Service
+-keepclasseswithmembers public class * extends android.content.BroadcastReceiver
+-keepclasseswithmembers public class * extends android.content.ContentProvider
+-keepclasseswithmembers public class * extends android.preference.Preference
+-keepclasseswithmembers public class * extends android.view.View
+-keepclasseswithmembers public class * extends android.database.sqlite.SQLiteOpenHelper{*;}
 # 如果有引用android-support-v4.jar包，可以添加下面这行
--keep public class com.null.test.ui.fragment.** {*;}
+-keepclasseswithmembers public class com.null.test.ui.fragment.** {*;}
 #如果引用了v4或者v7包
 -dontwarn android.support.**
 # 保留Activity中的方法参数是view的方法，
 # 从而我们在layout里面编写onClick就不会影响
--keepclassmembers class * extends android.app.Activity {
+-keepclasseswithmembers class * extends android.app.Activity {
     public void * (android.view.View);
 }
 # 枚举类不能被混淆
--keepclassmembers enum * {
+-keepclasseswithmembers enum * {
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
 # 保留自定义控件(继承自View)不能被混淆
--keep public class * extends android.view.View {
+-keepclasseswithmembers public class * extends android.view.View {
     public <init>(android.content.Context);
     public <init>(android.content.Context, android.util.AttributeSet);
     public <init>(android.content.Context, android.util.AttributeSet, int);
@@ -98,11 +98,11 @@
     *** get* ();
 }
 # 保留Parcelable序列化的类不能被混淆
--keep class * implements android.os.Parcelable{
+-keepclasseswithmembers class * implements android.os.Parcelable{
     public static final android.os.Parcelable$Creator *;
 }
 # 保留Serializable 序列化的类不被混淆
--keepclassmembers class * implements java.io.Serializable {
+-keepclasseswithmembers class * implements java.io.Serializable {
    static final long serialVersionUID;
    private static final java.io.ObjectStreamField[] serialPersistentFields;
    !static !transient <fields>;
@@ -128,19 +128,19 @@
 -printmapping build/outputs/mapping/release/mapping.txt
 
 -keepnames class * extends android.view.View
--keep class * extends android.app.Fragment {
+-keepclasseswithmembers class * extends android.app.Fragment {
     public void setUserVisibleHint(boolean);
     public void onHiddenChanged(boolean);
     public void onResume();
     public void onPause();
 }
--keep class android.support.v4.app.Fragment {
+-keepclasseswithmembers class android.support.v4.app.Fragment {
     public void setUserVisibleHint(boolean);
     public void onHiddenChanged(boolean);
     public void onResume();
     public void onPause();
 }
--keep class * extends android.support.v4.app.Fragment {
+-keepclasseswithmembers class * extends android.support.v4.app.Fragment {
     public void setUserVisibleHint(boolean);
     public void onHiddenChanged(boolean);
     public void onResume();
@@ -151,19 +151,20 @@
 -dontwarn java.awt.Font
 -dontwarn java.awt.Point
 
--keep class kotlin.** { *; }
--keep class org.jetbrains.** { *; }
+#-keep class kotlin.** { *; }
+#-keep class org.jetbrains.** { *; }
 
 #FastJson反混淆
--keepattributes Signature
 -dontwarn com.alibaba.fastjson2.**
--keep class com.alibaba.fastjson2.**{*; }
+-keepclasseswithmembers class com.alibaba.fastjson2.**{*; }
 
 ################################################################
 # 自定义规则                                                     #
 ################################################################
 # 不混淆实现了此接口的类
--keep class * implements com.venus.backgroundopt.utils.message.MessageFlag
+-keepclasseswithmembers class * implements com.venus.backgroundopt.utils.message.MessageFlag {
+    *;
+}
 # 模块激活状态的检测
 -keepclasseswithmembers class com.venus.backgroundopt.environment.CommonProperties {
     public final boolean isModuleActive();
