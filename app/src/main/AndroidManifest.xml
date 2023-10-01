@@ -46,6 +46,10 @@
         </activity>
 
         <activity
+            android:name=".ui.AboutAppActivity"
+            android:exported="true" />
+
+        <activity
             android:name=".ui.ShowBackgroundTasksActivity"
             android:exported="true" />
 

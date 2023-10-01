@@ -5,4 +5,10 @@
         <item>android</item>
         <item>com.miui.powerkeeper</item>
     </string-array>
+
+    <!-- 致谢名单 -->
+    <string-array name="about_app_thanks_url">
+        <item>https://github.com/UISSD/Don-t-Kill</item>
+        <item>https://github.com/myflavor/NoActive-UI</item>
+    </string-array>
 </resources>

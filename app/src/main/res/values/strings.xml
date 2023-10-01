@@ -34,4 +34,9 @@
     <string name="moduleInActive">Module is not active</string>
     <string name="configureAppProcessToolBar">processes of Application</string>
     <string name="showAllInstalledAppToolBar">Installed applications</string>
+    <string name="menu_main_activity_toolbar_about">About</string>
+    <string name="aboutAppProjectPathTipText">Project path</string>
+    <string name="aboutAppProjectPathText">https://github.com/XingC123/BackgroundOpt</string>
+    <string name="aboutAppThanksTip">Thanks</string>
+    <string name="aboutAppToolBar">About</string>
 </resources>

@@ -35,4 +35,8 @@
     <string name="moduleInActive">模块未激活</string>
     <string name="configureAppProcessToolBar">应用进程</string>
     <string name="showAllInstalledAppToolBar">已安装应用</string>
+    <string name="menu_main_activity_toolbar_about">关于</string>
+    <string name="aboutAppProjectPathTipText">项目地址</string>
+    <string name="aboutAppThanksTip">鸣谢</string>
+    <string name="aboutAppToolBar">关于</string>
 </resources>
