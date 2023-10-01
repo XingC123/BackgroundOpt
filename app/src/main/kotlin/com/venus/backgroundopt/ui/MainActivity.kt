@@ -7,6 +7,7 @@ import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.ui.widget.QueryInfoDialog
@@ -21,7 +22,10 @@ class MainActivity : AppCompatActivity(), ILogger {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        setSupportActionBar(findViewById(R.id.toolbar))
+
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        toolbar?.title = ""
+        setSupportActionBar(toolbar)
 
         init()
     }
