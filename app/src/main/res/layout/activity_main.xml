@@ -24,6 +24,11 @@
             app:menu="@menu/menu_main_activity_toolbar"
             app:popupTheme="@style/OverflowMenuStyle">
 
+            <Space
+                android:layout_width="24sp"
+                android:layout_height="wrap_content"
+                android:visibility="visible" />
+
             <TextView
                 android:id="@+id/toolbar_title"
                 android:layout_width="match_parent"
