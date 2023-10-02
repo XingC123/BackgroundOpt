@@ -308,6 +308,10 @@ public class RunningInfo implements ILogger {
                         setAddedRunningApp(mProcessRecord, apps[0]);
                         apps[0].setAppSwitchEvent(ActivityManagerServiceHook.ACTIVITY_PAUSED);
                         putIntoIdleAppGroup(apps[0]);
+
+                        if (BuildConfig.DEBUG) {
+                            getLogger().debug("AppInfo(包名: "  + packageName + ", uid: " + uid + ")补充完毕");
+                        }
                     }
                 }
             }

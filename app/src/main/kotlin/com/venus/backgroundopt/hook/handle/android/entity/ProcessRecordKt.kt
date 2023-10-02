@@ -24,8 +24,9 @@ import java.util.concurrent.atomic.AtomicLong
  */
 class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     companion object {
-        @JvmField
-        val LONG_FORMAT = intArrayOf(PROC_NEWLINE_TERM or PROC_OUT_LONG)
+        val LONG_FORMAT by lazy {
+            intArrayOf(PROC_NEWLINE_TERM or PROC_OUT_LONG)
+        }
 
         // 默认的最大adj
         const val DEFAULT_MAX_ADJ = ProcessList.VISIBLE_APP_ADJ
@@ -79,7 +80,8 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             appInfo: AppInfo,
             processRecord: ProcessRecordKt
         ) {
-            if (RunningInfo.AppGroupEnum.IDLE == appInfo.appGroupEnum) { // 若该进程创建时, app处于IDLE, 则将此进程添加到待压缩列表
+            // 若该进程创建时, app处于IDLE且当前app不是桌面, 则将此进程添加到待压缩列表
+            if (RunningInfo.AppGroupEnum.IDLE == appInfo.appGroupEnum && runningInfo.activeLaunchPackageName != appInfo.packageName) {
                 processRecord.appInfo = appInfo
                 processRecord.addCompactProcess(runningInfo)
             }

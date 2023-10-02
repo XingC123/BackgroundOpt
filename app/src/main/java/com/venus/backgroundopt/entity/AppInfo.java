@@ -119,9 +119,9 @@ public class AppInfo implements ILogger {
     public ProcessRecordKt addProcess(@NonNull ProcessRecordKt processRecord) {
         return processRecordMap.computeIfAbsent(processRecord.getPid(), k -> {
             ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
-            if (processRecord.getMainProcess()) {
-                setmProcessRecord(processRecord);
-            }
+//            if (processRecord.getMainProcess()) {
+//                setmProcessRecord(processRecord);
+//            }
             processRecord.setAppInfo(this);
             return processRecord;
         });
@@ -167,9 +167,21 @@ public class AppInfo implements ILogger {
     public ProcessRecordKt correctMainProcess(int correctPid) {
         try {
             return processRecordMap.computeIfPresent(correctPid, ((pid, redundantProcessRecord) -> {
-                ProcessRecordKt process = removeProcess(getmPid());
+                int mPid = Integer.MIN_VALUE;
+                try {
+                    mPid = getmPid();
+                } catch (Exception ignore) {
+                }
+                if (correctPid == mPid) {
+                    return redundantProcessRecord;
+                }
+                ProcessRecordKt process = removeProcess(mPid);
                 process.setPid(correctPid);
                 process.setRedundantProcessRecord(redundantProcessRecord);
+
+                if (BuildConfig.DEBUG) {
+                    getLogger().warn("pid: " + correctPid + "所在ProcessRecord已进行修正");
+                }
                 return process;
             }));
         } catch (Exception e) {

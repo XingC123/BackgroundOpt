@@ -24,9 +24,11 @@ open class BaseProcessInfoKt(
      * 修正过的oomAdjScore。
      * 即本模块为了优化后台而对进程的oomAdjScore修改的值
      */
+    @Volatile
     var fixedOomAdjScore = Int.MIN_VALUE
 
     // app主进程
+    @Volatile
     var mainProcess = false
 
     lateinit var packageName: String
