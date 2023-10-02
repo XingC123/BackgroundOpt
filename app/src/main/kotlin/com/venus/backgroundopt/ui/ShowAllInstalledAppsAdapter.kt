@@ -42,7 +42,7 @@ class ShowAllInstalledAppsAdapter(private val appItems: List<AppItem>) :
     ): ShowAllInstalledAppsViewHolder {
         val view: View =
             LayoutInflater.from(parent.context)
-                .inflate(R.layout.installed_apps_item, parent, false)
+                .inflate(R.layout.item_installed_apps, parent, false)
         return ShowAllInstalledAppsViewHolder(view)
     }
 

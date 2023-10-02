@@ -48,7 +48,7 @@ class ConfigureAppProcessAdapter(
     ): ConfigureAppProcessViewHolder {
         val view: View =
             LayoutInflater.from(parent.context)
-                .inflate(R.layout.configure_app_process_item, parent, false)
+                .inflate(R.layout.item_configure_app_process, parent, false)
         return ConfigureAppProcessViewHolder(view)
     }
 

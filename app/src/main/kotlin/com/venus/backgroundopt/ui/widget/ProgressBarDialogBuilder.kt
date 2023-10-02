@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.DialogInterface
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.venus.backgroundopt.BuildConfig
@@ -20,7 +19,7 @@ class ProgressBarDialogBuilder {
     companion object {
         @JvmStatic
         fun createProgressBarView(context: Context, text: String): AlertDialog {
-            val view = LayoutInflater.from(context).inflate(R.layout.progress_bar_dialog, null)
+            val view = LayoutInflater.from(context).inflate(R.layout.dialog_progress_bar, null)
 
             view.findViewById<TextView>(R.id.progressBarText)?.let {
                 it.text = text
