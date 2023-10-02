@@ -3,7 +3,7 @@ package com.venus.backgroundopt.manager.process
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
-import com.venus.backgroundopt.utils.concurrent.visualSynchronize
+import com.venus.backgroundopt.utils.concurrent.lock
 import com.venus.backgroundopt.utils.log.ILogger
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
@@ -57,7 +57,7 @@ class AppMemoryTrimManagerKt : ILogger {
          */
         executor.scheduleWithFixedDelay({
             foregroundTasks.forEach {
-                visualSynchronize(it.appInfo) {
+                lock(it.appInfo) {
                     executeForegroundTask(it)
                 }
             }
@@ -66,7 +66,7 @@ class AppMemoryTrimManagerKt : ILogger {
         // 后台任务
         executor.scheduleWithFixedDelay({
             backgroundTasks.forEach {
-                visualSynchronize(it.appInfo) {
+                lock(it.appInfo) {
                     executeBackgroundTask(it)
                 }
             }
@@ -87,7 +87,7 @@ class AppMemoryTrimManagerKt : ILogger {
             return
         }
 
-        processRecordKt.appInfo.visualSynchronize {
+        processRecordKt.appInfo.lock {
             // 移除后台任务
             removeBackgroundTask(processRecordKt)
 
@@ -134,7 +134,7 @@ class AppMemoryTrimManagerKt : ILogger {
             return
         }
 
-        processRecordKt.appInfo.visualSynchronize {
+        processRecordKt.appInfo.lock {
             // 移除前台任务
             removeForegroundTask(processRecordKt)
 
@@ -175,7 +175,7 @@ class AppMemoryTrimManagerKt : ILogger {
      */
     fun removeAllTask(processRecordKt: ProcessRecordKt?) {
         processRecordKt?.let {
-            visualSynchronize(it.appInfo) {
+            lock(it.appInfo) {
                 foregroundTasks.remove(processRecordKt)
                 backgroundTasks.remove(processRecordKt)
                 if (BuildConfig.DEBUG) {
