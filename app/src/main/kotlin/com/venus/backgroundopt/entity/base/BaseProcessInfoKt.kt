@@ -8,7 +8,7 @@ import com.venus.backgroundopt.utils.message.MessageFlag
  */
 open class BaseProcessInfoKt(
     var uid: Int = Int.MIN_VALUE,
-    var pid: Int = Int.MIN_VALUE,
+    @Volatile var pid: Int = Int.MIN_VALUE,
     var userId: Int = 0,
 ) : MessageFlag {
     /**
