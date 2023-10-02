@@ -81,12 +81,4 @@ class ConcurrentHashSet<K : Any> : MutableSet<K> {
     }
 }
 
-inline fun <T : Any> ConcurrentHashSet<T>.forEachItem(action: (T) -> Unit) {
-    (this as MutableSet<T>).forEach(action)
-}
-
-inline fun <T : Any> ConcurrentHashSet<T>.filterItem(predicate: (T) -> Boolean): List<T> {
-    return (this as MutableSet<T>).filter(predicate)
-}
-
 
