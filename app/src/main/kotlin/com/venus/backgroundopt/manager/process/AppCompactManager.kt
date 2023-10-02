@@ -4,7 +4,6 @@ import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.annotation.UsageComment
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.environment.CommonProperties
-import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.concurrent.ConcurrentHashSet
@@ -20,16 +19,19 @@ import java.util.concurrent.TimeUnit
  * @date 2023/8/8
  */
 class AppCompactManager(// 封装的CachedAppOptimizer
-    private var cachedAppOptimizer: CachedAppOptimizer,
-    private var activityManagerService: ActivityManagerService
+    private var cachedAppOptimizer: CachedAppOptimizer
 ) : ILogger {
     companion object {
         // 默认压缩级别
         const val DEFAULT_COMPACT_LEVEL = CachedAppOptimizer.COMPACT_ACTION_ANON
 
+        // 是否启用"压缩成功则移除进程" + "无内存压缩任务则关闭轮循"
+        // 暂只能从源码层修改, ui未提供开关
+        const val autoStopCompactCheck = false
+
         // App压缩扫描线程池配置
-        const val initialDelay = 10L
-        const val delay = 10L
+        const val initialDelay = 0L
+        const val delay = 15L
         val timeUnit = TimeUnit.MINUTES
     }
 
@@ -41,6 +43,14 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     // 待压缩的进程信息列表
     // 注意: 是"进程信息"而不是"应用信息", 其size代表的是进程数不是app数
     val compactProcesses = ConcurrentHashSet<ProcessRecordKt>()
+
+    init {
+        // 如果此项未启用, 则直接启动轮循任务
+        logger.info("压缩任务自动关闭: $autoStopCompactCheck")
+        if (!autoStopCompactCheck) {
+            startCompactTask()
+        }
+    }
 
     /* *************************************************************************
      *                                                                         *
@@ -96,7 +106,10 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                         }
                     } finally {
                         if (result == 1 || result == 0) {
-                            cancelCompactProcess(it)
+                            // 若启用自动停止 或 执行异常, 则进行移除
+                            if (autoStopCompactCheck || result == 0) {
+                                cancelCompactProcess(it)
+                            }
                             compactCount++
                         }
                     }
@@ -116,16 +129,18 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     }
 
     private fun checkCompactTask() {
-        compactScheduledFuture?.let {
-            if (compactProcesses.size == 0) {    // 若此时没有待压缩任务, 则取消检查任务
-                it.cancel(true)
-                compactScheduledFuture = null
+        if (autoStopCompactCheck) {
+            compactScheduledFuture?.let {
+                if (compactProcesses.size == 0) {    // 若此时没有待压缩任务, 则取消检查任务
+                    it.cancel(true)
+                    compactScheduledFuture = null
 
-                if (BuildConfig.DEBUG) {
-                    logger.debug("待压缩列表为空, 停止检查任务")
+                    if (BuildConfig.DEBUG) {
+                        logger.debug("待压缩列表为空, 停止检查任务")
+                    }
                 }
-            }
-        } ?: startCompactTask() // 需要待压缩任务, 创建
+            } ?: startCompactTask() // 需要待压缩任务, 创建
+        }
     }
 
     /**

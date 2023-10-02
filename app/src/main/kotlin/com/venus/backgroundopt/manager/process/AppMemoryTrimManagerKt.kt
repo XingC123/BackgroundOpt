@@ -1,7 +1,6 @@
 package com.venus.backgroundopt.manager.process
 
 import com.venus.backgroundopt.BuildConfig
-import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.concurrent.visualSynchronize
@@ -17,7 +16,7 @@ import java.util.concurrent.TimeUnit
  * @author XingC
  * @date 2023/8/3
  */
-class AppMemoryTrimManagerKt(private val activityManagerService: ActivityManagerService) : ILogger {
+class AppMemoryTrimManagerKt : ILogger {
     companion object {
         // 前台
         const val foregroundInitialDelay = 0L

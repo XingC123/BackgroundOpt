@@ -42,10 +42,9 @@ public class ProcessManager implements ILogger {
 
     public ProcessManager(ActivityManagerService activityManagerService) {
         appCompactManager = new AppCompactManager(
-                activityManagerService.getOomAdjuster().getCachedAppOptimizer(),
-                activityManagerService
+                activityManagerService.getOomAdjuster().getCachedAppOptimizer()
         );
-        appMemoryTrimManager = new AppMemoryTrimManagerKt(activityManagerService);
+        appMemoryTrimManager = new AppMemoryTrimManagerKt();
     }
 
     /* *************************************************************************
