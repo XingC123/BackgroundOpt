@@ -14,6 +14,7 @@ val synchronizedSet by lazy { ConcurrentHashSet<Any>() }
  * @param lock 竞争标识物
  * @param block 代码块
  */
+@JvmName("visualSynchronizeWithLock")
 inline fun visualSynchronize(
     lock: Any,
     crossinline block: () -> Unit
