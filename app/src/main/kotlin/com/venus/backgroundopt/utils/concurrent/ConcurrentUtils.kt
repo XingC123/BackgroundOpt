@@ -28,9 +28,5 @@ inline fun visualSynchronize(
 inline fun <T : Any> T.visualSynchronize(
     crossinline block: () -> Unit
 ) {
-    synchronizedSet.remove(
-        synchronizedSet.add(this) {
-            block()
-        }
-    )
+    visualSynchronize(this, block)
 }
