@@ -88,7 +88,7 @@ class AppMemoryTrimManagerKt(private val activityManagerService: ActivityManager
             return
         }
 
-        visualSynchronize(processRecordKt.appInfo) {
+        processRecordKt.appInfo.visualSynchronize {
             // 移除后台任务
             removeBackgroundTask(processRecordKt)
 
@@ -135,7 +135,7 @@ class AppMemoryTrimManagerKt(private val activityManagerService: ActivityManager
             return
         }
 
-        visualSynchronize(processRecordKt.appInfo) {
+        processRecordKt.appInfo.visualSynchronize {
             // 移除前台任务
             removeForegroundTask(processRecordKt)
 

@@ -1,7 +1,5 @@
 package com.venus.backgroundopt.utils.concurrent
 
-import com.venus.backgroundopt.utils.ConcurrentHashSet
-
 /**
  * @author XingC
  * @date 2023/10/1
@@ -22,6 +20,16 @@ inline fun visualSynchronize(
 ) {
     synchronizedSet.remove(
         synchronizedSet.add(lock) {
+            block()
+        }
+    )
+}
+
+inline fun <T : Any> T.visualSynchronize(
+    crossinline block: () -> Unit
+) {
+    synchronizedSet.remove(
+        synchronizedSet.add(this) {
             block()
         }
     )

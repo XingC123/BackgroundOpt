@@ -7,10 +7,8 @@ import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
-import com.venus.backgroundopt.utils.ConcurrentHashSet
+import com.venus.backgroundopt.utils.concurrent.ConcurrentHashSet
 import com.venus.backgroundopt.utils.concurrent.visualSynchronize
-import com.venus.backgroundopt.utils.filterItem
-import com.venus.backgroundopt.utils.forEachItem
 import com.venus.backgroundopt.utils.log.ILogger
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ScheduledThreadPoolExecutor
@@ -55,8 +53,8 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         compactScheduledFuture = executor.scheduleWithFixedDelay({
             var compactCount = 0
             val upgradeSubProcessNames = CommonProperties.getUpgradeSubProcessNames()
-            compactProcesses.forEachItem {
-                visualSynchronize(it.appInfo) {
+            compactProcesses.forEach {
+                it.appInfo.visualSynchronize {
                     // 根据默认规则压缩
                     var compactMethod: (processRecordKt: ProcessRecordKt) -> Boolean =
                         ::compactAppFull
@@ -134,7 +132,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
      * 添加压缩进程
      */
     fun addCompactProcess(appInfo: AppInfo) {
-        visualSynchronize(appInfo) {
+        appInfo.visualSynchronize {
             val processRecordKts = appInfo.processes
             if (processRecordKts.isNotEmpty()) {
                 processRecordKts.forEach { addCompactProcessImpl(it) }
@@ -148,7 +146,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     }
 
     fun addCompactProcess(processRecordKt: ProcessRecordKt) {
-        visualSynchronize(processRecordKt.appInfo) {
+        processRecordKt.appInfo.visualSynchronize {
             addCompactProcessImpl(processRecordKt)
             checkCompactTask()
 
@@ -165,9 +163,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
      */
     @UsageComment("确保AppInfo已上锁")
     private fun addCompactProcessImpl(processRecordKt: ProcessRecordKt) {
-        compactProcesses.add(processRecordKt) {
-            it.setLastCompactTime(System.currentTimeMillis())
-        }
+        compactProcesses.add(processRecordKt.also { it.setLastCompactTime(System.currentTimeMillis()) })
     }
 
     /**
@@ -175,7 +171,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
      */
     fun cancelCompactProcess(processRecordKt: ProcessRecordKt?) {
         processRecordKt?.let { process ->
-            visualSynchronize(process) {
+            process.visualSynchronize {
                 compactProcesses.remove(processRecordKt).also {
                     if (it) {
                         checkCompactTask()
@@ -190,8 +186,8 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     }
 
     fun cancelCompactProcess(appInfo: AppInfo) {
-        visualSynchronize(appInfo) {
-            val set = compactProcesses.filterItem { it.uid == appInfo.uid }.toSet()
+        appInfo.visualSynchronize {
+            val set = compactProcesses.filter { it.uid == appInfo.uid }.toSet()
             if (set.isNotEmpty()) {
                 compactProcesses.removeAll(set.toSet()).let {
                     if (it) {

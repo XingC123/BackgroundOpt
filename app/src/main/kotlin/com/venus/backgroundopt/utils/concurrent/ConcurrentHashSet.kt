@@ -1,4 +1,4 @@
-package com.venus.backgroundopt.utils
+package com.venus.backgroundopt.utils.concurrent
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -27,12 +27,14 @@ class ConcurrentHashSet<K : Any> : MutableSet<K> {
      *
      * @param element 要添加的元素
      * @param compute 要进行计算的方法
+     * @return 添加的元素
      */
-    fun add(element: K, compute: (K) -> Unit) {
-        map.compute(element) { e, _ ->
-            compute(e)
+    fun add(element: K, compute: () -> Unit):K {
+        map.compute(element) { _, _ ->
+            compute()
             any
         }
+        return element
     }
 
     override fun addAll(elements: Collection<K>): Boolean {
