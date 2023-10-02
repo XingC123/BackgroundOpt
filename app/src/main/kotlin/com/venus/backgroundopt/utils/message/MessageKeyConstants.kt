@@ -13,5 +13,6 @@ interface MessageKeyConstants {
         const val getBackgroundTasks = "getBackgroundTasks"
         const val getAppCompactList = "getAppCompactList"
         const val subProcessOomConfigChange = "subProcessOomConfigChange"
+        const val getInstalledApps = "getInstalledApps"
     }
 }

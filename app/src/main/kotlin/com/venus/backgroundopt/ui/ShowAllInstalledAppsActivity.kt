@@ -8,11 +8,13 @@ import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
-import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
+import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
 import com.venus.backgroundopt.utils.getInstalledPackages
 import com.venus.backgroundopt.utils.getToolbar
+import com.venus.backgroundopt.utils.message.MessageKeyConstants
+import com.venus.backgroundopt.utils.message.sendMessageAcceptList
 
 /**
  * @author XingC
@@ -50,18 +52,23 @@ class ShowAllInstalledAppsActivity : BaseActivity() {
             }
         }
 
-        val appItems = getInstalledPackages(this) { packageInfo ->
-            !ActivityManagerService.isImportantSystemApp(packageInfo.applicationInfo)
-        }
+//        val appItems = getInstalledPackages(this) { packageInfo ->
+//            !ActivityManagerService.isImportantSystemApp(packageInfo.applicationInfo)
+//        }
+        sendMessageAcceptList<AppItem>(
+            this,
+            MessageKeyConstants.getInstalledApps
+        )?.let { appItems ->
+            getInstalledPackages(this, appItems)
 
-        runOnUiThread {
-            recyclerView.apply {
-                layoutManager = LinearLayoutManager(this@ShowAllInstalledAppsActivity).apply {
-                    orientation = LinearLayoutManager.VERTICAL
-                }
-                adapter = ShowAllInstalledAppsAdapter(appItems)
+            runOnUiThread {
+                recyclerView.apply {
+                    layoutManager = LinearLayoutManager(this@ShowAllInstalledAppsActivity).apply {
+                        orientation = LinearLayoutManager.VERTICAL
+                    }
+                    adapter = ShowAllInstalledAppsAdapter(appItems)
 
-                // 设置搜索栏隐藏/显示行为
+                    // 设置搜索栏隐藏/显示行为
 //                setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
 //                    val firstCompletelyVisibleItemPosition =
 //                        (layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
@@ -75,7 +82,10 @@ class ShowAllInstalledAppsActivity : BaseActivity() {
 //                        }
 //                    }
 //                }
+                }
             }
         }
+
+
     }
 }

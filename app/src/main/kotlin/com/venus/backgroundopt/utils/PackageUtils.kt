@@ -118,6 +118,7 @@ fun getTargetApps(context: Context, list: List<BaseProcessInfoKt>): List<AppItem
 
 /**
  * 获取已安装app的信息列表
+ * 在某些系统可能存在获取不到app的情况
  *
  * @param context 需要上下文来获取包管理器
  * @param filter 根据传入的条件过滤掉不需要的数据
@@ -166,6 +167,39 @@ fun getInstalledPackages(
         }
         .collect(Collectors.toList())
     // 清空缓存
+    infoCache.clear()
+    return appItems
+}
+
+fun getInstalledPackages(
+    context: Context,
+    appItems: MutableList<AppItem>
+): List<AppItem> {
+    val packageManager = context.packageManager
+    // 应用部分信息缓存
+    val infoCache = HashMap<String, AppInfoCache>()
+
+    appItems.forEach { appItem ->
+        getPackageInfo(packageManager, appItem.packageName, PACKAGE_INFO_FLAG)?.let { packageInfo ->
+            val applicationInfo = packageInfo.applicationInfo
+            // 保存应用信息
+            val appInfo =
+                infoCache.computeIfAbsent(packageInfo.packageName) { _ ->
+                    AppInfoCache().apply {
+                        appName = applicationInfo.loadLabel(packageManager).toString()
+                        appIcon = applicationInfo.loadIcon(packageManager)
+                    }
+                }
+            appItem.apply {
+                this.appName = appInfo.appName
+                this.uid = applicationInfo.uid
+                this.appIcon = appInfo.appIcon
+                this.packageInfo = packageInfo
+                this.versionName = packageInfo.versionName
+                this.longVersionCode = packageInfo.longVersionCode
+            }
+        }
+    }
     infoCache.clear()
     return appItems
 }

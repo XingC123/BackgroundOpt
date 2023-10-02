@@ -20,6 +20,7 @@ public interface MethodConstants {
     String updateOomAdjLocked = "updateOomAdjLocked";
     String updateOomAdjLSP = "updateOomAdjLSP";
     String getApplicationInfoAsUser = "getApplicationInfoAsUser";
+    String getInstalledPackages = "getInstalledPackages";
     String isAppForeground = "isAppForeground";
     String getTopApp = "getTopApp";
     String setMaxAdj = "setMaxAdj";

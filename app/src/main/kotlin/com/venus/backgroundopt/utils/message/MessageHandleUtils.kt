@@ -13,6 +13,7 @@ import com.venus.backgroundopt.utils.log.logErrorAndroid
 import com.venus.backgroundopt.utils.log.logWarnAndroid
 import com.venus.backgroundopt.utils.message.handle.AppCompactListMessageHandler
 import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandler
+import com.venus.backgroundopt.utils.message.handle.GetInstalledPackagesMessageHandler
 import com.venus.backgroundopt.utils.message.handle.RunningAppInfoMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMessageHandler
 import com.venus.backgroundopt.utils.message.handle.TargetAppGroupMessageHandler
@@ -42,6 +43,7 @@ val registeredMessageHandler = mapOf(
     MessageKeyConstants.getBackgroundTasks to BackgroundTasksMessageHandler(),
     MessageKeyConstants.getAppCompactList to AppCompactListMessageHandler(),
     MessageKeyConstants.subProcessOomConfigChange to SubProcessOomConfigChangeMessageHandler(),
+    MessageKeyConstants.getInstalledApps to GetInstalledPackagesMessageHandler(),
 )
 
 // json传输的载体
@@ -109,7 +111,7 @@ inline fun <reified E> sendMessageAcceptList(
     context: Context,
     key: String,
     value: Any = ""
-): List<E>? {
+): MutableList<E>? {
     return try {
         sendMessage(context, key, value)?.let {
             JSON.parseArray(it, E::class.java)
