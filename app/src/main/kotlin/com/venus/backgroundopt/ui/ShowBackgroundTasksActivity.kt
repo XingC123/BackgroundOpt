@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.ui
 
+import androidx.appcompat.widget.Toolbar
+import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemActivity
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
@@ -16,7 +18,15 @@ class ShowBackgroundTasksActivity : ShowInfoFromAppItemActivity() {
         return ShowBackgroundTasksAdapter(appItems)
     }
 
-    override fun getToolBarTitle(): String {
-        return "后台任务列表"
+    override fun initToolBar(): Toolbar? {
+        return findViewById(R.id.showBackgroundTasksToolBar)
+    }
+
+    override fun getRecyclerViewResId(): Int {
+        return R.id.showBackgroundTasksRecyclerView
+    }
+
+    override fun getContentView(): Int {
+        return R.layout.activity_show_background_tasks
     }
 }

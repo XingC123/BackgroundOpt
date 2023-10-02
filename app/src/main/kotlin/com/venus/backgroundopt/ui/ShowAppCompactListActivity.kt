@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.ui
 
+import androidx.appcompat.widget.Toolbar
+import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemActivity
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
@@ -13,7 +15,15 @@ class ShowAppCompactListActivity : ShowInfoFromAppItemActivity() {
         return ShowAppCompactListAdapter(appItems)
     }
 
-    override fun getToolBarTitle(): String {
-        return "待压缩进程列表"
+    override fun getRecyclerViewResId(): Int {
+        return R.id.showAppCompactListRecyclerView
+    }
+
+    override fun initToolBar(): Toolbar? {
+        return findViewById(R.id.showBackgroundTasksToolBar)
+    }
+
+    override fun getContentView(): Int {
+        return R.layout.activity_show_app_compact_list
     }
 }

@@ -3,7 +3,6 @@ package com.venus.backgroundopt.ui
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,6 +15,7 @@ import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
 import com.venus.backgroundopt.utils.TMP_DATA
 import com.venus.backgroundopt.utils.getAppProcesses
+import com.venus.backgroundopt.utils.getToolbar
 import com.venus.backgroundopt.utils.preference.prefPut
 import com.venus.backgroundopt.utils.preference.prefValue
 import com.venus.backgroundopt.utils.processNameSeparator
@@ -32,7 +32,11 @@ class ConfigureAppProcessActivity : BaseActivity() {
     }
 
     override fun initToolBar(): Toolbar? {
-        return findViewById(R.id.configureAppProcessToolBar)
+        return getToolbar(this, R.id.toolbarLeftTitleToolbar)?.also {
+            findViewById<TextView>(R.id.toolbarLeftTitleToolbarText)?.let { toolbarText ->
+                toolbarText.text = "应用进程"
+            }
+        }
     }
 
     override fun getContentView(): Int {

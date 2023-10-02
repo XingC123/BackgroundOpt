@@ -3,9 +3,14 @@ package com.venus.backgroundopt.utils
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
+import androidx.appcompat.widget.Toolbar
+import androidx.core.content.res.ResourcesCompat
 import com.alibaba.fastjson2.JSON
+import com.venus.backgroundopt.R
 
 /**
  * @author XingC
@@ -71,3 +76,37 @@ fun <E : View> Activity.findViewById(resId: Int, enable: Boolean = true): E? {
         }
     }
 }
+
+fun getToolbar(
+    activity: Activity,
+    toolbarResId: Int,
+    titleStr: String? = null,
+    titleResId: Int? = null,
+    titleTextColor: Int = Color.WHITE,
+    navigationIcon: Drawable? = ResourcesCompat.getDrawable(
+        activity.resources,
+        R.drawable.baseline_arrow_back_24,
+        null
+    ),
+    navigationOnClickListener: (View) -> Unit = { _ -> activity.finish() }
+): Toolbar? {
+    return activity.findViewById<Toolbar?>(toolbarResId)?.apply {
+        // 设置标题
+        titleStr?.let { this.title = titleStr } ?: run {
+            titleResId?.let {
+                this.setTitle(titleResId)
+            } ?: run {
+                this.title = ""
+            }
+        }
+
+        this.setTitleTextColor(titleTextColor)
+
+        // 设置返回按钮
+        navigationIcon?.let {
+            this.navigationIcon = navigationIcon
+        }
+        setNavigationOnClickListener(navigationOnClickListener)
+    }
+}
+

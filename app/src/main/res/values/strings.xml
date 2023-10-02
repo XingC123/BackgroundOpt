@@ -39,4 +39,7 @@
     <string name="aboutAppProjectPathText">https://github.com/XingC123/BackgroundOpt</string>
     <string name="aboutAppThanksTip">Thanks</string>
     <string name="aboutAppToolBar">About</string>
+    <string name="showAppCompactListToolBarText">List of processes to be compressed</string>
+    <string name="showAppCompactListRecyclerViewTipText">This list is not a real-time list. Some erroneous data will be automatically removed</string>
+    <string name="showBackgroundTasksToolBarText">Background tasks</string>
 </resources>

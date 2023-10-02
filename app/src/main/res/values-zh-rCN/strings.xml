@@ -39,4 +39,7 @@
     <string name="aboutAppProjectPathTipText">项目地址</string>
     <string name="aboutAppThanksTip">鸣谢</string>
     <string name="aboutAppToolBar">关于</string>
+    <string name="showAppCompactListToolBarText">待压缩进程列表</string>
+    <string name="showAppCompactListRecyclerViewTipText">此列表并非实时列表。一些错误数据会被自动移除</string>
+    <string name="showBackgroundTasksToolBarText">后台任务列表</string>
 </resources>
