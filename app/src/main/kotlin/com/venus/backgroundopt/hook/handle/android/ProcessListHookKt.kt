@@ -74,25 +74,6 @@ class ProcessListHookKt(
 
         val pid = param.args[0] as Int
         val oomAdjScore = param.args[2] as Int
-        /*var mPid = Int.MIN_VALUE
-        try {
-            mPid = appInfo.getmPid()
-        } catch (e: Exception) {
-            runningInfo.addRunningApp(appInfo)
-            try {
-                mPid = appInfo.getmPid()
-                if (BuildConfig.DEBUG) {
-                    logger.debug("[${appInfo.packageName}, uid: ${uid}]的主进程信息补全完毕")
-                }
-            } catch (ex: Exception) {
-                if (BuildConfig.DEBUG) {
-                    logger.warn(
-                        "获取: [${appInfo.packageName}, uid: ${uid}] 的mPid出错",
-                        ex
-                    )
-                }
-            }
-        }*/
 
         // 获取当前进程对象
         var process =
@@ -125,12 +106,7 @@ class ProcessListHookKt(
                 param.result = null
                 appInfo.modifyProcessRecord(pid, oomAdjScore)
             }
-        } /*else if (mPid == Int.MIN_VALUE) {
-            if (BuildConfig.DEBUG) {
-                logger.warn("${appInfo.packageName}, uid: $uid 的pid = $mPid 不符合规范, 无法添加至进程列表")
-            }
-            return
-        } */ else { // 子进程的处理
+        } else { // 子进程的处理
             if (process.fixedOomAdjScore != ProcessRecordKt.SUB_PROC_ADJ) { // 第一次记录子进程 或 进程调整策略置为默认
                 val expectedOomAdjScore = ProcessRecordKt.SUB_PROC_ADJ
                 val finalOomAdjScore = if (oomAdjScore > expectedOomAdjScore) {
