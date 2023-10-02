@@ -42,7 +42,7 @@ class ConcurrentHashSet<K : Any> : MutableSet<K> {
     }
 
     override fun contains(element: K): Boolean {
-        return map.contains(element)
+        return map.keys.contains(element)
     }
 
     override fun containsAll(elements: Collection<K>): Boolean {
