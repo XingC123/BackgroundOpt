@@ -10,6 +10,7 @@ import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.utils.concurrent.lock
 import com.venus.backgroundopt.utils.message.registeredMessageHandler
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
@@ -110,34 +111,26 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
         appInfo ?: return
 
         val pid = param.args[1] as Int
-        var mPid = Int.MIN_VALUE
-        var flag = false
-
-        try {
-            mPid = appInfo.getmPid()
-        } catch (e: Exception) {
-            // app已清理过一次后台
-            flag = true
-        }
-
+        val processRecordKt = appInfo.getProcess(pid)
+        val mainProcess = processRecordKt?.mainProcess ?: false
         val packageName = appInfo.packageName
-        if (mPid == pid || flag) {
-            runningInfo.removeRunningApp(appInfo)
 
-            if (BuildConfig.DEBUG) {
-                logger.debug("kill: ${packageName}, uid: $uid >>> 杀死App")
-            }
-        } else if (mPid == Int.MIN_VALUE) {
-            if (BuildConfig.DEBUG) {
-                logger.warn("kill: ${packageName}, uid: $uid >>> 再次杀死App")
+        if (mainProcess) {
+            appInfo.lock {
+                runningInfo.removeRunningApp(appInfo)
+                if (BuildConfig.DEBUG) {
+                    logger.debug("kill: ${packageName}, uid: $uid >>> 杀死App")
+                }
             }
         } else {
-            // 移除进程记录
-            val processInfo = appInfo.removeProcess(pid)
-            // 取消进程的待压缩任务
-            runningInfo.processManager.cancelCompactProcess(processInfo)
-            if (BuildConfig.DEBUG) {
-                logger.debug("kill: ${packageName}, uid: ${uid}, pid: $pid >>> 子进程被杀")
+            appInfo.lock {
+                // 移除进程记录
+                val process = appInfo.removeProcess(pid)
+                // 取消进程的待压缩任务
+                runningInfo.processManager.cancelCompactProcess(process)
+                if (BuildConfig.DEBUG) {
+                    logger.debug("kill: ${packageName}, uid: ${uid}, pid: $pid >>> 子进程被杀")
+                }
             }
         }
     }

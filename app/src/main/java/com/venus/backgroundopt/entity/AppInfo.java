@@ -79,7 +79,6 @@ public class AppInfo implements ILogger {
 
     // 当前app在本模块内的内存分组
     private volatile AppGroupEnum appGroupEnum = AppGroupEnum.NONE;
-    private final Object appGroupSetLock = new Object();
 
     public void setAppGroupEnum(AppGroupEnum appGroupEnum) {
 //        synchronized (appGroupSetLock) {
@@ -106,15 +105,6 @@ public class AppInfo implements ILogger {
      */
     @SuppressWarnings("all")    // 别显示未final啦, 烦死辣
     private Map<Integer, ProcessRecordKt> processRecordMap = new ConcurrentHashMap<>();
-
-    public ProcessRecordKt addProcess(int pid, int oomAdjScore) {
-        ProcessRecordKt processRecord = runningInfo.getActivityManagerService().getProcessRecord(pid);
-
-        processRecord.setOomAdjScoreToAtomicInteger(oomAdjScore);
-        addProcess(processRecord);
-
-        return processRecord;
-    }
 
     public ProcessRecordKt addProcess(@NonNull ProcessRecordKt processRecord) {
         return processRecordMap.computeIfAbsent(processRecord.getPid(), k -> {

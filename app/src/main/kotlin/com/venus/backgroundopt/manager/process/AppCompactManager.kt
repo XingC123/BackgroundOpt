@@ -195,7 +195,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     fun cancelCompactProcess(processRecordKt: ProcessRecordKt?) {
         processRecordKt?.let { process ->
             process.appInfo.lock {
-                compactProcesses.remove(processRecordKt).also {
+                compactProcesses.remove(process).also {
                     if (it) {
                         checkCompactTask()
 
