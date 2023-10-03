@@ -116,11 +116,9 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
         val packageName = appInfo.packageName
 
         if (mainProcess) {
-            appInfo.lock {
-                runningInfo.removeRunningApp(appInfo)
-                if (BuildConfig.DEBUG) {
-                    logger.debug("kill: ${packageName}, uid: $uid >>> 杀死App")
-                }
+            runningInfo.removeRunningApp(appInfo)
+            if (BuildConfig.DEBUG) {
+                logger.debug("kill: ${packageName}, uid: $uid >>> 杀死App")
             }
         } else {
             appInfo.lock {

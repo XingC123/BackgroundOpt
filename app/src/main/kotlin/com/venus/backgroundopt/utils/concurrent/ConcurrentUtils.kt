@@ -5,7 +5,7 @@ package com.venus.backgroundopt.utils.concurrent
  * @date 2023/10/1
  */
 
-//val synchronizedSet by lazy { ConcurrentHashSet<Any>() }
+val synchronizedSet by lazy { ConcurrentHashSet<Any>() }
 // ConcurrentHashMap<锁标识物, 锁对象>
 // 不同锁标识物之间互不影响
 //val lockMap by lazy { ConcurrentHashMap<Any, Any>() }
@@ -19,19 +19,19 @@ package com.venus.backgroundopt.utils.concurrent
  * @param lockFlag 竞争标识物
  * @param block 代码块
  */
-@JvmName("visualSynchronizeWithLock")
+@JvmName("lockGivenFlag")
 inline fun lock(
     lockFlag: Any,
     crossinline block: () -> Unit
 ) {
-//    synchronizedSet.remove(
-//        synchronizedSet.add(lockFlag) {
-//            block()
-//        }
-//    )
-    synchronized(lockFlag) {
-        block()
-    }
+    synchronizedSet.remove(
+        synchronizedSet.add(lockFlag) {
+            block()
+        }
+    )
+//    synchronized(lockFlag) {
+//        block()
+//    }
 }
 
 /**

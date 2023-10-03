@@ -4,7 +4,6 @@ import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
-import com.venus.backgroundopt.utils.concurrent.lock
 import com.venus.backgroundopt.utils.log.ILogger
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
@@ -58,18 +57,14 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
          */
         executor.scheduleWithFixedDelay({
             foregroundTasks.forEach {
-                lock(it.appInfo) {
-                    executeForegroundTask(it)
-                }
+                executeForegroundTask(it)
             }
         }, foregroundInitialDelay, foregroundDelay, foregroundTimeUnit)
 
         // 后台任务
         executor.scheduleWithFixedDelay({
             backgroundTasks.forEach {
-                lock(it.appInfo) {
-                    executeBackgroundTask(it)
-                }
+                executeBackgroundTask(it)
             }
         }, backgroundInitialDelay, backgroundDelay, backgroundTimeUnit)
     }
@@ -88,36 +83,34 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
             return
         }
 
-        processRecordKt.appInfo.lock {
-            // 移除后台任务
-            removeBackgroundTask(processRecordKt)
+        // 移除后台任务
+        removeBackgroundTask(processRecordKt)
 
-            val add = foregroundTasks.add(processRecordKt)
-            if (BuildConfig.DEBUG) {
-                if (add) {
-                    logger.debug(
-                        "${
-                            logStrPrefix(
-                                foregroundTrimManagerName,
-                                processRecordKt
-                            )
-                        }添加Task成功"
-                    )
-                } else {
-                    logger.warn(
-                        "${
-                            logStrPrefix(
-                                foregroundTrimManagerName,
-                                processRecordKt
-                            )
-                        }添加Task失败"
-                    )
-                }
+        val add = foregroundTasks.add(processRecordKt)
+        if (BuildConfig.DEBUG) {
+            if (add) {
+                logger.debug(
+                    "${
+                        logStrPrefix(
+                            foregroundTrimManagerName,
+                            processRecordKt
+                        )
+                    }添加Task成功"
+                )
+            } else {
+                logger.warn(
+                    "${
+                        logStrPrefix(
+                            foregroundTrimManagerName,
+                            processRecordKt
+                        )
+                    }添加Task失败"
+                )
             }
+        }
 
-            if (BuildConfig.DEBUG) {
-                logger.debug("foregroundTasks元素个数: ${foregroundTasks.size}, backgroundTasks元素个数: ${backgroundTasks.size}")
-            }
+        if (BuildConfig.DEBUG) {
+            logger.debug("foregroundTasks元素个数: ${foregroundTasks.size}, backgroundTasks元素个数: ${backgroundTasks.size}")
         }
     }
 
@@ -135,37 +128,35 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
             return
         }
 
-        processRecordKt.appInfo.lock {
-            // 移除前台任务
-            removeForegroundTask(processRecordKt)
+        // 移除前台任务
+        removeForegroundTask(processRecordKt)
 
-            val add = backgroundTasks.add(processRecordKt)
+        val add = backgroundTasks.add(processRecordKt)
 
-            if (BuildConfig.DEBUG) {
-                if (add) {
-                    logger.debug(
-                        "${
-                            logStrPrefix(
-                                backgroundTrimManagerName,
-                                processRecordKt
-                            )
-                        }添加Task成功"
-                    )
-                } else {
-                    logger.warn(
-                        "${
-                            logStrPrefix(
-                                backgroundTrimManagerName,
-                                processRecordKt
-                            )
-                        }添加Task失败或Task已存在"
-                    )
-                }
+        if (BuildConfig.DEBUG) {
+            if (add) {
+                logger.debug(
+                    "${
+                        logStrPrefix(
+                            backgroundTrimManagerName,
+                            processRecordKt
+                        )
+                    }添加Task成功"
+                )
+            } else {
+                logger.warn(
+                    "${
+                        logStrPrefix(
+                            backgroundTrimManagerName,
+                            processRecordKt
+                        )
+                    }添加Task失败或Task已存在"
+                )
             }
+        }
 
-            if (BuildConfig.DEBUG) {
-                logger.debug("foregroundTasks元素个数: ${foregroundTasks.size}, backgroundTasks元素个数: ${backgroundTasks.size}")
-            }
+        if (BuildConfig.DEBUG) {
+            logger.debug("foregroundTasks元素个数: ${foregroundTasks.size}, backgroundTasks元素个数: ${backgroundTasks.size}")
         }
     }
 
@@ -176,12 +167,10 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
      */
     fun removeAllTask(processRecordKt: ProcessRecordKt?) {
         processRecordKt?.let {
-            lock(it.appInfo) {
-                foregroundTasks.remove(processRecordKt)
-                backgroundTasks.remove(processRecordKt)
-                if (BuildConfig.DEBUG) {
-                    logger.debug("foregroundTasks元素个数: ${foregroundTasks.size}, backgroundTasks元素个数: ${backgroundTasks.size}")
-                }
+            foregroundTasks.remove(processRecordKt)
+            backgroundTasks.remove(processRecordKt)
+            if (BuildConfig.DEBUG) {
+                logger.debug("foregroundTasks元素个数: ${foregroundTasks.size}, backgroundTasks元素个数: ${backgroundTasks.size}")
             }
         }
     }
@@ -198,7 +187,7 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         block: () -> Unit
     ) {
         if (!ProcessRecordKt.isValid(runningInfo, processRecordKt)) {
-            removeTaskImpl(processRecordKt, trimManagerName, list)
+            removeTaskImpl(processRecordKt, trimManagerName, list, "进程不合法")
             return
         }
         block()
@@ -248,7 +237,8 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
     private fun removeTaskImpl(
         processRecordKt: ProcessRecordKt,
         trimManagerName: String,
-        list: MutableSet<ProcessRecordKt>
+        list: MutableSet<ProcessRecordKt>,
+        removeReason: String = ""
     ) {
         val remove = list.remove(processRecordKt)
 
@@ -260,7 +250,7 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
                             trimManagerName,
                             processRecordKt
                         )
-                    }移除Task"
+                    }移除Task" + if (removeReason.isEmpty()) removeReason else ": reason: $removeReason"
                 )
             }
         }

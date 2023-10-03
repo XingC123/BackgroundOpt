@@ -9,6 +9,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
+import com.venus.backgroundopt.utils.concurrent.ConcurrentUtilsKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import org.jetbrains.annotations.Nullable;
@@ -219,21 +220,30 @@ public class ProcessManager implements ILogger {
      *                                                                         *
      **************************************************************************/
     public void appActive(AppInfo appInfo) {
-        // 移除压缩任务
-        cancelCompactProcess(appInfo);
-        // 添加前台任务
-        startForegroundAppTrimTask(appInfo.getmProcessRecord());
+        ConcurrentUtilsKt.lock(appInfo, () -> {
+            // 移除压缩任务
+            cancelCompactProcess(appInfo);
+            // 添加前台任务
+            startForegroundAppTrimTask(appInfo.getmProcessRecord());
+            return null;
+        });
+
     }
 
     public void appIdle(AppInfo appInfo) {
-        // 添加后台任务
-        startBackgroundAppTrimTask(appInfo.getmProcessRecord());
-        // 添加压缩任务
-        addCompactProcess(appInfo);
+        ConcurrentUtilsKt.lock(appInfo, () -> {
+            // 添加后台任务
+            startBackgroundAppTrimTask(appInfo.getmProcessRecord());
+            // 添加压缩任务
+            addCompactProcess(appInfo);
+            return null;
+        });
     }
 
     public void appDie(AppInfo appInfo) {
+        // 移除前后台任务
         removeAllAppMemoryTrimTask(appInfo);
+        // 取消内存压缩任务
         cancelCompactProcess(appInfo);
     }
 

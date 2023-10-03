@@ -10,6 +10,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.ApplicationInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.service.ProcessDaemonService;
+import com.venus.backgroundopt.utils.concurrent.ConcurrentUtilsKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import org.jetbrains.annotations.NotNull;
@@ -310,7 +311,7 @@ public class RunningInfo implements ILogger {
                         putIntoIdleAppGroup(apps[0]);
 
                         if (BuildConfig.DEBUG) {
-                            getLogger().debug("AppInfo(包名: "  + packageName + ", uid: " + uid + ")补充完毕");
+                            getLogger().debug("AppInfo(包名: " + packageName + ", uid: " + uid + ")补充完毕");
                         }
                     }
                 }
@@ -346,30 +347,33 @@ public class RunningInfo implements ILogger {
      * @param appInfo app信息
      */
     public void removeRunningApp(AppInfo appInfo) {
-        // 从运行列表移除
-        AppInfo remove = runningApps.remove(appInfo.getUid());
+        ConcurrentUtilsKt.lock(appInfo, () -> {
+            // 从运行列表移除
+            AppInfo remove = runningApps.remove(appInfo.getUid());
 
-        if (remove != null) {
-            String packageName = remove.getPackageName();
-            // 从待处理列表中移除
-            activeAppGroup.remove(appInfo);
-            tmpAppGroup.remove(appInfo);
-            idleAppGroup.remove(appInfo);
+            if (remove != null) {
+                String packageName = remove.getPackageName();
+                // 从待处理列表中移除
+                activeAppGroup.remove(appInfo);
+                tmpAppGroup.remove(appInfo);
+                idleAppGroup.remove(appInfo);
 
-            // app被杀死
-            processManager.appDie(remove);
+                // app被杀死
+                processManager.appDie(remove);
 
-            // 清理AppInfo。也许有助于gc
-            appInfo.clearAppInfo();
+                // 清理AppInfo。也许有助于gc
+                appInfo.clearAppInfo();
 
-            if (BuildConfig.DEBUG) {
-                getLogger().debug("移除: " + packageName + ", uid: " + remove.getUid());
+                if (BuildConfig.DEBUG) {
+                    getLogger().debug("移除: " + packageName + ", uid: " + remove.getUid());
+                }
+            } else {
+                if (BuildConfig.DEBUG) {
+                    getLogger().warn("移除: 未找到移除项 -> " + appInfo.getPackageName() + ", uid: " + appInfo.getUid());
+                }
             }
-        } else {
-            if (BuildConfig.DEBUG) {
-                getLogger().warn("移除: 未找到移除项 -> " + appInfo.getPackageName() + ", uid: " + appInfo.getUid());
-            }
-        }
+            return null;
+        });
     }
 
     /* *************************************************************************
