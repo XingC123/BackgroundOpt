@@ -167,12 +167,8 @@ public class AppInfo implements ILogger {
     public ProcessRecordKt correctMainProcess(int correctPid) {
         try {
             return processRecordMap.computeIfPresent(correctPid, ((pid, redundantProcessRecord) -> {
-                int mPid = Integer.MIN_VALUE;
-                try {
-                    mPid = getmPid();
-                } catch (Exception ignore) {
-                }
-                if (correctPid == mPid) {
+                int mPid;
+                if (getmProcess() == null || (mPid = getmPid()) == correctPid) {
                     return redundantProcessRecord;
                 }
                 ProcessRecordKt process = removeProcess(mPid);
