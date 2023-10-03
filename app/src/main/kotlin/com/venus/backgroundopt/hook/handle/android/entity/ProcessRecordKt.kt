@@ -186,6 +186,17 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
                 getProcessName(processRecord)
             )
         }
+
+        /**
+         * 检查当前进程记录是否合法
+         *
+         * @return 合法 -> true
+         */
+        @JvmStatic
+        fun isValid(runningInfo: RunningInfo, processRecord: ProcessRecordKt): Boolean {
+            return runningInfo.getRunningAppInfo(processRecord.uid)
+                ?.getProcess(processRecord.pid) == null
+        }
     }
 
     // 反射拿到的安卓的processRecord对象

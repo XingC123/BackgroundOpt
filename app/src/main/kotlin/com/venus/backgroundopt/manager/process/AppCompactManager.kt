@@ -3,6 +3,7 @@ package com.venus.backgroundopt.manager.process
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.annotation.UsageComment
 import com.venus.backgroundopt.entity.AppInfo
+import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
@@ -19,7 +20,8 @@ import java.util.concurrent.TimeUnit
  * @date 2023/8/8
  */
 class AppCompactManager(// 封装的CachedAppOptimizer
-    private var cachedAppOptimizer: CachedAppOptimizer
+    private val cachedAppOptimizer: CachedAppOptimizer,
+    private val runningInfo: RunningInfo
 ) : ILogger {
     companion object {
         // 默认压缩级别
@@ -65,6 +67,12 @@ class AppCompactManager(// 封装的CachedAppOptimizer
             val upgradeSubProcessNames = CommonProperties.getUpgradeSubProcessNames()
             compactProcesses.forEach {
                 it.appInfo.lock {
+                    // 检验合法性
+                    if (!ProcessRecordKt.isValid(runningInfo, it)) {
+                        cancelCompactProcess(it)
+                        return@lock
+                    }
+
                     // 根据默认规则压缩
                     var compactMethod: (processRecordKt: ProcessRecordKt) -> Boolean =
                         ::compactAppFull
@@ -186,7 +194,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
      */
     fun cancelCompactProcess(processRecordKt: ProcessRecordKt?) {
         processRecordKt?.let { process ->
-            process.lock {
+            process.appInfo.lock {
                 compactProcesses.remove(processRecordKt).also {
                     if (it) {
                         checkCompactTask()

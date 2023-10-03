@@ -1,6 +1,7 @@
 package com.venus.backgroundopt.manager.process
 
 import com.venus.backgroundopt.BuildConfig
+import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.concurrent.lock
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeUnit
  * @author XingC
  * @date 2023/8/3
  */
-class AppMemoryTrimManagerKt : ILogger {
+class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
     companion object {
         // 前台
         const val foregroundInitialDelay = 0L
@@ -190,13 +191,33 @@ class AppMemoryTrimManagerKt : ILogger {
     * 前后台任务总调度                                                           *
     *                                                                         *
     **************************************************************************/
+    private fun executeTaskImpl(
+        trimManagerName: String,
+        list: MutableSet<ProcessRecordKt>,
+        processRecordKt: ProcessRecordKt,
+        block: () -> Unit
+    ) {
+        if (!ProcessRecordKt.isValid(runningInfo, processRecordKt)) {
+            removeTaskImpl(processRecordKt, trimManagerName, list)
+            return
+        }
+        block()
+    }
+
     /**
      * 执行前台任务
      *
      * @param processRecordKt 进程记录器
      */
     private fun executeForegroundTask(processRecordKt: ProcessRecordKt) {
-        trimMemory(foregroundTrimManagerName, processRecordKt, foregroundTrimLevel, foregroundTasks)
+        executeTaskImpl(foregroundTrimManagerName, foregroundTasks, processRecordKt) {
+            trimMemory(
+                foregroundTrimManagerName,
+                processRecordKt,
+                foregroundTrimLevel,
+                foregroundTasks
+            )
+        }
     }
 
     private fun removeForegroundTask(processRecordKt: ProcessRecordKt) {
@@ -209,8 +230,15 @@ class AppMemoryTrimManagerKt : ILogger {
      * @param processRecordKt 进程记录器
      */
     private fun executeBackgroundTask(processRecordKt: ProcessRecordKt) {
-        trimMemory(backgroundTrimManagerName, processRecordKt, backgroundTrimLevel, backgroundTasks)
-        gc(processRecordKt)
+        executeTaskImpl(backgroundTrimManagerName, backgroundTasks, processRecordKt) {
+            trimMemory(
+                backgroundTrimManagerName,
+                processRecordKt,
+                backgroundTrimLevel,
+                backgroundTasks
+            )
+            gc(processRecordKt)
+        }
     }
 
     private fun removeBackgroundTask(processRecordKt: ProcessRecordKt) {

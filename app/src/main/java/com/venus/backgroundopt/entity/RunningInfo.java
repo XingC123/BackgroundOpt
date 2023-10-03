@@ -589,7 +589,7 @@ public class RunningInfo implements ILogger {
     }
 
     public void initProcessManager() {
-        processManager = new ProcessManager(this.activityManagerService);
+        processManager = new ProcessManager(this);
     }
 
     /* *************************************************************************

@@ -4,6 +4,7 @@ import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.AppInfo;
+import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
@@ -40,11 +41,13 @@ public class ProcessManager implements ILogger {
      */
     public static final int THREAD_GROUP_BACKGROUND = Process.THREAD_GROUP_BACKGROUND + THREAD_GROUP_LEVEL_OFFSET;
 
-    public ProcessManager(ActivityManagerService activityManagerService) {
+    public ProcessManager(RunningInfo runningInfo) {
+        ActivityManagerService activityManagerService = runningInfo.getActivityManagerService();
         appCompactManager = new AppCompactManager(
-                activityManagerService.getOomAdjuster().getCachedAppOptimizer()
+                activityManagerService.getOomAdjuster().getCachedAppOptimizer(),
+                runningInfo
         );
-        appMemoryTrimManager = new AppMemoryTrimManagerKt();
+        appMemoryTrimManager = new AppMemoryTrimManagerKt(runningInfo);
     }
 
     /* *************************************************************************
