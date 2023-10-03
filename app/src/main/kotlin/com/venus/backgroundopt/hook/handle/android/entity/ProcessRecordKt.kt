@@ -195,7 +195,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         @JvmStatic
         fun isValid(runningInfo: RunningInfo, processRecord: ProcessRecordKt): Boolean {
             return runningInfo.getRunningAppInfo(processRecord.uid)
-                ?.getProcess(processRecord.pid) == null
+                ?.getProcess(processRecord.pid) != null
         }
     }
 
