@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.utils.concurrent
 
+import java.util.concurrent.ConcurrentHashMap
+
 /**
  * @author XingC
  * @date 2023/10/1
@@ -11,11 +13,11 @@ val synchronizedSet by lazy { ConcurrentHashSet<Any>() }
 //val lockMap by lazy { ConcurrentHashMap<Any, Any>() }
 
 /**
- * 当前换用synchronized锁
- *
- * <u>这只是保证一个代码块可以作为整体来运作。不会影响lock对象本身的锁</u>
- * <u>由于先compute再remove, 在其间隙仍旧可能线程不安全。如果必须线程安全, 那就加锁</u>
- *
+ * 这只是保证一个代码块可以作为整体来运作。不会影响lock对象本身的锁
+ * 由于先compute再remove, 在其间隙仍可能线程不安全。如果必须线程安全, 那就加锁
+ * 注意: 传入的代码块中禁止再次使用同一个对象调用本方法, 即: any.lock{ any.lock{ // do something } } 这种写法是不允许的
+ *      会直接抛出: java.lang.IllegalStateException: Recursive update
+ * `    这是 [ConcurrentHashMap] 本身的特性!
  * @param lockFlag 竞争标识物
  * @param block 代码块
  */
@@ -29,9 +31,6 @@ inline fun lock(
             block()
         }
     )
-//    synchronized(lockFlag) {
-//        block()
-//    }
 }
 
 /**

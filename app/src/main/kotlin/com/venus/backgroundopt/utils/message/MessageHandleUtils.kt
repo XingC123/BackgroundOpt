@@ -6,6 +6,7 @@ import android.content.Intent
 import com.alibaba.fastjson2.JSON
 import com.alibaba.fastjson2.JSONObject
 import com.venus.backgroundopt.BuildConfig
+import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt
 import com.venus.backgroundopt.utils.log.logDebug
 import com.venus.backgroundopt.utils.log.logDebugAndroid
 import com.venus.backgroundopt.utils.log.logError
@@ -21,7 +22,7 @@ import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
  * ui与模块主进程通信工具类
- * 其他部分见: [MessageHandler], [MessageKeyConstants], [com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt.handleStartService]
+ * 其他部分见: [MessageHandler], [MessageKeyConstants], [ActivityManagerServiceHookKt.handleStartService]
  *
  * @author XingC
  * @date 2023/9/21

@@ -2,6 +2,9 @@ package com.venus.backgroundopt.entity;
 
 import android.os.PowerManager;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.annotation.UsageComment;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
@@ -12,9 +15,6 @@ import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.service.ProcessDaemonService;
 import com.venus.backgroundopt.utils.concurrent.ConcurrentUtilsKt;
 import com.venus.backgroundopt.utils.log.ILogger;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -238,6 +238,7 @@ public class RunningInfo implements ILogger {
      * @param uid 要查询的uid(userId+uid)
      * @return 查询到的app信息
      */
+    @Nullable
     public AppInfo getRunningAppInfo(int uid) {
         return runningApps.get(uid);
     }
@@ -329,7 +330,7 @@ public class RunningInfo implements ILogger {
      * @param uid         目标app的uid
      * @return 生成的目标app信息
      */
-    @NotNull
+    @NonNull
     public AppInfo computeRunningAppIfAbsent(int userId, String packageName, int uid) {
         return runningApps.computeIfAbsent(uid, key -> {
             if (BuildConfig.DEBUG) {

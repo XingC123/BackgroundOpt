@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.annotation.UsageComment;
+import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.utils.log.ILogger;
@@ -21,6 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
+import de.robv.android.xposed.XC_MethodHook;
 
 /**
  * app信息
@@ -152,7 +155,7 @@ public class AppInfo implements ILogger {
 
     /**
      * 安卓ProcessRecord的pid并不是在构造方法中赋值, 而是使用了setPid(int pid)的方式
-     * 因而可能导致 {@link com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook}.handleAppSwitch 获取的主进程pid=0
+     * 因而可能导致 {@link ActivityManagerServiceHook#handleAppSwitch(XC_MethodHook.MethodHookParam)} 获取的主进程pid=0
      */
     public ProcessRecordKt correctMainProcess(int correctPid) {
         try {

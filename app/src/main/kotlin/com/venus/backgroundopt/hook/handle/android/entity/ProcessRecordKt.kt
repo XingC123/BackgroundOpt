@@ -258,10 +258,10 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
      * 设置指定的最大adj
      * 注意:
      * <pre>
-     * 在Redmi k30p MIUI13 22.7.11 (Android 12)中, 设置小于0的值(未充分测试, 只设置过-800) 且 打开的app是单进程,
-     * 会导致在最近任务上划无法杀死app。
-     * 在另一台机器Redmi Note5p Nusantara v5.2 official (Android安全更新2022.11.5, Android 13)中无此问题
-    </pre> *
+     *      在Redmi k30p MIUI13 22.7.11 (Android 12)中, 设置小于0的值(未充分测试, 只设置过-800) 且 打开的app是单进程,
+     *      会导致在最近任务上划无法杀死app。
+     *      在另一台机器Redmi Note5p Nusantara v5.2 official (Android安全更新2022.11.5, Android 13)中无此问题
+     * </pre>
      *
      * @param maxAdj 最大adj的值
      */
