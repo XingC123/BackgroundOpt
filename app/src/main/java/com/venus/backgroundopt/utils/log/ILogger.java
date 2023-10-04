@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.utils.log;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.factory.SingletonLoggerFactory;
 
@@ -10,6 +11,7 @@ import com.venus.backgroundopt.factory.SingletonLoggerFactory;
  * @date 2023/2/10
  */
 public interface ILogger {
+    @JSONField(serialize = false)
     default Logger getLogger() {
         return SingletonLoggerFactory.getLogger(this.getClass());
     }
@@ -35,6 +37,7 @@ public interface ILogger {
      *
      * @return 是debug模式 -> true
      */
+    @JSONField(serialize = false)
     default boolean isDebugMode() {
         return BuildConfig.DEBUG;
     }

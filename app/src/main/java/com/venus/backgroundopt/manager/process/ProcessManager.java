@@ -4,16 +4,16 @@ import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.AppInfo;
-import com.venus.backgroundopt.entity.ProcessInfo;
+import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
+import com.venus.backgroundopt.utils.concurrent.ConcurrentUtilsKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -42,8 +42,13 @@ public class ProcessManager implements ILogger {
      */
     public static final int THREAD_GROUP_BACKGROUND = Process.THREAD_GROUP_BACKGROUND + THREAD_GROUP_LEVEL_OFFSET;
 
-    public ProcessManager(ActivityManagerService activityManagerService) {
-        appCompactManager = new AppCompactManager(activityManagerService.getOomAdjuster().getCachedAppOptimizer());
+    public ProcessManager(RunningInfo runningInfo) {
+        ActivityManagerService activityManagerService = runningInfo.getActivityManagerService();
+        appCompactManager = new AppCompactManager(
+                activityManagerService.getOomAdjuster().getCachedAppOptimizer(),
+                runningInfo
+        );
+        appMemoryTrimManager = new AppMemoryTrimManagerKt(runningInfo);
     }
 
     /* *************************************************************************
@@ -53,34 +58,35 @@ public class ProcessManager implements ILogger {
      **************************************************************************/
     private final AppCompactManager appCompactManager;
 
+    public Set<ProcessRecordKt> getCompactProcessInfos() {
+        return appCompactManager.getCompactProcesses();
+    }
+
     /**
      * 添加压缩进程
      */
-    public void addCompactProcessInfo(Collection<ProcessInfo> processInfos) {
-        appCompactManager.addCompactProcessInfo(processInfos);
+    private void addCompactProcess(AppInfo appInfo) {
+        appCompactManager.addCompactProcess(appInfo);
     }
 
-    public void addCompactProcessInfo(ProcessInfo processInfo) {
-        appCompactManager.addCompactProcessInfo(processInfo);
+    public void addCompactProcess(ProcessRecordKt processRecord) {
+        appCompactManager.addCompactProcess(processRecord);
     }
 
     /**
      * 移除压缩进程
-     * @param processInfo 进程信息
+     *
+     * @param processRecord 进程记录
      */
-    public void cancelCompactProcessInfo(@Nullable ProcessInfo processInfo) {
-        appCompactManager.cancelCompactProcessInfo(processInfo);
+    public void cancelCompactProcess(@Nullable ProcessRecordKt processRecord) {
+        appCompactManager.cancelCompactProcess(processRecord);
     }
 
-    public void cancelCompactProcessInfo(Collection<ProcessInfo> processInfos) {
-        appCompactManager.cancelCompactProcessInfo(processInfos);
+    private void cancelCompactProcess(AppInfo appInfo) {
+        appCompactManager.cancelCompactProcess(appInfo);
     }
 
-    public void cancelCompactProcessInfo(AppInfo appInfo) {
-        appCompactManager.cancelCompactProcessInfo(appInfo);
-    }
-
-    public void compactApp(ProcessRecord processRecord) {
+    public void compactApp(ProcessRecordKt processRecord) {
         appCompactManager.compactApp(processRecord);
     }
 
@@ -128,12 +134,12 @@ public class ProcessManager implements ILogger {
 //        return cachedAppOptimizer.compactApp(processInfo.getProcessRecord(), true, "Full");
 //    }
 
-    public boolean compactAppFull(ProcessInfo processInfo) {
-        return appCompactManager.compactAppFull(processInfo);
+    public boolean compactAppFull(ProcessRecordKt processRecord) {
+        return appCompactManager.compactAppFull(processRecord);
     }
 
-    public void compactAppFullNoCheck(ProcessInfo processInfo) {
-        appCompactManager.compactAppFullNoCheck(processInfo);
+    public void compactAppFullNoCheck(ProcessRecordKt processRecord) {
+        appCompactManager.compactAppFullNoCheck(processRecord);
     }
 
     /* *************************************************************************
@@ -141,17 +147,25 @@ public class ProcessManager implements ILogger {
      * app内存回收管理                                                           *
      *                                                                         *
      **************************************************************************/
-    private final AppMemoryTrimManagerKt appMemoryTrimManager = new AppMemoryTrimManagerKt();
+    private final AppMemoryTrimManagerKt appMemoryTrimManager;
 
-    public void startBackgroundAppTrimTask(ProcessRecord processRecord) {
+    public Set<ProcessRecordKt> getForegroundTasks() {
+        return appMemoryTrimManager.getForegroundTasks();
+    }
+
+    public Set<ProcessRecordKt> getBackgroundTasks() {
+        return appMemoryTrimManager.getBackgroundTasks();
+    }
+
+    private void startBackgroundAppTrimTask(ProcessRecordKt processRecord) {
         appMemoryTrimManager.addBackgroundTask(processRecord);
     }
 
-    public void startForegroundAppTrimTask(ProcessRecord processRecord) {
+    private void startForegroundAppTrimTask(ProcessRecordKt processRecord) {
         appMemoryTrimManager.addForegroundTask(processRecord);
     }
 
-    public void removeAllAppMemoryTrimTask(AppInfo appInfo) {
+    private void removeAllAppMemoryTrimTask(AppInfo appInfo) {
         appMemoryTrimManager.removeAllTask(appInfo.getmProcessRecord());
     }
 
@@ -161,7 +175,7 @@ public class ProcessManager implements ILogger {
      * @param appInfo app信息
      */
     public void handleGC(AppInfo appInfo) {
-        ProcessRecord processRecord = appInfo.getmProcessRecord();
+        ProcessRecordKt processRecord = appInfo.getmProcessRecord();
         if (processRecord == null) {
             if (BuildConfig.DEBUG) {
                 getLogger().warn(appInfo.getPackageName() + " processRecord为空设置个屁的gc");
@@ -172,15 +186,15 @@ public class ProcessManager implements ILogger {
         handleGCNoNullCheck(processRecord);
     }
 
-    public static void handleGC(ProcessRecord processRecord) {
+    public static boolean handleGC(ProcessRecordKt processRecord) {
         if (processRecord == null) {
-            return;
+            return false;
         }
 
-        handleGCNoNullCheck(processRecord);
+        return handleGCNoNullCheck(processRecord);
     }
 
-    public static void handleGCNoNullCheck(ProcessRecord processRecord) {
+    public static boolean handleGCNoNullCheck(ProcessRecordKt processRecord) {
         // kill -10 pid
         try {
             Process.sendSignal(processRecord.getPid(), SIGNAL_10);
@@ -189,12 +203,48 @@ public class ProcessManager implements ILogger {
                 ILogger.getLoggerStatic(ProcessManager.class)
                         .debug(processRecord.getPackageName() + " 触发gc, pid = " + processRecord.getPid());
             }
+            return true;
         } catch (Throwable t) {
             if (BuildConfig.DEBUG) {
                 ILogger.getLoggerStatic(ProcessManager.class)
                         .error(processRecord.getPackageName() + " 存在问题, 无法执行gc", t);
             }
         }
+
+        return false;
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 统一调度处                                                                *
+     *                                                                         *
+     **************************************************************************/
+    public void appActive(AppInfo appInfo) {
+        ConcurrentUtilsKt.lock(appInfo, () -> {
+            // 移除压缩任务
+            cancelCompactProcess(appInfo);
+            // 添加前台任务
+            startForegroundAppTrimTask(appInfo.getmProcessRecord());
+            return null;
+        });
+
+    }
+
+    public void appIdle(AppInfo appInfo) {
+        ConcurrentUtilsKt.lock(appInfo, () -> {
+            // 添加后台任务
+            startBackgroundAppTrimTask(appInfo.getmProcessRecord());
+            // 添加压缩任务
+            addCompactProcess(appInfo);
+            return null;
+        });
+    }
+
+    public void appDie(AppInfo appInfo) {
+        // 移除前后台任务
+        removeAllAppMemoryTrimTask(appInfo);
+        // 取消内存压缩任务
+        cancelCompactProcess(appInfo);
     }
 
     /**
@@ -204,11 +254,11 @@ public class ProcessManager implements ILogger {
      */
     public void setAppToBackgroundProcessGroup(AppInfo appInfo) {
         Set<Integer> processInfoPids;
-        if (appInfo == null || (processInfoPids = appInfo.getProcessInfoPids()) == null) {
+        if (appInfo == null || (processInfoPids = appInfo.getProcessPids()) == null) {
             return;
         }
 
-        processInfoPids.parallelStream().forEach(this::setPidToBackgroundProcessGroup);
+        processInfoPids.forEach(this::setPidToBackgroundProcessGroup);
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + " 进行进程组设置 >>> THREAD_GROUP_BACKGROUND");

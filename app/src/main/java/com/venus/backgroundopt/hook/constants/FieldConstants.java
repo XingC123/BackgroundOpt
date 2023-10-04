@@ -25,6 +25,7 @@ public interface FieldConstants {
     String mUseCompaction = "mUseCompaction";
     String applicationInfo = "applicationInfo";
     String packageName = "packageName";
+    String mApp = "mApp";
     /**
      * {@link ClassConstants#ActivityManagerConstants}
      */

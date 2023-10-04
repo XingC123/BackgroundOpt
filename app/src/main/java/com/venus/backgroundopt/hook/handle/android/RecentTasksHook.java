@@ -4,6 +4,7 @@ import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
 import com.venus.backgroundopt.hook.base.action.BeforeHookAction;
+import com.venus.backgroundopt.hook.base.action.DoNotingHookAction;
 import com.venus.backgroundopt.hook.base.action.HookAction;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
@@ -22,7 +23,7 @@ public class RecentTasksHook extends MethodHook {
 
     @Override
     public HookPoint[] getHookPoint() {
-        return new HookPoint[] {
+        return new HookPoint[]{
                 new HookPoint(
                         ClassConstants.RecentTasks,
                         MethodConstants.isInVisibleRange,
@@ -33,6 +34,13 @@ public class RecentTasksHook extends MethodHook {
                         int.class,
                         int.class,
                         boolean.class
+                ),
+                new HookPoint(
+                        ClassConstants.RecentTasks,
+                        MethodConstants.trimInactiveRecentTasks,
+                        new HookAction[]{
+                                new DoNotingHookAction()
+                        }
                 ),
         };
     }

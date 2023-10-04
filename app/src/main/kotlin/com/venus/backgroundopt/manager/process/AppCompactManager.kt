@@ -1,10 +1,12 @@
 package com.venus.backgroundopt.manager.process
 
 import com.venus.backgroundopt.BuildConfig
+import com.venus.backgroundopt.annotation.UsageComment
 import com.venus.backgroundopt.entity.AppInfo
-import com.venus.backgroundopt.entity.ProcessInfo
+import com.venus.backgroundopt.entity.RunningInfo
+import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.log.ILogger
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
@@ -18,14 +20,19 @@ import java.util.concurrent.TimeUnit
  * @date 2023/8/8
  */
 class AppCompactManager(// 封装的CachedAppOptimizer
-    private var cachedAppOptimizer: CachedAppOptimizer
+    private val cachedAppOptimizer: CachedAppOptimizer,
+    private val runningInfo: RunningInfo
 ) : ILogger {
     companion object {
         // 默认压缩级别
         const val DEFAULT_COMPACT_LEVEL = CachedAppOptimizer.COMPACT_ACTION_ANON
 
+        // 是否启用"压缩成功则移除进程" + "无内存压缩任务则关闭轮循"
+        // 暂只能从源码层修改, ui未提供开关
+        const val autoStopCompactCheck = false
+
         // App压缩扫描线程池配置
-        const val initialDelay = 10L
+        const val initialDelay = 5L
         const val delay = 10L
         val timeUnit = TimeUnit.MINUTES
     }
@@ -37,7 +44,16 @@ class AppCompactManager(// 封装的CachedAppOptimizer
 
     // 待压缩的进程信息列表
     // 注意: 是"进程信息"而不是"应用信息", 其size代表的是进程数不是app数
-    private val compactProcessInfos = Collections.newSetFromMap<ProcessInfo>(ConcurrentHashMap())
+    val compactProcesses: MutableSet<ProcessRecordKt> =
+        Collections.newSetFromMap(ConcurrentHashMap())
+
+    init {
+        // 如果此项未启用, 则直接启动轮循任务
+        logger.info("压缩任务自动关闭: $autoStopCompactCheck")
+        if (!autoStopCompactCheck) {
+            startCompactTask()
+        }
+    }
 
     /* *************************************************************************
      *                                                                         *
@@ -49,11 +65,23 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     private fun startCompactTask() {
         compactScheduledFuture = executor.scheduleWithFixedDelay({
             var compactCount = 0
-            compactProcessInfos.forEach {
-                // 根据默认规则压缩
-                var compactMethod: (processInfo: ProcessInfo) -> Boolean = ::compactAppFull
+            val upgradeSubProcessNames = CommonProperties.getUpgradeSubProcessNames()
+            compactProcesses.forEach {
+                // 检验合法性
+                if (!ProcessRecordKt.isValid(runningInfo, it)) {
+                    cancelCompactProcess(it, "进程不合法")
+                    return@forEach
+                }
 
-                if (it.isMainProcess) {
+                // 根据默认规则压缩
+                var compactMethod: (processRecordKt: ProcessRecordKt) -> Boolean =
+                    ::compactAppFull
+                val mainProcess = it.mainProcess
+
+                if (mainProcess) {
+                    it.removeIfRedundant(compactProcesses)
+                }
+                if (it.mainProcess || upgradeSubProcessNames.contains(it.processName)) {
                     val currentTime = System.currentTimeMillis()
                     if (!it.isAllowedCompact(currentTime)) {  // 若压缩间隔不满足, 则跳过等待下一轮
                         return@forEach
@@ -61,7 +89,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                     // 压缩条件由ProcessInfo.isAllowedCompact判断。因此, 符合条件后直接调用压缩
                     compactMethod = ::compactAppFullNoCheck
 
-                    it.lastCompactTime = currentTime
+                    it.setLastCompactTime(currentTime)
                 }
                 /*
                     result: 0 -> 异常
@@ -86,14 +114,17 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                     }
                 } finally {
                     if (result == 1 || result == 0) {
-                        cancelCompactProcessInfo(it)
+                        // 若启用自动停止 或 执行异常, 则进行移除
+                        if (autoStopCompactCheck || result == 0) {
+                            cancelCompactProcess(it)
+                        }
                         compactCount++
                     }
                 }
             }
 
             if (BuildConfig.DEBUG) {
-                logger.debug("内存压缩任务检查完毕。本次压缩了[${compactCount}]个进程, 列表还剩[${compactProcessInfos.size}]个进程")
+                logger.debug("内存压缩任务检查完毕。本次压缩了[${compactCount}]个进程, 列表还剩[${compactProcesses.size}]个进程")
             }
         }, initialDelay, delay, timeUnit)
 
@@ -105,75 +136,92 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     }
 
     private fun checkCompactTask() {
-        compactScheduledFuture?.let {
-            if (compactProcessInfos.size == 0) {    // 若此时没有待压缩任务, 则取消检查任务
-                it.cancel(true)
-                compactScheduledFuture = null
+        if (autoStopCompactCheck) {
+            compactScheduledFuture?.let {
+                if (compactProcesses.size == 0) {    // 若此时没有待压缩任务, 则取消检查任务
+                    it.cancel(true)
+                    compactScheduledFuture = null
 
-                if (BuildConfig.DEBUG) {
-                    logger.debug("待压缩列表为空, 停止检查任务")
+                    if (BuildConfig.DEBUG) {
+                        logger.debug("待压缩列表为空, 停止检查任务")
+                    }
                 }
-            }
-        } ?: startCompactTask() // 需要待压缩任务, 创建
+            } ?: startCompactTask() // 需要待压缩任务, 创建
+        }
     }
 
     /**
      * 添加压缩进程
      */
-    fun addCompactProcessInfo(processInfos: Collection<ProcessInfo>) {
-        if (processInfos.isNotEmpty()) {
-            compactProcessInfos.addAll(processInfos)
+    fun addCompactProcess(appInfo: AppInfo) {
+        val processRecordKts = appInfo.processes
+        if (processRecordKts.isNotEmpty()) {
+            val currentTimeMillis = System.currentTimeMillis()
+            processRecordKts.forEach { addCompactProcessImpl(it, currentTimeMillis) }
             checkCompactTask()
 
             if (BuildConfig.DEBUG) {
-                logger.debug("uid: ${processInfos.first().uid} >>> [批量]加入待压缩列表")
+                logger.debug("uid: ${processRecordKts.first().uid} >>> [批量]加入待压缩列表")
             }
         }
     }
 
-    fun addCompactProcessInfo(processInfo: ProcessInfo) {
-        compactProcessInfos.add(processInfo)
+    fun addCompactProcess(processRecordKt: ProcessRecordKt) {
+        addCompactProcessImpl(processRecordKt)
         checkCompactTask()
 
         if (BuildConfig.DEBUG) {
-            logger.debug("uid: ${processInfo.uid}, pid: ${processInfo.pid} >>> 加入待压缩列表")
+            logger.debug("uid: ${processRecordKt.uid}, pid: ${processRecordKt.pid} >>> 加入待压缩列表")
         }
+    }
+
+    /**
+     * 在确保已对[AppInfo]上锁的情况下再使用
+     *
+     * @param processRecordKt
+     */
+    @UsageComment("确保AppInfo已上锁")
+    private fun addCompactProcessImpl(
+        processRecordKt: ProcessRecordKt,
+        lastCompactTime: Long = System.currentTimeMillis()
+    ) {
+        compactProcesses.add(processRecordKt.also { it.setLastCompactTime(lastCompactTime) })
     }
 
     /**
      * 移除压缩进程
      */
-    fun cancelCompactProcessInfo(processInfos: Collection<ProcessInfo>) {
-        if (processInfos.isNotEmpty()) {
-            compactProcessInfos.removeAll(processInfos.toSet()).let {
+    @JvmOverloads
+    fun cancelCompactProcess(processRecordKt: ProcessRecordKt?, cancelReason: String = "") {
+        processRecordKt?.let { process ->
+            compactProcesses.remove(process).also {
                 if (it) {
                     checkCompactTask()
 
                     if (BuildConfig.DEBUG) {
-                        logger.debug("uid: ${processInfos.first().uid} >>> 移除自待压缩列表")
+                        logger.debug(
+                            "uid: ${process.uid}, pid: ${process.pid} >>> 移除自待压缩列表" +
+                                    if (cancelReason.isEmpty()) cancelReason else ": reason: $cancelReason"
+                        )
                     }
                 }
             }
         }
     }
 
-    fun cancelCompactProcessInfo(processInfo: ProcessInfo?) {
-        processInfo?.let {
-            compactProcessInfos.remove(processInfo).let {
+    fun cancelCompactProcess(appInfo: AppInfo) {
+        val set = compactProcesses.filter { it.uid == appInfo.uid }.toSet()
+        if (set.isNotEmpty()) {
+            compactProcesses.removeAll(set).let {
                 if (it) {
                     checkCompactTask()
 
                     if (BuildConfig.DEBUG) {
-                        logger.debug("uid: ${processInfo.uid}, pid: ${processInfo.pid} >>> 移除自待压缩列表")
+                        logger.debug("uid: ${set.first().uid} >>> 移除自待压缩列表")
                     }
                 }
             }
         }
-    }
-
-    fun cancelCompactProcessInfo(appInfo: AppInfo) {
-        val set = compactProcessInfos.filter { it.uid == appInfo.uid }.toSet()
-        cancelCompactProcessInfo(set)
     }
 
     /* *************************************************************************
@@ -181,8 +229,8 @@ class AppCompactManager(// 封装的CachedAppOptimizer
      * 压缩方式                                                                  *
      *                                                                         *
      **************************************************************************/
-    fun compactApp(processRecord: ProcessRecord) {
-        compactApp(processRecord.pid)
+    fun compactApp(processRecordKt: ProcessRecordKt) {
+        compactApp(processRecordKt.pid)
     }
 
     fun compactApp(pid: Int) {
@@ -212,13 +260,16 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     }
 
     fun compactAppSome(appInfo: AppInfo) {
-        appInfo.processInfoPids.forEach { pid: Int ->
+        appInfo.processPids.forEach { pid: Int ->
             this.compactAppSome(pid)
         }
     }
 
     /**
      * 全量压缩
+     * 源码中(com.android.server.am.CachedAppOptimizer.DefaultProcessDependencies.performCompaction(String action, int pid)),
+     * 传入到compactApp(pid: Int, compactAction: Int)中的compactAction为: [CachedAppOptimizer.COMPACT_ACTION_FILE] | [CachedAppOptimizer.COMPACT_ACTION_ANON],
+     * 即最终结果为: [CachedAppOptimizer.COMPACT_ACTION_FULL]
      *
      * @param pid 要压缩的pid
      */
@@ -243,11 +294,11 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     //    public boolean compactAppFull(ProcessInfo processInfo) {
     //        return cachedAppOptimizer.compactApp(processInfo.getProcessRecord(), true, "Full");
     //    }
-    fun compactAppFull(processInfo: ProcessInfo): Boolean {
-        return compactAppFull(processInfo.pid, processInfo.oomAdjScore)
+    fun compactAppFull(processRecordKt: ProcessRecordKt): Boolean {
+        return compactAppFull(processRecordKt.pid, processRecordKt.oomAdjScore)
     }
 
-    fun compactAppFullNoCheck(processInfo: ProcessInfo): Boolean {
-        return compactAppFullNoCheck(processInfo.pid)
+    fun compactAppFullNoCheck(processRecordKt: ProcessRecordKt): Boolean {
+        return compactAppFullNoCheck(processRecordKt.pid)
     }
 }

@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -9,8 +13,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.BackgroundOpt"
-        tools:targetApi="31">
+        android:theme="@style/Theme.AppTheme">
 
         <!-- 是否是xposed模块 -->
         <meta-data
@@ -19,15 +22,48 @@
         <!-- 这个模块支持的最低xposed版本 -->
         <meta-data
             android:name="xposedminversion"
-            android:value="53" />
+            android:value="93" />
         <!-- 对这个模块的一些描述 -->
         <meta-data
             android:name="xposeddescription"
-            android:value="进程oom_adj调整" />
+            android:value="调整进程oom_adj以保留后台" />
         <!-- 对哪些app生效-->
         <meta-data
             android:name="xposedscope"
             android:resource="@array/xposed_scope" />
+
+        <meta-data
+            android:name="xposedsharedprefs"
+            android:value="true" />
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.AboutAppActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".ui.ShowBackgroundTasksActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".ui.ShowAppCompactListActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".ui.ShowAllInstalledAppsActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".ui.ConfigureAppProcessActivity"
+            android:exported="true" />
     </application>
 
 </manifest>
