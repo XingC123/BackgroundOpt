@@ -20,6 +20,7 @@ public interface MethodConstants {
     String updateOomAdjLocked = "updateOomAdjLocked";
     String updateOomAdjLSP = "updateOomAdjLSP";
     String getApplicationInfoAsUser = "getApplicationInfoAsUser";
+    String getInstalledPackages = "getInstalledPackages";
     String isAppForeground = "isAppForeground";
     String getTopApp = "getTopApp";
     String setMaxAdj = "setMaxAdj";
@@ -46,6 +47,7 @@ public interface MethodConstants {
     String configureSystemServerDexReporter = "configureSystemServerDexReporter";
     String isFirstBoot = "isFirstBoot";
     String readProcLines = "readProcLines";
+    String readProcFile = "readProcFile";
     String getFreeMemory = "getFreeMemory";
     String getTotalMemory = "getTotalMemory";
     String setSwappiness = "setSwappiness";
@@ -72,6 +74,8 @@ public interface MethodConstants {
     String cleanUpApplicationRecordLocked = "cleanUpApplicationRecordLocked";
     String onAddRoleHolder = "onAddRoleHolder";
     String killProcessesBelowAdj = "killProcessesBelowAdj";
+    String trimInactiveRecentTasks = "trimInactiveRecentTasks";
+    String setCurRawAdj = "setCurRawAdj";
 
     /**
      * miui

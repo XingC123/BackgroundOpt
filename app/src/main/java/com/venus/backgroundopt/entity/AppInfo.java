@@ -2,14 +2,18 @@ package com.venus.backgroundopt.entity;
 
 import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.venus.backgroundopt.BuildConfig;
+import com.venus.backgroundopt.annotation.UsageComment;
+import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 
-import org.jetbrains.annotations.Nullable;
-
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
@@ -18,6 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
+import de.robv.android.xposed.XC_MethodHook;
 
 /**
  * app信息
@@ -52,10 +58,10 @@ public class AppInfo implements ILogger {
      * app进程信息                                                               *
      *                                                                         *
      **************************************************************************/
+    @SuppressWarnings("all")    // 别显示未final啦, 烦死辣
     private RunningInfo runningInfo;
-    private volatile ProcessRecord mProcessRecord;   // 主进程记录
+    private volatile ProcessRecordKt mProcessRecord;   // 主进程记录
 
-    private volatile ProcessInfo mProcessInfo;   // 主进程信息
     private final AtomicInteger appSwitchEvent = new AtomicInteger(Integer.MIN_VALUE); // app切换事件
 
     private final AtomicBoolean switchEventHandled = new AtomicBoolean(false);    // 切换事件处理完毕
@@ -76,27 +82,20 @@ public class AppInfo implements ILogger {
 
     // 当前app在本模块内的内存分组
     private volatile AppGroupEnum appGroupEnum = AppGroupEnum.NONE;
-    private final Object appGroupSetLock = new Object();
 
     public void setAppGroupEnum(AppGroupEnum appGroupEnum) {
-        synchronized (appGroupSetLock) {
-            this.appGroupEnum = appGroupEnum;
-            // 添加 切后台时所创建的所有进程(当app进入后台后, 新创建的子进程会自动被添加到待压缩列表中)
-            if (!Objects.equals(runningInfo.getActiveLaunchPackageName(), packageName)) {   // 不是桌面进程
-                switch (appGroupEnum) {
-                    case IDLE -> {
-                        // 更新主进程压缩时间
-                        if (mProcessInfo != null) {
-                            mProcessInfo.setLastCompactTime(System.currentTimeMillis());
-                        }
-
-                        runningInfo.getProcessManager().addCompactProcessInfo(getProcessInfos());
-                    }
-                    case ACTIVE ->  /* 若为第一次打开app, 此时也会执行这里。此时无需考虑是否能移除, 因为还没开始添加(至少也要在app第一次进入后台才会开始添加) */
-                            runningInfo.getProcessManager().cancelCompactProcessInfo(getProcessInfos());
-                }
-            }
-        }
+//        synchronized (appGroupSetLock) {
+//            this.appGroupEnum = appGroupEnum;
+//            // 添加 切后台时所创建的所有进程(当app进入后台后, 新创建的子进程会自动被添加到待压缩列表中)
+//            if (!Objects.equals(runningInfo.getActiveLaunchPackageName(), packageName)) {   // 不是桌面进程
+//                switch (appGroupEnum) {
+//                    case IDLE -> runningInfo.getProcessManager().addCompactProcess(getProcesses());
+//                    case ACTIVE ->  /* 若为第一次打开app, 此时也会执行这里。此时无需考虑是否能移除, 因为还没开始添加(至少也要在app第一次进入后台才会开始添加) */
+//                            runningInfo.getProcessManager().cancelCompactProcess(getProcesses());
+//                }
+//            }
+//        }
+        this.appGroupEnum = appGroupEnum;
     }
 
     public AppGroupEnum getAppGroupEnum() {
@@ -107,63 +106,76 @@ public class AppInfo implements ILogger {
      * 进程信息映射<pid, ProcessInfo>
      * 没有设置为 final, 因为在{@link AppInfo#clearAppInfo()}中需要反射来置空
      */
-    private Map<Integer, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
+    @SuppressWarnings("all")    // 别显示未final啦, 烦死辣
+    private Map<Integer, ProcessRecordKt> processRecordMap = new ConcurrentHashMap<>();
 
-    /**
-     * 生成ProcessInfo
-     * 注意: 确保你的操作是线程安全的
-     *
-     * @param pid         进程pid
-     * @param oomAdjScore 进程oom_score_adj
-     * @return 生成后的ProcessInfo
-     */
-    private ProcessInfo addProcessInfoDirectly(int pid, int oomAdjScore) {
-        return ProcessInfo.newInstance(this, runningInfo, uid, pid, oomAdjScore);
-    }
-
-    public ProcessInfo addProcessInfo(int pid, int oomAdjScore) {
-        return processInfoMap.computeIfAbsent(pid,
-                key -> addProcessInfoDirectly(pid, oomAdjScore));
-    }
-
-    public void addProcessInfo(ProcessInfo processInfo) {
-        processInfoMap.computeIfAbsent(processInfo.getPid(), key -> /*纠正processInfo的uid*/ processInfo.setUid(uid));
+    public ProcessRecordKt addProcess(@NonNull ProcessRecordKt processRecord) {
+        return processRecordMap.computeIfAbsent(processRecord.getPid(), k -> {
+            ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
+//            if (processRecord.getMainProcess()) {
+//                setmProcessRecord(processRecord);
+//            }
+            processRecord.setAppInfo(this);
+            return processRecord;
+        });
     }
 
     @Nullable
-    public ProcessInfo getProcessInfo(int pid) {
-        return processInfoMap.get(pid);
+    public ProcessRecordKt getProcess(int pid) {
+        return processRecordMap.get(pid);
     }
 
-    public void modifyProcessInfoAndAddIfNull(int pid, int oomAdjScore) {
-//        if (pid == Integer.MIN_VALUE) {
-//            if (BuildConfig.DEBUG) {
-//                getLogger().warn("pid = " + pid + " 不符合规范, 无法添加至进程列表");
-//            }
-//            return;
-//        }
-
-        ProcessInfo processInfo = processInfoMap.computeIfAbsent(pid, key -> {
-//            runningInfo.getProcessManager().setPidToBackgroundProcessGroup(pid, this);
-            return addProcessInfoDirectly(key, oomAdjScore);
+    public void modifyProcessRecord(int pid, int oomAdjScore) {
+        processRecordMap.computeIfPresent(pid, (key, processRecord) -> {
+            processRecord.setOomAdjScoreToAtomicInteger(oomAdjScore);
+            return processRecord;
         });
-        processInfo.setOomAdjScore(oomAdjScore);
     }
 
-    public boolean isRecordedProcessInfo(int pid) {
-        return processInfoMap.containsKey(pid);
+    public boolean isRecordedProcess(int pid) {
+        return processRecordMap.containsKey(pid);
     }
 
-    public ProcessInfo removeProcessInfo(int pid) {
-        return processInfoMap.remove(pid);
+    public ProcessRecordKt removeProcess(int pid) {
+        return processRecordMap.remove(pid);
     }
 
-    public Set<Integer> getProcessInfoPids() {
-        return processInfoMap.keySet();
+    public Set<Integer> getProcessPids() {
+        return processRecordMap.keySet();
     }
 
-    public Collection<ProcessInfo> getProcessInfos() {
-        return processInfoMap.values();
+    public Collection<ProcessRecordKt> getProcesses() {
+        return processRecordMap.values();
+    }
+
+    @UsageComment("尽量避免直接操作map, 推荐用提供好的方法")
+    public Map<Integer, ProcessRecordKt> getProcessRecordMap() {
+        return processRecordMap;
+    }
+
+    /**
+     * 安卓ProcessRecord的pid并不是在构造方法中赋值, 而是使用了setPid(int pid)的方式
+     * 因而可能导致 {@link ActivityManagerServiceHook#handleAppSwitch(XC_MethodHook.MethodHookParam)} 获取的主进程pid=0
+     */
+    public ProcessRecordKt correctMainProcess(int correctPid) {
+        try {
+            return processRecordMap.computeIfPresent(correctPid, ((pid, redundantProcessRecord) -> {
+                int mPid;
+                if (getmProcess() == null || (mPid = getmPid()) == correctPid) {
+                    return redundantProcessRecord;
+                }
+                ProcessRecordKt process = removeProcess(mPid);
+                process.setPid(correctPid);
+                process.setRedundantProcessRecord(redundantProcessRecord);
+
+                if (BuildConfig.DEBUG) {
+                    getLogger().warn("pid: " + correctPid + "所在ProcessRecord已进行修正");
+                }
+                return process;
+            }));
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public ApplicationIdentity getApplicationIdentity() {
@@ -176,26 +188,21 @@ public class AppInfo implements ILogger {
      * @return 主进程当前记录的adj
      */
     public int getMainProcCurAdj() {
-        return this.mProcessInfo.getFixedOomAdjScore();
+        return this.mProcessRecord.getFixedOomAdjScore();
     }
 
-    public void setmProcessInfo(ProcessRecord processRecord) {
-        this.mProcessInfo = ProcessInfo.newInstance(this, runningInfo, processRecord);
-        addProcessInfo(mProcessInfo);
-    }
-
-    public ProcessInfo getmProcessInfo() {
-        return mProcessInfo;
+    @Nullable
+    public ProcessRecordKt getmProcess() {
+        return mProcessRecord;
     }
 
     /**
      * 设置主进程信息
      */
-    public void setMProcessInfoAndMProcessRecord(ProcessRecord processRecord) {
+    public void setMProcessAndAdd(@NonNull ProcessRecordKt processRecord) {
         // 保存主进程
         setmProcessRecord(processRecord);
-        // 保存进程信息
-        setmProcessInfo(processRecord);
+        addProcess(processRecord);
     }
 
     @Override
@@ -211,44 +218,53 @@ public class AppInfo implements ILogger {
         return Objects.hash(uid, packageName, userId);
     }
 
+    @NonNull
+    @Override
+    public String toString() {
+        return "AppInfo{" +
+                "uid=" + uid +
+                ", packageName='" + packageName + '\'' +
+                ", userId=" + userId +
+                ", appGroupEnum=" + appGroupEnum +
+                ", mPid=" + getmPid() +
+                '}';
+    }
+
     /* *************************************************************************
      *                                                                         *
      * 当前appInfo清理状态                                                       *
      *                                                                         *
      **************************************************************************/
-    private static final Field[] fields = AppInfo.class.getDeclaredFields();
+    private static final Field[] fields;
 
     static {
-        for (Field field : fields) {
-            field.setAccessible(true);
-        }
+        fields = Arrays.stream(AppInfo.class.getDeclaredFields())
+                .filter(field -> !(field.getType().isPrimitive() || field.getType() == Field[].class))
+                .peek(field -> field.setAccessible(true))
+                .toArray(Field[]::new);
     }
 
+    /**
+     * jvm的可达性分析会回收对象的。此方法只是确保在调用后将对象内引用指针置空, 当发生可能的对某属性执行获取操作时会收到异常。
+     */
     public void clearAppInfo() {
         try {
-            runningInfo = null;
-            mProcessRecord = null;
-            mProcessInfo = null;
-
-            try {
-                Object obj;
-                for (Field field : fields) {
-                    obj = field.get(this);
-                    if (obj instanceof Map<?, ?> map) {
-                        map.clear();
-                        field.set(this, null);
-                    } else if (obj instanceof Collection<?> collection) {
-                        collection.clear();
-                    } else if (obj instanceof AtomicReference<?> ap) {
-                        ap.set(null);
-                    } else if (obj instanceof Enum<?>) {
-                        field.set(this, null);
-                    }
+            Object obj;
+            for (Field field : fields) {
+                obj = field.get(this);
+                if (obj instanceof Map<?, ?> map) {
+                    map.clear();
+                } else if (obj instanceof Collection<?> collection) {
+                    collection.clear();
+                } else if (obj instanceof AtomicReference<?> ap) {
+                    ap.set(null);
                 }
-            } catch (IllegalAccessException | IllegalArgumentException e) {
-                getLogger().error("AppInfo清理失败", e);
+                field.set(this, null);
             }
-        } catch (Exception ignore) {
+        } catch (Throwable t) {
+            if (BuildConfig.DEBUG) {    // 正式发布版无需关注这里
+                getLogger().error("AppInfo清理失败", t);
+            }
         }
     }
 
@@ -321,11 +337,11 @@ public class AppInfo implements ILogger {
         }
     }
 
-    public ProcessRecord getmProcessRecord() {
+    public ProcessRecordKt getmProcessRecord() {
         return mProcessRecord;
     }
 
-    public void setmProcessRecord(ProcessRecord mProcessRecord) {
+    public void setmProcessRecord(ProcessRecordKt mProcessRecord) {
         this.mProcessRecord = mProcessRecord;
 
         if (BuildConfig.DEBUG) {

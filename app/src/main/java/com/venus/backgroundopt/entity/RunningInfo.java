@@ -2,17 +2,19 @@ package com.venus.backgroundopt.entity;
 
 import android.os.PowerManager;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.venus.backgroundopt.BuildConfig;
+import com.venus.backgroundopt.annotation.UsageComment;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ApplicationInfo;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.service.ProcessDaemonService;
+import com.venus.backgroundopt.utils.concurrent.ConcurrentUtilsKt;
 import com.venus.backgroundopt.utils.log.ILogger;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -236,6 +238,7 @@ public class RunningInfo implements ILogger {
      * @param uid 要查询的uid(userId+uid)
      * @return 查询到的app信息
      */
+    @Nullable
     public AppInfo getRunningAppInfo(int uid) {
         return runningApps.get(uid);
     }
@@ -251,27 +254,15 @@ public class RunningInfo implements ILogger {
     }
 
     /**
-     * 添加app信息到运行列表
-     *
-     * @param appInfo app信息
-     */
-    public void addRunningApp(AppInfo appInfo) {
-        setAddedRunningApp(appInfo);
-        // 添加到运行列表
-        runningApps.put(appInfo.getUid(), appInfo);
-    }
-
-    /**
      * 设置添加到 {@link #runningApps} 中的 {@link AppInfo}的基本属性
      *
      * @param mProcessRecord app的主进程
      * @param appInfo        要处理的应用信息
      */
-    public void setAddedRunningApp(ProcessRecord mProcessRecord, AppInfo appInfo) {
+    public void setAddedRunningApp(ProcessRecordKt mProcessRecord, AppInfo appInfo) {
         if (mProcessRecord != null) {
-            // 设置主进程的最大adj(保活)
-            mProcessRecord.setDefaultMaxAdj();
-            appInfo.setMProcessInfoAndMProcessRecord(mProcessRecord);
+            // 写入主进程
+            appInfo.setMProcessAndAdd(mProcessRecord);
         } else {
             if (BuildConfig.DEBUG) {
                 getLogger().warn(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的mProcessRecord为空");
@@ -286,8 +277,7 @@ public class RunningInfo implements ILogger {
      */
     public void setAddedRunningApp(AppInfo appInfo) {
         // 找到主进程进行必要设置
-        ProcessRecord mProcessRecord = findMProcessRecord(appInfo);
-        setAddedRunningApp(mProcessRecord, appInfo);
+        setAddedRunningApp(activityManagerService.findMProcessRecord(appInfo), appInfo);
     }
 
     /**
@@ -297,6 +287,7 @@ public class RunningInfo implements ILogger {
      * @param uid 目标app的uid
      * @return 生成的目标app信息(可能为空)
      */
+    @UsageComment("仅供OOM调节方法使用")
     @Nullable
     public AppInfo computeRunningAppIfAbsent(int uid) {
         return runningApps.computeIfAbsent(uid, key -> {
@@ -311,7 +302,7 @@ public class RunningInfo implements ILogger {
                 ApplicationInfo applicationInfo = normalAppResult.getApplicationInfo();
                 if (applicationInfo != null) {
                     String packageName = normalAppResult.getApplicationInfo().getPackageName();
-                    ProcessRecord mProcessRecord = activityManagerService.findMProcessRecord(packageName, uid);
+                    ProcessRecordKt mProcessRecord = activityManagerService.findMProcessRecord(packageName, uid);
                     if (mProcessRecord != null) {
                         int userId = mProcessRecord.getUserId();
 
@@ -319,6 +310,10 @@ public class RunningInfo implements ILogger {
                         setAddedRunningApp(mProcessRecord, apps[0]);
                         apps[0].setAppSwitchEvent(ActivityManagerServiceHook.ACTIVITY_PAUSED);
                         putIntoIdleAppGroup(apps[0]);
+
+                        if (BuildConfig.DEBUG) {
+                            getLogger().debug("AppInfo(包名: " + packageName + ", uid: " + uid + ")补充完毕");
+                        }
                     }
                 }
             }
@@ -335,11 +330,11 @@ public class RunningInfo implements ILogger {
      * @param uid         目标app的uid
      * @return 生成的目标app信息
      */
-    @NotNull
+    @NonNull
     public AppInfo computeRunningAppIfAbsent(int userId, String packageName, int uid) {
         return runningApps.computeIfAbsent(uid, key -> {
             if (BuildConfig.DEBUG) {
-                getLogger().debug("创建新进程: " + packageName + ", uid: " + uid);
+                getLogger().debug("打开新App: " + packageName + ", uid: " + uid);
             }
             AppInfo appInfo = new AppInfo(userId, packageName, this).setUid(uid);
             setAddedRunningApp(appInfo);
@@ -348,49 +343,38 @@ public class RunningInfo implements ILogger {
     }
 
     /**
-     * 根据{@link AppInfo}找到其主进程
-     *
-     * @param appInfo app信息
-     * @return 主进程的记录
-     */
-    public ProcessRecord findMProcessRecord(AppInfo appInfo) {
-        return activityManagerService.findMProcessRecord(appInfo);
-    }
-
-    public ProcessRecord getTargetProcessRecord(int pid) {
-        return getActivityManagerService().getProcessList().getTargetProcessRecord(pid);
-    }
-
-    /**
      * 根据{@link AppInfo}从运行列表中移除
      *
      * @param appInfo app信息
      */
     public void removeRunningApp(AppInfo appInfo) {
-        // 从运行列表移除
-        AppInfo remove = runningApps.remove(appInfo.getUid());
+        ConcurrentUtilsKt.lock(appInfo, () -> {
+            // 从运行列表移除
+            AppInfo remove = runningApps.remove(appInfo.getUid());
 
-        if (remove != null) {
-            // 从待处理列表中移除
-            activeAppGroup.remove(appInfo);
-            tmpAppGroup.remove(appInfo);
-            idleAppGroup.remove(appInfo);
-            processManager.removeAllAppMemoryTrimTask(appInfo);
+            if (remove != null) {
+                String packageName = remove.getPackageName();
+                // 从待处理列表中移除
+                activeAppGroup.remove(appInfo);
+                tmpAppGroup.remove(appInfo);
+                idleAppGroup.remove(appInfo);
 
-            // 清理待压缩进程
-            processManager.cancelCompactProcessInfo(appInfo);
+                // app被杀死
+                processManager.appDie(remove);
 
-            // 清理AppInfo。也许有助于gc
-            appInfo.clearAppInfo();
+                // 清理AppInfo。也许有助于gc
+                appInfo.clearAppInfo();
 
-            if (BuildConfig.DEBUG) {
-                getLogger().debug("移除: " + remove.getPackageName() + ", uid: " + remove.getUid());
+                if (BuildConfig.DEBUG) {
+                    getLogger().debug("移除: " + packageName + ", uid: " + remove.getUid());
+                }
+            } else {
+                if (BuildConfig.DEBUG) {
+                    getLogger().warn("移除: 未找到移除项 -> " + appInfo.getPackageName() + ", uid: " + appInfo.getUid());
+                }
             }
-        } else {
-            if (BuildConfig.DEBUG) {
-                getLogger().warn("移除: 未找到移除项 -> " + appInfo.getPackageName() + ", uid: " + appInfo.getUid());
-            }
-        }
+            return null;
+        });
     }
 
     /* *************************************************************************
@@ -426,6 +410,8 @@ public class RunningInfo implements ILogger {
             handlePutInfoActiveAppGroup(appInfo, true);
         }
 
+//        handlePutInfoActiveAppGroup(appInfo, !switchActivity);
+
         /*
             处理其他分组
          */
@@ -450,6 +436,40 @@ public class RunningInfo implements ILogger {
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的active事件处理完毕");
+        }
+    }
+
+    public void putIntoTmpAppGroup(AppInfo appInfo) {
+        tmpAppGroup.add(appInfo);
+        activeAppGroup.remove(appInfo);
+//        idleAppGroup.remove(appInfo); // 没有app在后台也能进入这个方法吧
+
+        appInfo.setAppGroupEnum(AppGroupEnum.TMP);
+
+        /*
+            息屏触发 UsageEvents.Event.ACTIVITY_PAUSED 事件。则对当前app按照进入后台处理
+            boolean isScreenOn = pm.isInteractive();
+            如果isScreenOn值为true，屏幕状态为亮屏或者亮屏未解锁，反之为黑屏。
+         */
+        if (!getPowerManager().isInteractive()) {
+            putIntoIdleAppGroup(appInfo);
+        } else {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入TmpGroup");
+            }
+        }
+    }
+
+    private void putIntoIdleAppGroup(AppInfo appInfo) {
+        // 做app清理工作
+        boolean valid = handleLastApp(appInfo);
+        if (valid) {
+            idleAppGroup.add(appInfo);
+            appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
+
+            if (BuildConfig.DEBUG) {
+                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + "  被放入IdleGroup");
+            }
         }
     }
 
@@ -481,45 +501,11 @@ public class RunningInfo implements ILogger {
             return;
         }
 
-        // 启动MemoryTrimTask任务
-        processManager.startForegroundAppTrimTask(appInfo.getmProcessRecord());
+        // 启动前台工作
+        processManager.appActive(appInfo);
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入ActiveGroup");
-        }
-    }
-
-    public void putIntoTmpAppGroup(AppInfo appInfo) {
-        tmpAppGroup.add(appInfo);
-        activeAppGroup.remove(appInfo);
-//        idleAppGroup.remove(appInfo); // 没有app在后台也能进入这个方法吧
-
-        appInfo.setAppGroupEnum(AppGroupEnum.TMP);
-
-        /*
-            息屏触发 UsageEvents.Event.ACTIVITY_PAUSED 事件。则对当前app按照进入后台处理
-            boolean isScreenOn = pm.isInteractive();
-            如果isScreenOn值为true，屏幕状态为亮屏或者亮屏未解锁，反之为黑屏。
-         */
-        if (!getPowerManager().isInteractive()) {
-            putIntoIdleAppGroup(appInfo);
-        } else {
-            if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入TmpGroup");
-            }
-        }
-    }
-
-    public void putIntoIdleAppGroup(AppInfo appInfo) {
-        // 做app清理工作
-        boolean valid = handleLastApp(appInfo);
-        if (valid) {
-            idleAppGroup.add(appInfo);
-            appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
-
-            if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + "  被放入IdleGroup");
-            }
         }
     }
 
@@ -552,8 +538,8 @@ public class RunningInfo implements ILogger {
             return true;
         }
 
-        processManager.startBackgroundAppTrimTask(appInfo.getmProcessRecord());
-//        processManager.handleGC(appInfo);
+        // 启动后台工作
+        processManager.appIdle(appInfo);
 //        processManager.setAppToBackgroundProcessGroup(appInfo);
 
         appInfo.setSwitchEventHandled(true);
@@ -608,7 +594,7 @@ public class RunningInfo implements ILogger {
     }
 
     public void initProcessManager() {
-        processManager = new ProcessManager(this.activityManagerService);
+        processManager = new ProcessManager(this);
     }
 
     /* *************************************************************************

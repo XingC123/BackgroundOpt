@@ -1,7 +1,9 @@
 package com.venus.backgroundopt.hook;
 
+import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.handler.AndroidHookHandler;
 import com.venus.backgroundopt.hook.handler.PowerKeeperHookHandler;
+import com.venus.backgroundopt.hook.handler.SelfHookHandler;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
@@ -19,6 +21,8 @@ public class MainHook implements IXposedHookLoadPackage {
             case "android" -> new AndroidHookHandler(loadPackageParam);
             // miui
             case "com.miui.powerkeeper" -> new PowerKeeperHookHandler(loadPackageParam);
+            // 自己
+            case BuildConfig.APPLICATION_ID -> new SelfHookHandler(loadPackageParam);
         }
     }
 }

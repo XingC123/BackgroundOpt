@@ -1,11 +1,12 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
+import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 
 import de.robv.android.xposed.XposedHelpers;
 
 /**
- * 封装了{@link com.venus.backgroundopt.hook.constants.ClassConstants#OomAdjuster}
+ * 封装了{@link ClassConstants#OomAdjuster}
  *
  * @author XingC
  * @version 1.0

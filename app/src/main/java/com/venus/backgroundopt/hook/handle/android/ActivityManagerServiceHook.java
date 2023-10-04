@@ -11,6 +11,7 @@ import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
 import com.venus.backgroundopt.hook.base.action.BeforeHookAction;
+import com.venus.backgroundopt.hook.base.action.DoNotingHookAction;
 import com.venus.backgroundopt.hook.base.action.HookAction;
 import com.venus.backgroundopt.hook.base.action.ReplacementHookAction;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
@@ -79,7 +80,7 @@ public class ActivityManagerServiceHook extends MethodHook {
                         ClassConstants.ActivityManagerService,
                         MethodConstants.checkExcessivePowerUsage,
                         new HookAction[]{
-                                (ReplacementHookAction) this::handleCheckExcessivePowerUsage
+                                new DoNotingHookAction()
                         }
                 ),
         };
@@ -90,7 +91,7 @@ public class ActivityManagerServiceHook extends MethodHook {
      */
     private Object getAMSObj(XC_MethodHook.MethodHookParam param) {
         RunningInfo runningInfo = getRunningInfo();
-        ActivityManagerService ams = new ActivityManagerService(param.thisObject, classLoader);
+        ActivityManagerService ams = new ActivityManagerService(param.thisObject, classLoader, runningInfo);
 
         runningInfo.setActivityManagerService(ams);
         runningInfo.initProcessManager();
@@ -133,9 +134,9 @@ public class ActivityManagerServiceHook extends MethodHook {
 
         // 本次事件包名
         String packageName = ((ComponentName) args[0]).getPackageName();
-        if (packageName == null) {
-            return null;
-        }
+//        if (packageName == null) {
+//            return null;
+//        }
 
         // 本次事件用户
         int userId = (int) args[1];

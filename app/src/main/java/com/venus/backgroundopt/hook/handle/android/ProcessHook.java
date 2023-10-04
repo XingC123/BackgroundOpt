@@ -4,7 +4,6 @@ import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.AppInfo;
-import com.venus.backgroundopt.entity.ProcessInfo;
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
@@ -13,6 +12,7 @@ import com.venus.backgroundopt.hook.base.action.HookAction;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -22,6 +22,7 @@ import de.robv.android.xposed.XC_MethodHook;
  * @version 1.0
  * @date 2023/6/1
  */
+@Deprecated
 public class ProcessHook extends MethodHook {
     public ProcessHook(ClassLoader classLoader, RunningInfo hookInfo) {
         super(classLoader, hookInfo);
@@ -92,9 +93,9 @@ public class ProcessHook extends MethodHook {
                 }
             } else {
                 // 移除进程记录
-                ProcessInfo processInfo = appInfo.removeProcessInfo(pid);
+                ProcessRecordKt processRecord = appInfo.removeProcess(pid);
                 // 取消进程的待压缩任务
-                runningInfo.getProcessManager().cancelCompactProcessInfo(processInfo);
+                runningInfo.getProcessManager().cancelCompactProcess(processRecord);
 
                 if (BuildConfig.DEBUG) {
                     getLogger().debug("kill: " + appInfo.getPackageName() + ", uid: " + uid + ", pid: " + pid + " >>> 子进程被杀");

@@ -19,3 +19,7 @@ fun afterHookAction(action: (p: MethodHookParam) -> Any?): AfterHookAction {
 fun replacementHookAction(action: (p: MethodHookParam) -> Any?): ReplacementHookAction {
     return ReplacementHookAction { param -> action(param) }
 }
+
+fun doNothingHookAction():DoNotingHookAction {
+    return DoNotingHookAction()
+}

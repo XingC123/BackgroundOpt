@@ -70,6 +70,20 @@ public class Process {
      **/
     public static final int THREAD_GROUP_RESTRICTED = 7;
 
+
+    public static final int PROC_TERM_MASK = 0xff;
+    public static final int PROC_ZERO_TERM = 0;
+    public static final int PROC_SPACE_TERM = (int) ' ';
+    public static final int PROC_TAB_TERM = (int) '\t';
+    public static final int PROC_NEWLINE_TERM = (int) '\n';
+    public static final int PROC_COMBINE = 0x100;
+    public static final int PROC_PARENS = 0x200;
+    public static final int PROC_QUOTES = 0x400;
+    public static final int PROC_CHAR = 0x800;
+    public static final int PROC_OUT_STRING = 0x1000;
+    public static final int PROC_OUT_LONG = 0x2000;
+    public static final int PROC_OUT_FLOAT = 0x4000;
+
     private Object process;
 
     public static Class<?> getProcess() {
@@ -199,6 +213,53 @@ public class Process {
                 MethodConstants.setThreadGroupAndCpuset,
                 tid,
                 group
+        );
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static final Class[] readProcFileParamClasses = new Class[]{
+            String.class, int[].class, String[].class, long[].class, float[].class
+    };
+
+    /**
+     * Read and parse a {@code proc} file in the given format.
+     *
+     * <p>The format is a list of integers, where every integer describes a variable in the file. It
+     * specifies how the variable is syntactically terminated (e.g. {@link Process#PROC_SPACE_TERM},
+     * {@link Process#PROC_TAB_TERM}, {@link Process#PROC_ZERO_TERM}, {@link
+     * Process#PROC_NEWLINE_TERM}).
+     *
+     * <p>If the variable should be parsed and returned to the caller, the termination type should
+     * be binary OR'd with the type of output (e.g. {@link Process#PROC_OUT_STRING}, {@link
+     * Process#PROC_OUT_LONG}, {@link Process#PROC_OUT_FLOAT}.
+     *
+     * <p>If the variable is wrapped in quotation marks it should be binary OR'd with {@link
+     * Process#PROC_QUOTES}. If the variable is wrapped in parentheses it should be binary OR'd with
+     * {@link Process#PROC_PARENS}.
+     *
+     * <p>If the variable is not formatted as a string and should be cast directly from characters
+     * to a long, the {@link Process#PROC_CHAR} integer should be binary OR'd.
+     *
+     * <p>If the terminating character can be repeated, the {@link Process#PROC_COMBINE} integer
+     * should be binary OR'd.
+     *
+     * @param file       the path of the {@code proc} file to read
+     * @param format     the format of the file
+     * @param outStrings the parsed {@code String}s from the file
+     * @param outLongs   the parsed {@code long}s from the file
+     * @param outFloats  the parsed {@code float}s from the file
+     */
+    public static void readProcFile(String file, int[] format,
+                                    String[] outStrings, long[] outLongs, float[] outFloats) {
+        XposedHelpers.callStaticMethod(
+                Process.getProcess(),
+                MethodConstants.readProcFile,
+                readProcFileParamClasses,
+                file,
+                format,
+                outStrings,
+                outLongs,
+                outFloats
         );
     }
 }

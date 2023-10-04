@@ -1,11 +1,13 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
+import com.venus.backgroundopt.hook.constants.ClassConstants;
+import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 
 import de.robv.android.xposed.XposedHelpers;
 
 /**
- * 对{@link com.venus.backgroundopt.hook.constants.ClassConstants#ProcessStateRecord}的包装
+ * 对{@link ClassConstants#ProcessStateRecord}的包装
  *
  * @author XingC
  * @date 2023/7/11
@@ -19,6 +21,10 @@ public class ProcessStateRecord {
 
     public ProcessStateRecord(Object processStateRecord) {
         this.processStateRecord = processStateRecord;
+    }
+
+    public static Object getProcessRecord(Object processStateRecord) {
+        return XposedHelpers.getObjectField(processStateRecord, FieldConstants.mApp);
     }
 
     public void setCurrentSchedulingGroup(int curSchedGroup) {
