@@ -10,6 +10,7 @@ import com.venus.backgroundopt.annotation.UsageComment;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
+import com.venus.backgroundopt.utils.concurrent.LockFlag;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.lang.reflect.Field;
@@ -22,6 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import de.robv.android.xposed.XC_MethodHook;
 
@@ -32,7 +35,7 @@ import de.robv.android.xposed.XC_MethodHook;
  * @version 1.0
  * @date 2023/2/8
  */
-public class AppInfo implements ILogger {
+public class AppInfo implements ILogger, LockFlag {
     /* *************************************************************************
      *                                                                         *
      * app基本信息                                                               *
@@ -347,5 +350,18 @@ public class AppInfo implements ILogger {
         if (BuildConfig.DEBUG) {
             getLogger().debug("设置ProcessRecord(" + mProcessRecord.getPackageName() + "-" + mProcessRecord.getPid() + ")");
         }
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 类锁                                                                     *
+     *                                                                         *
+     **************************************************************************/
+    private final ReentrantLock lock = new ReentrantLock();
+
+    @NonNull
+    @Override
+    public Lock getLock() {
+        return lock;
     }
 }

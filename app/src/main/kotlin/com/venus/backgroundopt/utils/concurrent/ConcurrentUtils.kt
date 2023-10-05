@@ -1,6 +1,8 @@
 package com.venus.backgroundopt.utils.concurrent
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReadWriteLock
 
 /**
  * @author XingC
@@ -44,3 +46,52 @@ inline fun <T : Any> T.lock(
 ) {
     lock(this, block)
 }
+
+/* *************************************************************************
+ *                                                                         *
+ * 读写锁                                                                   *
+ *                                                                         *
+ **************************************************************************/
+interface ReadWriteLockFlag {
+    fun getReadWriteLock(): ReadWriteLock
+}
+
+inline fun ReadWriteLockFlag.lock(block: () -> Unit) {
+    val readLock = getReadWriteLock().readLock()
+    readLock.lock()
+    try {
+        block()
+    } finally {
+        readLock.unlock()
+    }
+}
+
+inline fun ReadWriteLockFlag.writeLock(block: () -> Unit) {
+    val writeLock = getReadWriteLock().writeLock()
+    writeLock.lock()
+    try {
+        block()
+    } finally {
+        writeLock.unlock()
+    }
+}
+
+/* *************************************************************************
+ *                                                                         *
+ * 可重入锁                                                                  *
+ *                                                                         *
+ **************************************************************************/
+interface LockFlag {
+    fun getLock(): Lock
+}
+
+inline fun LockFlag.lock(block: () -> Unit) {
+    val lock = getLock()
+    lock.lock()
+    try {
+        block()
+    } finally {
+        lock.unlock()
+    }
+}
+

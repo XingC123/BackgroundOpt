@@ -227,7 +227,6 @@ public class ProcessManager implements ILogger {
             startForegroundAppTrimTask(appInfo.getmProcessRecord());
             return null;
         });
-
     }
 
     public void appIdle(AppInfo appInfo) {
