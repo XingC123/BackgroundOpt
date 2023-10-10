@@ -10,7 +10,7 @@ import com.venus.backgroundopt.annotation.UsageComment;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
-import com.venus.backgroundopt.utils.concurrent.LockFlag;
+import com.venus.backgroundopt.utils.concurrent.lock.LockFlag;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.lang.reflect.Field;
