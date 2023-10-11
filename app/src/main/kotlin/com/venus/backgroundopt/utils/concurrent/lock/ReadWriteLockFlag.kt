@@ -11,7 +11,7 @@ interface ReadWriteLockFlag {
     fun getReadWriteLock(): ReadWriteLock
 }
 
-inline fun ReadWriteLockFlag.lock(block: () -> Unit) {
+inline fun ReadWriteLockFlag.readLock(block: () -> Unit) {
     val readLock = getReadWriteLock().readLock()
     readLock.lock()
     try {

@@ -1,5 +1,10 @@
 package com.venus.backgroundopt.utils.concurrent
 
+import com.venus.backgroundopt.utils.concurrent.lock.LockFlag
+import com.venus.backgroundopt.utils.concurrent.lock.ReadWriteLockFlag
+import com.venus.backgroundopt.utils.concurrent.lock.lock
+import com.venus.backgroundopt.utils.concurrent.lock.readLock
+import com.venus.backgroundopt.utils.concurrent.lock.writeLock
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -34,14 +39,23 @@ inline fun lock(
 }
 
 /**
- * @see lock(lock: Any, block: () -> Unit)
+ * 对应[LockFlag.lock]
  *
- * @param T 任意对象。如果直接调用, 则是使用当前实例对象
- * @param block 代码块
+ * @param block 要执行的代码块
  */
-inline fun <T : Any> T.lock(
-    crossinline block: () -> Unit
-) {
-    lock(this, block)
-}
+inline fun LockFlag.lock(block: () -> Unit) = lock { block() }
+
+/**
+ * 对应[ReadWriteLockFlag.readLock]
+ *
+ * @param block 要执行的代码块
+ */
+inline fun ReadWriteLockFlag.readLock(block: () -> Unit) = readLock { block() }
+
+/**
+ * 对应[ReadWriteLockFlag.writeLock]
+ *
+ * @param block 要执行的代码块
+ */
+inline fun ReadWriteLockFlag.writeLock(block: () -> Unit) = writeLock { block() }
 
