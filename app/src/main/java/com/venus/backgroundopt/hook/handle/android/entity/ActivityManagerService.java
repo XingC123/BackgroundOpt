@@ -313,6 +313,9 @@ public class ActivityManagerService implements ILogger {
             }
         }
 
+        // pid纠察
+        ProcessRecordKt.correctProcessPid(mProcessRecord);
+
         return mProcessRecord;
     }
 

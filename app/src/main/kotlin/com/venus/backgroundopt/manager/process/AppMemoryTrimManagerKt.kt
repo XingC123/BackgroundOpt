@@ -83,6 +83,8 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
             return
         }
 
+        ProcessRecordKt.correctProcessPid(processRecordKt)
+
         // 移除后台任务
         removeBackgroundTask(processRecordKt)
 
@@ -127,6 +129,8 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
 
             return
         }
+
+        ProcessRecordKt.correctProcessPid(processRecordKt)
 
         // 移除前台任务
         removeForegroundTask(processRecordKt)
@@ -267,7 +271,6 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         trimLevel: Int,
         list: MutableSet<ProcessRecordKt>
     ) {
-        processRecordKt.removeIfRedundant(list)
         val result = processRecordKt.scheduleTrimMemory(trimLevel)
 
         if (result) {

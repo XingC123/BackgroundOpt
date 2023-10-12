@@ -7,6 +7,7 @@ import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.utils.concurrent.lock
 import com.venus.backgroundopt.utils.log.ILogger
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
@@ -76,11 +77,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                 // 根据默认规则压缩
                 var compactMethod: (processRecordKt: ProcessRecordKt) -> Boolean =
                     ::compactAppFull
-                val mainProcess = it.mainProcess
 
-                if (mainProcess) {
-                    it.removeIfRedundant(compactProcesses)
-                }
                 if (it.mainProcess || upgradeSubProcessNames.contains(it.processName)) {
                     val currentTime = System.currentTimeMillis()
                     if (!it.isAllowedCompact(currentTime)) {  // 若压缩间隔不满足, 则跳过等待下一轮
@@ -210,14 +207,17 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     }
 
     fun cancelCompactProcess(appInfo: AppInfo) {
-        val set = compactProcesses.filter { it.uid == appInfo.uid }.toSet()
-        if (set.isNotEmpty()) {
-            compactProcesses.removeAll(set).let {
-                if (it) {
-                    checkCompactTask()
+        var set: Set<ProcessRecordKt>? = null
+        appInfo.lock { set = compactProcesses.filter { it.uid == appInfo.uid }.toSet() }
+        set?.let { setFromUid ->
+            if (setFromUid.isNotEmpty()) {
+                compactProcesses.removeAll(setFromUid).also {
+                    if (it) {
+                        checkCompactTask()
 
-                    if (BuildConfig.DEBUG) {
-                        logger.debug("uid: ${set.first().uid} >>> 移除自待压缩列表")
+                        if (BuildConfig.DEBUG) {
+                            logger.debug("uid: ${setFromUid.first().uid} >>> 移除自待压缩列表")
+                        }
                     }
                 }
             }

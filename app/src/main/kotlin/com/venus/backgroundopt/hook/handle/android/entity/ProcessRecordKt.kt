@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.RunningInfo
+import com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
@@ -135,7 +136,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         /**
          * 获取pid
          *
-         * @param processRecord 安卓ProcessRecord
+         * @param processRecord 安卓ProcessRecord。确保传入的是非空的, 此处可空类型只是为了使用方便
          */
         @JvmStatic
         fun getPid(processRecord: Any?): Int {
@@ -194,8 +195,34 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          */
         @JvmStatic
         fun isValid(runningInfo: RunningInfo, processRecord: ProcessRecordKt): Boolean {
+            // pid是否合法
+            if (processRecord.pid <= 0) {
+                return false
+            }
+            // 主进程则查看当前应用内存分组
+            if (processRecord.mainProcess) {
+                return processRecord.appInfo.appGroupEnum != AppGroupEnum.DEAD
+            }
+            // 子进程在当前运行的app列表中来判断
             return runningInfo.getRunningAppInfo(processRecord.uid)
                 ?.getProcess(processRecord.pid) != null
+        }
+
+        /**
+         * processRecord.pid纠正
+         *
+         * @param processRecord 要纠正的ProcessRecord
+         */
+        @JvmStatic
+        fun correctProcessPid(processRecord: ProcessRecordKt?) {
+            processRecord ?: return
+
+            var curCorrectTimes = 1
+            while (curCorrectTimes <= 5 && processRecord.pid <= 0) {
+                processRecord.pid = getPid(processRecord.processRecord)
+                curCorrectTimes++
+                TimeUnit.MILLISECONDS.sleep(20)
+            }
         }
     }
 
@@ -431,31 +458,14 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         lastCompactTimeAtomicLong.set(time)
     }
 
-    /* *************************************************************************
-     *                                                                         *
-     * 若过早获取ProcessRecord, 可能导致pid=0, 因此需要进行修正                       *
-     *                                                                         *
-     **************************************************************************/
-    // 修正之前会有一个多余但是正确pid的进程记录, 那么使用这个进程进行修正
-    @JSONField(serialize = false)
-    var redundantProcessRecord: ProcessRecordKt? = null
-
-    fun correctMainProcess() {
-        pid = activityManagerService.findMProcessRecord(packageName, uid).pid
-    }
-
-    fun removeIfRedundant(collection: MutableCollection<ProcessRecordKt>) {
-        redundantProcessRecord?.let { collection.remove(it) }
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
         val that = other as ProcessRecordKt
-        return uid == that.uid && pid == that.pid && userId == that.userId && processName == that.processName && packageName == that.packageName
+        return uid == that.uid && pid == that.pid && processName == that.processName && packageName == that.packageName
     }
 
     override fun hashCode(): Int {
-        return Objects.hash(uid, pid, processName, userId, packageName)
+        return Objects.hash(uid, pid, processName, packageName)
     }
 }

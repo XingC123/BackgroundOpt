@@ -7,7 +7,6 @@ import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.annotation.UsageComment;
-import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.utils.concurrent.lock.LockFlag;
@@ -25,8 +24,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import de.robv.android.xposed.XC_MethodHook;
 
 /**
  * app信息
@@ -115,9 +112,9 @@ public class AppInfo implements ILogger, LockFlag {
     public ProcessRecordKt addProcess(@NonNull ProcessRecordKt processRecord) {
         return processRecordMap.computeIfAbsent(processRecord.getPid(), k -> {
             ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
-//            if (processRecord.getMainProcess()) {
-//                setmProcessRecord(processRecord);
-//            }
+            if (processRecord.getMainProcess()) {
+                setmProcessRecord(processRecord);
+            }
             processRecord.setAppInfo(this);
             return processRecord;
         });
@@ -156,31 +153,6 @@ public class AppInfo implements ILogger, LockFlag {
         return processRecordMap;
     }
 
-    /**
-     * 安卓ProcessRecord的pid并不是在构造方法中赋值, 而是使用了setPid(int pid)的方式
-     * 因而可能导致 {@link ActivityManagerServiceHook#handleAppSwitch(XC_MethodHook.MethodHookParam)} 获取的主进程pid=0
-     */
-    public ProcessRecordKt correctMainProcess(int correctPid) {
-        try {
-            return processRecordMap.computeIfPresent(correctPid, ((pid, redundantProcessRecord) -> {
-                int mPid;
-                if (getmProcess() == null || (mPid = getmPid()) == correctPid) {
-                    return redundantProcessRecord;
-                }
-                ProcessRecordKt process = removeProcess(mPid);
-                process.setPid(correctPid);
-                process.setRedundantProcessRecord(redundantProcessRecord);
-
-                if (BuildConfig.DEBUG) {
-                    getLogger().warn("pid: " + correctPid + "所在ProcessRecord已进行修正");
-                }
-                return process;
-            }));
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     public ApplicationIdentity getApplicationIdentity() {
         return new ApplicationIdentity(userId, packageName);
     }
@@ -194,31 +166,17 @@ public class AppInfo implements ILogger, LockFlag {
         return this.mProcessRecord.getFixedOomAdjScore();
     }
 
-    @Nullable
-    public ProcessRecordKt getmProcess() {
-        return mProcessRecord;
-    }
-
-    /**
-     * 设置主进程信息
-     */
-    public void setMProcessAndAdd(@NonNull ProcessRecordKt processRecord) {
-        // 保存主进程
-        setmProcessRecord(processRecord);
-        addProcess(processRecord);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AppInfo appInfo = (AppInfo) o;
-        return uid == appInfo.uid && userId == appInfo.userId && Objects.equals(packageName, appInfo.packageName);
+        return uid == appInfo.uid && Objects.equals(packageName, appInfo.packageName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(uid, packageName, userId);
+        return Objects.hash(uid, packageName);
     }
 
     @NonNull
@@ -262,7 +220,10 @@ public class AppInfo implements ILogger, LockFlag {
                 } else if (obj instanceof AtomicReference<?> ap) {
                     ap.set(null);
                 }
-                field.set(this, null);
+
+                if (!(obj instanceof AppGroupEnum)) {
+                    field.set(this, null);
+                }
             }
         } catch (Throwable t) {
             if (BuildConfig.DEBUG) {    // 正式发布版无需关注这里
@@ -340,6 +301,7 @@ public class AppInfo implements ILogger, LockFlag {
         }
     }
 
+    @Nullable
     public ProcessRecordKt getmProcessRecord() {
         return mProcessRecord;
     }
