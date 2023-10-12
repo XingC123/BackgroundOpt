@@ -10,7 +10,6 @@ import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.Process
 import com.venus.backgroundopt.manager.process.ProcessManager
-import com.venus.backgroundopt.utils.concurrent.lock
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
@@ -55,26 +54,27 @@ class ProcessHookKt(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
 
     private fun handleKillApp(param: MethodHookParam) {
         val uid = param.args[0] as Int
-        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
-
         val pid = param.args[1] as Int
-        val processRecordKt = appInfo.getProcess(pid)
-        val mainProcess = processRecordKt?.mainProcess ?: false
-        val packageName = appInfo.packageName
+        val appInfo = runningInfo.getRunningAppInfo(uid)
 
-        if (mainProcess) {
-            runningInfo.removeRunningApp(appInfo)
-            if (BuildConfig.DEBUG) {
-                logger.debug("kill: ${packageName}, uid: $uid >>> 杀死App")
+        appInfo?.let {
+            var mPid = Int.MIN_VALUE
+            try {
+                mPid = appInfo.getmPid()
+            } catch (ignore: Exception) {
             }
-        } else {
-            appInfo.lock {
-                // 移除进程记录
-                val process = appInfo.removeProcess(pid)
-                // 取消进程的待压缩任务
-                runningInfo.processManager.cancelCompactProcess(process)
+            if (mPid == Int.MIN_VALUE) {
                 if (BuildConfig.DEBUG) {
-                    logger.debug("kill: ${packageName}, uid: ${uid}, pid: $pid >>> 子进程被杀")
+                    logger.warn("kill: ${appInfo.packageName}, uid: $uid >>>  mpid获取失败")
+                }
+            } else if (pid != mPid) {   // 处理子进程
+                // 移除进程记录
+                val processInfo = appInfo.removeProcess(pid)
+                // 取消进程的待压缩任务
+                runningInfo.processManager.cancelCompactProcess(processInfo)
+
+                if (BuildConfig.DEBUG) {
+                    logger.debug("kill: ${appInfo.packageName}, uid: ${uid}, pid: $pid >>> 子进程被杀")
                 }
             }
         }

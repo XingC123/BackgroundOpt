@@ -5,6 +5,7 @@ import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
+import com.venus.backgroundopt.hook.base.action.afterHookAction
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
@@ -32,22 +33,22 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
 //                String::class.java, /* packageName */
 //                Int::class.java /* userId */
 //            ),
-//            HookPoint(
-//                ClassConstants.ActivityManagerService,
-//                MethodConstants.cleanUpApplicationRecordLocked,
-//                arrayOf(
-//                    afterHookAction {
-//                        handleCleanUpApplicationRecordLocked(it)
-//                    }
-//                ),
-//                ClassConstants.ProcessRecord,
-//                Int::class.java,    /* pid */
-//                Boolean::class.java,    /* restarting */
-//                Boolean::class.java,    /* allowRestart */
-//                Int::class.java,    /* index */
-//                Boolean::class.java,    /* replacingPid */
-//                Boolean::class.java /* fromBinderDied */
-//            ),
+            HookPoint(
+                ClassConstants.ActivityManagerService,
+                MethodConstants.cleanUpApplicationRecordLocked,
+                arrayOf(
+                    afterHookAction {
+                        handleCleanUpApplicationRecordLocked(it)
+                    }
+                ),
+                ClassConstants.ProcessRecord,
+                Int::class.java,    /* pid */
+                Boolean::class.java,    /* restarting */
+                Boolean::class.java,    /* allowRestart */
+                Int::class.java,    /* index */
+                Boolean::class.java,    /* replacingPid */
+                Boolean::class.java /* fromBinderDied */
+            ),
             HookPoint(
                 ClassConstants.ActivityManagerService,
                 MethodConstants.killProcessesBelowAdj,
