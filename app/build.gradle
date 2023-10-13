@@ -71,12 +71,12 @@ def generateSuffix() {
 
 android {
     namespace 'com.venus.backgroundopt'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.venus.backgroundopt"
         minSdk 31
-        targetSdk 33
+        targetSdk 34
         versionCode generateVersionCode()
         versionName generateVersionName() + "_vc${versionCode}"
 
