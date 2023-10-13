@@ -20,6 +20,7 @@ import java.util.Set;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 
 /**
@@ -36,6 +37,8 @@ public class HookPoint implements ILogger {
 
     private final String className;
     private final String methodName;
+
+    private boolean hookAllMatchedMethod = false;
 
     private final HookAction[] hookActions;
 
@@ -89,10 +92,18 @@ public class HookPoint implements ILogger {
             if (methodType == MethodType.Constructor) {
                 XposedHelpers.findAndHookConstructor(hookClassName, classLoader, this.getFinalArgs(hookAction));
             } else {
-                XposedHelpers.findAndHookMethod(
-                        hookClassName, classLoader, hookMethodName,
-                        this.getFinalArgs(hookAction)
-                );
+                if (hookAllMatchedMethod) {
+                    XposedBridge.hookAllMethods(
+                            XposedHelpers.findClass(hookClassName, classLoader),
+                            hookMethodName,
+                            this.getFinalXCMethodHook(hookAction)
+                    );
+                } else {
+                    XposedHelpers.findAndHookMethod(
+                            hookClassName, classLoader, hookMethodName,
+                            this.getFinalArgs(hookAction)
+                    );
+                }
             }
 
             if (!dontPrintLogHookList.contains(hookClassName + "." + hookMethodName)) {
@@ -109,6 +120,12 @@ public class HookPoint implements ILogger {
         // 处理hook方法的参数类型
         List<Object> params = new ArrayList<>(Arrays.asList(this.getActionArgs()));
         // 将动作方法添加到hook方法传参数类型中
+        params.add(getFinalXCMethodHook(hookAction));
+
+        return params.toArray();
+    }
+
+    private XC_MethodHook getFinalXCMethodHook(HookAction hookAction) {
         XC_MethodHook xc_methodHook;
         if (hookAction instanceof BeforeHookAction) {
             xc_methodHook = new XC_MethodHook() {
@@ -141,9 +158,7 @@ public class HookPoint implements ILogger {
             throw new IllegalArgumentException("hookAction 类型错误");
         }
 
-        params.add(xc_methodHook);
-
-        return params.toArray();
+        return xc_methodHook;
     }
 
     public String getClassName() {
@@ -160,5 +175,14 @@ public class HookPoint implements ILogger {
 
     public Object[] getActionArgs() {
         return actionArgs;
+    }
+
+    public boolean isHookAllMatchedMethod() {
+        return hookAllMatchedMethod;
+    }
+
+    public HookPoint setHookAllMatchedMethod(boolean hookAllMatchedMethod) {
+        this.hookAllMatchedMethod = hookAllMatchedMethod;
+        return this;
     }
 }
