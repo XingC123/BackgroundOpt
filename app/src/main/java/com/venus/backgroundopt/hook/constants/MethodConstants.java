@@ -36,6 +36,7 @@ public interface MethodConstants {
     String get = "get";
     String getBoolean = "getBoolean";
     String setOverrideMaxCachedProcesses = "setOverrideMaxCachedProcesses";
+    String updateMaxCachedProcesses = "updateMaxCachedProcesses";
     String getProperty = "getProperty";
     String sendSignal = "sendSignal";
     String getActiveLauncherPackageName = "getActiveLauncherPackageName";
@@ -77,6 +78,7 @@ public interface MethodConstants {
     String trimInactiveRecentTasks = "trimInactiveRecentTasks";
     String setCurRawAdj = "setCurRawAdj";
     String readMemoryStatFromFilesystem = "readMemoryStatFromFilesystem";
+    String getInteger = "getInteger";
 
     /**
      * miui

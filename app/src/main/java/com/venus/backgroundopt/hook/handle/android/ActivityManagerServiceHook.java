@@ -57,11 +57,12 @@ public class ActivityManagerServiceHook extends MethodHook {
                                 (BeforeHookAction) this::handleAppSwitch
                         },
                         ClassConstants.ComponentName,   /* activity */
-                        int.class,  /* userId */
-                        int.class,  /* event */
-                        ClassConstants.IBinder, /* appToken ActivityRecord's appToken */
-                        ClassConstants.ComponentName    /* taskRoot Task's root */
-                ),
+                        int.class,                      /* userId */
+                        int.class,                      /* event */
+                        ClassConstants.IBinder,         /* appToken ActivityRecord's appToken */
+                        ClassConstants.ComponentName,   /* taskRoot Task's root */
+                        ClassConstants.ActivityId       /* (始于安卓14)activityId */
+                ).setHookAllMatchedMethod(true),
                 new HookPoint(
                         ClassConstants.ActivityManagerService,
                         MethodConstants.checkExcessivePowerUsageLPr,

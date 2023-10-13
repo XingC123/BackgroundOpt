@@ -35,6 +35,9 @@ public class AndroidHookHandler extends PackageHook {
         ClassLoader classLoader = packageParam.classLoader;
         RunningInfo runningInfo = new RunningInfo(classLoader);
 
+        // 资源Hook
+//        new ResourcesHook(classLoader, runningInfo);
+
         // hook获取
         new DeviceConfigHook(classLoader, runningInfo);
 

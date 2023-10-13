@@ -46,6 +46,8 @@ public interface ClassConstants {
     String RoleControllerManager = "android.app.role.RoleControllerManager";
     String RemoteCallback = "android.os.RemoteCallback";
     String IApplicationThread = "android.app.IApplicationThread";
+    String ActivityId = "android.app.assist.ActivityId";
+    String Resources = "android.content.res.Resources";
 
     /**
      * miui

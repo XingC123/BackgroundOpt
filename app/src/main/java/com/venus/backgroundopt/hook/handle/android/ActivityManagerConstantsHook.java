@@ -31,7 +31,7 @@ public class ActivityManagerConstantsHook extends MethodHook {
 
     @Override
     public HookPoint[] getHookPoint() {
-        return new HookPoint[] {
+        return new HookPoint[]{
                 new HookPoint(
                         ClassConstants.ActivityManagerConstants,
                         MethodConstants.setOverrideMaxCachedProcesses,
@@ -49,7 +49,7 @@ public class ActivityManagerConstantsHook extends MethodHook {
                 new HookPoint(
                         ClassConstants.ActivityManagerConstants,
                         new HookAction[]{
-                                (AfterHookAction) this::setAMCArgs
+                                (AfterHookAction) this::handleAfterConstructorActivityManagerConstants,
                         },
                         Context.class,
                         ClassConstants.ActivityManagerService,
@@ -58,30 +58,41 @@ public class ActivityManagerConstantsHook extends MethodHook {
         };
     }
 
-    private Object setAMCArgs(XC_MethodHook.MethodHookParam param) {
-        setMCustomizedMaxCachedProcesses(param);
-        setCUR_MAX_CACHED_PROCESSES(param);
-        setDEFAULT_MAX_CACHED_PROCESSES(param);
+    private Object handleAfterConstructorActivityManagerConstants(XC_MethodHook.MethodHookParam param) {
+        /*
+            1. mCustomizedMaxCachedProcesses已通过Resources.getInteger进行处理
+            2. CUR_MAX_CACHED_PROCESSES无论是构造方法还是ActivityManagerConstants.updateMaxCachedProcesses()都取决于其他参数。
+                而其它参数都已经被处理
+            3. CUR_TRIM_CACHED_PROCESSES计算方式为:(Integer.min(CUR_MAX_CACHED_PROCESSES, MAX_CACHED_PROCESSES) - rawMaxEmptyProcesses) / 3
+         */
+//        setCUR_TRIM_CACHED_PROCESSES(param);
+//        setCUR_MAX_CACHED_PROCESSES(param); // 保险起见
         setMOverrideMaxCachedProcesses(param);
 
         return null;
     }
 
+    private void setMAX_CACHED_PROCESSES(XC_MethodHook.MethodHookParam param) {
+        setValue(param, FieldConstants.MAX_CACHED_PROCESSES, Integer.MAX_VALUE);
+    }
+
     /**
-     * 避免因已缓存应用数量过多而导致杀后台事件发生
+     * 设置: CUR_TRIM_CACHED_PROCESSES
+     */
+    private void setCUR_TRIM_CACHED_PROCESSES(XC_MethodHook.MethodHookParam param) {
+        setValue(param, FieldConstants.CUR_TRIM_CACHED_PROCESSES, Integer.MAX_VALUE);
+    }
+
+    /**
+     * 设置: CUR_MAX_CACHED_PROCESSES
      */
     private void setCUR_MAX_CACHED_PROCESSES(XC_MethodHook.MethodHookParam param) {
-        setValue(param, FieldConstants.CUR_MAX_CACHED_PROCESSES, Integer.MAX_VALUE);
+        setValue(param, FieldConstants.CUR_TRIM_CACHED_PROCESSES, Integer.MAX_VALUE);
     }
 
-    private void setMCustomizedMaxCachedProcesses(XC_MethodHook.MethodHookParam param) {
-        setValue(param, FieldConstants.mCustomizedMaxCachedProcesses, Integer.MAX_VALUE);
-    }
-
-    private void setDEFAULT_MAX_CACHED_PROCESSES(XC_MethodHook.MethodHookParam param) {
-        setValue(param, FieldConstants.DEFAULT_MAX_CACHED_PROCESSES, Integer.MAX_VALUE);
-    }
-
+    /**
+     * 设置: mOverrideMaxCachedProcesses
+     */
     private void setMOverrideMaxCachedProcesses(XC_MethodHook.MethodHookParam param) {
         setValue(param, FieldConstants.mOverrideMaxCachedProcesses, Integer.MAX_VALUE);
     }
@@ -97,7 +108,7 @@ public class ActivityManagerConstantsHook extends MethodHook {
                 getLogger().warn(field + "设置失败");
             }
         } catch (Throwable t) {
-            getLogger().warn(field + "设置出现异常");
+            getLogger().warn(field + "设置出现异常", t);
         }
     }
 
