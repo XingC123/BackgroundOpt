@@ -52,4 +52,9 @@ public interface FieldConstants {
     String mProcLock = "mProcLock";
 
     String PROCESS_CLEANER_ENABLED = "PROCESS_CLEANER_ENABLED";
+    String pgfault = "pgfault";
+    String pgmajfault = "pgmajfault";
+    String rssInBytes = "rssInBytes";
+    String cacheInBytes = "cacheInBytes";
+    String swapInBytes = "swapInBytes";
 }

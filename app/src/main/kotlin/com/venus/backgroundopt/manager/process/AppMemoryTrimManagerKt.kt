@@ -135,6 +135,8 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         // 移除前台任务
         removeForegroundTask(processRecordKt)
 
+        processRecordKt.updateRssInBytes()
+
         val add = backgroundTasks.add(processRecordKt)
 
         if (BuildConfig.DEBUG) {
@@ -194,7 +196,14 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
             removeTaskImpl(processRecordKt, trimManagerName, list, "进程不合法")
             return
         }
-        block()
+
+        if (processRecordKt.isNecessaryToOptimize()) {
+            block()
+        } else {
+            if (BuildConfig.DEBUG) {
+                logger.debug("uid: ${processRecordKt.uid}, pid: ${processRecordKt.pid}, 包名: ${processRecordKt.packageName}不需要优化")
+            }
+        }
     }
 
     /**

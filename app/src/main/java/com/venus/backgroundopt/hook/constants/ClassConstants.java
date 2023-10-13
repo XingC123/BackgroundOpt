@@ -11,6 +11,9 @@ public interface ClassConstants {
      */
     String ActivityManagerService = "com.android.server.am.ActivityManagerService";
     String ActivityManagerConstants = "com.android.server.am.ActivityManagerConstants";
+
+    String MemoryStatUtil = "com.android.server.am.MemoryStatUtil";
+    String MemoryStat = "com.android.server.am.MemoryStatUtil.MemoryStat";
     String PhantomProcessList = "com.android.server.am.PhantomProcessList";
     String ProcessCachedOptimizerRecord = "com.android.server.am.ProcessCachedOptimizerRecord";
     String ActivityManagerShellCommand = "com.android.server.am.ActivityManagerShellCommand";

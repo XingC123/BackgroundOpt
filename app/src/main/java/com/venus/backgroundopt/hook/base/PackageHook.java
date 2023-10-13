@@ -16,7 +16,7 @@ public abstract class PackageHook implements ILogger {
     private final RunningInfo runningInfo;
 
     public PackageHook(XC_LoadPackage.LoadPackageParam packageParam) {
-        this.runningInfo = new RunningInfo();
+        this.runningInfo = new RunningInfo(packageParam.classLoader);
 
         // 更新RunningInfo内的hook次数
         this.runningInfo.updateHookTimes();

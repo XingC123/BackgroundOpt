@@ -76,6 +76,7 @@ public interface MethodConstants {
     String killProcessesBelowAdj = "killProcessesBelowAdj";
     String trimInactiveRecentTasks = "trimInactiveRecentTasks";
     String setCurRawAdj = "setCurRawAdj";
+    String readMemoryStatFromFilesystem = "readMemoryStatFromFilesystem";
 
     /**
      * miui

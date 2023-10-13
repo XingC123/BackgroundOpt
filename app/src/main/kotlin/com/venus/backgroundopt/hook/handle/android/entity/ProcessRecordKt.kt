@@ -411,6 +411,45 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
     /* *************************************************************************
      *                                                                         *
+     * 进程内存调节                                                              *
+     *                                                                         *
+     **************************************************************************/
+    @JSONField(serialize = false)
+    var rssInBytes = Long.MIN_VALUE
+
+    fun updateRssInBytes() {
+        rssInBytes =
+            MemoryStatUtil.readMemoryStatFromFilesystem(uid, pid)?.rssInBytes ?: Long.MIN_VALUE
+    }
+
+    /**
+     * 先获当前值, 再更新值
+     *
+     * @return 返回这次更新前的值
+     */
+    fun getAndUpdateRssInBytes():Long {
+        val bytes = rssInBytes
+        updateRssInBytes()
+        return bytes
+    }
+
+    /**
+     * 是否需要应用内存调整
+     *
+     * @return true if necessary
+     */
+    @JSONField(serialize = false)
+    fun isNecessaryToOptimize(): Boolean {
+        val bytes = getAndUpdateRssInBytes()
+        // 只有成功获取当前已用内存时才进行按比率判断, 其他情况直接默认处理
+        return if (bytes == Long.MIN_VALUE) true else
+            MemoryStatUtil.readMemoryStatFromFilesystem(uid, pid)?.let { memoryStat ->
+                (memoryStat.rssInBytes / bytes.toDouble()) > 0.5
+            } ?: true
+    }
+
+    /* *************************************************************************
+     *                                                                         *
      * 独立于安卓原本ProcessRecord的字段                                           *
      *                                                                         *
      **************************************************************************/

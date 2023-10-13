@@ -74,6 +74,13 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                     return@forEach
                 }
 
+                if (!it.isNecessaryToOptimize()) {
+                    if (BuildConfig.DEBUG) {
+                        logger.debug("uid: ${it.uid}, pid: ${it.pid}, 包名: ${it.packageName}不需要优化")
+                    }
+                    return@forEach
+                }
+
                 // 根据默认规则压缩
                 var compactMethod: (processRecordKt: ProcessRecordKt) -> Boolean =
                     ::compactAppFull
@@ -182,7 +189,10 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         processRecordKt: ProcessRecordKt,
         lastCompactTime: Long = System.currentTimeMillis()
     ) {
-        compactProcesses.add(processRecordKt.also { it.setLastCompactTime(lastCompactTime) })
+        compactProcesses.add(processRecordKt.also {
+            it.setLastCompactTime(lastCompactTime)
+            it.updateRssInBytes()
+        })
     }
 
     /**

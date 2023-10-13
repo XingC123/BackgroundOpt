@@ -36,7 +36,23 @@ import java.util.stream.Collectors;
  * @date 2023/2/10
  */
 public class RunningInfo implements ILogger {
-    public RunningInfo() {
+    private static RunningInfo runningInfo;
+
+    @NonNull
+    public static RunningInfo getInstance() {
+        return runningInfo;
+    }
+
+    public RunningInfo(ClassLoader classLoader) {
+        runningInfo = this;
+        this.classLoader = classLoader;
+    }
+
+    private final ClassLoader classLoader;
+
+    @NonNull
+    public ClassLoader getClassLoader() {
+        return classLoader;
     }
 
     /**
