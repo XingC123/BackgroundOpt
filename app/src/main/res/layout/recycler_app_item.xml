@@ -44,7 +44,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
-                    android:text="tip1" />
+                    android:text="tip1"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/appItemText1"
@@ -71,7 +72,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="0"
-                        android:text="@string/appItemTipText2" />
+                        android:text="@string/appItemTipText2"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/appItemText2"
@@ -91,7 +93,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="0"
-                        android:text="@string/appItemTipText3" />
+                        android:text="@string/appItemTipText3"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/appItemText3"
@@ -110,7 +113,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="0"
-                        android:text="@string/appItemTipText4" />
+                        android:text="@string/appItemTipText4"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/appItemText4"
