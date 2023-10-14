@@ -1,6 +1,7 @@
 package com.venus.backgroundopt.utils
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -107,6 +108,24 @@ fun getToolbar(
             this.navigationIcon = navigationIcon
         }
         setNavigationOnClickListener(navigationOnClickListener)
+    }
+}
+
+object UiUtils {
+    /**
+     * 创建对话框
+     *
+     * @param context 当前上下文
+     * @param viewResId 布局文件资源id
+     * @param cancelable 对话框是否可以取消
+     * @return [AlertDialog]
+     */
+    @JvmOverloads
+    fun createDialog(context: Context, viewResId: Int, cancelable: Boolean = true): AlertDialog {
+        return AlertDialog.Builder(context)
+            .setCancelable(cancelable)
+            .setView(getView(context, viewResId))
+            .create()
     }
 }
 

@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit
 class AppCompactManager(// 封装的CachedAppOptimizer
     private val cachedAppOptimizer: CachedAppOptimizer,
     private val runningInfo: RunningInfo
-) : ILogger {
+) : AbstractAppOptimizeManager(), ILogger {
     companion object {
         // 默认压缩级别
         const val DEFAULT_COMPACT_LEVEL = CachedAppOptimizer.COMPACT_ACTION_ANON
@@ -67,16 +67,16 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         compactScheduledFuture = executor.scheduleWithFixedDelay({
             var compactCount = 0
             val upgradeSubProcessNames = CommonProperties.getUpgradeSubProcessNames()
-            compactProcesses.forEach {
+            compactProcesses.forEach { process ->
                 // 检验合法性
-                if (!ProcessRecordKt.isValid(runningInfo, it)) {
-                    cancelCompactProcess(it, "进程不合法")
+                if (!ProcessRecordKt.isValid(runningInfo, process)) {
+                    cancelCompactProcess(process, "进程不合法")
                     return@forEach
                 }
 
-                if (!it.isNecessaryToOptimize()) {
+                if (!process.isNecessaryToOptimize()) {
                     if (BuildConfig.DEBUG) {
-                        logger.debug("uid: ${it.uid}, pid: ${it.pid}, 包名: ${it.packageName}不需要优化")
+                        logger.debug("uid: ${process.uid}, pid: ${process.pid}, 包名: ${process.packageName}不需要优化")
                     }
                     return@forEach
                 }
@@ -85,15 +85,15 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                 var compactMethod: (processRecordKt: ProcessRecordKt) -> Boolean =
                     ::compactAppFull
 
-                if (it.mainProcess || upgradeSubProcessNames.contains(it.processName)) {
+                if (process.mainProcess || upgradeSubProcessNames.contains(process.processName)) {
                     val currentTime = System.currentTimeMillis()
-                    if (!it.isAllowedCompact(currentTime)) {  // 若压缩间隔不满足, 则跳过等待下一轮
+                    if (!process.isAllowedCompact(currentTime)) {  // 若压缩间隔不满足, 则跳过等待下一轮
                         return@forEach
                     }
                     // 压缩条件由ProcessInfo.isAllowedCompact判断。因此, 符合条件后直接调用压缩
                     compactMethod = ::compactAppFullNoCheck
 
-                    it.setLastCompactTime(currentTime)
+                    process.setLastCompactTime(currentTime)
                 }
                 /*
                     result: 0 -> 异常
@@ -102,17 +102,17 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                  */
                 var result = 2
                 try {
-                    result = if (compactMethod(it)) 1 else 2
+                    result = if (compactMethod(process)) 1 else 2
                     if (BuildConfig.DEBUG) {
                         if (result == 1) {
-                            logger.debug("uid: ${it.uid}, pid: ${it.pid} >>> 因[OOM_SCORE] 而内存压缩")
+                            logger.debug("uid: ${process.uid}, pid: ${process.pid} >>> 因[OOM_SCORE] 而内存压缩")
                         }
                     }
                 } catch (t: Throwable) {
                     result = 0
                     if (BuildConfig.DEBUG) {
                         logger.warn(
-                            "uid: ${it.uid}, pid: ${it.pid} >>> 因[OOM_SCORE] 而内存压缩: 发生异常!压缩执行失败或进程已停止",
+                            "uid: ${process.uid}, pid: ${process.pid} >>> 因[OOM_SCORE] 而内存压缩: 发生异常!压缩执行失败或进程已停止",
                             t
                         )
                     }
@@ -120,9 +120,12 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                     if (result == 1 || result == 0) {
                         // 若启用自动停止 或 执行异常, 则进行移除
                         if (autoStopCompactCheck || result == 0) {
-                            cancelCompactProcess(it)
+                            cancelCompactProcess(process)
                         }
                         compactCount++
+                        updateProcessLastProcessingResult(process) {
+                            it.lastProcessingCode = result
+                        }
                     }
                 }
             }
@@ -203,6 +206,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         processRecordKt?.let { process ->
             compactProcesses.remove(process).also {
                 if (it) {
+                    removeProcessLastProcessingResult(processRecordKt)
                     checkCompactTask()
 
                     if (BuildConfig.DEBUG) {
@@ -223,6 +227,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
             if (setFromUid.isNotEmpty()) {
                 compactProcesses.removeAll(setFromUid).also {
                     if (it) {
+                        removeProcessLastProcessingResultFromSet(setFromUid)
                         checkCompactTask()
 
                         if (BuildConfig.DEBUG) {

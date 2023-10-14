@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.entity.base
 
+import com.venus.backgroundopt.manager.process.ProcessingResult
 import com.venus.backgroundopt.utils.message.MessageFlag
 
 /**
@@ -33,6 +34,8 @@ open class BaseProcessInfoKt(
 
     lateinit var packageName: String
     lateinit var processName: String
+
+    var processingResult: ProcessingResult? = null
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
