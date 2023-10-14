@@ -458,11 +458,8 @@ public class RunningInfo implements ILogger {
     }
 
     public void putIntoTmpAppGroup(AppInfo appInfo) {
-        tmpAppGroup.add(appInfo);
         activeAppGroup.remove(appInfo);
 //        idleAppGroup.remove(appInfo); // 没有app在后台也能进入这个方法吧
-
-        appInfo.setAppGroupEnum(AppGroupEnum.TMP);
 
         /*
             息屏触发 UsageEvents.Event.ACTIVITY_PAUSED 事件。则对当前app按照进入后台处理
@@ -472,6 +469,9 @@ public class RunningInfo implements ILogger {
         if (!getPowerManager().isInteractive()) {
             putIntoIdleAppGroup(appInfo);
         } else {
+            tmpAppGroup.add(appInfo);
+            appInfo.setAppGroupEnum(AppGroupEnum.TMP);
+
             if (BuildConfig.DEBUG) {
                 getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入TmpGroup");
             }
