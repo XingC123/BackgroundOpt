@@ -65,7 +65,10 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:background="@drawable/border"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/padding_horizontal_if_use_border"
+                    android:paddingVertical="@dimen/padding_vertical_if_use_border">
 
                     <TextView
                         android:id="@+id/appItemTipText2"
@@ -86,7 +89,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
-                    android:orientation="horizontal">
+                    android:background="@drawable/border"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/padding_horizontal_if_use_border"
+                    android:paddingVertical="@dimen/padding_vertical_if_use_border">
 
                     <TextView
                         android:id="@+id/appItemTipText3"
@@ -106,7 +112,10 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="horizontal">
+                    android:background="@drawable/border"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/padding_horizontal_if_use_border"
+                    android:paddingVertical="@dimen/padding_vertical_if_use_border">
 
                     <TextView
                         android:id="@+id/appItemTipText4"
