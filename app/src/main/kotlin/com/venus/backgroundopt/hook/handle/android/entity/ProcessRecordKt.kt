@@ -427,8 +427,10 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
      *
      * @return 返回这次更新前的值
      */
-    fun getAndUpdateRssInBytes():Long {
+    @JSONField(serialize = false)
+    fun getAndUpdateRssInBytes(): Long {
         val bytes = rssInBytes
+        // 更新
         updateRssInBytes()
         return bytes
     }
@@ -441,11 +443,14 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     @JSONField(serialize = false)
     fun isNecessaryToOptimize(): Boolean {
         val bytes = getAndUpdateRssInBytes()
+        var b = true
         // 只有成功获取当前已用内存时才进行按比率判断, 其他情况直接默认处理
-        return if (bytes == Long.MIN_VALUE) true else
+        if (bytes != Long.MIN_VALUE) {
             MemoryStatUtil.readMemoryStatFromFilesystem(uid, pid)?.let { memoryStat ->
-                (memoryStat.rssInBytes / bytes.toDouble()) > 0.5
-            } ?: true
+                b = (memoryStat.rssInBytes / bytes.toDouble()) > 0.5
+            }
+        }
+        return b
     }
 
     /* *************************************************************************
