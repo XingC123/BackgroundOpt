@@ -138,6 +138,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:divider="@drawable/item_space_vertical"
+                    android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:showDividers="middle">
 
