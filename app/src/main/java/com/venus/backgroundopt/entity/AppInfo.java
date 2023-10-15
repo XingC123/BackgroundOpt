@@ -63,6 +63,7 @@ public class AppInfo implements ILogger, LockFlag {
     private volatile ProcessRecordKt mProcessRecord;   // 主进程记录
 
     private final AtomicInteger appSwitchEvent = new AtomicInteger(Integer.MIN_VALUE); // app切换事件
+    private final AtomicBoolean activityStoppedEvent = new AtomicBoolean(false); // activity_stopped
 
     private final AtomicBoolean switchEventHandled = new AtomicBoolean(false);    // 切换事件处理完毕
 
@@ -299,6 +300,14 @@ public class AppInfo implements ILogger, LockFlag {
         if (BuildConfig.DEBUG) {
             getLogger().debug(packageName + " 切换状态 ->>> " + appSwitchEvent);
         }
+    }
+
+    public boolean isActivityStopped() {
+        return activityStoppedEvent.get();
+    }
+
+    public void setActivityStoppedEvent(boolean stoppedEvent) {
+        activityStoppedEvent.set(stoppedEvent);
     }
 
     @Nullable

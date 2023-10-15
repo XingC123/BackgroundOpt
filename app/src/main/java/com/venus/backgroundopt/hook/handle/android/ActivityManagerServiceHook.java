@@ -1,12 +1,8 @@
 package com.venus.backgroundopt.hook.handle.android;
 
-import static com.venus.backgroundopt.entity.RunningInfo.NormalAppResult;
-
 import android.app.usage.UsageEvents;
-import android.content.ComponentName;
 
 import com.venus.backgroundopt.BuildConfig;
-import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
@@ -35,6 +31,7 @@ public class ActivityManagerServiceHook extends MethodHook {
      * 进入后台.
      */
     public static final int ACTIVITY_PAUSED = UsageEvents.Event.ACTIVITY_PAUSED;
+    public static final int ACTIVITY_STOPPED = UsageEvents.Event.ACTIVITY_STOPPED;
 
     public ActivityManagerServiceHook(ClassLoader classLoader, RunningInfo hookInfo) {
         super(classLoader, hookInfo);
@@ -50,19 +47,6 @@ public class ActivityManagerServiceHook extends MethodHook {
                                 (BeforeHookAction) this::getAMSObj
                         }
                 ),
-                new HookPoint(
-                        ClassConstants.ActivityManagerService,
-                        MethodConstants.updateActivityUsageStats,
-                        new HookAction[]{
-                                (BeforeHookAction) this::handleAppSwitch
-                        },
-                        ClassConstants.ComponentName,   /* activity */
-                        int.class,                      /* userId */
-                        int.class,                      /* event */
-                        ClassConstants.IBinder,         /* appToken ActivityRecord's appToken */
-                        ClassConstants.ComponentName,   /* taskRoot Task's root */
-                        ClassConstants.ActivityId       /* (始于安卓14)activityId */
-                ).setHookAllMatchedMethod(true),
                 new HookPoint(
                         ClassConstants.ActivityManagerService,
                         MethodConstants.checkExcessivePowerUsageLPr,
@@ -109,55 +93,6 @@ public class ActivityManagerServiceHook extends MethodHook {
                     "persist.sys.spc.enabled", "false");
         } catch (Throwable throwable) {
             getLogger().error("设置[persist.sys.spc.enabled]失败", throwable);
-        }
-
-        return null;
-    }
-
-    /* *************************************************************************
-     *                                                                         *
-     * app切换事件                                                               *
-     *                                                                         *
-     **************************************************************************/
-
-    /**
-     * 处理app切换事件
-     */
-    private Object handleAppSwitch(XC_MethodHook.MethodHookParam param) {
-        // 获取方法参数
-        Object[] args = param.args;
-
-        // 获取切换事件
-        int event = (int) args[2];
-        if (event != ACTIVITY_PAUSED && event != ACTIVITY_RESUMED) {
-            return null;
-        }
-
-        // 本次事件包名
-        String packageName = ((ComponentName) args[0]).getPackageName();
-//        if (packageName == null) {
-//            return null;
-//        }
-
-        // 本次事件用户
-        int userId = (int) args[1];
-
-        RunningInfo runningInfo = getRunningInfo();
-        // 检查是否是系统重要进程
-        NormalAppResult normalAppResult = runningInfo.isNormalApp(userId, packageName);
-        if (!normalAppResult.isNormalApp()) {
-            return null;
-        }
-
-        AppInfo appInfo = runningInfo.computeRunningAppIfAbsent(userId, packageName, normalAppResult.getApplicationInfo().uid);
-
-        // 更新app的切换状态
-        appInfo.setAppSwitchEvent(event);
-
-        if (event == ACTIVITY_RESUMED) {
-            runningInfo.putIntoActiveAppGroup(appInfo);
-        } else {
-            runningInfo.putIntoTmpAppGroup(appInfo);
         }
 
         return null;

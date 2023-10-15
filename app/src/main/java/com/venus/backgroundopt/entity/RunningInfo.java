@@ -497,6 +497,20 @@ public class RunningInfo implements ILogger {
 
         if (needHandleCurApp) {
             handleCurApp(appInfo);
+
+            // 检查前台应用中是否有遗漏的已经没有前台界面的app
+            /*
+                在Redmi K30p(lmi) MIUI 13 22.7.8 Android12中, 如果先打开应用A, 再从通知栏或弹出的消息打开应用B小窗,
+                    再将小窗拉伸至全屏, 此时, 尽管实质上已切换app, 但当前的app切换事件hook仍然捕捉不到A的Activity状态变化。
+                    导致无法更新应用A的内存分组。
+             */
+            activeAppGroup.forEach(app -> {
+                if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED &&
+                        app.isActivityStopped()) {
+                    activeAppGroup.remove(app);
+                    putIntoIdleAppGroup(app);
+                }
+            });
         }
 
         activeAppGroup.add(appInfo);

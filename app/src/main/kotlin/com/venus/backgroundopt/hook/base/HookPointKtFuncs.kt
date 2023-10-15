@@ -1,6 +1,7 @@
 package com.venus.backgroundopt.hook.base
 
 import com.venus.backgroundopt.hook.base.action.HookAction
+import com.venus.backgroundopt.utils.concurrent.ConcurrentHashSet
 
 /**
  * @author XingC
@@ -27,6 +28,28 @@ fun generateHookPoint(
         HookPoint(className, methodName, hookAction, *actionArgs)
     } else {
         IneffectiveHookPoint(className, methodName)
+    }
+}
+
+/**
+ * hook与给定方法名相同的所有方法
+ *
+ * 参数含义见[generateHookPoint]
+ */
+fun generateMatchedMethodHookPoint(
+    effectiveFlag: Boolean,
+    className: String,
+    methodName: String,
+    hookAction: Array<HookAction>
+): HookPoint {
+    return generateHookPoint(
+        effectiveFlag,
+        className,
+        methodName,
+        hookAction,
+        ConcurrentHashSet.any
+    ).apply {
+        isHookAllMatchedMethod = true
     }
 }
 

@@ -42,7 +42,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         fun newInstance(
             runningInfo: RunningInfo,
             appInfo: AppInfo,
-            processRecord: Any?
+            processRecord: Any
         ): ProcessRecordKt {
             val record = ProcessRecordKt(runningInfo.activityManagerService, processRecord)
             addCompactProcess(runningInfo, appInfo, record)
@@ -228,11 +228,11 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
     // 反射拿到的安卓的processRecord对象
     @JSONField(serialize = false)
-    var processRecord: Any? = null
+    lateinit var processRecord: Any
 
     // 反射拿到的安卓的processStateRecord对象
     @JSONField(serialize = false)
-    var processStateRecord: ProcessStateRecord? = null
+    lateinit var processStateRecord: ProcessStateRecord
 
     // 当前ProcessRecord已记录的最大adj
     @JSONField(serialize = false)
@@ -258,7 +258,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     @JSONField(serialize = false)
     lateinit var appInfo: AppInfo
 
-    constructor(activityManagerService: ActivityManagerService, processRecord: Any?) : this() {
+    constructor(activityManagerService: ActivityManagerService, processRecord: Any) : this() {
         this.processRecord = processRecord
         pid = getPid(processRecord)
         uid = getUID(processRecord)
@@ -296,12 +296,12 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     fun setMaxAdj(maxAdj: Int) {
         var setSucceed = false
         try {
-            processStateRecord!!.maxAdj = maxAdj
+            processStateRecord.maxAdj = maxAdj
             setSucceed = true
         } catch (t: Throwable) {
             try {
                 XposedHelpers.setIntField(
-                    processStateRecord!!.processStateRecord,
+                    processStateRecord.processStateRecord,
                     FieldConstants.mMaxAdj,
                     maxAdj
                 )
@@ -326,14 +326,9 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     fun resetMaxAdj() {
         if (hasSetMaxAdj()) {
             try {
-                processStateRecord?.let { psr ->
-                    psr.maxAdj = ProcessList.UNKNOWN_ADJ
-
-                    if (BuildConfig.DEBUG) {
-                        logger.debug("pid: [${pid}] >>> maxAdj重置成功")
-                    }
-                } ?: run {
-                    logger.warn("pid: [${pid}] >>> psr为空, 重置进程maxAdj失败")
+                processStateRecord.maxAdj = ProcessList.UNKNOWN_ADJ
+                if (BuildConfig.DEBUG) {
+                    logger.debug("pid: [${pid}] >>> maxAdj重置成功")
                 }
             } catch (t: Throwable) {
                 logger.error("pid: [${pid}] >>> maxAdj重置失败", t)
@@ -349,11 +344,11 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     @JSONField(serialize = false)
     fun getMaxAdj(): Int {
         return try {
-            processStateRecord!!.maxAdj
+            processStateRecord.maxAdj
         } catch (t: Throwable) {
             try {
                 XposedHelpers.getIntField(
-                    processStateRecord!!.processStateRecord, FieldConstants.mMaxAdj
+                    processStateRecord.processStateRecord, FieldConstants.mMaxAdj
                 )
             } catch (th: Throwable) {
                 ProcessList.UNKNOWN_ADJ

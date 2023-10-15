@@ -59,4 +59,5 @@ public interface FieldConstants {
     String rssInBytes = "rssInBytes";
     String cacheInBytes = "cacheInBytes";
     String swapInBytes = "swapInBytes";
+    String hasTopUi = "hasTopUi";
 }
