@@ -74,7 +74,17 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                     return@forEach
                 }
 
+                /*
+                    result: 0 -> 异常
+                            1 -> 成功
+                            2 -> 未执行
+                 */
+                var result = 2
                 if (!process.isNecessaryToOptimize()) {
+                    updateProcessLastProcessingResult(process) {
+                        it.lastProcessingCode = result
+                    }
+
                     if (BuildConfig.DEBUG) {
                         logger.debug("uid: ${process.uid}, pid: ${process.pid}, 包名: ${process.packageName}不需要优化")
                     }
@@ -82,12 +92,15 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                 }
 
                 // 根据默认规则压缩
-                var compactMethod: (processRecordKt: ProcessRecordKt) -> Boolean =
-                    ::compactAppFull
+                var compactMethod: (processRecordKt: ProcessRecordKt) -> Boolean = ::compactAppFull
 
                 if (process.mainProcess || upgradeSubProcessNames.contains(process.processName)) {
                     val currentTime = System.currentTimeMillis()
                     if (!process.isAllowedCompact(currentTime)) {  // 若压缩间隔不满足, 则跳过等待下一轮
+                        updateProcessLastProcessingResult(process) {
+                            it.lastProcessingCode = result
+                        }
+
                         return@forEach
                     }
                     // 压缩条件由ProcessInfo.isAllowedCompact判断。因此, 符合条件后直接调用压缩
@@ -95,12 +108,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
 
                     process.setLastCompactTime(currentTime)
                 }
-                /*
-                    result: 0 -> 异常
-                            1 -> 成功
-                            2 -> 未执行
-                 */
-                var result = 2
+
                 try {
                     result = if (compactMethod(process)) 1 else 2
                     if (BuildConfig.DEBUG) {
@@ -123,9 +131,9 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                             cancelCompactProcess(process)
                         }
                         compactCount++
-                        updateProcessLastProcessingResult(process) {
-                            it.lastProcessingCode = result
-                        }
+                    }
+                    updateProcessLastProcessingResult(process) {
+                        it.lastProcessingCode = result
                     }
                 }
             }

@@ -11,7 +11,7 @@ abstract class AbstractAppOptimizeManager {
     // 任务的执行结果
     val processLastProcessingResultMap = ConcurrentHashMap<ProcessRecordKt, ProcessingResult>()
 
-    fun updateProcessLastProcessingResult(
+    inline fun updateProcessLastProcessingResult(
         processRecordKt: ProcessRecordKt,
         block: (ProcessingResult) -> Unit
     ) {
