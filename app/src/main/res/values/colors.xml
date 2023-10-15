@@ -19,4 +19,6 @@
     <color name="shanChui">#fcaf17</color>
     <!--若竹色-->
     <color name="ruoZhu">#65c294</color>
+    <!--青-->
+    <color name="cyan">#009ad6</color>
 </resources>

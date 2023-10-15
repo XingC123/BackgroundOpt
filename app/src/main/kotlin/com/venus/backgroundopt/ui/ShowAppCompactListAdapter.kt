@@ -4,6 +4,7 @@ import android.view.View
 import android.widget.TextView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
+import com.venus.backgroundopt.manager.process.AppCompactManager.ProcessCompactResultCode
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
 
 /**
@@ -45,9 +46,14 @@ class ShowAppCompactListAdapter(items: List<AppItem>) : ShowInfoFromAppItemAdapt
             val view = viewHolder.itemView
             val textResId =
                 when (processingResult.lastProcessingCode) {
-                    1 -> {
+                    ProcessCompactResultCode.success -> {
                         textView.setTextColor(view.resources.getColor(R.color.green, null))
-                        R.string.appItemLastProcessingNormalResultText
+                        R.string.appItemLastProcessingSuccessResultText
+                    }
+
+                    ProcessCompactResultCode.unNecessary -> {
+                        textView.setTextColor(view.resources.getColor(R.color.cyan, null))
+                        R.string.appItemLastProcessingUnnecessaryResultText
                     }
 
                     else -> {

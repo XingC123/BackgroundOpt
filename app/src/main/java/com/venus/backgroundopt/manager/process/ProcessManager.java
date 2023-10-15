@@ -127,7 +127,7 @@ public class ProcessManager implements ILogger {
      *
      * @param pid 要压缩的pid
      */
-    public boolean compactAppFull(int pid, int curAdj) {
+    public int compactAppFull(int pid, int curAdj) {
         return appCompactManager.compactAppFull(pid, curAdj);
     }
 
@@ -139,7 +139,7 @@ public class ProcessManager implements ILogger {
 //        return cachedAppOptimizer.compactApp(processInfo.getProcessRecord(), true, "Full");
 //    }
 
-    public boolean compactAppFull(ProcessRecordKt processRecord) {
+    public int compactAppFull(ProcessRecordKt processRecord) {
         return appCompactManager.compactAppFull(processRecord);
     }
 

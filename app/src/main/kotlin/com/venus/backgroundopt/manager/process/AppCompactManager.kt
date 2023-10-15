@@ -74,31 +74,25 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                     return@forEach
                 }
 
-                /*
-                    result: 0 -> 异常
-                            1 -> 成功
-                            2 -> 未执行
-                 */
-                var result = 2
                 if (!process.isNecessaryToOptimize()) {
                     updateProcessLastProcessingResult(process) {
-                        it.lastProcessingCode = result
+                        it.lastProcessingCode = ProcessCompactResultCode.unNecessary
                     }
 
                     if (BuildConfig.DEBUG) {
-                        logger.debug("uid: ${process.uid}, pid: ${process.pid}, 包名: ${process.packageName}不需要优化")
+                        logger.debug("uid: ${process.uid}, pid: ${process.pid}, 主进程: ${process.mainProcess}, 包名: ${process.packageName}不需要压缩")
                     }
                     return@forEach
                 }
 
                 // 根据默认规则压缩
-                var compactMethod: (processRecordKt: ProcessRecordKt) -> Boolean = ::compactAppFull
+                var compactMethod: (processRecordKt: ProcessRecordKt) -> Int = ::compactAppFull
 
                 if (process.mainProcess || upgradeSubProcessNames.contains(process.processName)) {
                     val currentTime = System.currentTimeMillis()
                     if (!process.isAllowedCompact(currentTime)) {  // 若压缩间隔不满足, 则跳过等待下一轮
                         updateProcessLastProcessingResult(process) {
-                            it.lastProcessingCode = result
+                            it.lastProcessingCode = ProcessCompactResultCode.doNothing
                         }
 
                         return@forEach
@@ -109,37 +103,41 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                     process.setLastCompactTime(currentTime)
                 }
 
-                try {
-                    result = if (compactMethod(process)) 1 else 2
-                    if (BuildConfig.DEBUG) {
-                        if (result == 1) {
-                            logger.debug("uid: ${process.uid}, pid: ${process.pid} >>> 因[OOM_SCORE] 而内存压缩")
+                when (val result = compactMethod(process)) {
+                    ProcessCompactResultCode.success, ProcessCompactResultCode.doNothing -> {
+                        if (result == ProcessCompactResultCode.success) {
+                            if (autoStopCompactCheck) {
+                                cancelCompactProcess(process)
+                            }
+                            compactCount++
+
+                            if (BuildConfig.DEBUG) {
+                                logger.debug(
+                                    "uid: ${process.uid}, pid: ${process.pid} >>> " +
+                                            "因[OOM_SCORE] 而内存压缩"
+                                )
+                            }
+                        }
+                        updateProcessLastProcessingResult(process) {
+                            it.lastProcessingCode = result
                         }
                     }
-                } catch (t: Throwable) {
-                    result = 0
-                    if (BuildConfig.DEBUG) {
-                        logger.warn(
-                            "uid: ${process.uid}, pid: ${process.pid} >>> 因[OOM_SCORE] 而内存压缩: 发生异常!压缩执行失败或进程已停止",
-                            t
-                        )
-                    }
-                } finally {
-                    if (result == 1 || result == 0) {
-                        // 若启用自动停止 或 执行异常, 则进行移除
-                        if (autoStopCompactCheck || result == 0) {
-                            cancelCompactProcess(process)
+
+                    else -> {   // ProcessCompactResultCode.problem
+                        cancelCompactProcess(process)
+
+                        if (BuildConfig.DEBUG) {
+                            logger.warn(
+                                "uid: ${process.uid}, pid: ${process.pid} >>> " +
+                                        "因[OOM_SCORE] 而内存压缩: 发生异常!压缩执行失败或进程已停止"
+                            )
                         }
-                        compactCount++
-                    }
-                    updateProcessLastProcessingResult(process) {
-                        it.lastProcessingCode = result
                     }
                 }
             }
 
             if (BuildConfig.DEBUG) {
-                logger.debug("内存压缩任务检查完毕。本次压缩了[${compactCount}]个进程, 列表还剩[${compactProcesses.size}]个进程")
+                logger.debug("本次压缩了[${compactCount}]个进程, 列表共[${compactProcesses.size}]个进程")
             }
         }, initialDelay, delay, timeUnit)
 
@@ -266,8 +264,8 @@ class AppCompactManager(// 封装的CachedAppOptimizer
      * @param pid           进程pid
      * @param compactAction 压缩行为: [CachedAppOptimizer.COMPACT_ACTION_NONE]等
      */
-    fun compactApp(pid: Int, compactAction: Int) {
-        cachedAppOptimizer.compactProcess(pid, compactAction)
+    fun compactApp(pid: Int, compactAction: Int): Boolean {
+        return cachedAppOptimizer.compactProcess(pid, compactAction)
     }
 
     /**
@@ -295,19 +293,26 @@ class AppCompactManager(// 封装的CachedAppOptimizer
      * 即最终结果为: [CachedAppOptimizer.COMPACT_ACTION_FULL]
      *
      * @param pid 要压缩的pid
+     * @return 见[ProcessCompactResultCode]
      */
-    fun compactAppFull(pid: Int, curAdj: Int): Boolean {
+    fun compactAppFull(pid: Int, curAdj: Int): Int {
         if (CachedAppOptimizer.isOomAdjEnteredCached(curAdj)) {
-            compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL)
-            return true
+            return if (compactApp(
+                    pid,
+                    CachedAppOptimizer.COMPACT_ACTION_FULL
+                )
+            ) ProcessCompactResultCode.success else ProcessCompactResultCode.problem
         }
 
-        return false
+        return ProcessCompactResultCode.doNothing
     }
 
-    fun compactAppFullNoCheck(pid: Int): Boolean {
-        compactApp(pid, CachedAppOptimizer.COMPACT_ACTION_FULL)
-        return true
+    fun compactAppFullNoCheck(pid: Int): Int {
+        return if (compactApp(
+                pid,
+                CachedAppOptimizer.COMPACT_ACTION_FULL
+            )
+        ) ProcessCompactResultCode.success else ProcessCompactResultCode.problem
     }
 
 //    public boolean compactAppFull(ProcessInfo processInfo) {
@@ -317,11 +322,31 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     //    public boolean compactAppFull(ProcessInfo processInfo) {
     //        return cachedAppOptimizer.compactApp(processInfo.getProcessRecord(), true, "Full");
     //    }
-    fun compactAppFull(processRecordKt: ProcessRecordKt): Boolean {
+    fun compactAppFull(processRecordKt: ProcessRecordKt): Int {
         return compactAppFull(processRecordKt.pid, processRecordKt.oomAdjScore)
     }
 
-    fun compactAppFullNoCheck(processRecordKt: ProcessRecordKt): Boolean {
+    fun compactAppFullNoCheck(processRecordKt: ProcessRecordKt): Int {
         return compactAppFullNoCheck(processRecordKt.pid)
+    }
+
+    /**
+     * 进程压缩结果码
+     *
+     */
+    class ProcessCompactResultCode {
+        companion object {
+            // 异常
+            const val problem = -1
+
+            // 正常执行
+            const val success = 1
+
+            // 未执行
+            const val doNothing = 2
+
+            // 无需执行(没有执行的必要)
+            const val unNecessary = 3
+        }
     }
 }
