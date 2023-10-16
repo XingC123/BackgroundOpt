@@ -44,4 +44,7 @@
     <string name="showBackgroundTasksToolBarText">后台任务列表</string>
     <string name="appItemLastProcessingResultTipText">"上次执行结果: "</string>
     <string name="showAppCompactLisToolBarHelp">帮助</string>
+    <string name="settingsModuleItemTitle">模块</string>
+    <string name="settingsAutoStopCompactPrefText">自动停止压缩任务</string>
+    <string name="menu_main_activity_toolbar_settings">设置</string>
 </resources>

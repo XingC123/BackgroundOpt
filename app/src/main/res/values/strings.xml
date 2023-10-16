@@ -56,4 +56,7 @@
         2. <u><b>列表并非完全实时列表。</b></u>你所获取的列表，只是你点击按钮的一瞬间拿出来的数据。在进行展示时，<u><b>该数据可能已经被移除。</b></u>
     </string>
     <string name="appItemLastProcessingUnnecessaryResultText">✪</string>
+    <string name="settingsModuleItemTitle">Module</string>
+    <string name="settingsAutoStopCompactPrefText">Automatically stop compacting task</string>
+    <string name="menu_main_activity_toolbar_settings">Settings</string>
 </resources>

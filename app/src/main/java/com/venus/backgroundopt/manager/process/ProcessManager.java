@@ -67,6 +67,10 @@ public class ProcessManager implements ILogger {
         return appCompactManager.getProcessLastProcessingResultMap();
     }
 
+    public void setAutoStopCompactTask(boolean enable) {
+        appCompactManager.setAutoStopCompactTask(enable);
+    }
+
     /**
      * 添加压缩进程
      */

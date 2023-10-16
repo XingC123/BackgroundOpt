@@ -28,15 +28,27 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         // 默认压缩级别
         const val DEFAULT_COMPACT_LEVEL = CachedAppOptimizer.COMPACT_ACTION_ANON
 
-        // 是否启用"压缩成功则移除进程" + "无内存压缩任务则关闭轮循"
-        // 暂只能从源码层修改, ui未提供开关
-        const val autoStopCompactCheck = false
-
         // App压缩扫描线程池配置
         const val initialDelay = 5L
         const val delay = 10L
         val timeUnit = TimeUnit.MINUTES
     }
+
+    // 是否启用"压缩成功则移除进程" + "无内存压缩任务则关闭轮循"
+    var autoStopCompactTask = CommonProperties.getAutoStopCompactTaskPreferenceValue()
+        set(value) {
+            field = value
+
+            compactScheduledFuture?.let { future ->
+                if (value && compactProcesses.size == 0) {
+                    stopCompactTask(future)
+                }
+            } ?: run {
+                if (!value) {
+                    startCompactTask()
+                }
+            }
+        }
 
     // App压缩处理线程池
     private val executor = ScheduledThreadPoolExecutor(1).apply {
@@ -50,8 +62,8 @@ class AppCompactManager(// 封装的CachedAppOptimizer
 
     init {
         // 如果此项未启用, 则直接启动轮循任务
-        logger.info("压缩任务自动关闭: $autoStopCompactCheck")
-        if (!autoStopCompactCheck) {
+        logger.info("压缩任务自动关闭: $autoStopCompactTask")
+        if (!autoStopCompactTask) {
             startCompactTask()
         }
     }
@@ -106,7 +118,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                 when (val result = compactMethod(process)) {
                     ProcessCompactResultCode.success, ProcessCompactResultCode.doNothing -> {
                         if (result == ProcessCompactResultCode.success) {
-                            if (autoStopCompactCheck) {
+                            if (autoStopCompactTask) {
                                 cancelCompactProcess(process)
                             }
                             compactCount++
@@ -149,17 +161,20 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     }
 
     private fun checkCompactTask() {
-        if (autoStopCompactCheck) {
+        if (autoStopCompactTask) {
             compactScheduledFuture?.let {
                 if (compactProcesses.size == 0) {    // 若此时没有待压缩任务, 则取消检查任务
-                    it.cancel(true)
-                    compactScheduledFuture = null
-
-                    if (BuildConfig.DEBUG) {
-                        logger.debug("待压缩列表为空, 停止检查任务")
-                    }
+                    stopCompactTask(it)
                 }
             } ?: startCompactTask() // 需要待压缩任务, 创建
+        }
+    }
+
+    private fun stopCompactTask(future: ScheduledFuture<*>) {
+        future.cancel(true)
+        compactScheduledFuture = null
+        if (BuildConfig.DEBUG) {
+            logger.debug("待压缩列表为空, 停止检查任务")
         }
     }
 

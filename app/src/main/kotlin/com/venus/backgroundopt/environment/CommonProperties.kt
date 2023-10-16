@@ -1,7 +1,9 @@
 package com.venus.backgroundopt.environment
 
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
+import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
+import com.venus.backgroundopt.utils.preference.PreferencesUtil
 import com.venus.backgroundopt.utils.preference.prefAll
 import java.util.concurrent.ConcurrentHashMap
 
@@ -45,5 +47,17 @@ object CommonProperties {
                 }
             }
         }
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 进程压缩相关配置                                                           *
+     *                                                                         *
+     **************************************************************************/
+    fun getAutoStopCompactTaskPreferenceValue(): Boolean {
+        return PreferencesUtil.getBoolean(
+            PreferenceNameConstants.MAIN_SETTINGS,
+            PreferenceKeyConstants.AUTO_STOP_COMPACT_TASK
+        )
     }
 }

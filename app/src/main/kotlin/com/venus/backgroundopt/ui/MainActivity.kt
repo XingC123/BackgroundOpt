@@ -35,6 +35,7 @@ class MainActivity : BaseActivity(), ILogger {
     override fun setOnMenuItemClickListener(menuItem: MenuItem) {
         when(menuItem.itemId) {
             R.id.MainActivityAboutMenuItem -> startActivity(Intent(this, AboutAppActivity::class.java))
+            R.id.mainActivitySettingsMenuItem -> startActivity(Intent(this, SettingsActivity::class.java))
         }
     }
 
