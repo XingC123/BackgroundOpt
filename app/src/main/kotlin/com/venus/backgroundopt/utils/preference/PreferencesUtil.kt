@@ -30,22 +30,27 @@ object PreferencesUtil {
         }
     }
 
-    fun getString(path: String, key: String): String? = getPref(path)?.getString(key, null)
+    fun getString(path: String, key: String, defaultValue: String? = null): String? =
+        getPref(path)?.getString(key, defaultValue)
 
-    fun getBoolean(path: String, key: String): Boolean =
-        getPref(path)?.getBoolean(key, false) ?: false
+    fun getBoolean(path: String, key: String, defaultValue: Boolean = false): Boolean =
+        getPref(path)?.getBoolean(key, defaultValue) ?: defaultValue
 
-    fun getInt(path: String, key: String): Int =
-        getPref(path)?.getInt(key, Int.MIN_VALUE) ?: Int.MIN_VALUE
+    fun getInt(path: String, key: String, defaultValue: Int = Int.MIN_VALUE): Int =
+        getPref(path)?.getInt(key, defaultValue) ?: defaultValue
 
-    fun getFloat(path: String, key: String): Float =
-        getPref(path)?.getFloat(key, Float.MIN_VALUE) ?: Float.MIN_VALUE
+    fun getFloat(path: String, key: String, defaultValue: Float = Float.MIN_VALUE): Float =
+        getPref(path)?.getFloat(key, defaultValue) ?: defaultValue
 
-    fun getLong(path: String, key: String): Long =
-        getPref(path)?.getLong(key, Long.MIN_VALUE) ?: Long.MIN_VALUE
+    fun getLong(path: String, key: String, defaultValue: Long = Long.MIN_VALUE): Long =
+        getPref(path)?.getLong(key, defaultValue) ?: defaultValue
 
-    fun getStringSet(path: String, key: String): MutableSet<String>? =
-        getPref(path)?.getStringSet(key, null)
+    fun getStringSet(
+        path: String,
+        key: String,
+        defaultValue: MutableSet<String>? = null
+    ): MutableSet<String>? =
+        getPref(path)?.getStringSet(key, defaultValue)
 }
 
 inline fun <reified E> prefAll(path: String): MutableMap<String, E>? {
