@@ -40,7 +40,10 @@
     <string name="aboutAppThanksTip">鸣谢</string>
     <string name="aboutAppToolBar">关于</string>
     <string name="showAppCompactListToolBarText">待压缩进程列表</string>
-    <string name="showAppCompactListRecyclerViewTipText">此列表并非实时列表。一些错误数据会被自动移除</string>
+    <string name="showAppCompactListRecyclerViewTipText">
+        1. 此列表并非实时列表。一些错误数据会被自动移除
+        \n2. 有些app长时间未打开, 而再次打开时出现Splash, 这并不一定意味着app曾被杀死。
+    </string>
     <string name="showBackgroundTasksToolBarText">后台任务列表</string>
     <string name="appItemLastProcessingResultTipText">"上次执行结果: "</string>
     <string name="showAppCompactLisToolBarHelp">帮助</string>
