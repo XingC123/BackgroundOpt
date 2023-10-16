@@ -1,13 +1,16 @@
 package com.venus.backgroundopt.utils
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.res.ResourcesCompat
 import com.alibaba.fastjson2.JSON
@@ -127,5 +130,80 @@ object UiUtils {
             .setView(getView(context, viewResId))
             .create()
     }
+
+    /**
+     * 获取[Toolbar]
+     *
+     * @param activity [Toolbar]所在的[Activity]
+     * @param toolbarResId [Toolbar]的资源id
+     * @param titleStr [Toolbar]的标题
+     * @param titleResId [Toolbar]的标题的资源id
+     * @param enableCancelBtn 是否使用返回键
+     * @param enableMenu 是否启用菜单
+     * @param menuResId 菜单的资源id
+     * @param menuOnClickListenerBlock 菜单项[MenuItem]被点击的事件
+     * @return
+     */
+    @JvmOverloads
+    fun getToolbar(
+        activity: Activity,
+        toolbarResId: Int,
+        titleStr: String? = null,
+        titleResId: Int? = null,
+        enableCancelBtn: Boolean = true,
+        enableMenu: Boolean = false,
+        menuResId: Int = Int.MIN_VALUE,
+        menuOnClickListenerBlock: ((menuItem: MenuItem) -> Unit)? = null
+    ): Toolbar? {
+        return activity.findViewById<Toolbar?>(toolbarResId)?.apply {
+            // 设置标题
+            findViewById<TextView>(R.id.toolbarTitleText)?.let { titleTextView ->
+                titleStr?.let {
+                    titleTextView.text = it
+                } ?: run {
+                    titleResId?.let {
+                        titleTextView.setText(it)
+                    } ?: run {
+                        titleTextView.text = ""
+                    }
+                }
+            }
+            // 设置返回事件
+            if (enableCancelBtn) {
+                navigationIcon =
+                    ResourcesCompat.getDrawable(
+                        activity.resources,
+                        R.drawable.baseline_arrow_back_24,
+                        null
+                    )
+                setNavigationOnClickListener { activity.finish() }
+            }
+            // 设置菜单
+            if (enableMenu && menuResId != Int.MIN_VALUE && menuOnClickListenerBlock != null) {
+                inflateMenu(menuResId)
+                setOnMenuItemClickListener {
+                    menuOnClickListenerBlock(it)
+                    true
+                }
+            }
+        }
+    }
+}
+
+inline fun AlertDialog.Builder.setNegativeBtn(
+    context: Context,
+    enableNegativeBtn: Boolean = false,
+    negativeBtnText: String = "放弃",
+    crossinline block: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
+        dialogInterface.dismiss()
+        (context as Activity).finish()
+    }
+): AlertDialog.Builder {
+    if (enableNegativeBtn) {
+        setNegativeButton(negativeBtnText) { dialogInterface, i ->
+            block(dialogInterface, i)
+        }
+    }
+    return this
 }
 

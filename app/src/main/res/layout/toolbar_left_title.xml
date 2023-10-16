@@ -13,7 +13,7 @@
     app:layout_constraintTop_toTopOf="parent">
 
     <TextView
-        android:id="@+id/toolbarLeftTitleToolbarText"
+        android:id="@+id/toolbarTitleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Title"
