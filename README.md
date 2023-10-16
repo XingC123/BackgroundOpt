@@ -2,15 +2,7 @@
 
 
 
-![LICENSE](https://img.shields.io/github/license/XingC123/BackgroundOpt)
-
-![GitHub repo size](https://img.shields.io/github/repo-size/XingC123/BackgroundOpt)
-
-![GitHub release (with filter)](https://img.shields.io/github/v/release/XingC123/BackgroundOpt)
-
-![GitHub language count](https://img.shields.io/github/languages/count/XingC123/BackgroundOpt)
-
-![GitHub top language](https://img.shields.io/github/languages/top/XingC123/BackgroundOpt)
+![LICENSE](https://img.shields.io/github/license/XingC123/BackgroundOpt)![GitHub repo size](https://img.shields.io/github/repo-size/XingC123/BackgroundOpt)![GitHub release (with filter)](https://img.shields.io/github/v/release/XingC123/BackgroundOpt)![GitHub language count](https://img.shields.io/github/languages/count/XingC123/BackgroundOpt)![GitHub top language](https://img.shields.io/github/languages/top/XingC123/BackgroundOpt)
 
 
 
@@ -80,11 +72,14 @@
 >
 >    A: 不冲突。
 >
->    - 在 **Redmi note5p(whyred), Nusantara, Android 13 + Noactive 2.9** , 测试效果如图
+>    - 在 **Redmi note5p(whyred), Nusantara, Android 13 + Noactive 2.9**
 >
 >      - 墓碑效果、app列表、对bili的设置(默认等级为前台服务)、noa的设置页面分别如下: 
 >
->      <img src="resources/images/墓碑效果.png" width="150"><img src="resources/images/Noactive的app列表.png" width="150"><img src="resources/images/Noactive对某app的设置.png" width="150"><img src="resources/images/Noactive设置.png" width="150">
+>      <img src="BackgroundOpt/raw/master/resources/images/墓碑效果.png" width="180" height="360">
+>      <img src="BackgroundOpt/raw/master/resources/images/Noactive的app列表.png" width="150" height="360">
+>      <img src="BackgroundOpt/raw/master/resources/images/Noactive对某app的设置.png" width="150" height="360">
+>      <img src="BackgroundOpt/raw/master/resources/images/Noactive设置.png" width="150" height="360">
 >
 > 5. Q: 如何知道我又没有食用上呢？
 >
@@ -94,7 +89,7 @@
 >
 >    - 子进程adj >= 101
 >
->      <img src="resources/images/待压缩列表app的adj展示.jpg" width="200">
+>      <img src="BackgroundOpt/raw/master/resources/images/待压缩列表app的adj展示.jpg" width="200" height="360">
 >
 > 6. Q: 我用了以后特别卡怎么解决呢？
 >
