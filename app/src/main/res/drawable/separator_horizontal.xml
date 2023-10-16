@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:bottom="5dp" android:top="5dp" android:left="0dp" android:right="0dp">
+        <shape>
+            <size android:width="0dp" android:height="2dp"/>
+            <solid android:color="@color/ruoZhu"/>
+        </shape>
+    </item>
+</layer-list>

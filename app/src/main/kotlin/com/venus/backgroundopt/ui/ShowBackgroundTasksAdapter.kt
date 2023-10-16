@@ -1,5 +1,8 @@
 package com.venus.backgroundopt.ui
 
+import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
@@ -28,5 +31,16 @@ class ShowBackgroundTasksAdapter(override val items: List<AppItem>) :
 
     override fun getTipText1ResId(): Int {
         return R.string.appItemTipProcessName
+    }
+
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): ShowInfoFromAppItemViewHolder {
+        return super.onCreateViewHolder(parent, viewType).apply {
+            itemView.findViewById<LinearLayout>(R.id.appItemLastProcessingResultLayout)?.let {
+                it.visibility = View.GONE
+            }
+        }
     }
 }

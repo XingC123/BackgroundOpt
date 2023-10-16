@@ -76,13 +76,13 @@ class ProcessListHookKt(
         val oomAdjScore = param.args[2] as Int
 
         // 获取当前进程对象
-        var process =
+        val process =
             appInfo.getProcess(pid)
                 ?: appInfo.addProcess(runningInfo.activityManagerService.getProcessRecord(pid))
-        val mainProcess = process.mainProcess.also { b ->
-            if (b) {
-                appInfo.correctMainProcess(pid)?.let { process = it }
-            }
+        val mainProcess = process.mainProcess
+
+        if (mainProcess && appInfo.appGroupEnum == AppGroupEnum.IDLE) {
+            runningInfo.handleLastApp(appInfo)
         }
 
         if (mainProcess || isUpgradeSubProcessLevel(process.processName)) { // 主进程

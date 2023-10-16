@@ -8,7 +8,17 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!--添加-->
+    <!--以下颜色代码来源于: https://bbs.bianzhirensheng.com/color01.html-->
+    <!--杜若色-->
     <color name="duRuo">#426ab3</color>
+    <!--绀桔梗-->
     <color name="ganJieGeng">#444693</color>
+    <!--绿-->
+    <color name="green">#45b97c</color>
+    <!--山吹色-->
+    <color name="shanChui">#fcaf17</color>
+    <!--若竹色-->
+    <color name="ruoZhu">#65c294</color>
+    <!--青-->
+    <color name="cyan">#009ad6</color>
 </resources>

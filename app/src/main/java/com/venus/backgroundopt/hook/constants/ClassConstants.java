@@ -11,6 +11,9 @@ public interface ClassConstants {
      */
     String ActivityManagerService = "com.android.server.am.ActivityManagerService";
     String ActivityManagerConstants = "com.android.server.am.ActivityManagerConstants";
+
+    String MemoryStatUtil = "com.android.server.am.MemoryStatUtil";
+    String MemoryStat = "com.android.server.am.MemoryStatUtil.MemoryStat";
     String PhantomProcessList = "com.android.server.am.PhantomProcessList";
     String ProcessCachedOptimizerRecord = "com.android.server.am.ProcessCachedOptimizerRecord";
     String ActivityManagerShellCommand = "com.android.server.am.ActivityManagerShellCommand";
@@ -43,6 +46,8 @@ public interface ClassConstants {
     String RoleControllerManager = "android.app.role.RoleControllerManager";
     String RemoteCallback = "android.os.RemoteCallback";
     String IApplicationThread = "android.app.IApplicationThread";
+    String ActivityId = "android.app.assist.ActivityId";
+    String Resources = "android.content.res.Resources";
 
     /**
      * miui

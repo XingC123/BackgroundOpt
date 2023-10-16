@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/settingsModuleItemTitle"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreference
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:defaultValue="false"
+            android:title="@string/settingsAutoStopCompactPrefText"
+            app:iconSpaceReserved="false"
+            app:key="@string/pref_key_autoStopCompactTask" />
+    </PreferenceCategory>
+</PreferenceScreen>

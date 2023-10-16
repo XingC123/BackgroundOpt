@@ -1,7 +1,10 @@
 package com.venus.backgroundopt.ui
 
+import android.view.View
+import android.widget.TextView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
+import com.venus.backgroundopt.manager.process.AppCompactManager.ProcessCompactResultCode
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
 
 /**
@@ -27,5 +30,47 @@ class ShowAppCompactListAdapter(items: List<AppItem>) : ShowInfoFromAppItemAdapt
 
     override fun getTipText1ResId(): Int {
         return R.string.appItemTipProcessName
+    }
+
+    override fun getViewHolder(view: View): ShowInfoFromAppItemViewHolder {
+        return ShowAppCompactListViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ShowInfoFromAppItemViewHolder, position: Int) {
+        super.onBindViewHolder(holder, position)
+        val viewHolder = holder as ShowAppCompactListViewHolder
+        val appItem = items[position]
+
+        appItem.processingResult?.let { processingResult ->
+            val textView = viewHolder.appItemLastProcessingResultText
+            val view = viewHolder.itemView
+            val textResId =
+                when (processingResult.lastProcessingCode) {
+                    ProcessCompactResultCode.success -> {
+                        textView.setTextColor(view.resources.getColor(R.color.green, null))
+                        R.string.appItemLastProcessingSuccessResultText
+                    }
+
+                    ProcessCompactResultCode.unNecessary -> {
+                        textView.setTextColor(view.resources.getColor(R.color.cyan, null))
+                        R.string.appItemLastProcessingUnnecessaryResultText
+                    }
+
+                    else -> {
+                        textView.setTextColor(view.resources.getColor(R.color.shanChui, null))
+                        R.string.appItemLastProcessingDoNothingResultText
+                    }
+                }
+            textView.setText(textResId)
+        }
+    }
+
+    class ShowAppCompactListViewHolder(itemView: View) : ShowInfoFromAppItemViewHolder(itemView) {
+        var appItemLastProcessingResultText: TextView
+
+        init {
+            appItemLastProcessingResultText =
+                itemView.findViewById(R.id.appItemLastProcessingResultText)
+        }
     }
 }

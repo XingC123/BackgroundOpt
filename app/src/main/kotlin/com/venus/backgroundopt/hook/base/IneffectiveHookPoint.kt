@@ -6,12 +6,10 @@ package com.venus.backgroundopt.hook.base
  */
 class IneffectiveHookPoint(
     className: String,
-    methodName: String?
+    methodName: String
 ) : HookPoint(
     className,
     methodName,
     null,
     null
-) {
-    constructor(className: String) : this(className, null)
-}
+)

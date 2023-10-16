@@ -7,9 +7,9 @@ import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.annotation.UsageComment;
-import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
+import com.venus.backgroundopt.utils.concurrent.lock.LockFlag;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.lang.reflect.Field;
@@ -22,8 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-
-import de.robv.android.xposed.XC_MethodHook;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * app信息
@@ -32,7 +32,7 @@ import de.robv.android.xposed.XC_MethodHook;
  * @version 1.0
  * @date 2023/2/8
  */
-public class AppInfo implements ILogger {
+public class AppInfo implements ILogger, LockFlag {
     /* *************************************************************************
      *                                                                         *
      * app基本信息                                                               *
@@ -63,6 +63,7 @@ public class AppInfo implements ILogger {
     private volatile ProcessRecordKt mProcessRecord;   // 主进程记录
 
     private final AtomicInteger appSwitchEvent = new AtomicInteger(Integer.MIN_VALUE); // app切换事件
+    private final AtomicBoolean activityStoppedEvent = new AtomicBoolean(false); // activity_stopped
 
     private final AtomicBoolean switchEventHandled = new AtomicBoolean(false);    // 切换事件处理完毕
 
@@ -112,9 +113,9 @@ public class AppInfo implements ILogger {
     public ProcessRecordKt addProcess(@NonNull ProcessRecordKt processRecord) {
         return processRecordMap.computeIfAbsent(processRecord.getPid(), k -> {
             ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
-//            if (processRecord.getMainProcess()) {
-//                setmProcessRecord(processRecord);
-//            }
+            if (processRecord.getMainProcess()) {
+                setmProcessRecord(processRecord);
+            }
             processRecord.setAppInfo(this);
             return processRecord;
         });
@@ -153,31 +154,6 @@ public class AppInfo implements ILogger {
         return processRecordMap;
     }
 
-    /**
-     * 安卓ProcessRecord的pid并不是在构造方法中赋值, 而是使用了setPid(int pid)的方式
-     * 因而可能导致 {@link ActivityManagerServiceHook#handleAppSwitch(XC_MethodHook.MethodHookParam)} 获取的主进程pid=0
-     */
-    public ProcessRecordKt correctMainProcess(int correctPid) {
-        try {
-            return processRecordMap.computeIfPresent(correctPid, ((pid, redundantProcessRecord) -> {
-                int mPid;
-                if (getmProcess() == null || (mPid = getmPid()) == correctPid) {
-                    return redundantProcessRecord;
-                }
-                ProcessRecordKt process = removeProcess(mPid);
-                process.setPid(correctPid);
-                process.setRedundantProcessRecord(redundantProcessRecord);
-
-                if (BuildConfig.DEBUG) {
-                    getLogger().warn("pid: " + correctPid + "所在ProcessRecord已进行修正");
-                }
-                return process;
-            }));
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     public ApplicationIdentity getApplicationIdentity() {
         return new ApplicationIdentity(userId, packageName);
     }
@@ -191,31 +167,17 @@ public class AppInfo implements ILogger {
         return this.mProcessRecord.getFixedOomAdjScore();
     }
 
-    @Nullable
-    public ProcessRecordKt getmProcess() {
-        return mProcessRecord;
-    }
-
-    /**
-     * 设置主进程信息
-     */
-    public void setMProcessAndAdd(@NonNull ProcessRecordKt processRecord) {
-        // 保存主进程
-        setmProcessRecord(processRecord);
-        addProcess(processRecord);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AppInfo appInfo = (AppInfo) o;
-        return uid == appInfo.uid && userId == appInfo.userId && Objects.equals(packageName, appInfo.packageName);
+        return uid == appInfo.uid && Objects.equals(packageName, appInfo.packageName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(uid, packageName, userId);
+        return Objects.hash(uid, packageName);
     }
 
     @NonNull
@@ -259,7 +221,10 @@ public class AppInfo implements ILogger {
                 } else if (obj instanceof AtomicReference<?> ap) {
                     ap.set(null);
                 }
-                field.set(this, null);
+
+                if (!(obj instanceof AppGroupEnum)) {
+                    field.set(this, null);
+                }
             }
         } catch (Throwable t) {
             if (BuildConfig.DEBUG) {    // 正式发布版无需关注这里
@@ -337,6 +302,15 @@ public class AppInfo implements ILogger {
         }
     }
 
+    public boolean isActivityStopped() {
+        return activityStoppedEvent.get();
+    }
+
+    public void setActivityStoppedEvent(boolean stoppedEvent) {
+        activityStoppedEvent.set(stoppedEvent);
+    }
+
+    @Nullable
     public ProcessRecordKt getmProcessRecord() {
         return mProcessRecord;
     }
@@ -347,5 +321,19 @@ public class AppInfo implements ILogger {
         if (BuildConfig.DEBUG) {
             getLogger().debug("设置ProcessRecord(" + mProcessRecord.getPackageName() + "-" + mProcessRecord.getPid() + ")");
         }
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 类锁                                                                     *
+     *                                                                         *
+     **************************************************************************/
+    @SuppressWarnings("all")
+    private ReentrantLock lock = new ReentrantLock();
+
+    @NonNull
+    @Override
+    public Lock getLock() {
+        return lock;
     }
 }

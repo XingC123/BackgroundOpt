@@ -14,5 +14,6 @@ interface MessageKeyConstants {
         const val getAppCompactList = "getAppCompactList"
         const val subProcessOomConfigChange = "subProcessOomConfigChange"
         const val getInstalledApps = "getInstalledApps"
+        const val autoStopCompactTask = "autoStopCompactTask"
     }
 }

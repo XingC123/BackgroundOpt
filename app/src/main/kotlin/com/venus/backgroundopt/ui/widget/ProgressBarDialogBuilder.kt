@@ -1,8 +1,6 @@
 package com.venus.backgroundopt.ui.widget
 
-import android.app.Activity
 import android.content.Context
-import android.content.DialogInterface
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.TextView
@@ -10,6 +8,7 @@ import androidx.appcompat.app.AlertDialog
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.environment.newThreadTask
+import com.venus.backgroundopt.utils.setNegativeBtn
 
 /**
  * @author XingC
@@ -18,7 +17,13 @@ import com.venus.backgroundopt.environment.newThreadTask
 class ProgressBarDialogBuilder {
     companion object {
         @JvmStatic
-        fun createProgressBarView(context: Context, text: String): AlertDialog {
+        fun createProgressBarView(
+            context: Context,
+            text: String,
+            cancelable: Boolean = false,
+            enableNegativeBtn: Boolean = true,
+            negativeBtnText: String = "放弃"
+        ): AlertDialog {
             val view = LayoutInflater.from(context).inflate(R.layout.dialog_progress_bar, null)
 
             view.findViewById<TextView>(R.id.progressBarText)?.let {
@@ -26,18 +31,25 @@ class ProgressBarDialogBuilder {
             }
 
             return AlertDialog.Builder(context)
-                .setCancelable(false)
+                .setCancelable(cancelable)
                 .setView(view)
-                .setNegativeButton("放弃") { dialogInterface: DialogInterface, _: Int ->
-                    dialogInterface.dismiss()
-                    (context as Activity).finish()
-                }
+                .setNegativeBtn(
+                    context,
+                    enableNegativeBtn,
+                    negativeBtnText
+                )
                 .create()
         }
 
         @JvmStatic
-        fun showProgressBarViewForAction(context: Context, text: String, action: () -> Unit) {
-            val dialog = createProgressBarView(context, text)
+        fun showProgressBarViewForAction(
+            context: Context, text: String,
+            cancelable: Boolean = false,
+            enableNegativeBtn: Boolean = true,
+            negativeBtnText: String = "放弃", action: () -> Unit
+        ) {
+            val dialog =
+                createProgressBarView(context, text, cancelable, enableNegativeBtn, negativeBtnText)
             dialog.show()
             newThreadTask {
                 try {
@@ -60,6 +72,18 @@ fun createProgressBarView(context: Context, text: String): AlertDialog {
     return ProgressBarDialogBuilder.createProgressBarView(context, text)
 }
 
-fun showProgressBarViewForAction(context: Context, text: String, action: () -> Unit) {
-    ProgressBarDialogBuilder.showProgressBarViewForAction(context, text, action)
+fun showProgressBarViewForAction(
+    context: Context, text: String,
+    cancelable: Boolean = false,
+    enableNegativeBtn: Boolean = true,
+    negativeBtnText: String = "放弃", action: () -> Unit
+) {
+    ProgressBarDialogBuilder.showProgressBarViewForAction(
+        context,
+        text,
+        cancelable,
+        enableNegativeBtn,
+        negativeBtnText,
+        action
+    )
 }

@@ -226,7 +226,7 @@ public class ProcessList implements ILogger {
 
     private ProcessRecordKt getMProcessRecord(String packageName) {
         Object process;
-        for (int i = 0; i < processRecordList.size(); i++) {
+        for (int i = processRecordList.size() - 1; i >= 0; i--) {
             process = processRecordList.get(i);
             if (ProcessRecordKt.isProcessNameSame(packageName, process)) {
                 return new ProcessRecordKt(activityManagerService, process);

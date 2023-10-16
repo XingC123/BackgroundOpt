@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class ConcurrentHashSet<K : Any> : MutableSet<K> {
     companion object {
-        private val any by lazy { Any() }
+        val any by lazy { Any() }
     }
 
     private val map by lazy {

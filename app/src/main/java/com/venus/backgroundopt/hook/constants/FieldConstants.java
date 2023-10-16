@@ -33,6 +33,8 @@ public interface FieldConstants {
     String mOverrideMaxCachedProcesses = "mOverrideMaxCachedProcesses";
     String mCustomizedMaxCachedProcesses = "mCustomizedMaxCachedProcesses";
     String DEFAULT_MAX_CACHED_PROCESSES = "DEFAULT_MAX_CACHED_PROCESSES";
+    String MAX_CACHED_PROCESSES = "MAX_CACHED_PROCESSES";
+    String CUR_TRIM_CACHED_PROCESSES = "CUR_TRIM_CACHED_PROCESSES";
     String KEY_MAX_CACHED_PROCESSES = "KEY_MAX_CACHED_PROCESSES";
     /**
      * {@link ClassConstants#DeviceConfig}
@@ -52,4 +54,10 @@ public interface FieldConstants {
     String mProcLock = "mProcLock";
 
     String PROCESS_CLEANER_ENABLED = "PROCESS_CLEANER_ENABLED";
+    String pgfault = "pgfault";
+    String pgmajfault = "pgmajfault";
+    String rssInBytes = "rssInBytes";
+    String cacheInBytes = "cacheInBytes";
+    String swapInBytes = "swapInBytes";
+    String hasTopUi = "hasTopUi";
 }
