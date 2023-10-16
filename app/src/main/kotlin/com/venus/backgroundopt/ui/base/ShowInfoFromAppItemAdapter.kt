@@ -16,22 +16,20 @@ import com.venus.backgroundopt.entity.AppItem
  * @date 2023/9/25
  */
 abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem>) :
-    RecyclerView.Adapter<ShowInfoFromAppItemAdapter.Companion.ShowInfoFromAppItemViewHolder>() {
-    companion object {
-        class ShowInfoFromAppItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            var appIcon: ImageView
-            var appItemTasksText1: TextView
-            var appItemTasksText2: TextView
-            var appItemTasksText3: TextView
-            var appItemTasksText4: TextView
+    RecyclerView.Adapter<ShowInfoFromAppItemAdapter.ShowInfoFromAppItemViewHolder>() {
+    open class ShowInfoFromAppItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        var appIcon: ImageView
+        var appItemTasksText1: TextView
+        var appItemTasksText2: TextView
+        var appItemTasksText3: TextView
+        var appItemTasksText4: TextView
 
-            init {
-                appIcon = itemView.findViewById(R.id.appItemAppIcon)
-                appItemTasksText1 = itemView.findViewById(R.id.appItemText1)
-                appItemTasksText2 = itemView.findViewById(R.id.appItemText2)
-                appItemTasksText3 = itemView.findViewById(R.id.appItemText3)
-                appItemTasksText4 = itemView.findViewById(R.id.appItemText4)
-            }
+        init {
+            appIcon = itemView.findViewById(R.id.appItemAppIcon)
+            appItemTasksText1 = itemView.findViewById(R.id.appItemText1)
+            appItemTasksText2 = itemView.findViewById(R.id.appItemText2)
+            appItemTasksText3 = itemView.findViewById(R.id.appItemText3)
+            appItemTasksText4 = itemView.findViewById(R.id.appItemText4)
         }
     }
 
@@ -71,6 +69,10 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
      * 布局                                                                     *
      *                                                                         *
      **************************************************************************/
+    open fun getViewHolder(view: View): ShowInfoFromAppItemViewHolder {
+        return ShowInfoFromAppItemViewHolder(view)
+    }
+
     override fun getItemCount(): Int {
         return items.size
     }
@@ -91,7 +93,7 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
             ?.setText(getTipText3ResId())
         view.findViewById<TextView>(R.id.appItemTipText4)
             ?.setText(getTipText4ResId())
-        return ShowInfoFromAppItemViewHolder(view)
+        return getViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ShowInfoFromAppItemViewHolder, position: Int) {

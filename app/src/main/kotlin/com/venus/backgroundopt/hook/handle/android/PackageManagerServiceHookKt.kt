@@ -71,21 +71,24 @@ class PackageManagerServiceHookKt(
         // 若已获取默认桌面的包名, 则不进行任何操作
         runningInfo.activeLaunchPackageName?.let { return }
 
-        val mPackageManagerService = param.thisObject
-        val mInjector =
-            XposedHelpers.getObjectField(mPackageManagerService, FieldConstants.mInjector)
-        val mDefaultAppProvider =
-            XposedHelpers.callMethod(mInjector, MethodConstants.getDefaultAppProvider)
+        try {
+            val mPackageManagerService = param.thisObject
+            val mInjector =
+                XposedHelpers.getObjectField(mPackageManagerService, FieldConstants.mInjector)
+            val mDefaultAppProvider =
+                XposedHelpers.callMethod(mInjector, MethodConstants.getDefaultAppProvider)
 
-        val packageName = XposedHelpers.callMethod(
-            mDefaultAppProvider,
-            MethodConstants.getDefaultHome,
-            0
-        ) as String
+            val packageName = XposedHelpers.callMethod(
+                mDefaultAppProvider,
+                MethodConstants.getDefaultHome,
+                0
+            ) as String
 
-        runningInfo.activeLaunchPackageName = packageName
-        if (BuildConfig.DEBUG) {
-            logger.debug("默认启动器为: $packageName")
+            runningInfo.activeLaunchPackageName = packageName
+            if (BuildConfig.DEBUG) {
+                logger.debug("默认启动器为: $packageName")
+            }
+        } catch (ignore: Throwable) {
         }
     }
 

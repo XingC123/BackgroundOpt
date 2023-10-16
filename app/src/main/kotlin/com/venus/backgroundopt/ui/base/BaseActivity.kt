@@ -1,6 +1,8 @@
 package com.venus.backgroundopt.ui.base
 
 import android.os.Bundle
+import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 
@@ -15,15 +17,60 @@ abstract class BaseActivity : AppCompatActivity() {
 
         // 初始化ToolBar
         initToolBar()?.let { toolbar ->
-            toolbar.setNavigationOnClickListener { finish() }
+            // 设置返回按钮的行为
+            toolbar.setNavigationOnClickListener { setNavigationOnClickListener(it) }
+            // 设置菜单
+            getToolBarMenusResId()?.let { menuResId ->
+                toolbar.inflateMenu(menuResId)
+            }
+            toolbar.setOnMenuItemClickListener { menuItem ->
+                setOnMenuItemClickListener(menuItem)
+                true
+            }
         }
     }
 
+    /* *************************************************************************
+     *                                                                         *
+     * 工具栏                                                                   *
+     *                                                                         *
+     **************************************************************************/
     open fun initToolBar(): Toolbar? {
         return null
     }
 
-    abstract fun getContentView():Int
+    /**
+     * 获取菜单的资源id
+     *
+     * @return
+     */
+    open fun getToolBarMenusResId(): Int? {
+        return null
+    }
+
+    /**
+     * 设置菜单项的点击监听
+     *
+     * @param menuItem 被点击的菜单项
+     */
+    open fun setOnMenuItemClickListener(menuItem: MenuItem) {
+    }
+
+    /**
+     * 设置ToolBar的返回按钮事件
+     *
+     * @param view
+     */
+    open fun setNavigationOnClickListener(view: View) {
+        finish()
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * Activity布局的ViewId                                                     *
+     *                                                                         *
+     **************************************************************************/
+    abstract fun getContentView(): Int
 
     class ToolBarBuilder {
         lateinit var title: String

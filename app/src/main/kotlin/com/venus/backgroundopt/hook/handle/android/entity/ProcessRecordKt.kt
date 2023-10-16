@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.RunningInfo
+import com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
@@ -41,7 +42,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         fun newInstance(
             runningInfo: RunningInfo,
             appInfo: AppInfo,
-            processRecord: Any?
+            processRecord: Any
         ): ProcessRecordKt {
             val record = ProcessRecordKt(runningInfo.activityManagerService, processRecord)
             addCompactProcess(runningInfo, appInfo, record)
@@ -135,7 +136,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         /**
          * 获取pid
          *
-         * @param processRecord 安卓ProcessRecord
+         * @param processRecord 安卓ProcessRecord。确保传入的是非空的, 此处可空类型只是为了使用方便
          */
         @JvmStatic
         fun getPid(processRecord: Any?): Int {
@@ -194,18 +195,44 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          */
         @JvmStatic
         fun isValid(runningInfo: RunningInfo, processRecord: ProcessRecordKt): Boolean {
+            // pid是否合法
+            if (processRecord.pid <= 0) {
+                return false
+            }
+            // 主进程则查看当前应用内存分组
+            if (processRecord.mainProcess) {
+                return processRecord.appInfo.appGroupEnum != AppGroupEnum.DEAD
+            }
+            // 子进程在当前运行的app列表中来判断
             return runningInfo.getRunningAppInfo(processRecord.uid)
                 ?.getProcess(processRecord.pid) != null
+        }
+
+        /**
+         * processRecord.pid纠正
+         *
+         * @param processRecord 要纠正的ProcessRecord
+         */
+        @JvmStatic
+        fun correctProcessPid(processRecord: ProcessRecordKt?) {
+            processRecord ?: return
+
+            var curCorrectTimes = 1
+            while (curCorrectTimes <= 5 && processRecord.pid <= 0) {
+                processRecord.pid = getPid(processRecord.processRecord)
+                curCorrectTimes++
+                TimeUnit.MILLISECONDS.sleep(20)
+            }
         }
     }
 
     // 反射拿到的安卓的processRecord对象
     @JSONField(serialize = false)
-    var processRecord: Any? = null
+    lateinit var processRecord: Any
 
     // 反射拿到的安卓的processStateRecord对象
     @JSONField(serialize = false)
-    var processStateRecord: ProcessStateRecord? = null
+    lateinit var processStateRecord: ProcessStateRecord
 
     // 当前ProcessRecord已记录的最大adj
     @JSONField(serialize = false)
@@ -231,7 +258,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     @JSONField(serialize = false)
     lateinit var appInfo: AppInfo
 
-    constructor(activityManagerService: ActivityManagerService, processRecord: Any?) : this() {
+    constructor(activityManagerService: ActivityManagerService, processRecord: Any) : this() {
         this.processRecord = processRecord
         pid = getPid(processRecord)
         uid = getUID(processRecord)
@@ -269,12 +296,12 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     fun setMaxAdj(maxAdj: Int) {
         var setSucceed = false
         try {
-            processStateRecord!!.maxAdj = maxAdj
+            processStateRecord.maxAdj = maxAdj
             setSucceed = true
         } catch (t: Throwable) {
             try {
                 XposedHelpers.setIntField(
-                    processStateRecord!!.processStateRecord,
+                    processStateRecord.processStateRecord,
                     FieldConstants.mMaxAdj,
                     maxAdj
                 )
@@ -299,14 +326,9 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     fun resetMaxAdj() {
         if (hasSetMaxAdj()) {
             try {
-                processStateRecord?.let { psr ->
-                    psr.maxAdj = ProcessList.UNKNOWN_ADJ
-
-                    if (BuildConfig.DEBUG) {
-                        logger.debug("pid: [${pid}] >>> maxAdj重置成功")
-                    }
-                } ?: run {
-                    logger.warn("pid: [${pid}] >>> psr为空, 重置进程maxAdj失败")
+                processStateRecord.maxAdj = ProcessList.UNKNOWN_ADJ
+                if (BuildConfig.DEBUG) {
+                    logger.debug("pid: [${pid}] >>> maxAdj重置成功")
                 }
             } catch (t: Throwable) {
                 logger.error("pid: [${pid}] >>> maxAdj重置失败", t)
@@ -322,11 +344,11 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     @JSONField(serialize = false)
     fun getMaxAdj(): Int {
         return try {
-            processStateRecord!!.maxAdj
+            processStateRecord.maxAdj
         } catch (t: Throwable) {
             try {
                 XposedHelpers.getIntField(
-                    processStateRecord!!.processStateRecord, FieldConstants.mMaxAdj
+                    processStateRecord.processStateRecord, FieldConstants.mMaxAdj
                 )
             } catch (th: Throwable) {
                 ProcessList.UNKNOWN_ADJ
@@ -384,6 +406,50 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
     /* *************************************************************************
      *                                                                         *
+     * 进程内存调节                                                              *
+     *                                                                         *
+     **************************************************************************/
+    @JSONField(serialize = false)
+    var rssInBytes = Long.MIN_VALUE
+
+    fun updateRssInBytes() {
+        rssInBytes =
+            MemoryStatUtil.readMemoryStatFromFilesystem(uid, pid)?.rssInBytes ?: Long.MIN_VALUE
+    }
+
+    /**
+     * 先获当前值, 再更新值
+     *
+     * @return 返回这次更新前的值
+     */
+    @JSONField(serialize = false)
+    fun getAndUpdateRssInBytes(): Long {
+        val bytes = rssInBytes
+        // 更新
+        updateRssInBytes()
+        return bytes
+    }
+
+    /**
+     * 是否需要应用内存调整
+     *
+     * @return true if necessary
+     */
+    @JSONField(serialize = false)
+    fun isNecessaryToOptimize(): Boolean {
+        val bytes = getAndUpdateRssInBytes()
+        var b = true
+        // 只有成功获取当前已用内存时才进行按比率判断, 其他情况直接默认处理
+        if (bytes != Long.MIN_VALUE) {
+            MemoryStatUtil.readMemoryStatFromFilesystem(uid, pid)?.let { memoryStat ->
+                b = (memoryStat.rssInBytes / bytes.toDouble()) > 0.5
+            }
+        }
+        return b
+    }
+
+    /* *************************************************************************
+     *                                                                         *
      * 独立于安卓原本ProcessRecord的字段                                           *
      *                                                                         *
      **************************************************************************/
@@ -431,31 +497,14 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         lastCompactTimeAtomicLong.set(time)
     }
 
-    /* *************************************************************************
-     *                                                                         *
-     * 若过早获取ProcessRecord, 可能导致pid=0, 因此需要进行修正                       *
-     *                                                                         *
-     **************************************************************************/
-    // 修正之前会有一个多余但是正确pid的进程记录, 那么使用这个进程进行修正
-    @JSONField(serialize = false)
-    var redundantProcessRecord: ProcessRecordKt? = null
-
-    fun correctMainProcess() {
-        pid = activityManagerService.findMProcessRecord(packageName, uid).pid
-    }
-
-    fun removeIfRedundant(collection: MutableCollection<ProcessRecordKt>) {
-        redundantProcessRecord?.let { collection.remove(it) }
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
         val that = other as ProcessRecordKt
-        return uid == that.uid && pid == that.pid && userId == that.userId && processName == that.processName && packageName == that.packageName
+        return uid == that.uid && pid == that.pid && processName == that.processName && packageName == that.packageName
     }
 
     override fun hashCode(): Int {
-        return Objects.hash(uid, pid, processName, userId, packageName)
+        return Objects.hash(uid, pid, processName, packageName)
     }
 }

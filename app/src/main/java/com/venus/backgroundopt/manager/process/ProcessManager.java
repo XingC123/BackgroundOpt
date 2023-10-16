@@ -14,6 +14,7 @@ import com.venus.backgroundopt.utils.log.ILogger;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -60,6 +61,14 @@ public class ProcessManager implements ILogger {
 
     public Set<ProcessRecordKt> getCompactProcessInfos() {
         return appCompactManager.getCompactProcesses();
+    }
+
+    public Map<ProcessRecordKt, ProcessingResult> getCompactProcessingResultMap() {
+        return appCompactManager.getProcessLastProcessingResultMap();
+    }
+
+    public void setAutoStopCompactTask(boolean enable) {
+        appCompactManager.setAutoStopCompactTask(enable);
     }
 
     /**
@@ -122,7 +131,7 @@ public class ProcessManager implements ILogger {
      *
      * @param pid 要压缩的pid
      */
-    public boolean compactAppFull(int pid, int curAdj) {
+    public int compactAppFull(int pid, int curAdj) {
         return appCompactManager.compactAppFull(pid, curAdj);
     }
 
@@ -134,7 +143,7 @@ public class ProcessManager implements ILogger {
 //        return cachedAppOptimizer.compactApp(processInfo.getProcessRecord(), true, "Full");
 //    }
 
-    public boolean compactAppFull(ProcessRecordKt processRecord) {
+    public int compactAppFull(ProcessRecordKt processRecord) {
         return appCompactManager.compactAppFull(processRecord);
     }
 
@@ -227,7 +236,6 @@ public class ProcessManager implements ILogger {
             startForegroundAppTrimTask(appInfo.getmProcessRecord());
             return null;
         });
-
     }
 
     public void appIdle(AppInfo appInfo) {

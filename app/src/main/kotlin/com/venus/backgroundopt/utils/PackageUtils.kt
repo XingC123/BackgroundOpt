@@ -106,6 +106,7 @@ fun getTargetApps(context: Context, list: List<BaseProcessInfoKt>): List<AppItem
                     processName = baseProcessInfo.processName
                     oomAdjScore = baseProcessInfo.oomAdjScore
                     curAdj = baseProcessInfo.curAdj
+                    processingResult = baseProcessInfo.processingResult
                 }
             }
         }

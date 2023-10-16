@@ -1,7 +1,6 @@
 package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.entity.RunningInfo
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
 import de.robv.android.xposed.XC_MethodHook
@@ -20,7 +19,13 @@ class AppCompactListMessageHandler : MessageHandler {
     ) {
         createResponse<Any>(param, value, setJsonData = true) {
             runningInfo.processManager.compactProcessInfos.apply {
-                ProcessRecordKt.setActualAdj(this)
+                val map = runningInfo.processManager.compactProcessingResultMap
+                forEach { process ->
+                    // 设置真实oom_adj_score
+                    process.curAdj = process.getCurAdjNative()
+                    // 设置上一次执行状态
+                    process.processingResult = map[process]
+                }
             }
         }
     }

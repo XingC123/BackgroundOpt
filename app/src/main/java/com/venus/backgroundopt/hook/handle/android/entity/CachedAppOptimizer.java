@@ -130,13 +130,19 @@ public class CachedAppOptimizer {
      * @param pid             pid of process to compact
      * @param compactionFlags selects the compaction type as defined by COMPACT_ACTION_{TYPE}_FLAG
      *                        constants
+     * @return true if success, false if has problem
      */
-    public void compactProcess(int pid, int compactionFlags) {
-        XposedHelpers.callStaticMethod(
-                getCachedAppOptimizerClass(),
-                MethodConstants.compactProcess,
-                pid,
-                compactionFlags
-        );
+    public boolean compactProcess(int pid, int compactionFlags) {
+        try {
+            XposedHelpers.callStaticMethod(
+                    getCachedAppOptimizerClass(),
+                    MethodConstants.compactProcess,
+                    pid,
+                    compactionFlags
+            );
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
     }
 }

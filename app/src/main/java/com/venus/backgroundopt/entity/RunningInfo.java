@@ -36,7 +36,23 @@ import java.util.stream.Collectors;
  * @date 2023/2/10
  */
 public class RunningInfo implements ILogger {
-    public RunningInfo() {
+    private static RunningInfo runningInfo;
+
+    @NonNull
+    public static RunningInfo getInstance() {
+        return runningInfo;
+    }
+
+    public RunningInfo(ClassLoader classLoader) {
+        runningInfo = this;
+        this.classLoader = classLoader;
+    }
+
+    private final ClassLoader classLoader;
+
+    @NonNull
+    public ClassLoader getClassLoader() {
+        return classLoader;
     }
 
     /**
@@ -261,8 +277,7 @@ public class RunningInfo implements ILogger {
      */
     public void setAddedRunningApp(ProcessRecordKt mProcessRecord, AppInfo appInfo) {
         if (mProcessRecord != null) {
-            // 写入主进程
-            appInfo.setMProcessAndAdd(mProcessRecord);
+            appInfo.addProcess(mProcessRecord);
         } else {
             if (BuildConfig.DEBUG) {
                 getLogger().warn(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的mProcessRecord为空");
@@ -354,6 +369,8 @@ public class RunningInfo implements ILogger {
 
             if (remove != null) {
                 String packageName = remove.getPackageName();
+                // 设置内存分组到死亡分组
+                remove.setAppGroupEnum(AppGroupEnum.DEAD);
                 // 从待处理列表中移除
                 activeAppGroup.remove(appInfo);
                 tmpAppGroup.remove(appInfo);
@@ -386,7 +403,8 @@ public class RunningInfo implements ILogger {
         NONE,
         ACTIVE,
         TMP,
-        IDLE
+        IDLE,
+        DEAD
     }
 
     // 活跃分组
@@ -440,11 +458,8 @@ public class RunningInfo implements ILogger {
     }
 
     public void putIntoTmpAppGroup(AppInfo appInfo) {
-        tmpAppGroup.add(appInfo);
         activeAppGroup.remove(appInfo);
 //        idleAppGroup.remove(appInfo); // 没有app在后台也能进入这个方法吧
-
-        appInfo.setAppGroupEnum(AppGroupEnum.TMP);
 
         /*
             息屏触发 UsageEvents.Event.ACTIVITY_PAUSED 事件。则对当前app按照进入后台处理
@@ -454,6 +469,9 @@ public class RunningInfo implements ILogger {
         if (!getPowerManager().isInteractive()) {
             putIntoIdleAppGroup(appInfo);
         } else {
+            tmpAppGroup.add(appInfo);
+            appInfo.setAppGroupEnum(AppGroupEnum.TMP);
+
             if (BuildConfig.DEBUG) {
                 getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入TmpGroup");
             }
@@ -479,6 +497,20 @@ public class RunningInfo implements ILogger {
 
         if (needHandleCurApp) {
             handleCurApp(appInfo);
+
+            // 检查前台应用中是否有遗漏的已经没有前台界面的app
+            /*
+                在Redmi K30p(lmi) MIUI 13 22.7.8 Android12中, 如果先打开应用A, 再从通知栏或弹出的消息打开应用B小窗,
+                    再将小窗拉伸至全屏, 此时, 尽管实质上已切换app, 但当前的app切换事件hook仍然捕捉不到A的Activity状态变化。
+                    导致无法更新应用A的内存分组。
+             */
+            activeAppGroup.forEach(app -> {
+                if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED &&
+                        app.isActivityStopped()) {
+                    activeAppGroup.remove(app);
+                    putIntoIdleAppGroup(app);
+                }
+            });
         }
 
         activeAppGroup.add(appInfo);
@@ -515,7 +547,7 @@ public class RunningInfo implements ILogger {
      * @param appInfo app信息
      * @return appInfo是否合法
      */
-    private boolean handleLastApp(AppInfo appInfo) {
+    public boolean handleLastApp(AppInfo appInfo) {
         if (appInfo == null) {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("待执行app已被杀死, 不执行处理");

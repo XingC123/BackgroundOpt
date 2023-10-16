@@ -19,8 +19,10 @@
             android:layout_height="wrap_content"
             android:background="?attr/colorPrimary"
             android:minHeight="?attr/actionBarSize"
-            android:theme="?attr/actionBarTheme"
-            app:navigationIcon="@drawable/baseline_arrow_back_24">
+            android:theme="@style/Theme.AppTheme"
+            app:menu="@menu/menu_show_app_compact_list_toolbar"
+            app:navigationIcon="@drawable/baseline_arrow_back_24"
+            app:popupTheme="@style/OverflowMenuStyle">
 
             <TextView
                 android:id="@+id/showBackgroundTasksToolBarText"

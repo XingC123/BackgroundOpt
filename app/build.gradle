@@ -71,12 +71,12 @@ def generateSuffix() {
 
 android {
     namespace 'com.venus.backgroundopt'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.venus.backgroundopt"
         minSdk 31
-        targetSdk 33
+        targetSdk 34
         versionCode generateVersionCode()
         versionName generateVersionName() + "_vc${versionCode}"
 
@@ -131,13 +131,13 @@ dependencies {
     compileOnly 'de.robv.android.xposed:api:82'
 //    compileOnly 'de.robv.android.xposed:api:82:sources'
 
-//    implementation "androidx.preference:preference-ktx:1.2.0"
-    implementation 'com.alibaba:fastjson:2.0.30'
     implementation 'androidx.core:core-ktx:1.10.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation "org.jetbrains.kotlin:kotlin-reflect:1.9.0"
     implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation "androidx.preference:preference-ktx:1.2.0"
+    implementation 'com.alibaba:fastjson:2.0.30'
     implementation 'com.google.android.material:material:1.9.0'
+    implementation "org.jetbrains.kotlin:kotlin-reflect:1.9.0"
 
     testImplementation 'junit:junit:4.13.2'
 

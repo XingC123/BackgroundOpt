@@ -17,7 +17,7 @@
         android:theme="?attr/actionBarTheme" />
 
     <TextView
-        android:id="@+id/toolbarCenterTitleToolbarText"
+        android:id="@+id/toolbarTitleText"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"

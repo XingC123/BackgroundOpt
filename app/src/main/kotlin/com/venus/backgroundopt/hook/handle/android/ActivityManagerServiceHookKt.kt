@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.hook.handle.android
 
+import android.content.ComponentName
 import android.content.Intent
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.RunningInfo
@@ -7,6 +8,7 @@ import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.afterHookAction
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
+import com.venus.backgroundopt.hook.base.generateMatchedMethodHookPoint
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
@@ -22,6 +24,14 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
     MethodHook(classLoader, hookInfo) {
     override fun getHookPoint(): Array<HookPoint> {
         return arrayOf(
+            generateMatchedMethodHookPoint(
+                true,
+                ClassConstants.ActivityManagerService,
+                MethodConstants.updateActivityUsageStats,
+                arrayOf(
+                    beforeHookAction { handleUpdateActivityUsageStats(it) }
+                )
+            ),
 //            HookPoint(
 //                ClassConstants.ActivityManagerService,
 //                MethodConstants.forceStopPackage,
@@ -75,6 +85,63 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
                 Int::class.java                         // userId
             )
         )
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 前后台切换                                                                *
+     *                                                                         *
+     **************************************************************************/
+    private val handleEvents = arrayOf(
+        ActivityManagerServiceHook.ACTIVITY_PAUSED,
+        ActivityManagerServiceHook.ACTIVITY_RESUMED,
+        ActivityManagerServiceHook.ACTIVITY_STOPPED
+    )
+
+    fun handleUpdateActivityUsageStats(param: MethodHookParam) {
+        // 获取方法参数
+        val args = param.args
+
+
+        // 获取切换事件
+        val event = args[2] as Int
+
+        if (event !in handleEvents) {
+            return
+        }
+
+        // 本次事件包名
+        val packageName = (args[0] as? ComponentName)?.packageName
+        packageName ?: return
+
+        // 本次事件用户
+        val userId = args[1] as Int
+
+        val runningInfo = runningInfo
+        // 检查是否是系统重要进程
+        val normalAppResult = runningInfo.isNormalApp(userId, packageName)
+        if (!normalAppResult.isNormalApp) {
+            return
+        }
+
+        val appInfo = runningInfo.computeRunningAppIfAbsent(
+            userId,
+            packageName,
+            normalAppResult.applicationInfo.uid
+        )
+
+        if (event == ActivityManagerServiceHook.ACTIVITY_STOPPED) {
+            appInfo.setActivityStoppedEvent(true)
+        } else {
+            // 更新app的切换状态
+            appInfo.appSwitchEvent = event
+            appInfo.setActivityStoppedEvent(false)
+
+            when (event) {
+                ActivityManagerServiceHook.ACTIVITY_RESUMED -> runningInfo.putIntoActiveAppGroup(appInfo)
+                ActivityManagerServiceHook.ACTIVITY_PAUSED -> runningInfo.putIntoTmpAppGroup(appInfo)
+            }
+        }
     }
 
     /* *************************************************************************

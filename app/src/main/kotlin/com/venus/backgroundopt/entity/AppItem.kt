@@ -4,6 +4,7 @@ import android.content.pm.PackageInfo
 import android.graphics.drawable.Drawable
 import com.alibaba.fastjson2.annotation.JSONCreator
 import com.alibaba.fastjson2.annotation.JSONField
+import com.venus.backgroundopt.manager.process.ProcessingResult
 import com.venus.backgroundopt.utils.message.MessageFlag
 
 /**
@@ -47,6 +48,9 @@ class AppItem @JSONCreator constructor() : MessageFlag {
 
     @JSONField(serialize = false)
     var longVersionCode: Long = Long.MIN_VALUE
+
+    @JSONField(serialize = false)
+    var processingResult: ProcessingResult? = null
 
     constructor(packageName: String) : this() {
         this.packageName = packageName
