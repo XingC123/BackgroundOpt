@@ -2,14 +2,13 @@ package com.venus.backgroundopt.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.ui.widget.QueryInfoDialog
 import com.venus.backgroundopt.utils.findViewById
 import com.venus.backgroundopt.utils.log.ILogger
@@ -18,28 +17,25 @@ import com.venus.backgroundopt.utils.message.sendMessage
 import com.venus.backgroundopt.utils.setIntentData
 
 
-class MainActivity : AppCompatActivity(), ILogger {
+class MainActivity : BaseActivity(), ILogger {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        toolbar?.title = ""
-        setSupportActionBar(toolbar)
 
         init()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_main_activity_toolbar, menu)
-        return true
+    override fun getContentView(): Int {
+        return R.layout.activity_main
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId) {
+    override fun initToolBar(): Toolbar? {
+        return findViewById(R.id.toolbar)
+    }
+
+    override fun setOnMenuItemClickListener(menuItem: MenuItem) {
+        when(menuItem.itemId) {
             R.id.MainActivityAboutMenuItem -> startActivity(Intent(this, AboutAppActivity::class.java))
         }
-        return true
     }
 
     private fun init() {
