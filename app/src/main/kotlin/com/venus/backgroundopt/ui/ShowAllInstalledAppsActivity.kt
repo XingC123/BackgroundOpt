@@ -3,7 +3,6 @@ package com.venus.backgroundopt.ui
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -11,8 +10,8 @@ import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
+import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.getInstalledPackages
-import com.venus.backgroundopt.utils.getToolbar
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.sendMessageAcceptList
 
@@ -22,11 +21,7 @@ import com.venus.backgroundopt.utils.message.sendMessageAcceptList
  */
 class ShowAllInstalledAppsActivity : BaseActivity() {
     override fun initToolBar(): Toolbar? {
-        return getToolbar(this, R.id.toolbarLeftTitleToolbar)?.also {
-            findViewById<TextView>(R.id.toolbarLeftTitleToolbarText)?.let { toolbarText ->
-                toolbarText.text = "已安装应用"
-            }
-        }
+        return UiUtils.getToolbar(this, R.id.toolbarLeftTitleToolbar, titleStr = "已安装应用")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
