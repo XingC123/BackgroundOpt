@@ -82,7 +82,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             processRecord: ProcessRecordKt
         ) {
             // 若该进程创建时, app处于IDLE且当前app不是桌面, 则将此进程添加到待压缩列表
-            if (RunningInfo.AppGroupEnum.IDLE == appInfo.appGroupEnum && runningInfo.activeLaunchPackageName != appInfo.packageName) {
+            if (AppGroupEnum.IDLE == appInfo.appGroupEnum && runningInfo.activeLaunchPackageName != appInfo.packageName) {
                 processRecord.appInfo = appInfo
                 processRecord.addCompactProcess(runningInfo)
             }
@@ -94,7 +94,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @param processRecord 安卓的进程记录
          */
         @JvmStatic
-        fun getUserId(processRecord: Any?): Int {
+        fun getUserId(processRecord: Any): Int {
             return XposedHelpers.getIntField(processRecord, FieldConstants.userId)
         }
 
@@ -119,17 +119,17 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @return 进程名
          */
         @JvmStatic
-        fun getProcessName(processRecord: Any?): String {
+        fun getProcessName(processRecord: Any): String {
             return XposedHelpers.getObjectField(processRecord, FieldConstants.processName) as String
         }
 
         @JvmStatic
-        fun isProcessNameSame(expectProcName: String, processRecord: Any?): Boolean {
+        fun isProcessNameSame(expectProcName: String, processRecord: Any): Boolean {
             return expectProcName == getProcessName(processRecord)
         }
 
         @JvmStatic
-        fun getUID(processRecord: Any?): Int {
+        fun getUID(processRecord: Any): Int {
             return XposedHelpers.getIntField(processRecord, FieldConstants.uid)
         }
 
@@ -139,7 +139,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @param processRecord 安卓ProcessRecord。确保传入的是非空的, 此处可空类型只是为了使用方便
          */
         @JvmStatic
-        fun getPid(processRecord: Any?): Int {
+        fun getPid(processRecord: Any): Int {
             return XposedHelpers.getIntField(processRecord, FieldConstants.mPid)
         }
 
@@ -181,13 +181,11 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @return 包名:进程名
          */
         @JvmStatic
-        fun getFullPackageName(processRecord: Any?): String? {
-            return processRecord?.let { process->
-                PackageUtils.absoluteProcessName(
-                    getPkgName(process),
-                    getProcessName(process)
-                )
-            }
+        fun getFullPackageName(processRecord: Any): String {
+            return PackageUtils.absoluteProcessName(
+                getPkgName(processRecord),
+                getProcessName(processRecord)
+            )
         }
 
         /**
@@ -366,12 +364,12 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
      */
     fun scheduleTrimMemory(level: Int): Boolean {
 //        XposedHelpers.callMethod(mThread, MethodConstants.scheduleTrimMemory, level);
-        var thread: Any? = null
+        val thread: Any?
         try {
             thread = XposedHelpers.callMethod(processRecord, MethodConstants.getThread)
         } catch (ignore: Throwable) {
+            return false
         }
-        thread ?: return false
 
         XposedHelpers.callMethod(thread, MethodConstants.scheduleTrimMemory, level)
         return true
