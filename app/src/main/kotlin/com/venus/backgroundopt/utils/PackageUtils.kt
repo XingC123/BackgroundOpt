@@ -37,7 +37,7 @@ fun absoluteProcessName(packageName: String, processName: String): String {
 }
 
 const val PACKAGE_INFO_FLAG = 0
-//    PackageManager.MATCH_UNINSTALLED_PACKAGES or PackageManager.GET_ACTIVITIES
+//    PackageManager.MATCH_UNINSTALLED_PACKAGES or PackageManager.GET_ACTIVITIES    // 在某些系统可能存在获取不到app的情况
 
 private fun getPackageInfo(
     packageManager: PackageManager,
@@ -118,7 +118,6 @@ fun getTargetApps(context: Context, list: List<BaseProcessInfoKt>): List<AppItem
 
 /**
  * 获取已安装app的信息列表
- * 在某些系统可能存在获取不到app的情况
  *
  * @param context 需要上下文来获取包管理器
  * @param filter 根据传入的条件过滤掉不需要的数据
