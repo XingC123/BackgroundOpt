@@ -438,16 +438,18 @@ public class RunningInfo implements ILogger {
     public void handleActivityEventChange(int event, ComponentName componentName, AppInfo appInfo) {
         switch (event) {
             case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
-                ComponentName appInfoComponentName = appInfo.getComponentName();
-                // 第一次打开app || 从后台到前台
-                if (appInfoComponentName == null || appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_STOPPED) {
+                // 从后台到前台 || 第一次打开app
+                if (appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_STOPPED
+                        /*最好判断下。其实前面的条件理论上足够了*/ && Objects.equals(componentName, appInfo.getComponentName())
+                        || appInfo.getComponentName() == null
+                ) {
                     putIntoActiveAppGroup(appInfo);
                 }
             }
 
-            case ActivityManagerServiceHookKt.ACTIVITY_PAUSED -> {
+            /*case ActivityManagerServiceHookKt.ACTIVITY_PAUSED -> {
                 // do nothing
-            }
+            }*/
 
             case ActivityManagerServiceHookKt.ACTIVITY_STOPPED -> {
                 if (Objects.equals(componentName, appInfo.getComponentName())
@@ -481,7 +483,7 @@ public class RunningInfo implements ILogger {
         appInfo.setAppGroupEnum(AppGroupEnum.ACTIVE);
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的active事件处理完毕");
+            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入ActiveGroup");
         }
     }
 
@@ -515,10 +517,6 @@ public class RunningInfo implements ILogger {
 
         // 启动前台工作
         processManager.appActive(appInfo);
-
-        if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入ActiveGroup");
-        }
     }
 
     /**
