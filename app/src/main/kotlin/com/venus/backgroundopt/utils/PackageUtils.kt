@@ -138,26 +138,15 @@ fun getInstalledPackages(
         packageManager.getInstalledPackages(PACKAGE_INFO_FLAG)
     }
 
-    // 应用部分信息缓存
-    val infoCache = HashMap<String, AppInfoCache>()
-
     val appItems = packageInfos.stream()
         .filterNullable(filter)
         .map { packageInfo ->
             val applicationInfo = packageInfo.applicationInfo
-            // 保存应用信息
-            val appInfo =
-                infoCache.computeIfAbsent(packageInfo.packageName) { _ ->
-                    AppInfoCache().apply {
-                        appName = applicationInfo.loadLabel(packageManager).toString()
-                        appIcon = applicationInfo.loadIcon(packageManager)
-                    }
-                }
             AppItem(
-                appInfo.appName,
+                applicationInfo.loadLabel(packageManager).toString(),
                 packageInfo.packageName,
                 applicationInfo.uid,
-                appInfo.appIcon,
+                applicationInfo.loadIcon(packageManager),
                 packageInfo
             ).apply {
                 versionName = packageInfo.versionName
@@ -165,8 +154,6 @@ fun getInstalledPackages(
             }
         }
         .collect(Collectors.toList())
-    // 清空缓存
-    infoCache.clear()
     return appItems
 }
 
@@ -175,31 +162,20 @@ fun getInstalledPackages(
     appItems: MutableList<AppItem>
 ): List<AppItem> {
     val packageManager = context.packageManager
-    // 应用部分信息缓存
-    val infoCache = HashMap<String, AppInfoCache>()
 
     appItems.forEach { appItem ->
         getPackageInfo(packageManager, appItem.packageName)?.let { packageInfo ->
             val applicationInfo = packageInfo.applicationInfo
-            // 保存应用信息
-            val appInfo =
-                infoCache.computeIfAbsent(packageInfo.packageName) { _ ->
-                    AppInfoCache().apply {
-                        appName = applicationInfo.loadLabel(packageManager).toString()
-                        appIcon = applicationInfo.loadIcon(packageManager)
-                    }
-                }
             appItem.apply {
-                this.appName = appInfo.appName
+                this.appName = applicationInfo.loadLabel(packageManager).toString()
                 this.uid = applicationInfo.uid
-                this.appIcon = appInfo.appIcon
+                this.appIcon = applicationInfo.loadIcon(packageManager)
                 this.packageInfo = packageInfo
                 this.versionName = packageInfo.versionName
                 this.longVersionCode = packageInfo.longVersionCode
             }
         }
     }
-    infoCache.clear()
     return appItems
 }
 
