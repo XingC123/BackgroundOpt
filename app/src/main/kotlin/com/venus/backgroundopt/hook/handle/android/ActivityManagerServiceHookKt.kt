@@ -138,11 +138,15 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
             return
         }
 
-        val appInfo = runningInfo.computeRunningAppIfAbsent(
-            userId,
-            packageName,
-            normalAppResult.applicationInfo.uid
-        )
+        val appInfo = if (event == ACTIVITY_RESUMED || event == ACTIVITY_PAUSED) {
+            runningInfo.computeRunningAppIfAbsent(
+                userId,
+                packageName,
+                normalAppResult.applicationInfo.uid
+            )
+        } else {
+            runningInfo.getRunningAppInfo(normalAppResult.applicationInfo.uid)
+        } ?: return
 
         runningInfo.handleActivityEventChange(event, componentName, appInfo)
     }
