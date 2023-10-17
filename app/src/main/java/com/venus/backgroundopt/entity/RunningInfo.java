@@ -446,13 +446,14 @@ public class RunningInfo implements ILogger {
             }
 
             case ActivityManagerServiceHookKt.ACTIVITY_PAUSED -> {
-                if (!getPowerManager().isInteractive()) {
-                    putIntoIdleAppGroup(appInfo);
-                }
+                // do nothing
             }
 
             case ActivityManagerServiceHookKt.ACTIVITY_STOPPED -> {
-                if (Objects.equals(componentName, appInfo.getComponentName()) && appInfo.getAppGroupEnum() != AppGroupEnum.IDLE) {
+                if (Objects.equals(componentName, appInfo.getComponentName())
+                        && appInfo.getAppGroupEnum() != AppGroupEnum.IDLE
+                        || !getPowerManager().isInteractive()
+                ) {
                     putIntoIdleAppGroup(appInfo);
                 }
             }
