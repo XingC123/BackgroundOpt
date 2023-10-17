@@ -36,13 +36,13 @@ fun absoluteProcessName(packageName: String, processName: String): String {
     }
 }
 
-const val PACKAGE_INFO_FLAG =
-    PackageManager.MATCH_UNINSTALLED_PACKAGES or PackageManager.GET_ACTIVITIES
+const val PACKAGE_INFO_FLAG = 0
+//    PackageManager.MATCH_UNINSTALLED_PACKAGES or PackageManager.GET_ACTIVITIES
 
 private fun getPackageInfo(
     packageManager: PackageManager,
     packageName: String,
-    packageInfoFlag: Int
+    packageInfoFlag: Int = PACKAGE_INFO_FLAG
 ): PackageInfo? {
     return try {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
@@ -83,8 +83,7 @@ fun getTargetApps(context: Context, list: List<BaseProcessInfoKt>): List<AppItem
         .map { baseProcessInfo ->
             getPackageInfo(
                 packageManager,
-                baseProcessInfo.packageName,
-                PACKAGE_INFO_FLAG
+                baseProcessInfo.packageName
             )?.let { packageInfo ->
                 val applicationInfo = packageInfo.applicationInfo
                 // 保存应用信息
@@ -181,7 +180,7 @@ fun getInstalledPackages(
     val infoCache = HashMap<String, AppInfoCache>()
 
     appItems.forEach { appItem ->
-        getPackageInfo(packageManager, appItem.packageName, PACKAGE_INFO_FLAG)?.let { packageInfo ->
+        getPackageInfo(packageManager, appItem.packageName)?.let { packageInfo ->
             val applicationInfo = packageInfo.applicationInfo
             // 保存应用信息
             val appInfo =
