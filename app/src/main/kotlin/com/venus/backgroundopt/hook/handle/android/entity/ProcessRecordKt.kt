@@ -12,8 +12,12 @@ import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_NEWLINE_TERM
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_OUT_LONG
 import com.venus.backgroundopt.utils.PackageUtils
+import com.venus.backgroundopt.utils.callMethod
+import com.venus.backgroundopt.utils.getIntFieldValue
+import com.venus.backgroundopt.utils.getObjectFieldValue
+import com.venus.backgroundopt.utils.getStringFieldValue
 import com.venus.backgroundopt.utils.log.ILogger
-import de.robv.android.xposed.XposedHelpers
+import com.venus.backgroundopt.utils.setIntFieldValue
 import java.util.Objects
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -95,7 +99,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          */
         @JvmStatic
         fun getUserId(processRecord: Any): Int {
-            return XposedHelpers.getIntField(processRecord, FieldConstants.userId)
+            return processRecord.getIntFieldValue(FieldConstants.userId)
         }
 
         /**
@@ -106,10 +110,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          */
         @JvmStatic
         fun getPkgName(processRecord: Any): String {
-            return (XposedHelpers.getObjectField(
-                processRecord,
-                FieldConstants.info
-            ) as ApplicationInfo).packageName
+            return (processRecord.getObjectFieldValue(FieldConstants.info) as ApplicationInfo).packageName
         }
 
         /**
@@ -120,7 +121,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          */
         @JvmStatic
         fun getProcessName(processRecord: Any): String {
-            return XposedHelpers.getObjectField(processRecord, FieldConstants.processName) as String
+            return processRecord.getStringFieldValue(FieldConstants.processName, "")!!
         }
 
         @JvmStatic
@@ -130,7 +131,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
         @JvmStatic
         fun getUID(processRecord: Any): Int {
-            return XposedHelpers.getIntField(processRecord, FieldConstants.uid)
+            return processRecord.getIntFieldValue(FieldConstants.uid)
         }
 
         /**
@@ -140,7 +141,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          */
         @JvmStatic
         fun getPid(processRecord: Any): Int {
-            return XposedHelpers.getIntField(processRecord, FieldConstants.mPid)
+            return processRecord.getIntFieldValue(FieldConstants.mPid)
         }
 
         /**
@@ -246,7 +247,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         get() {
             if (field == null) {
                 processCachedOptimizerRecord = ProcessCachedOptimizerRecord(
-                    XposedHelpers.getObjectField(processRecord, FieldConstants.mOptRecord)
+                    processRecord.getObjectFieldValue(FieldConstants.mOptRecord)
                 )
             }
             return field
@@ -264,11 +265,11 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         uid = getUID(processRecord)
         userId = getUserId(processRecord)
         val applicationInfo =
-            XposedHelpers.getObjectField(processRecord, FieldConstants.info) as ApplicationInfo
+            processRecord.getObjectFieldValue(FieldConstants.info) as ApplicationInfo
         packageName = applicationInfo.packageName
         processName = getProcessName(processRecord)
         processStateRecord =
-            ProcessStateRecord(XposedHelpers.getObjectField(processRecord, FieldConstants.mState))
+            ProcessStateRecord(processRecord.getObjectFieldValue(FieldConstants.mState))
         this.activityManagerService = activityManagerService
         mainProcess = isMainProcess(packageName, processName)
     }
@@ -300,8 +301,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             setSucceed = true
         } catch (t: Throwable) {
             try {
-                XposedHelpers.setIntField(
-                    processStateRecord.processStateRecord,
+                processStateRecord.processStateRecord.setIntFieldValue(
                     FieldConstants.mMaxAdj,
                     maxAdj
                 )
@@ -347,9 +347,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             processStateRecord.maxAdj
         } catch (t: Throwable) {
             try {
-                XposedHelpers.getIntField(
-                    processStateRecord.processStateRecord, FieldConstants.mMaxAdj
-                )
+                processStateRecord.processStateRecord.getIntFieldValue(FieldConstants.mMaxAdj)
             } catch (th: Throwable) {
                 ProcessList.UNKNOWN_ADJ
             }
@@ -364,15 +362,15 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
      */
     fun scheduleTrimMemory(level: Int): Boolean {
 //        XposedHelpers.callMethod(mThread, MethodConstants.scheduleTrimMemory, level);
-        val thread: Any?
-        try {
-            thread = XposedHelpers.callMethod(processRecord, MethodConstants.getThread)
+        val thread: Any? = try {
+            processRecord.callMethod(MethodConstants.getThread)
         } catch (ignore: Throwable) {
-            return false
+            null
         }
-
-        XposedHelpers.callMethod(thread, MethodConstants.scheduleTrimMemory, level)
-        return true
+        thread?.let { t ->
+            t.callMethod(MethodConstants.scheduleTrimMemory, level)
+            return true
+        } ?: return false
     }
 
     /**
