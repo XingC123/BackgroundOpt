@@ -14,60 +14,133 @@ import de.robv.android.xposed.XposedHelpers
  */
 /* *************************************************************************
  *                                                                         *
- * 获取类字段值                                                              *
+ * 获取/设置类字段值                                                          *
  *                                                                         *
  **************************************************************************/
 fun Class<*>.getStaticObjectFieldValue(fieldName: String, defaultValue: Any? = null): Any? {
     return XposedHelpers.getStaticObjectField(this, fieldName) ?: defaultValue
 }
 
+fun Class<*>.setStaticObjectFieldValue(fieldName: String, value: Any?) {
+    XposedHelpers.setStaticObjectField(this, fieldName, value)
+}
+
 fun Class<*>.getStaticStringFieldValue(fieldName: String, defaultValue: String?): String? {
     return getStaticObjectFieldValue(fieldName, defaultValue) as String?
+}
+
+fun Class<*>.setStaticStringFieldValue(fieldName: String, value: String?) {
+    setObjectFieldValue(fieldName, value)
 }
 
 fun Class<*>.getStaticIntFieldValue(fieldName: String): Int {
     return XposedHelpers.getStaticIntField(this, fieldName)
 }
 
+fun Class<*>.setStaticIntFieldValue(fieldName: String, value: Int) {
+    XposedHelpers.setStaticIntField(this, fieldName, value)
+}
+
 fun Class<*>.getStaticLongFieldValue(fieldName: String): Long {
     return XposedHelpers.getStaticLongField(this, fieldName)
+}
+
+fun Class<*>.setStaticLongFieldValue(fieldName: String, value: Long) {
+    XposedHelpers.setStaticLongField(this, fieldName, value)
 }
 
 fun Class<*>.getStaticDoubleFieldValue(fieldName: String): Double {
     return XposedHelpers.getStaticDoubleField(this, fieldName)
 }
 
-fun Class<*>.getStaticStringFieldValue(fieldName: String): Boolean {
+fun Class<*>.setStaticDoubleFieldValue(fieldName: String, value: Double) {
+    XposedHelpers.setStaticDoubleField(this, fieldName, value)
+}
+
+fun Class<*>.getStaticBooleanFieldValue(fieldName: String): Boolean {
     return XposedHelpers.getStaticBooleanField(this, fieldName)
+}
+
+fun Class<*>.setStaticBooleanFieldValue(fieldName: String, value: Boolean) {
+    XposedHelpers.setStaticBooleanField(this, fieldName, value)
 }
 
 /* *************************************************************************
  *                                                                         *
- * 获取对象字段值                                                             *
+ * 获取/设置对象字段值                                                         *
  *                                                                         *
  **************************************************************************/
 fun Any.getObjectFieldValue(fieldName: String, defaultValue: Any? = null): Any? {
     return XposedHelpers.getObjectField(this, fieldName) ?: defaultValue
 }
 
+fun Any.setObjectFieldValue(fieldName: String, value: Any?) {
+    XposedHelpers.setObjectField(this, fieldName, value)
+}
+
 fun Any.getStringFieldValue(fieldName: String, defaultValue: String?): String? {
     return getObjectFieldValue(fieldName, defaultValue) as String?
+}
+
+fun Any.setStringFieldValue(fieldName: String, value: String?) {
+    setObjectFieldValue(fieldName, value)
 }
 
 fun Any.getIntFieldValue(fieldName: String): Int {
     return XposedHelpers.getIntField(this, fieldName)
 }
 
+fun Any.setIntFieldValue(fieldName: String, value: Int) {
+    XposedHelpers.setIntField(this, fieldName, value)
+}
+
 fun Any.getLongFieldValue(fieldName: String): Long {
     return XposedHelpers.getLongField(this, fieldName)
+}
+
+fun Any.setLongFieldValue(fieldName: String, value: Long) {
+    XposedHelpers.setLongField(this, fieldName, value)
 }
 
 fun Any.getDoubleFieldValue(fieldName: String): Double {
     return XposedHelpers.getDoubleField(this, fieldName)
 }
 
-fun Any.getStringFieldValue(fieldName: String): Boolean {
+fun Any.setDoubleFieldValue(fieldName: String, value: Double) {
+    XposedHelpers.setDoubleField(this, fieldName, value)
+}
+
+fun Any.getBooleanFieldValue(fieldName: String): Boolean {
     return XposedHelpers.getBooleanField(this, fieldName)
+}
+
+fun Any.setBooleanFieldValue(fieldName: String, value: Boolean) {
+    XposedHelpers.setBooleanField(this, fieldName, value)
+}
+
+/* *************************************************************************
+ *                                                                         *
+ * 方法调用                                                                 *
+ *                                                                         *
+ **************************************************************************/
+fun Any.callMethod(methodName: String, vararg args: Any?): Any? {
+    return XposedHelpers.callMethod(this, methodName, *args)
+}
+
+fun Any.callMethod(methodName: String, paramTypes: Array<out Class<*>>, vararg args: Any?): Any? {
+    return XposedHelpers.callMethod(this, methodName, paramTypes, *args)
+}
+
+fun Class<*>.callStaticMethod(methodName: String, vararg args: Any?): Any? {
+    return XposedHelpers.callStaticMethod(this, methodName, args)
+}
+
+fun Class<*>.callStaticMethod(
+    methodName: String,
+    paramTypes: Array<out Class<*>>,
+    vararg args: Any?
+): Any? {
+    return XposedHelpers.callStaticMethod(this, methodName, paramTypes, args)
 }
 
 /* *************************************************************************
