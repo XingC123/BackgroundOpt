@@ -14,8 +14,8 @@ import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
-import com.venus.backgroundopt.utils.XposedUtils
 import com.venus.backgroundopt.utils.concurrent.lock
+import com.venus.backgroundopt.utils.getStaticIntFieldValue
 import com.venus.backgroundopt.utils.message.registeredMessageHandler
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
@@ -32,7 +32,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
 
         @JvmField
         val ACTIVITY_DESTROYED =
-            XposedUtils.getStaticIntFieldValue<UsageEvents.Event>(FieldConstants.ACTIVITY_DESTROYED)
+            UsageEvents.Event::class.java.getStaticIntFieldValue(FieldConstants.ACTIVITY_DESTROYED)
     }
 
     override fun getHookPoint(): Array<HookPoint> {
