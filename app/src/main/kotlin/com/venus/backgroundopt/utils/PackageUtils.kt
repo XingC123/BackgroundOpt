@@ -78,39 +78,37 @@ fun getTargetApps(context: Context, list: List<BaseProcessInfoKt>): List<AppItem
     val packageManager = context.packageManager
     // 应用部分信息缓存
     val infoCache = HashMap<String, AppInfoCache>()
-
-    val appItems = list.stream()
-        .map { baseProcessInfo ->
-            getPackageInfo(
-                packageManager,
-                baseProcessInfo.packageName
-            )?.let { packageInfo ->
-                val applicationInfo = packageInfo.applicationInfo
-                // 保存应用信息
-                val appInfo =
-                    infoCache.computeIfAbsent(baseProcessInfo.packageName) { _ ->
-                        AppInfoCache().apply {
-                            appName = applicationInfo.loadLabel(packageManager).toString()
-                            appIcon = applicationInfo.loadIcon(packageManager)
-                        }
+    val appItems = arrayListOf<AppItem>()
+    list.forEach { baseProcessInfo ->
+        getPackageInfo(
+            packageManager,
+            baseProcessInfo.packageName
+        )?.let { packageInfo ->
+            val applicationInfo = packageInfo.applicationInfo ?: return@forEach
+            // 保存应用信息
+            val appInfo =
+                infoCache.computeIfAbsent(baseProcessInfo.packageName) { _ ->
+                    AppInfoCache().apply {
+                        appName = applicationInfo.loadLabel(packageManager).toString()
+                        appIcon = applicationInfo.loadIcon(packageManager)
                     }
-                AppItem(
-                    appInfo.appName,
-                    baseProcessInfo.packageName,
-                    baseProcessInfo.uid,
-                    appInfo.appIcon,
-                    packageInfo
-                ).apply {
-                    pid = baseProcessInfo.pid
-                    processName = baseProcessInfo.processName
-                    oomAdjScore = baseProcessInfo.oomAdjScore
-                    curAdj = baseProcessInfo.curAdj
-                    processingResult = baseProcessInfo.processingResult
                 }
+            val appItem = AppItem(
+                appInfo.appName,
+                baseProcessInfo.packageName,
+                baseProcessInfo.uid,
+                appInfo.appIcon,
+                packageInfo
+            ).apply {
+                pid = baseProcessInfo.pid
+                processName = baseProcessInfo.processName
+                oomAdjScore = baseProcessInfo.oomAdjScore
+                curAdj = baseProcessInfo.curAdj
+                processingResult = baseProcessInfo.processingResult
             }
+            appItems.add(appItem)
         }
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList())
+    }
     // 清空缓存
     infoCache.clear()
     return appItems
@@ -129,32 +127,31 @@ fun getInstalledPackages(
 ): List<AppItem> {
     val packageManager = context.packageManager
     val packageInfos = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        packageManager.getInstalledPackages(
-            PackageManager.PackageInfoFlags.of(
-                PACKAGE_INFO_FLAG.toLong()
-            )
-        )
+        packageManager.getInstalledPackages(PackageManager.PackageInfoFlags.of(PACKAGE_INFO_FLAG.toLong()))
     } else {
         packageManager.getInstalledPackages(PACKAGE_INFO_FLAG)
     }
-
-    val appItems = packageInfos.stream()
-        .filterNullable(filter)
-        .map { packageInfo ->
-            val applicationInfo = packageInfo.applicationInfo
-            AppItem(
-                applicationInfo.loadLabel(packageManager).toString(),
-                packageInfo.packageName,
-                applicationInfo.uid,
-                applicationInfo.loadIcon(packageManager),
-                packageInfo
-            ).apply {
-                versionName = packageInfo.versionName
-                longVersionCode = packageInfo.longVersionCode
-            }
+    val list = arrayListOf<AppItem>()
+    packageInfos.forEach { packageInfo ->
+        packageInfo ?: return@forEach
+        if (filter?.invoke(packageInfo) != true) {
+            return@forEach
         }
-        .collect(Collectors.toList())
-    return appItems
+        val applicationInfo = packageInfo.applicationInfo ?: return@forEach
+
+        val appItem = AppItem(
+            applicationInfo.loadLabel(packageManager).toString(),
+            packageInfo.packageName,
+            applicationInfo.uid,
+            applicationInfo.loadIcon(packageManager),
+            packageInfo
+        ).apply {
+            versionName = packageInfo.versionName
+            longVersionCode = packageInfo.longVersionCode
+        }
+        list.add(appItem)
+    }
+    return list
 }
 
 fun getInstalledPackages(
@@ -165,7 +162,7 @@ fun getInstalledPackages(
 
     appItems.forEach { appItem ->
         getPackageInfo(packageManager, appItem.packageName)?.let { packageInfo ->
-            val applicationInfo = packageInfo.applicationInfo
+            val applicationInfo = packageInfo.applicationInfo ?: return@forEach
             appItem.apply {
                 this.appName = applicationInfo.loadLabel(packageManager).toString()
                 this.uid = applicationInfo.uid
