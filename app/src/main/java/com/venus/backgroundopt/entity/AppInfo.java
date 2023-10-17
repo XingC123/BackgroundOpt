@@ -2,6 +2,8 @@ package com.venus.backgroundopt.entity;
 
 import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
 
+import android.content.ComponentName;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -67,12 +69,22 @@ public class AppInfo implements ILogger, LockFlag {
 
     private final AtomicBoolean switchEventHandled = new AtomicBoolean(false);    // 切换事件处理完毕
 
+    private final AtomicReference<ComponentName> componentNameAtomicReference = new AtomicReference<>(null);
+
     public boolean isSwitchEventHandled() {
         return switchEventHandled.get();
     }
 
     public void setSwitchEventHandled(boolean switchEventHandled) {
         this.switchEventHandled.set(switchEventHandled);
+    }
+
+    public ComponentName getComponentName() {
+        return componentNameAtomicReference.get();
+    }
+
+    public void setComponentName(ComponentName componentName) {
+        componentNameAtomicReference.set(componentName);
     }
 
     /* *************************************************************************
@@ -297,9 +309,9 @@ public class AppInfo implements ILogger, LockFlag {
     public void setAppSwitchEvent(int appSwitchEvent) {
         this.appSwitchEvent.set(appSwitchEvent);
 
-        if (BuildConfig.DEBUG) {
-            getLogger().debug(packageName + " 切换状态 ->>> " + appSwitchEvent);
-        }
+//        if (BuildConfig.DEBUG) {
+//            getLogger().debug(packageName + " 切换状态 ->>> " + appSwitchEvent);
+//        }
     }
 
     public boolean isActivityStopped() {

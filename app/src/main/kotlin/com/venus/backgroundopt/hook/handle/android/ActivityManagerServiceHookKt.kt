@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.hook.handle.android
 
+import android.app.usage.UsageEvents
 import android.content.ComponentName
 import android.content.Intent
 import com.venus.backgroundopt.BuildConfig
@@ -10,8 +11,10 @@ import com.venus.backgroundopt.hook.base.action.afterHookAction
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.base.generateMatchedMethodHookPoint
 import com.venus.backgroundopt.hook.constants.ClassConstants
+import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.utils.XposedUtils
 import com.venus.backgroundopt.utils.concurrent.lock
 import com.venus.backgroundopt.utils.message.registeredMessageHandler
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -22,6 +25,16 @@ import de.robv.android.xposed.XC_MethodHook.MethodHookParam
  */
 class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
     MethodHook(classLoader, hookInfo) {
+    companion object {
+        const val ACTIVITY_RESUMED = UsageEvents.Event.ACTIVITY_RESUMED
+        const val ACTIVITY_PAUSED = UsageEvents.Event.ACTIVITY_PAUSED
+        const val ACTIVITY_STOPPED = UsageEvents.Event.ACTIVITY_STOPPED
+
+        @JvmField
+        val ACTIVITY_DESTROYED =
+            XposedUtils.getStaticIntFieldValue<UsageEvents.Event>(FieldConstants.ACTIVITY_DESTROYED)
+    }
+
     override fun getHookPoint(): Array<HookPoint> {
         return arrayOf(
             generateMatchedMethodHookPoint(
@@ -93,15 +106,15 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
      *                                                                         *
      **************************************************************************/
     private val handleEvents = arrayOf(
-        ActivityManagerServiceHook.ACTIVITY_PAUSED,
-        ActivityManagerServiceHook.ACTIVITY_RESUMED,
-        ActivityManagerServiceHook.ACTIVITY_STOPPED
+        ACTIVITY_PAUSED,
+        ACTIVITY_RESUMED,
+        ACTIVITY_STOPPED,
+        ACTIVITY_DESTROYED
     )
 
     fun handleUpdateActivityUsageStats(param: MethodHookParam) {
         // 获取方法参数
         val args = param.args
-
 
         // 获取切换事件
         val event = args[2] as Int
@@ -111,8 +124,9 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
         }
 
         // 本次事件包名
-        val packageName = (args[0] as? ComponentName)?.packageName
-        packageName ?: return
+        val componentName = args[0] as? ComponentName
+        componentName ?: return
+        val packageName = componentName.packageName
 
         // 本次事件用户
         val userId = args[1] as Int
@@ -130,18 +144,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
             normalAppResult.applicationInfo.uid
         )
 
-        if (event == ActivityManagerServiceHook.ACTIVITY_STOPPED) {
-            appInfo.setActivityStoppedEvent(true)
-        } else {
-            // 更新app的切换状态
-            appInfo.appSwitchEvent = event
-            appInfo.setActivityStoppedEvent(false)
-
-            when (event) {
-                ActivityManagerServiceHook.ACTIVITY_RESUMED -> runningInfo.putIntoActiveAppGroup(appInfo)
-                ActivityManagerServiceHook.ACTIVITY_PAUSED -> runningInfo.putIntoTmpAppGroup(appInfo)
-            }
-        }
+        runningInfo.handleActivityEventChange(event, componentName, appInfo)
     }
 
     /* *************************************************************************

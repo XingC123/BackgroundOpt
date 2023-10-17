@@ -1,7 +1,5 @@
 package com.venus.backgroundopt.hook.handle.android;
 
-import android.app.usage.UsageEvents;
-
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.entity.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
@@ -23,16 +21,6 @@ import de.robv.android.xposed.XposedHelpers;
  * @date 2023/6/1
  */
 public class ActivityManagerServiceHook extends MethodHook {
-    /**
-     * 进入前台.
-     */
-    public static final int ACTIVITY_RESUMED = UsageEvents.Event.ACTIVITY_RESUMED;
-    /**
-     * 进入后台.
-     */
-    public static final int ACTIVITY_PAUSED = UsageEvents.Event.ACTIVITY_PAUSED;
-    public static final int ACTIVITY_STOPPED = UsageEvents.Event.ACTIVITY_STOPPED;
-
     public ActivityManagerServiceHook(ClassLoader classLoader, RunningInfo hookInfo) {
         super(classLoader, hookInfo);
     }
