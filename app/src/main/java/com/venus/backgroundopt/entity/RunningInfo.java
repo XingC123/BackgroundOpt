@@ -324,8 +324,11 @@ public class RunningInfo implements ILogger {
 
                         apps[0] = new AppInfo(userId, packageName, this).setUid(uid);
                         setAddedRunningApp(mProcessRecord, apps[0]);
-                        apps[0].setAppSwitchEvent(ActivityManagerServiceHookKt.ACTIVITY_PAUSED);
-                        putIntoIdleAppGroup(apps[0]);
+                        handleActivityEventChange(
+                                ActivityManagerServiceHookKt.ACTIVITY_STOPPED,
+                                null,
+                                apps[0]
+                        );
 
                         if (BuildConfig.DEBUG) {
                             getLogger().debug("AppInfo(包名: " + packageName + ", uid: " + uid + ")补充完毕");
