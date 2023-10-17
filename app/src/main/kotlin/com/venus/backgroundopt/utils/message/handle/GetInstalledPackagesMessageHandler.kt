@@ -7,7 +7,7 @@ import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.RunningInfo
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
-import com.venus.backgroundopt.utils.PACKAGE_INFO_FLAG
+import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
 import de.robv.android.xposed.XC_MethodHook
@@ -32,13 +32,13 @@ class GetInstalledPackagesMessageHandler : MessageHandler {
                 XposedHelpers.callMethod(
                     packageManager,
                     MethodConstants.getInstalledPackages,
-                    PackageManager.PackageInfoFlags.of(PACKAGE_INFO_FLAG.toLong())
+                    PackageManager.PackageInfoFlags.of(PackageUtils.PACKAGE_INFO_FLAG.toLong())
                 )
             } else {
                 XposedHelpers.callMethod(
                     packageManager,
                     MethodConstants.getInstalledPackages,
-                    PACKAGE_INFO_FLAG
+                    PackageUtils.PACKAGE_INFO_FLAG
                 )
             }) as? List<*>
 

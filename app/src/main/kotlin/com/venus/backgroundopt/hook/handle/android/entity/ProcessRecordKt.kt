@@ -105,7 +105,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @return 包名
          */
         @JvmStatic
-        fun getPkgName(processRecord: Any?): String? {
+        fun getPkgName(processRecord: Any): String {
             return (XposedHelpers.getObjectField(
                 processRecord,
                 FieldConstants.info
@@ -181,11 +181,13 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @return 包名:进程名
          */
         @JvmStatic
-        fun getFullPackageName(processRecord: Any?): String {
-            return PackageUtils.absoluteProcessName(
-                getPkgName(processRecord),
-                getProcessName(processRecord)
-            )
+        fun getFullPackageName(processRecord: Any?): String? {
+            return processRecord?.let { process->
+                PackageUtils.absoluteProcessName(
+                    getPkgName(process),
+                    getProcessName(process)
+                )
+            }
         }
 
         /**

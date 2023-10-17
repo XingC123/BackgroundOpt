@@ -10,8 +10,8 @@ import com.venus.backgroundopt.R
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
+import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.UiUtils
-import com.venus.backgroundopt.utils.getInstalledPackages
 
 /**
  * @author XingC
@@ -45,7 +45,7 @@ class ShowAllInstalledAppsActivity : BaseActivity() {
             }
         }
 
-        val appItems = getInstalledPackages(this) { packageInfo ->
+        val appItems = PackageUtils.getInstalledPackages(this) { packageInfo ->
             !ActivityManagerService.isImportantSystemApp(packageInfo.applicationInfo)
         }
 //        sendMessageAcceptList<AppItem>(
