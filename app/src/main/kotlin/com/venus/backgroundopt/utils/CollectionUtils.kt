@@ -12,6 +12,15 @@ import java.util.stream.Stream
  * Stream                                                                  *
  *                                                                         *
  **************************************************************************/
-fun <E> Stream<E>.filterNullable(block: ((E) -> Boolean)? = null): Stream<E> {
+fun <E> Stream<E>.nullableFilter(block: ((E) -> Boolean)? = null): Stream<E> {
+    return block?.let { filter(block) } ?: this
+}
+
+/* *************************************************************************
+ *                                                                         *
+ * Sequence                                                                *
+ *                                                                         *
+ **************************************************************************/
+fun <E> Sequence<E>.nullableFilter(block: ((E) -> Boolean)? = null): Sequence<E> {
     return block?.let { filter(block) } ?: this
 }
