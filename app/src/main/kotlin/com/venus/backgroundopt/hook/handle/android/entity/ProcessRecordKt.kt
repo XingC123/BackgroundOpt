@@ -216,7 +216,9 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          */
         @JvmStatic
         fun correctProcessPid(processRecord: ProcessRecordKt?) {
-            processRecord ?: return
+            if (processRecord == null || processRecord.pid > 0) {
+                return
+            }
 
             var curCorrectTimes = 1
             while (curCorrectTimes <= 5 && processRecord.pid <= 0) {
