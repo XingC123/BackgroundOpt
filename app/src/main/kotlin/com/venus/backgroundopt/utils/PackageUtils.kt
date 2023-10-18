@@ -76,37 +76,39 @@ object PackageUtils {
         val packageManager = context.packageManager
         // 应用部分信息缓存
         val infoCache = HashMap<String, AppInfoCache>()
-        val appItems = arrayListOf<AppItem>()
-        list.forEach { baseProcessInfo ->
-            getPackageInfo(
-                packageManager,
-                baseProcessInfo.packageName
-            )?.let { packageInfo ->
-                val applicationInfo = packageInfo.applicationInfo ?: return@forEach
-                // 保存应用信息
-                val appInfo =
-                    infoCache.computeIfAbsent(baseProcessInfo.packageName) { _ ->
-                        AppInfoCache().apply {
-                            appName = applicationInfo.loadLabel(packageManager).toString()
-                            appIcon = applicationInfo.loadIcon(packageManager)
+
+        val appItems = list.asSequence()
+            .map { baseProcessInfo ->
+                getPackageInfo(
+                    packageManager,
+                    baseProcessInfo.packageName
+                )?.let { packageInfo ->
+                    val applicationInfo = packageInfo.applicationInfo ?: return@map null
+                    // 保存应用信息
+                    val appInfo =
+                        infoCache.computeIfAbsent(baseProcessInfo.packageName) { _ ->
+                            AppInfoCache().apply {
+                                appName = applicationInfo.loadLabel(packageManager).toString()
+                                appIcon = applicationInfo.loadIcon(packageManager)
+                            }
                         }
+                    AppItem(
+                        appInfo.appName,
+                        baseProcessInfo.packageName,
+                        baseProcessInfo.uid,
+                        appInfo.appIcon,
+                        packageInfo
+                    ).apply {
+                        pid = baseProcessInfo.pid
+                        processName = baseProcessInfo.processName
+                        oomAdjScore = baseProcessInfo.oomAdjScore
+                        curAdj = baseProcessInfo.curAdj
+                        processingResult = baseProcessInfo.processingResult
                     }
-                val appItem = AppItem(
-                    appInfo.appName,
-                    baseProcessInfo.packageName,
-                    baseProcessInfo.uid,
-                    appInfo.appIcon,
-                    packageInfo
-                ).apply {
-                    pid = baseProcessInfo.pid
-                    processName = baseProcessInfo.processName
-                    oomAdjScore = baseProcessInfo.oomAdjScore
-                    curAdj = baseProcessInfo.curAdj
-                    processingResult = baseProcessInfo.processingResult
                 }
-                appItems.add(appItem)
             }
-        }
+            .filterNotNull()
+            .toList()
         // 清空缓存
         infoCache.clear()
         return appItems
@@ -129,27 +131,24 @@ object PackageUtils {
         } else {
             packageManager.getInstalledPackages(PACKAGE_INFO_FLAG)
         }
-        val list = arrayListOf<AppItem>()
-        packageInfos.forEach { packageInfo ->
-            packageInfo ?: return@forEach
-            if (filter?.invoke(packageInfo) != true) {
-                return@forEach
-            }
-            val applicationInfo = packageInfo.applicationInfo ?: return@forEach
 
-            val appItem = AppItem(
-                applicationInfo.loadLabel(packageManager).toString(),
-                packageInfo.packageName,
-                applicationInfo.uid,
-                applicationInfo.loadIcon(packageManager),
-                packageInfo
-            ).apply {
-                versionName = packageInfo.versionName
-                longVersionCode = packageInfo.longVersionCode
+        return packageInfos.asSequence()
+            .filterNotNull()
+            .nullableFilter(filter)
+            .map { packageInfo ->
+                val applicationInfo = packageInfo.applicationInfo
+                AppItem(
+                    applicationInfo.loadLabel(packageManager).toString(),
+                    packageInfo.packageName,
+                    applicationInfo.uid,
+                    applicationInfo.loadIcon(packageManager),
+                    packageInfo
+                ).apply {
+                    versionName = packageInfo.versionName
+                    longVersionCode = packageInfo.longVersionCode
+                }
             }
-            list.add(appItem)
-        }
-        return list
+            .toList()
     }
 
     fun getInstalledPackages(
