@@ -435,7 +435,7 @@ public class RunningInfo implements ILogger {
      * @param componentName 当前组件
      * @param appInfo       app
      */
-    public void handleActivityEventChange(int event, ComponentName componentName, AppInfo appInfo) {
+    public void handleActivityEventChange(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
         switch (event) {
             case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
                 // 从后台到前台 || 第一次打开app
@@ -457,7 +457,8 @@ public class RunningInfo implements ILogger {
                         但为了往后的兼容性, 暂时保持这样
                  */
                 if (Objects.equals(componentName, appInfo.getComponentName())
-                        && (appInfo.getAppGroupEnum() != AppGroupEnum.IDLE || !getPowerManager().isInteractive())) {
+                        && (appInfo.getAppGroupEnum() != AppGroupEnum.IDLE || !getPowerManager().isInteractive())
+                ) {
                     putIntoIdleAppGroup(appInfo);
                 }
             }
@@ -474,7 +475,7 @@ public class RunningInfo implements ILogger {
         appInfo.setComponentName(componentName);
     }
 
-    public void putIntoActiveAppGroup(AppInfo appInfo) {
+    private void putIntoActiveAppGroup(@NonNull AppInfo appInfo) {
         // 重置切换事件处理状态
         appInfo.setSwitchEventHandled(false);
 
@@ -489,30 +490,22 @@ public class RunningInfo implements ILogger {
         }
     }
 
-    private void putIntoIdleAppGroup(AppInfo appInfo) {
-        // 做app清理工作
-        boolean valid = handleLastApp(appInfo);
-        if (valid) {
-            idleAppGroup.add(appInfo);
-            appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
+    private void putIntoIdleAppGroup(@NonNull AppInfo appInfo) {
+        // 处理上个app
+        handleLastApp(appInfo);
 
-            if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + "  被放入IdleGroup");
-            }
+        idleAppGroup.add(appInfo);
+        appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + "  被放入IdleGroup");
         }
     }
 
-    private void handleCurApp(AppInfo appInfo) {
-        if (appInfo == null) {
-            if (BuildConfig.DEBUG) {
-                getLogger().debug("前台app已被杀死, 不执行处理");
-            }
-            return;
-        }
-
+    private void handleCurApp(@NonNull AppInfo appInfo) {
         if (Objects.equals(getActiveLaunchPackageName(), appInfo.getPackageName())) {
             if (BuildConfig.DEBUG) {
-                getLogger().debug("当前操作的app为默认桌面, 不进行处理");
+                getLogger().debug("前台app为默认桌面, 不进行处理");
             }
             return;
         }
@@ -525,28 +518,20 @@ public class RunningInfo implements ILogger {
      * 处理上个app
      *
      * @param appInfo app信息
-     * @return appInfo是否合法
      */
-    public boolean handleLastApp(AppInfo appInfo) {
-        if (appInfo == null) {
-            if (BuildConfig.DEBUG) {
-                getLogger().debug("待执行app已被杀死, 不执行处理");
-            }
-            return false;
-        }
-
+    private void handleLastApp(@NonNull AppInfo appInfo) {
         if (Objects.equals(getActiveLaunchPackageName(), appInfo.getPackageName())) {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("当前操作的app为默认桌面, 不进行处理");
             }
-            return true;
+            return;
         }
 
         if (appInfo.isSwitchEventHandled()) {
             if (BuildConfig.DEBUG) {
                 getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的切换事件已经处理过");
             }
-            return true;
+            return;
         }
 
         // 启动后台工作
@@ -554,8 +539,6 @@ public class RunningInfo implements ILogger {
 //        processManager.setAppToBackgroundProcessGroup(appInfo);
 
         appInfo.setSwitchEventHandled(true);
-
-        return true;
     }
 
     /* *************************************************************************
