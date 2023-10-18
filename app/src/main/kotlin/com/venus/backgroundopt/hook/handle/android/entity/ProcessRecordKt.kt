@@ -221,10 +221,12 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             }
 
             var curCorrectTimes = 1
-            while (curCorrectTimes <= 5 && processRecord.pid <= 0) {
+            while (curCorrectTimes <= 5) {
                 processRecord.pid = getPid(processRecord.processRecord)
                 curCorrectTimes++
-                TimeUnit.MILLISECONDS.sleep(20)
+                if (processRecord.pid <= 0) {
+                    TimeUnit.MILLISECONDS.sleep(20)
+                }
             }
         }
     }
