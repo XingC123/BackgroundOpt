@@ -452,10 +452,12 @@ public class RunningInfo implements ILogger {
             }*/
 
             case ActivityManagerServiceHookKt.ACTIVITY_STOPPED -> {
+                // 目前的判断方式, 会导致系统刚启动而不解锁时, 桌面无论如何都进入不了idle分组
+                // 当然, 可以加入判断: if(appInfo.getComponentName() == null) putIntoIdleAppGroup(appInfo);
+                // 不可以: if(appinfo.packageName == 桌面) putIntoIdleAppGroup(appInfo)。桌面是有其他界面比如设置界面, 这会引起误判
+                // 但实际情况是, 为了一个刚开机未解锁时的桌面进不进入idle分组而加上此条件，对于其他日用程序来说, 却要额外判断一次, 属实浪费
                 if (Objects.equals(componentName, appInfo.getComponentName())
-                        && appInfo.getAppGroupEnum() != AppGroupEnum.IDLE
-                        || !getPowerManager().isInteractive()
-                ) {
+                        && (appInfo.getAppGroupEnum() != AppGroupEnum.IDLE || !getPowerManager().isInteractive())) {
                     putIntoIdleAppGroup(appInfo);
                 }
             }
