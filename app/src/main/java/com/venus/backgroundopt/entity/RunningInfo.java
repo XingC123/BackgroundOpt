@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
 /**
@@ -436,6 +437,8 @@ public class RunningInfo implements ILogger {
      * @param appInfo       app
      */
     public void handleActivityEventChange(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
+        Lock appInfoLock = appInfo.getLock();
+        appInfoLock.lock();
         switch (event) {
             case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
                 // 从后台到前台 || 第一次打开app
@@ -473,6 +476,8 @@ public class RunningInfo implements ILogger {
         // 更新app的切换状态
         appInfo.setAppSwitchEvent(event);
         appInfo.setComponentName(componentName);
+
+        appInfoLock.unlock();
     }
 
     private void putIntoActiveAppGroup(@NonNull AppInfo appInfo) {
