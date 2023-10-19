@@ -442,8 +442,8 @@ public class RunningInfo implements ILogger {
         switch (event) {
             case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
                 // 从后台到前台 || 第一次打开app
-                if (appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_STOPPED
-                        /*最好判断下。其实前面的条件理论上足够了*/ && Objects.equals(componentName, appInfo.getComponentName())
+                if (Objects.equals(componentName, appInfo.getComponentName())
+                        && appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_STOPPED
                         || appInfo.getComponentName() == null
                 ) {
                     putIntoActiveAppGroup(appInfo);
