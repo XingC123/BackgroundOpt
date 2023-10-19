@@ -2,7 +2,7 @@ package com.venus.backgroundopt.hook.handler;
 
 import android.os.Build;
 
-import com.venus.backgroundopt.entity.RunningInfo;
+import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.hook.base.PackageHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerConstantsHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;

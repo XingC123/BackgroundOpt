@@ -1,6 +1,6 @@
 package com.venus.backgroundopt.utils.message
 
-import com.venus.backgroundopt.entity.RunningInfo
+import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.utils.log.ILogger
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 

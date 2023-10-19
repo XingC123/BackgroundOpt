@@ -1,4 +1,4 @@
-package com.venus.backgroundopt.entity;
+package com.venus.backgroundopt.core;
 
 import android.content.ComponentName;
 import android.os.PowerManager;
@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.annotation.UsageComment;
+import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ApplicationInfo;

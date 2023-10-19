@@ -4,7 +4,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import com.venus.backgroundopt.entity.AppItem
-import com.venus.backgroundopt.entity.RunningInfo
+import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.utils.PackageUtils

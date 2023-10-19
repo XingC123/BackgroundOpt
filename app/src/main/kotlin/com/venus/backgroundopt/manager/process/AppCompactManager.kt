@@ -3,7 +3,7 @@ package com.venus.backgroundopt.manager.process
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.annotation.UsageComment
 import com.venus.backgroundopt.entity.AppInfo
-import com.venus.backgroundopt.entity.RunningInfo
+import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt

@@ -3,7 +3,7 @@ package com.venus.backgroundopt.hook.handle.android;
 import static com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerConstants.KEY_MAX_CACHED_PROCESSES;
 import static com.venus.backgroundopt.hook.handle.android.entity.DeviceConfig.NAMESPACE_ACTIVITY_MANAGER;
 
-import com.venus.backgroundopt.entity.RunningInfo;
+import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
 import com.venus.backgroundopt.hook.base.action.BeforeHookAction;

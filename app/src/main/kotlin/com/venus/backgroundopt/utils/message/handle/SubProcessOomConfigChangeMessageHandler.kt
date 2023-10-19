@@ -1,7 +1,7 @@
 package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.BuildConfig
-import com.venus.backgroundopt.entity.RunningInfo
+import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.utils.message.MessageFlag

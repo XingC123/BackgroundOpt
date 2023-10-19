@@ -1,6 +1,6 @@
 package com.venus.backgroundopt.entity;
 
-import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
+import static com.venus.backgroundopt.core.RunningInfo.AppGroupEnum;
 
 import android.content.ComponentName;
 
@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.annotation.UsageComment;
+import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.utils.concurrent.lock.LockFlag;
