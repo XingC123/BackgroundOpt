@@ -430,6 +430,10 @@ public class RunningInfo implements ILogger {
      *     4. 退至后台: event(2[a]) -> event(23[a])
      *     5. 其他app小窗到全屏: event(1[a]) -> event(23[a])
      *     6. App关闭?: event(x[a]) -> event(24[a])
+     *     (7. 点击通知进入另一个app: event(2) -> event(23)
+     *          正常情况下, 两次事件的{@link ComponentName}应该相同, 但会出现意外情况。因此需要
+     *          lastEvent == {@link ActivityManagerServiceHookKt#ACTIVITY_PAUSED}兜底
+     *      )
      * </pre>
      *
      * @param event         事件码
@@ -459,9 +463,11 @@ public class RunningInfo implements ILogger {
                     23.10.18: appInfo.getAppGroupEnum() != AppGroupEnum.IDLE可以换成appInfo.getAppGroupEnum() == AppGroupEnum.ACTIVE,
                         但为了往后的兼容性, 暂时保持这样
                  */
-                if (Objects.equals(componentName, appInfo.getComponentName())
-                        && (appInfo.getAppGroupEnum() != AppGroupEnum.IDLE || !getPowerManager().isInteractive())
-                ) {
+                if (Objects.equals(componentName, appInfo.getComponentName())) {
+                    if (appInfo.getAppGroupEnum() != AppGroupEnum.IDLE || !getPowerManager().isInteractive()) {
+                        putIntoIdleAppGroup(appInfo);
+                    }
+                } else if (appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_PAUSED) {
                     putIntoIdleAppGroup(appInfo);
                 }
             }

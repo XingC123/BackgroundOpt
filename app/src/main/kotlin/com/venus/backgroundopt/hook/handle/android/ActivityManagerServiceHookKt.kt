@@ -106,7 +106,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
      *                                                                         *
      **************************************************************************/
     private val handleEvents = arrayOf(
-//        ACTIVITY_PAUSED,
+        ACTIVITY_PAUSED,
         ACTIVITY_RESUMED,
         ACTIVITY_STOPPED,
 //        ACTIVITY_DESTROYED
@@ -124,8 +124,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
         }
 
         // 本次事件包名
-        val componentName = args[0] as? ComponentName
-        componentName ?: return
+        val componentName = (args[0] as? ComponentName) ?: return
         val packageName = componentName.packageName
 
         // 本次事件用户
@@ -138,7 +137,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
             return
         }
 
-        val appInfo = if (event == ACTIVITY_RESUMED /*|| event == ACTIVITY_PAUSED*/) {
+        val appInfo = if (event == ACTIVITY_RESUMED || event == ACTIVITY_PAUSED) {
             runningInfo.computeRunningAppIfAbsent(
                 userId,
                 packageName,
