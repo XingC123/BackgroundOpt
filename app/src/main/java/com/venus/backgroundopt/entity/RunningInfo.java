@@ -428,7 +428,7 @@ public class RunningInfo implements ILogger {
      *          1) Activity(a) -> Activity(b):  event(2[a]) -> event(1[b]) -> event(23[a])
      *          1) Activity(b) -> Activity(a):  event(2[b]) -> event(1[a]) -> event(24[b])
      *     4. 退至后台: event(2[a]) -> event(23[a])
-     *     5. 小窗到全屏: event(1[a]) -> event(23[a])
+     *     5. 其他app小窗到全屏: event(1[a]) -> event(23[a])
      *     6. App关闭?: event(x[a]) -> event(24[a])
      * </pre>
      *
