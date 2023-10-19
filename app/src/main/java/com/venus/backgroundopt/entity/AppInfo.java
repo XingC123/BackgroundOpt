@@ -308,9 +308,9 @@ public class AppInfo implements ILogger, LockFlag {
     public void setAppSwitchEvent(int appSwitchEvent) {
         this.appSwitchEvent.set(appSwitchEvent);
 
-//        if (BuildConfig.DEBUG) {
-//            getLogger().debug(packageName + " 切换状态 ->>> " + appSwitchEvent);
-//        }
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(packageName + " 切换状态 ->>> " + appSwitchEvent);
+        }
     }
 
     @Nullable
