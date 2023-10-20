@@ -1,7 +1,9 @@
 package com.venus.backgroundopt.environment;
 
+import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
+import com.venus.backgroundopt.utils.log.ILogger;
 
 import de.robv.android.xposed.XposedHelpers;
 
@@ -16,15 +18,12 @@ public class SystemProperties {
     public static final String venusPrefix = "venus_";
 
     private static Class<?> getSystemPropertiesClazz() {
-        if (SystemPropertiesClazz == null) {
-            SystemPropertiesClazz = XposedHelpers.findClass(ClassConstants.SystemProperties, SystemProperties.class.getClassLoader());
-        }
-
         return SystemPropertiesClazz;
     }
 
     /**
      * 获取指定key的值
+     *
      * @param key 键
      */
     public static String getString(String key) {
@@ -44,6 +43,7 @@ public class SystemProperties {
 
     /**
      * 获取Venus软件默认的值
+     *
      * @param key 元素名
      * @return 值
      */
@@ -56,10 +56,21 @@ public class SystemProperties {
     }
 
     public static void loadSystemPropertiesClazz(ClassLoader classLoader) {
-        SystemPropertiesClazz = XposedHelpers.findClass(ClassConstants.SystemProperties, classLoader);
+        try {
+            SystemPropertiesClazz = XposedHelpers.findClass(ClassConstants.SystemProperties, classLoader);
+        } catch (Throwable ignore) {
+
+        }
     }
 
     public static void set(String key, String value) {
-        XposedHelpers.callStaticMethod(getSystemPropertiesClazz(), MethodConstants.set, key, value);
+        Class<?> propertiesClazz = getSystemPropertiesClazz();
+        if (propertiesClazz == null) {
+            if (BuildConfig.DEBUG) {
+                ILogger.getLoggerStatic(SystemProperties.class).warn("未找到: SystemProperties。无法设置: " + key + ", value: " + value);
+            }
+            return;
+        }
+        XposedHelpers.callStaticMethod(propertiesClazz, MethodConstants.set, key, value);
     }
 }
