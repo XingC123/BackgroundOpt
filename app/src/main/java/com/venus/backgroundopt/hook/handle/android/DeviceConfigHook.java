@@ -43,6 +43,7 @@ public class DeviceConfigHook extends MethodHook {
         Object namespace = param.args[0];
         Object name = param.args[1];
         if (Objects.equals(NAMESPACE_ACTIVITY_MANAGER, namespace)) {
+            // Android 14 可能会炸(安卓虚拟机开了, 但是别的可能炸掉), 因此应取消
             if (Objects.equals(KEY_MAX_CACHED_PROCESSES, name)) {
                 param.setResult(String.valueOf(Integer.MAX_VALUE));
             }

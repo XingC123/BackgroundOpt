@@ -9,7 +9,6 @@ import com.venus.backgroundopt.hook.handle.android.ActivityManagerConstantsHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.DeletePackageHelperHook;
-import com.venus.backgroundopt.hook.handle.android.DeviceConfigHook;
 import com.venus.backgroundopt.hook.handle.android.PackageManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.PhantomProcessListHook;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt;
@@ -46,7 +45,7 @@ public class AndroidHookHandler extends PackageHook {
 //        new ResourcesHook(classLoader, runningInfo);
 
         // hook获取
-        new DeviceConfigHook(classLoader, runningInfo);
+//        new DeviceConfigHook(classLoader, runningInfo);
 
         // 抓取AMS, 前后台切换
         new ActivityManagerServiceHook(classLoader, runningInfo);
