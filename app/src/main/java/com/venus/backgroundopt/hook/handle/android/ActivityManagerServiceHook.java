@@ -2,6 +2,7 @@ package com.venus.backgroundopt.hook.handle.android;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.core.RunningInfo;
+import com.venus.backgroundopt.environment.SystemProperties;
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
 import com.venus.backgroundopt.hook.base.action.BeforeHookAction;
@@ -13,7 +14,6 @@ import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
 
 /**
  * @author XingC
@@ -75,12 +75,9 @@ public class ActivityManagerServiceHook extends MethodHook {
 
         // 设置persist.sys.spc.enabled禁用小米的杀后台
         try {
-            XposedHelpers.callStaticMethod(
-                    XposedHelpers.findClass(ClassConstants.SystemProperties, classLoader),
-                    MethodConstants.set,
-                    "persist.sys.spc.enabled", "false");
+            SystemProperties.set("persist.sys.spc.enabled", "false");
         } catch (Throwable throwable) {
-            getLogger().error("设置[persist.sys.spc.enabled]失败", throwable);
+            getLogger().warn("米杀后台SystemProperties设置失败");
         }
 
         return null;

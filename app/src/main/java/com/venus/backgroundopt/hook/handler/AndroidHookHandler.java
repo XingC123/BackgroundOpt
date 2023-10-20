@@ -3,6 +3,7 @@ package com.venus.backgroundopt.hook.handler;
 import android.os.Build;
 
 import com.venus.backgroundopt.core.RunningInfo;
+import com.venus.backgroundopt.environment.SystemProperties;
 import com.venus.backgroundopt.hook.base.PackageHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerConstantsHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
@@ -34,6 +35,12 @@ public class AndroidHookHandler extends PackageHook {
     public void hook(XC_LoadPackage.LoadPackageParam packageParam) {
         ClassLoader classLoader = packageParam.classLoader;
         RunningInfo runningInfo = new RunningInfo(classLoader);
+
+        try {
+            SystemProperties.set("persist.sys.spc.enabled", "false");
+        } catch (Throwable throwable) {
+            getLogger().warn("米杀后台SystemProperties设置失败");
+        }
 
         // 资源Hook
 //        new ResourcesHook(classLoader, runningInfo);
