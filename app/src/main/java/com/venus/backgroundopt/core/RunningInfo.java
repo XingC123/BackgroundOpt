@@ -428,13 +428,13 @@ public class RunningInfo implements ILogger {
      *     3. 同一app内部:
      *          1) Activity(a) -> Activity(b):  event(2[a]) -> event(1[b]) -> event(23[a])
      *          1) Activity(b) -> Activity(a):  event(2[b]) -> event(1[a]) -> event(24[b])
-     *     4. 退至后台: event(2[a]) -> event(23[a])
-     *     5. 其他app小窗到全屏: event(1[a]) -> event(23[a])
+     *     4.   ① 退至后台/息屏?: event(2[a]) -> event(23[a])
+     *          ② 点击通知进入另一个app: event(2) -> event(23)。实验情况见: /app/docs/部分场景说明/App切换事件
+     *              在实验下, 可能会出现lastComponentName != curComponentName。
+     *              因此, 加入ActivityManagerServiceHookKt.ACTIVITY_PAUSED,
+     *              当lastComponentName != curComponentName时, 不更新当前数据
+     *     5. 其他app小窗到全屏, 当前app(失去界面的app): event(1[a]) -> event(23[a])
      *     6. App关闭?: event(x[a]) -> event(24[a])
-     *     (7. 点击通知进入另一个app: event(2) -> event(23)
-     *          正常情况下, 两次事件的{@link ComponentName}应该相同, 但会出现意外情况。因此需要
-     *          lastEvent == {@link ActivityManagerServiceHookKt#ACTIVITY_PAUSED}兜底
-     *      )
      * </pre>
      *
      * @param event         事件码
@@ -453,11 +453,8 @@ public class RunningInfo implements ILogger {
                 ) {
                     putIntoActiveAppGroup(appInfo);
                 }
+                updateAppSwitchState(event, componentName, appInfo);
             }
-
-            /*case ActivityManagerServiceHookKt.ACTIVITY_PAUSED -> {
-                // do nothing
-            }*/
 
             case ActivityManagerServiceHookKt.ACTIVITY_STOPPED -> {
                 /*
@@ -467,24 +464,22 @@ public class RunningInfo implements ILogger {
                 if (Objects.equals(componentName, appInfo.getComponentName())) {
                     if (appInfo.getAppGroupEnum() != AppGroupEnum.IDLE || !getPowerManager().isInteractive()) {
                         putIntoIdleAppGroup(appInfo);
+                        updateAppSwitchState(event, componentName, appInfo);
                     }
-                } else if (appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_PAUSED) {
-                    putIntoIdleAppGroup(appInfo);
                 }
             }
 
             default -> {
-//                if (event == ActivityManagerServiceHookKt.ACTIVITY_DESTROYED) {
-//                    // do nothing
-//                }
             }
         }
 
+        appInfoLock.unlock();
+    }
+
+    private void updateAppSwitchState(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
         // 更新app的切换状态
         appInfo.setAppSwitchEvent(event);
         appInfo.setComponentName(componentName);
-
-        appInfoLock.unlock();
     }
 
     private void putIntoActiveAppGroup(@NonNull AppInfo appInfo) {

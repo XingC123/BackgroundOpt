@@ -1,0 +1,24 @@
+从历史记录进入视频播放：一切正常
+
+com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt.error: 哔哩的event: 2
+com.venus.backgroundopt.entity.RunningInfo.error: Component.className: com.bilibili.lib.ui.GeneralActivity, componentName.className: com.bilibili.lib.ui.GeneralActivity
+
+com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt.error: 哔哩的event: 1
+com.venus.backgroundopt.entity.RunningInfo.error: Component.className: com.bilibili.lib.ui.GeneralActivity, componentName.className: com.bilibili.video.videodetail.VideoDetailsActivity
+
+com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt.error: 哔哩的event: 23
+com.venus.backgroundopt.entity.RunningInfo.error: Component.className: com.bilibili.video.videodetail.VideoDetailsActivity, componentName.className: com.bilibili.lib.ui.GeneralActivity
+
+
+
+
+
+点击qq消息
+
+com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt.error: 哔哩的event: 2
+com.venus.backgroundopt.entity.RunningInfo.error: Component.className: com.bilibili.lib.ui.GeneralActivity, componentName.className: com.bilibili.video.videodetail.VideoDetailsActivity
+
+com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt.error: 哔哩的event: 23
+com.venus.backgroundopt.entity.RunningInfo.error: Component.className: com.bilibili.video.videodetail.VideoDetailsActivity, componentName.className: com.bilibili.video.videodetail.VideoDetailsActivity
+com.venus.backgroundopt.entity.RunningInfo.debug: com.bilibili.app.in, uid: 10292  被放入IdleGroup
+

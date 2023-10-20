@@ -106,10 +106,8 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
      *                                                                         *
      **************************************************************************/
     private val handleEvents = arrayOf(
-        ACTIVITY_PAUSED,
         ACTIVITY_RESUMED,
         ACTIVITY_STOPPED,
-//        ACTIVITY_DESTROYED
     )
 
     fun handleUpdateActivityUsageStats(param: MethodHookParam) {
@@ -137,7 +135,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
             return
         }
 
-        val appInfo = if (event == ACTIVITY_RESUMED || event == ACTIVITY_PAUSED) {
+        val appInfo = if (event == ACTIVITY_RESUMED /*|| event == ACTIVITY_PAUSED*/) {
             runningInfo.computeRunningAppIfAbsent(
                 userId,
                 packageName,
