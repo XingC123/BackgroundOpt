@@ -2,7 +2,7 @@ package com.venus.backgroundopt.hook.handle.android
 
 import android.os.UserHandle
 import com.venus.backgroundopt.BuildConfig
-import com.venus.backgroundopt.entity.RunningInfo
+import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.beforeHookAction

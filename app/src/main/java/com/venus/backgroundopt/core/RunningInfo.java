@@ -1,5 +1,6 @@
-package com.venus.backgroundopt.entity;
+package com.venus.backgroundopt.core;
 
+import android.content.ComponentName;
 import android.os.PowerManager;
 
 import androidx.annotation.NonNull;
@@ -7,7 +8,8 @@ import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.annotation.UsageComment;
-import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
+import com.venus.backgroundopt.entity.AppInfo;
+import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ApplicationInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
@@ -26,6 +28,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
 /**
@@ -323,8 +326,11 @@ public class RunningInfo implements ILogger {
 
                         apps[0] = new AppInfo(userId, packageName, this).setUid(uid);
                         setAddedRunningApp(mProcessRecord, apps[0]);
-                        apps[0].setAppSwitchEvent(ActivityManagerServiceHook.ACTIVITY_PAUSED);
-                        putIntoIdleAppGroup(apps[0]);
+                        handleActivityEventChange(
+                                ActivityManagerServiceHookKt.ACTIVITY_STOPPED,
+                                null,
+                                apps[0]
+                        );
 
                         if (BuildConfig.DEBUG) {
                             getLogger().debug("AppInfo(包名: " + packageName + ", uid: " + uid + ")补充完毕");
@@ -373,7 +379,6 @@ public class RunningInfo implements ILogger {
                 remove.setAppGroupEnum(AppGroupEnum.DEAD);
                 // 从待处理列表中移除
                 activeAppGroup.remove(appInfo);
-                tmpAppGroup.remove(appInfo);
                 idleAppGroup.remove(appInfo);
 
                 // app被杀死
@@ -409,123 +414,102 @@ public class RunningInfo implements ILogger {
 
     // 活跃分组
     private final Set<AppInfo> activeAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
-    // 缓存分组
-    private final Set<AppInfo> tmpAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
     // 后台分组
     private final Set<AppInfo> idleAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    public void putIntoActiveAppGroup(AppInfo appInfo) {
-        boolean switchActivity = false;  // 是否是应用内activity的切换
-        /*
-            处理当前元素
-         */
-        if (Objects.equals(AppGroupEnum.NONE, appInfo.getAppGroupEnum())) { // 第一次运行直接添加
-            handlePutInfoActiveAppGroup(appInfo, true);
-        } else if (tmpAppGroup.remove(appInfo)) {  // app: Activity切换
-            handlePutInfoActiveAppGroup(appInfo, false);
-            switchActivity = true;
-        } else if (idleAppGroup.remove(appInfo)) {  // 从后台组移除
-            handlePutInfoActiveAppGroup(appInfo, true);
-        }
-
-//        handlePutInfoActiveAppGroup(appInfo, !switchActivity);
-
-        /*
-            处理其他分组
-         */
-        if (!switchActivity) {  // 意味着非应用内切换Activity, 即某应用前后台状态被改变
-            // 检查缓存分组, 以确定是否需要改变前后台状态
-            /*
-                理论来说, 只有app.getAppSwitchEvent()== ActivityManagerServiceHook.ACTIVITY_PAUSED才能
-                被放置于tmpGroup。但由于响应的滞后性, 可能在期间发生了app状态切换, 因此仍然检查是否是
-                ActivityManagerServiceHook.ACTIVITY_PAUSED来做不同操作。
-                这里也许是可优化的点。
-             */
-            tmpAppGroup.forEach(app -> {
-                if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_PAUSED) {
-                    tmpAppGroup.remove(app);
-                    putIntoIdleAppGroup(app);
-                } else {
-                    tmpAppGroup.remove(app);
-                    handlePutInfoActiveAppGroup(appInfo, false);
+    /**
+     * 处理Activity改变事件
+     * 本方法处理的共有6大种情况, 本质就是从中找出切换app的方法:
+     * <pre>
+     *     a为第一个打开的Activity, b为第二个。
+     *     1. 初次打开: event(1[a])
+     *     2. 从后台到前台: event(23[a]) -> event(1[a])
+     *     3. 同一app内部:
+     *          1) Activity(a) -> Activity(b):  event(2[a]) -> event(1[b]) -> event(23[a])
+     *          1) Activity(b) -> Activity(a):  event(2[b]) -> event(1[a]) -> event(24[b])
+     *     4.   ① 退至后台/息屏?: event(2[a]) -> event(23[a])
+     *          ② 点击通知进入另一个app: event(2) -> event(23)。实验情况见: /app/docs/部分场景说明/App切换事件
+     *              在实验下, 可能会出现lastComponentName != curComponentName。
+     *              因此, 加入ActivityManagerServiceHookKt.ACTIVITY_PAUSED,
+     *              当lastComponentName != curComponentName时, 不更新当前数据
+     *     5. 其他app小窗到全屏, 当前app(失去界面的app): event(1[a]) -> event(23[a])
+     *     6. App关闭?: event(x[a]) -> event(24[a])
+     * </pre>
+     *
+     * @param event         事件码
+     * @param componentName 当前组件
+     * @param appInfo       app
+     */
+    public void handleActivityEventChange(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
+        Lock appInfoLock = appInfo.getLock();
+        appInfoLock.lock();
+        switch (event) {
+            case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
+                // 从后台到前台 || 第一次打开app
+                if (Objects.equals(componentName, appInfo.getComponentName())
+                        && appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_STOPPED
+                        || appInfo.getComponentName() == null
+                ) {
+                    putIntoActiveAppGroup(appInfo);
                 }
-            });
-        }
+                updateAppSwitchState(event, componentName, appInfo);
+            }
 
-        if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的active事件处理完毕");
-        }
-    }
+            case ActivityManagerServiceHookKt.ACTIVITY_STOPPED -> {
+                /*
+                    23.10.18: appInfo.getAppGroupEnum() != AppGroupEnum.IDLE可以换成appInfo.getAppGroupEnum() == AppGroupEnum.ACTIVE,
+                        但为了往后的兼容性, 暂时保持这样
+                 */
+                if (Objects.equals(componentName, appInfo.getComponentName())) {
+                    if (appInfo.getAppGroupEnum() != AppGroupEnum.IDLE || !getPowerManager().isInteractive()) {
+                        putIntoIdleAppGroup(appInfo);
+                        updateAppSwitchState(event, componentName, appInfo);
+                    }
+                }
+            }
 
-    public void putIntoTmpAppGroup(AppInfo appInfo) {
-        activeAppGroup.remove(appInfo);
-//        idleAppGroup.remove(appInfo); // 没有app在后台也能进入这个方法吧
-
-        /*
-            息屏触发 UsageEvents.Event.ACTIVITY_PAUSED 事件。则对当前app按照进入后台处理
-            boolean isScreenOn = pm.isInteractive();
-            如果isScreenOn值为true，屏幕状态为亮屏或者亮屏未解锁，反之为黑屏。
-         */
-        if (!getPowerManager().isInteractive()) {
-            putIntoIdleAppGroup(appInfo);
-        } else {
-            tmpAppGroup.add(appInfo);
-            appInfo.setAppGroupEnum(AppGroupEnum.TMP);
-
-            if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入TmpGroup");
+            default -> {
             }
         }
+
+        appInfoLock.unlock();
     }
 
-    private void putIntoIdleAppGroup(AppInfo appInfo) {
-        // 做app清理工作
-        boolean valid = handleLastApp(appInfo);
-        if (valid) {
-            idleAppGroup.add(appInfo);
-            appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
-
-            if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + "  被放入IdleGroup");
-            }
-        }
+    private void updateAppSwitchState(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
+        // 更新app的切换状态
+        appInfo.setAppSwitchEvent(event);
+        appInfo.setComponentName(componentName);
     }
 
-    private void handlePutInfoActiveAppGroup(AppInfo appInfo, boolean needHandleCurApp) {
+    private void putIntoActiveAppGroup(@NonNull AppInfo appInfo) {
         // 重置切换事件处理状态
         appInfo.setSwitchEventHandled(false);
 
-        if (needHandleCurApp) {
-            handleCurApp(appInfo);
-
-            // 检查前台应用中是否有遗漏的已经没有前台界面的app
-            /*
-                在Redmi K30p(lmi) MIUI 13 22.7.8 Android12中, 如果先打开应用A, 再从通知栏或弹出的消息打开应用B小窗,
-                    再将小窗拉伸至全屏, 此时, 尽管实质上已切换app, 但当前的app切换事件hook仍然捕捉不到A的Activity状态变化。
-                    导致无法更新应用A的内存分组。
-             */
-            activeAppGroup.forEach(app -> {
-                if (app.getAppSwitchEvent() == ActivityManagerServiceHook.ACTIVITY_RESUMED &&
-                        app.isActivityStopped()) {
-                    activeAppGroup.remove(app);
-                    putIntoIdleAppGroup(app);
-                }
-            });
-        }
+        // 处理当前app
+        handleCurApp(appInfo);
 
         activeAppGroup.add(appInfo);
         appInfo.setAppGroupEnum(AppGroupEnum.ACTIVE);
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入ActiveGroup");
+        }
     }
 
-    private void handleCurApp(AppInfo appInfo) {
-        if (appInfo == null) {
-            if (BuildConfig.DEBUG) {
-                getLogger().debug("前台app已被杀死, 不执行处理");
-            }
+    private void putIntoIdleAppGroup(@NonNull AppInfo appInfo) {
+        // 处理上个app
+        handleLastApp(appInfo);
 
-            return;
+        idleAppGroup.add(appInfo);
+        appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
+
+        if (BuildConfig.DEBUG) {
+            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + "  被放入IdleGroup");
         }
+    }
 
+    private void handleCurApp(@NonNull AppInfo appInfo) {
         if (Objects.equals(getActiveLaunchPackageName(), appInfo.getPackageName())) {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("前台app为默认桌面, 不进行处理");
@@ -535,39 +519,26 @@ public class RunningInfo implements ILogger {
 
         // 启动前台工作
         processManager.appActive(appInfo);
-
-        if (BuildConfig.DEBUG) {
-            getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入ActiveGroup");
-        }
     }
 
     /**
      * 处理上个app
      *
      * @param appInfo app信息
-     * @return appInfo是否合法
      */
-    public boolean handleLastApp(AppInfo appInfo) {
-        if (appInfo == null) {
-            if (BuildConfig.DEBUG) {
-                getLogger().debug("待执行app已被杀死, 不执行处理");
-            }
-
-            return false;
-        }
-
+    private void handleLastApp(@NonNull AppInfo appInfo) {
         if (Objects.equals(getActiveLaunchPackageName(), appInfo.getPackageName())) {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("当前操作的app为默认桌面, 不进行处理");
             }
-            return true;
+            return;
         }
 
         if (appInfo.isSwitchEventHandled()) {
             if (BuildConfig.DEBUG) {
                 getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的切换事件已经处理过");
             }
-            return true;
+            return;
         }
 
         // 启动后台工作
@@ -575,8 +546,6 @@ public class RunningInfo implements ILogger {
 //        processManager.setAppToBackgroundProcessGroup(appInfo);
 
         appInfo.setSwitchEventHandled(true);
-
-        return true;
     }
 
     /* *************************************************************************

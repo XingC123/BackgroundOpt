@@ -3,7 +3,7 @@ package com.venus.backgroundopt.hook.handle.android;
 import static com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerConstants.KEY_MAX_CACHED_PROCESSES;
 import static com.venus.backgroundopt.hook.handle.android.entity.DeviceConfig.NAMESPACE_ACTIVITY_MANAGER;
 
-import com.venus.backgroundopt.entity.RunningInfo;
+import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
 import com.venus.backgroundopt.hook.base.action.BeforeHookAction;
@@ -43,6 +43,7 @@ public class DeviceConfigHook extends MethodHook {
         Object namespace = param.args[0];
         Object name = param.args[1];
         if (Objects.equals(NAMESPACE_ACTIVITY_MANAGER, namespace)) {
+            // Android 14 可能会炸(安卓虚拟机开了, 但是别的可能炸掉), 因此应取消
             if (Objects.equals(KEY_MAX_CACHED_PROCESSES, name)) {
                 param.setResult(String.valueOf(Integer.MAX_VALUE));
             }

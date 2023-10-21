@@ -1,7 +1,7 @@
 package com.venus.backgroundopt.manager.process
 
 import com.venus.backgroundopt.BuildConfig
-import com.venus.backgroundopt.entity.RunningInfo
+import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.log.ILogger

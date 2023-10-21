@@ -1,6 +1,6 @@
 package com.venus.backgroundopt.hook.handle.android.entity
 
-import com.venus.backgroundopt.entity.RunningInfo
+import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants

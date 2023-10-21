@@ -1,0 +1,22 @@
+从主页进入视频播放：有问题
+自commit: d6223573f34f1cdf8be6acae581d70e814dd7e97之后
+
+com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt.error: 哔哩的event: 2
+com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt.error: 哔哩的event: 1
+
+com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt.error: 哔哩的event: 23
+com.venus.backgroundopt.entity.RunningInfo.error: Component.className: com.bilibili.video.videodetail.VideoDetailsActivity, componentName.className: tv.danmaku.bili.MainActivityV2
+
+
+
+点击qq
+
+
+com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt.error: 哔哩的event: 2
+由于没有在event=2时打印日志, 以下两处均为猜测:
+	① 这种应该是不对的: com.venus.backgroundopt.entity.RunningInfo.error: Component.className: com.bilibili.video.videodetail.VideoDetailsActivity, componentName.className: tv.danmaku.bili.MainActivityV2
+com.venus.backgroundopt.entity.RunningInfo.error: Component.className: tv.danmaku.bili.MainActivityV2, componentName.className: tv.danmaku.bili.MainActivityV2
+
+com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt.error: 哔哩的event: 23
+com.venus.backgroundopt.entity.RunningInfo.error: Component.className: tv.danmaku.bili.MainActivityV2, componentName.className: com.bilibili.video.videodetail.VideoDetailsActivity
+

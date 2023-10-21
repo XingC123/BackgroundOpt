@@ -60,4 +60,5 @@ public interface FieldConstants {
     String cacheInBytes = "cacheInBytes";
     String swapInBytes = "swapInBytes";
     String hasTopUi = "hasTopUi";
+    String ACTIVITY_DESTROYED = "ACTIVITY_DESTROYED";
 }

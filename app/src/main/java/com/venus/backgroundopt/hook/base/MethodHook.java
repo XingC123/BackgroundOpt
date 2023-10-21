@@ -1,6 +1,6 @@
 package com.venus.backgroundopt.hook.base;
 
-import com.venus.backgroundopt.entity.RunningInfo;
+import com.venus.backgroundopt.core.RunningInfo;
 
 /**
  * @author XingC

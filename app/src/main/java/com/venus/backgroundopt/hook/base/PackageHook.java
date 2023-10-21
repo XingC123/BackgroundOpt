@@ -1,7 +1,7 @@
 package com.venus.backgroundopt.hook.base;
 
 import com.venus.backgroundopt.annotation.HookPackageName;
-import com.venus.backgroundopt.entity.RunningInfo;
+import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.environment.SystemProperties;
 import com.venus.backgroundopt.utils.log.ILogger;
 

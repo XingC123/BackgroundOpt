@@ -1,4 +1,4 @@
-package com.venus.backgroundopt.entity;
+package com.venus.backgroundopt.core;
 
 import com.venus.backgroundopt.factory.SingletonObjectFactory;
 import com.venus.backgroundopt.utils.log.Logger;
