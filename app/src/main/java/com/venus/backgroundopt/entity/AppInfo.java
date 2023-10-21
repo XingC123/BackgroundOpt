@@ -1,12 +1,15 @@
 package com.venus.backgroundopt.entity;
 
-import static com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum;
+import static com.venus.backgroundopt.core.RunningInfo.AppGroupEnum;
+
+import android.content.ComponentName;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.annotation.UsageComment;
+import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.utils.concurrent.lock.LockFlag;
@@ -63,9 +66,10 @@ public class AppInfo implements ILogger, LockFlag {
     private volatile ProcessRecordKt mProcessRecord;   // 主进程记录
 
     private final AtomicInteger appSwitchEvent = new AtomicInteger(Integer.MIN_VALUE); // app切换事件
-    private final AtomicBoolean activityStoppedEvent = new AtomicBoolean(false); // activity_stopped
 
     private final AtomicBoolean switchEventHandled = new AtomicBoolean(false);    // 切换事件处理完毕
+
+    private final AtomicReference<ComponentName> componentNameAtomicReference = new AtomicReference<>(null);
 
     public boolean isSwitchEventHandled() {
         return switchEventHandled.get();
@@ -73,6 +77,14 @@ public class AppInfo implements ILogger, LockFlag {
 
     public void setSwitchEventHandled(boolean switchEventHandled) {
         this.switchEventHandled.set(switchEventHandled);
+    }
+
+    public ComponentName getComponentName() {
+        return componentNameAtomicReference.get();
+    }
+
+    public void setComponentName(ComponentName componentName) {
+        componentNameAtomicReference.set(componentName);
     }
 
     /* *************************************************************************
@@ -300,14 +312,6 @@ public class AppInfo implements ILogger, LockFlag {
         if (BuildConfig.DEBUG) {
             getLogger().debug(packageName + " 切换状态 ->>> " + appSwitchEvent);
         }
-    }
-
-    public boolean isActivityStopped() {
-        return activityStoppedEvent.get();
-    }
-
-    public void setActivityStoppedEvent(boolean stoppedEvent) {
-        activityStoppedEvent.set(stoppedEvent);
     }
 
     @Nullable

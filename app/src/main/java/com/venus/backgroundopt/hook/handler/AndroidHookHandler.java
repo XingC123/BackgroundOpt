@@ -2,13 +2,13 @@ package com.venus.backgroundopt.hook.handler;
 
 import android.os.Build;
 
-import com.venus.backgroundopt.entity.RunningInfo;
+import com.venus.backgroundopt.core.RunningInfo;
+import com.venus.backgroundopt.environment.SystemProperties;
 import com.venus.backgroundopt.hook.base.PackageHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerConstantsHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.DeletePackageHelperHook;
-import com.venus.backgroundopt.hook.handle.android.DeviceConfigHook;
 import com.venus.backgroundopt.hook.handle.android.PackageManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.PhantomProcessListHook;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt;
@@ -35,11 +35,17 @@ public class AndroidHookHandler extends PackageHook {
         ClassLoader classLoader = packageParam.classLoader;
         RunningInfo runningInfo = new RunningInfo(classLoader);
 
+        try {
+            SystemProperties.set("persist.sys.spc.enabled", "false");
+        } catch (Throwable throwable) {
+            getLogger().warn("米杀后台SystemProperties设置失败");
+        }
+
         // 资源Hook
 //        new ResourcesHook(classLoader, runningInfo);
 
         // hook获取
-        new DeviceConfigHook(classLoader, runningInfo);
+//        new DeviceConfigHook(classLoader, runningInfo);
 
         // 抓取AMS, 前后台切换
         new ActivityManagerServiceHook(classLoader, runningInfo);

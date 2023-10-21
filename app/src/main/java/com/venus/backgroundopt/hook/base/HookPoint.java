@@ -29,7 +29,7 @@ import de.robv.android.xposed.XposedHelpers;
  * @date 2023/4/27
  */
 public class HookPoint implements ILogger {
-    private static final Set<String> dontPrintLogHookList = new HashSet<>() {
+    public static final Set<String> dontPrintLogHookList = new HashSet<>() {
         {
             add(CommonProperties.class.getTypeName() + ".isModuleActive");
         }
@@ -70,7 +70,7 @@ public class HookPoint implements ILogger {
         this.actionArgs = actionArgs;
     }
 
-    enum MethodType {
+    public enum MethodType {
         Member,
         Constructor
     }

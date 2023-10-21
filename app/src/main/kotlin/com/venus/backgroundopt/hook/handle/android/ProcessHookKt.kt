@@ -1,8 +1,8 @@
 package com.venus.backgroundopt.hook.handle.android
 
 import com.venus.backgroundopt.BuildConfig
-import com.venus.backgroundopt.entity.RunningInfo
-import com.venus.backgroundopt.entity.RunningInfo.AppGroupEnum
+import com.venus.backgroundopt.core.RunningInfo
+import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.beforeHookAction

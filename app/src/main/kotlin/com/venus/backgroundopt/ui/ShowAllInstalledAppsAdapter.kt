@@ -19,7 +19,7 @@ import com.venus.backgroundopt.utils.TMP_DATA
  * @author XingC
  * @date 2023/9/27
  */
-class ShowAllInstalledAppsAdapter(private val appItems: MutableList<AppItem>) :
+class ShowAllInstalledAppsAdapter(private val appItems: List<AppItem>) :
     RecyclerView.Adapter<ShowAllInstalledAppsAdapter.ShowAllInstalledAppsViewHolder>(), Filterable {
     class ShowAllInstalledAppsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var appIcon: ImageView
