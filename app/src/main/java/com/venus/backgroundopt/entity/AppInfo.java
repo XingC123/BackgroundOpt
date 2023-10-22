@@ -333,7 +333,7 @@ public class AppInfo implements ILogger, LockFlag {
      *                                                                         *
      **************************************************************************/
     @SuppressWarnings("all")
-    private ReentrantLock lock = new ReentrantLock();
+    private ReentrantLock lock = new ReentrantLock(true);
 
     @NonNull
     @Override
