@@ -123,7 +123,12 @@ public class ActivityManagerService implements ILogger {
          */
         //  普通应用程序的UID 都是从 10000开始的
         int uid = Integer.MIN_VALUE;
-        if (applicationInfo == null || (uid = applicationInfo.uid) < USER_APP_UID_START_NUM) {
+        if (applicationInfo == null ||
+                ((uid = applicationInfo.uid) < USER_APP_UID_START_NUM &&
+                        (applicationInfo.getApplicationInfo().flags & (
+                                android.content.pm.ApplicationInfo.FLAG_SYSTEM |
+                                        android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0)
+        ) {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("applicationInfo == null ?" + (applicationInfo == null) + ", applicationInfo.uid < USER_APP_UID_START_NUM ? " + (applicationInfo != null && applicationInfo.uid < USER_APP_UID_START_NUM));
             }
