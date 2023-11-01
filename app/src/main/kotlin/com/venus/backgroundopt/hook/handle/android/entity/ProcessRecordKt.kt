@@ -182,7 +182,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @return 包名:进程名
          */
         @JvmStatic
-        fun getFullPackageName(processRecord: Any): String {
+        fun getFullProcessName(processRecord: Any): String {
             return PackageUtils.absoluteProcessName(
                 getPkgName(processRecord),
                 getProcessName(processRecord)
