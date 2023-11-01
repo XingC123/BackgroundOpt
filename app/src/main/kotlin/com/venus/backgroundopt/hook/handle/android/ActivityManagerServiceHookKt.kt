@@ -71,6 +71,14 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
 //                Boolean::class.java,    /* replacingPid */
 //                Boolean::class.java /* fromBinderDied */
 //            ),
+            generateMatchedMethodHookPoint(
+                true,
+                ClassConstants.ActivityManagerService,
+                "removePidLocked",
+                arrayOf(
+                    beforeHookAction { handleRemovePidLocked(it) }
+                )
+            ),
             HookPoint(
                 ClassConstants.ActivityManagerService,
                 MethodConstants.killProcessesBelowAdj,
@@ -181,6 +189,34 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
         appInfo ?: return
 
         val pid = param.args[1] as Int
+        val processRecordKt = appInfo.getProcess(pid)
+        val mainProcess = processRecordKt?.mainProcess ?: false
+        val packageName = appInfo.packageName
+
+        if (mainProcess) {
+            runningInfo.removeRunningApp(appInfo)
+            if (BuildConfig.DEBUG) {
+                logger.debug("kill: ${packageName}, uid: $uid >>> 杀死App")
+            }
+        } else {
+            appInfo.lock {
+                // 移除进程记录
+                val process = appInfo.removeProcess(pid)
+                // 取消进程的待压缩任务
+                runningInfo.processManager.cancelCompactProcess(process)
+                if (BuildConfig.DEBUG) {
+                    logger.debug("kill: ${packageName}, uid: ${uid}, pid: $pid >>> 子进程被杀")
+                }
+            }
+        }
+    }
+
+    fun handleRemovePidLocked(param: MethodHookParam) {
+        val proc = param.args[1]
+        val uid = ProcessRecordKt.getUID(proc)
+        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
+
+        val pid = param.args[0] as Int
         val processRecordKt = appInfo.getProcess(pid)
         val mainProcess = processRecordKt?.mainProcess ?: false
         val packageName = appInfo.packageName

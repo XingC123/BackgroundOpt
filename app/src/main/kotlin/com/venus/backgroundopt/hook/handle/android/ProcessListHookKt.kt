@@ -40,14 +40,14 @@ class ProcessListHookKt(
                 Int::class.javaPrimitiveType,   // uid
                 Int::class.javaPrimitiveType    // oom_adj_score
             ),
-            generateMatchedMethodHookPoint(
+            /*generateMatchedMethodHookPoint(
                 true,
                 ClassConstants.ProcessList,
                 MethodConstants.removeLruProcessLocked,
                 arrayOf(
                     beforeHookAction { handleRemoveLruProcessLocked(it) }
                 )
-            )
+            )*/
         )
     }
 
