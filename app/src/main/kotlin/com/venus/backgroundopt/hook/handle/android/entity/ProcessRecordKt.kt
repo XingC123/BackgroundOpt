@@ -137,7 +137,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         /**
          * 获取pid
          *
-         * @param processRecord 安卓ProcessRecord。确保传入的是非空的, 此处可空类型只是为了使用方便
+         * @param processRecord 安卓ProcessRecord
          */
         @JvmStatic
         fun getPid(processRecord: Any): Int {
