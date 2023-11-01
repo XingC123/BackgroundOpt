@@ -52,14 +52,9 @@ class ProcessHookKt(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
     private fun handleKillApp(param: MethodHookParam) {
         val uid = param.args[0] as Int
         val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
-
         val pid = param.args[1] as Int
-        val mainProcess = appInfo.getProcess(pid)?.mainProcess ?: false
 
-        if (mainProcess) {
-            // 标记app已死
-            appInfo.appGroupEnum = AppGroupEnum.DEAD
-        }
+        runningInfo.removeProcess(appInfo, uid, pid)
     }
 
     private fun handleSetProcessGroup(param: MethodHookParam) {

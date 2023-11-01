@@ -13,7 +13,6 @@ import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
-import com.venus.backgroundopt.utils.concurrent.lock
 import com.venus.backgroundopt.utils.getStaticIntFieldValue
 import com.venus.backgroundopt.utils.message.registeredMessageHandler
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -184,59 +183,19 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
     private fun handleCleanUpApplicationRecordLocked(param: MethodHookParam) {
         val processRecord = param.args[0] as Any
         val uid = ProcessRecordKt.getUID(processRecord)
-        val appInfo = runningInfo.getRunningAppInfo(uid)
-
-        appInfo ?: return
-
+        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
         val pid = param.args[1] as Int
-        val processRecordKt = appInfo.getProcess(pid)
-        val mainProcess = processRecordKt?.mainProcess ?: false
-        val packageName = appInfo.packageName
 
-        if (mainProcess) {
-            runningInfo.removeRunningApp(appInfo)
-            if (BuildConfig.DEBUG) {
-                logger.debug("kill: ${packageName}, uid: $uid >>> 杀死App")
-            }
-        } else {
-            appInfo.lock {
-                // 移除进程记录
-                val process = appInfo.removeProcess(pid)
-                // 取消进程的待压缩任务
-                runningInfo.processManager.cancelCompactProcess(process)
-                if (BuildConfig.DEBUG) {
-                    logger.debug("kill: ${packageName}, uid: ${uid}, pid: $pid >>> 子进程被杀")
-                }
-            }
-        }
+        runningInfo.removeProcess(appInfo, uid, pid)
     }
 
     fun handleRemovePidLocked(param: MethodHookParam) {
         val proc = param.args[1]
         val uid = ProcessRecordKt.getUID(proc)
         val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
-
         val pid = param.args[0] as Int
-        val processRecordKt = appInfo.getProcess(pid)
-        val mainProcess = processRecordKt?.mainProcess ?: false
-        val packageName = appInfo.packageName
 
-        if (mainProcess) {
-            runningInfo.removeRunningApp(appInfo)
-            if (BuildConfig.DEBUG) {
-                logger.debug("kill: ${packageName}, uid: $uid >>> 杀死App")
-            }
-        } else {
-            appInfo.lock {
-                // 移除进程记录
-                val process = appInfo.removeProcess(pid)
-                // 取消进程的待压缩任务
-                runningInfo.processManager.cancelCompactProcess(process)
-                if (BuildConfig.DEBUG) {
-                    logger.debug("kill: ${packageName}, uid: ${uid}, pid: $pid >>> 子进程被杀")
-                }
-            }
-        }
+        runningInfo.removeProcess(appInfo, uid, pid)
     }
 
     private fun handleKillProcessesBelowAdj(param: MethodHookParam) {

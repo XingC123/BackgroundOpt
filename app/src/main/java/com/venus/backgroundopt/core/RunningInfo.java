@@ -399,6 +399,40 @@ public class RunningInfo implements ILogger {
         });
     }
 
+    /**
+     * 移除进程。
+     * 额外处理与进程相关的任务。
+     *
+     * @param appInfo 应用信息
+     * @param uid     uid
+     * @param pid     pid
+     */
+    public void removeProcess(@NonNull AppInfo appInfo, int uid, int pid) {
+        ProcessRecordKt processRecord = appInfo.getProcess(pid);
+        boolean isMainProcess = false;
+        if (processRecord != null) {
+            isMainProcess = processRecord.getMainProcess();
+        }
+        String packageName = appInfo.getPackageName();
+
+        if (isMainProcess) {
+            removeRunningApp(appInfo);
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("kill: " + packageName + ", uid: " + uid + " >>> 杀死App");
+            }
+        } else {
+            ConcurrentUtilsKt.lock(appInfo, () -> {
+                // 移除进程记录
+                ProcessRecordKt process = appInfo.removeProcess(pid);
+                processManager.cancelCompactProcess(process);
+                if (BuildConfig.DEBUG) {
+                    getLogger().debug("kill: " + packageName + ", uid: " + uid + ", pid: " + pid + " >>> 子进程被杀");
+                }
+                return null;
+            });
+        }
+    }
+
     /* *************************************************************************
      *                                                                         *
      * app切换待处理队列                                                          *
