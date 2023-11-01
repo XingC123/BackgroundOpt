@@ -444,36 +444,40 @@ public class RunningInfo implements ILogger {
     public void handleActivityEventChange(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
         Lock appInfoLock = appInfo.getLock();
         appInfoLock.lock();
-        switch (event) {
-            case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
-                // 从后台到前台 || 第一次打开app
-                if (Objects.equals(componentName, appInfo.getComponentName())
-                        && appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_STOPPED
-                        || appInfo.getComponentName() == null
-                ) {
-                    putIntoActiveAppGroup(appInfo);
+        try {
+            switch (event) {
+                case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
+                    // 从后台到前台 || 第一次打开app
+                    if (Objects.equals(componentName, appInfo.getComponentName())
+                            && appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_STOPPED
+                            || appInfo.getComponentName() == null
+                    ) {
+                        putIntoActiveAppGroup(appInfo);
+                    }
+                    updateAppSwitchState(event, componentName, appInfo);
                 }
-                updateAppSwitchState(event, componentName, appInfo);
-            }
 
-            case ActivityManagerServiceHookKt.ACTIVITY_STOPPED -> {
+                case ActivityManagerServiceHookKt.ACTIVITY_STOPPED -> {
                 /*
                     23.10.18: appInfo.getAppGroupEnum() != AppGroupEnum.IDLE可以换成appInfo.getAppGroupEnum() == AppGroupEnum.ACTIVE,
                         但为了往后的兼容性, 暂时保持这样
                  */
-                if (Objects.equals(componentName, appInfo.getComponentName())) {
-                    if (appInfo.getAppGroupEnum() != AppGroupEnum.IDLE || !getPowerManager().isInteractive()) {
-                        putIntoIdleAppGroup(appInfo);
-                        updateAppSwitchState(event, componentName, appInfo);
+                    if (Objects.equals(componentName, appInfo.getComponentName())) {
+                        if (appInfo.getAppGroupEnum() != AppGroupEnum.IDLE || !getPowerManager().isInteractive()) {
+                            putIntoIdleAppGroup(appInfo);
+                            updateAppSwitchState(event, componentName, appInfo);
+                        }
                     }
                 }
-            }
 
-            default -> {
+                default -> {
+                }
             }
+        } catch (Throwable throwable) {
+            getLogger().error("中央处理方法错误", throwable);
+        } finally {
+            appInfoLock.unlock();
         }
-
-        appInfoLock.unlock();
     }
 
     private void updateAppSwitchState(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
