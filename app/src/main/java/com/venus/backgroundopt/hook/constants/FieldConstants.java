@@ -61,4 +61,5 @@ public interface FieldConstants {
     String swapInBytes = "swapInBytes";
     String hasTopUi = "hasTopUi";
     String ACTIVITY_DESTROYED = "ACTIVITY_DESTROYED";
+    String mDyingPid = "mDyingPid";
 }

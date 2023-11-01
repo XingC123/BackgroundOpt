@@ -11,7 +11,6 @@ import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.DeletePackageHelperHook;
 import com.venus.backgroundopt.hook.handle.android.PackageManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.PhantomProcessListHook;
-import com.venus.backgroundopt.hook.handle.android.ProcessHookKt;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt;
 import com.venus.backgroundopt.hook.handle.android.ProcessStateRecordHook;
 import com.venus.backgroundopt.hook.handle.android.RecentTasksHook;
@@ -57,7 +56,7 @@ public class AndroidHookHandler extends PackageHook {
 
         // 杀后台hook
 //        new ProcessHook(classLoader, runningInfo);
-        new ProcessHookKt(classLoader, runningInfo);
+//        new ProcessHookKt(classLoader, runningInfo);
 
         // oom_adj更新hook
         new ProcessStateRecordHook(classLoader, runningInfo);

@@ -3,9 +3,9 @@ package com.venus.backgroundopt.hook.handle.android.entity
 import android.content.pm.ApplicationInfo
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.BuildConfig
-import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
+import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
@@ -142,6 +142,17 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         @JvmStatic
         fun getPid(processRecord: Any): Int {
             return processRecord.getIntFieldValue(FieldConstants.mPid)
+        }
+
+        /**
+         * The process ID which will be set when we're killing this process.
+         *
+         * @param processRecord Any 安卓ProcessRecord
+         * @return Int mDyingPid
+         */
+        @JvmStatic
+        fun getMDyingPid(processRecord: Any):Int {
+            return processRecord.getIntFieldValue(FieldConstants.mDyingPid)
         }
 
         /**

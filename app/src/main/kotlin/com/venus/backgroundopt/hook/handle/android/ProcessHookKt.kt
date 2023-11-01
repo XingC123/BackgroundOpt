@@ -5,12 +5,8 @@ import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
-import com.venus.backgroundopt.hook.base.action.beforeHookAction
-import com.venus.backgroundopt.hook.constants.ClassConstants
-import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.Process
 import com.venus.backgroundopt.manager.process.ProcessManager
-import com.venus.backgroundopt.utils.concurrent.lock
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
@@ -30,17 +26,17 @@ class ProcessHookKt(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
 
     override fun getHookPoint(): Array<HookPoint> {
         return arrayOf(
-            HookPoint(
-                ClassConstants.Process,
-                MethodConstants.killProcessGroup,
-                arrayOf(
-                    beforeHookAction {
-                        handleKillApp(it)
-                    }
-                ),
-                Int::class.java,
-                Int::class.java
-            ),
+//            HookPoint(
+//                ClassConstants.Process,
+//                MethodConstants.killProcessGroup,
+//                arrayOf(
+//                    beforeHookAction {
+//                        handleKillApp(it)
+//                    }
+//                ),
+//                Int::class.java,
+//                Int::class.java
+//            ),
             /*HookPoint(
                 ClassConstants.Process,
                 MethodConstants.setProcessGroup,
