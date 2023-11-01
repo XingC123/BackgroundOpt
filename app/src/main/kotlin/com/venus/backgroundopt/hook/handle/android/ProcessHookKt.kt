@@ -10,6 +10,7 @@ import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.Process
 import com.venus.backgroundopt.manager.process.ProcessManager
+import com.venus.backgroundopt.utils.concurrent.lock
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
@@ -54,29 +55,14 @@ class ProcessHookKt(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
 
     private fun handleKillApp(param: MethodHookParam) {
         val uid = param.args[0] as Int
+        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
+
         val pid = param.args[1] as Int
-        val appInfo = runningInfo.getRunningAppInfo(uid)
+        val mainProcess = appInfo.getProcess(pid)?.mainProcess ?: false
 
-        appInfo?.let {
-            var mPid = Int.MIN_VALUE
-            try {
-                mPid = appInfo.getmPid()
-            } catch (ignore: Exception) {
-            }
-            if (mPid == Int.MIN_VALUE) {
-                if (BuildConfig.DEBUG) {
-                    logger.warn("kill: ${appInfo.packageName}, uid: $uid >>>  mpid获取失败")
-                }
-            } else if (pid != mPid) {   // 处理子进程
-                // 移除进程记录
-                val processInfo = appInfo.removeProcess(pid)
-                // 取消进程的待压缩任务
-                runningInfo.processManager.cancelCompactProcess(processInfo)
-
-                if (BuildConfig.DEBUG) {
-                    logger.debug("kill: ${appInfo.packageName}, uid: ${uid}, pid: $pid >>> 子进程被杀")
-                }
-            }
+        if (mainProcess) {
+            // 标记app已死
+            appInfo.appGroupEnum = AppGroupEnum.DEAD
         }
     }
 
