@@ -483,12 +483,12 @@ public class RunningInfo implements ILogger {
                 case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
                     // 从后台到前台 || 第一次打开app
                     if (Objects.equals(componentName, appInfo.getComponentName())
-                            && appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_STOPPED
+                            /*&& appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_STOPPED*/
                             || appInfo.getComponentName() == null
                     ) {
                         putIntoActiveAppGroup(appInfo);
                     }
-                    updateAppSwitchState(event, componentName, appInfo);
+                    updateAppSwitchState(/*event, */componentName, appInfo);
                 }
 
                 case ActivityManagerServiceHookKt.ACTIVITY_STOPPED -> {
@@ -499,7 +499,7 @@ public class RunningInfo implements ILogger {
                     if (Objects.equals(componentName, appInfo.getComponentName())) {
                         if (appInfo.getAppGroupEnum() != AppGroupEnum.IDLE || !getPowerManager().isInteractive()) {
                             putIntoIdleAppGroup(appInfo);
-                            updateAppSwitchState(event, componentName, appInfo);
+                            updateAppSwitchState(/*event, */componentName, appInfo);
                         }
                     }
                 }
@@ -514,9 +514,9 @@ public class RunningInfo implements ILogger {
         }
     }
 
-    private void updateAppSwitchState(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
+    private void updateAppSwitchState(/*int event, */ComponentName componentName, @NonNull AppInfo appInfo) {
         // 更新app的切换状态
-        appInfo.setAppSwitchEvent(event);
+//        appInfo.setAppSwitchEvent(event);
         appInfo.setComponentName(componentName);
     }
 
