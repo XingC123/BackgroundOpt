@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -476,11 +477,9 @@ public class RunningInfo implements ILogger {
      * @param appInfo       app
      */
     public void handleActivityEventChange(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
-        Lock appInfoLock = appInfo.getLock();
-        appInfoLock.lock();
-        try {
-            switch (event) {
-                case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
+        switch (event) {
+            case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
+                handleActuallyActivityEventChange(appInfo, () -> {
                     // 从后台到前台 || 第一次打开app
                     if (Objects.equals(componentName, appInfo.getComponentName())
                             /*&& appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_STOPPED*/
@@ -489,26 +488,38 @@ public class RunningInfo implements ILogger {
                         putIntoActiveAppGroup(appInfo);
                     }
                     updateAppSwitchState(/*event, */componentName, appInfo);
-                }
+                }, throwable -> getLogger().error("ACTIVITY_RESUMED处理出错", throwable));
+            }
 
-                case ActivityManagerServiceHookKt.ACTIVITY_STOPPED -> {
+            case ActivityManagerServiceHookKt.ACTIVITY_STOPPED -> {
                 /*
                     23.10.18: appInfo.getAppGroupEnum() != AppGroupEnum.IDLE可以换成appInfo.getAppGroupEnum() == AppGroupEnum.ACTIVE,
                         但为了往后的兼容性, 暂时保持这样
                  */
-                    if (Objects.equals(componentName, appInfo.getComponentName())) {
-                        if (appInfo.getAppGroupEnum() != AppGroupEnum.IDLE || !getPowerManager().isInteractive()) {
+                if (Objects.equals(componentName, appInfo.getComponentName())) {
+                    if (appInfo.getAppGroupEnum() != AppGroupEnum.IDLE || !getPowerManager().isInteractive()) {
+                        handleActuallyActivityEventChange(appInfo, () -> {
                             putIntoIdleAppGroup(appInfo);
                             updateAppSwitchState(/*event, */componentName, appInfo);
-                        }
+                        }, throwable -> getLogger().error("ACTIVITY_STOPPED处理出错", throwable));
                     }
                 }
-
-                default -> {
-                }
             }
+
+            default -> {
+            }
+        }
+    }
+
+    private void handleActuallyActivityEventChange(@NonNull AppInfo appInfo, @NonNull Runnable action, @Nullable Consumer<Throwable> throwableAction) {
+        Lock appInfoLock = appInfo.getLock();
+        appInfoLock.lock();
+        try {
+            action.run();
         } catch (Throwable throwable) {
-            getLogger().error("中央处理方法错误", throwable);
+            if (throwableAction != null) {
+                throwableAction.accept(throwable);
+            }
         } finally {
             appInfoLock.unlock();
         }
