@@ -151,6 +151,7 @@ class ProcessListHookKt(
         return
     }
 
+    @Deprecated("ProcessRecordKt.getMDyingPid(proc)有时候为0")
     fun handleRemoveLruProcessLocked(param: MethodHookParam) {
         val proc = param.args[0]
         val uid = ProcessRecordKt.getUID(proc)
