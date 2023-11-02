@@ -50,4 +50,5 @@
     <string name="settingsModuleItemTitle">模块</string>
     <string name="settingsAutoStopCompactPrefText">自动停止压缩任务</string>
     <string name="menu_main_activity_toolbar_settings">设置</string>
+    <string name="showAllInstalledAppsSearchTextHint">输入应用名称</string>
 </resources>
