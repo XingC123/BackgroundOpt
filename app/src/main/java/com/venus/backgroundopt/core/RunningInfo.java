@@ -453,6 +453,11 @@ public class RunningInfo implements ILogger {
     // 后台分组
     private final Set<AppInfo> idleAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
+    private final Consumer<AppInfo> doNothing = appInfo -> {
+    };
+
+    private final Consumer<AppInfo> putIntoActiveAction = this::putIntoActiveAppGroup;
+
     /**
      * 处理Activity改变事件
      * 本方法处理的共有6大种情况, 本质就是从中找出切换app的方法:
@@ -479,15 +484,19 @@ public class RunningInfo implements ILogger {
     public void handleActivityEventChange(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
         switch (event) {
             case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
+                Consumer<AppInfo> consumer;
+                // 从后台到前台 || 第一次打开app
+                if (Objects.equals(componentName, appInfo.getComponentName())
+                        /*&& appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_STOPPED*/
+                        && appInfo.getAppGroupEnum() != AppGroupEnum.ACTIVE
+                        || appInfo.getComponentName() == null
+                ) {
+                    consumer = putIntoActiveAction;
+                } else {
+                    consumer = doNothing;
+                }
                 handleActuallyActivityEventChange(appInfo, () -> {
-                    // 从后台到前台 || 第一次打开app
-                    if (Objects.equals(componentName, appInfo.getComponentName())
-                            /*&& appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_STOPPED*/
-                            && appInfo.getAppGroupEnum() != AppGroupEnum.ACTIVE
-                            || appInfo.getComponentName() == null
-                    ) {
-                        putIntoActiveAppGroup(appInfo);
-                    }
+                    consumer.accept(appInfo);
                     updateAppSwitchState(/*event, */componentName, appInfo);
                 }, throwable -> getLogger().error("ACTIVITY_RESUMED处理出错", throwable));
             }
