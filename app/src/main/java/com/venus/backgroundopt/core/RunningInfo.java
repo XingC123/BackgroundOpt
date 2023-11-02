@@ -483,6 +483,7 @@ public class RunningInfo implements ILogger {
                     // 从后台到前台 || 第一次打开app
                     if (Objects.equals(componentName, appInfo.getComponentName())
                             /*&& appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_STOPPED*/
+                            && appInfo.getAppGroupEnum() != AppGroupEnum.ACTIVE
                             || appInfo.getComponentName() == null
                     ) {
                         putIntoActiveAppGroup(appInfo);
