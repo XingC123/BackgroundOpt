@@ -232,7 +232,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             }
 
             var curCorrectTimes = 1
-            while (curCorrectTimes <= 5) {
+            while (curCorrectTimes <= 10) {
                 processRecord.pid = getPid(processRecord.processRecord)
                 curCorrectTimes++
                 if (processRecord.pid <= 0) {
