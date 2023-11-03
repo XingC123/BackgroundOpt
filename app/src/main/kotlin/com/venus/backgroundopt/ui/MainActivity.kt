@@ -36,6 +36,7 @@ class MainActivity : BaseActivity(), ILogger {
         when(menuItem.itemId) {
             R.id.MainActivityAboutMenuItem -> startActivity(Intent(this, AboutAppActivity::class.java))
             R.id.mainActivitySettingsMenuItem -> startActivity(Intent(this, SettingsActivity::class.java))
+            R.id.mainActivityFeatureMenuItem -> startActivity(Intent(this, FeatureActivity::class.java))
         }
     }
 

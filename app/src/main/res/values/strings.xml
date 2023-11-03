@@ -66,4 +66,21 @@
     <string name="settingsForegroundProcTrimMemDefaultPolicyValue">RUNNING_MODERATE</string>
     <string name="settingsForegroundProcTrimMemPolicyPrefText">Memory trimming policy for foreground process</string>
     <string name="settingsForegroundProcTrimMemEnablePrefText">Enable Memory trimming for foreground process</string>
+    <string name="menu_main_activity_toolbar_feature">Feature</string>
+    <string name="activityFeatureFeatureIntroductionText" translatable="false">
+        <b>1. 当前功能：</b>
+        \n\t\t1) 进程保活(基于LMK)。
+
+        \n\t\t2) 内存紧张：向应用发送虚假信息，假装可用内存已不足，促使其进行资源释放。
+
+        \n\t\t3) 内存压缩：对后台进程按照指定的规则进行压缩。
+
+        \n\n<b>2. 补充说明：</b>
+        \n\t\t1) “内存紧张”和“内存压缩”受进程策略影响。
+        \n\t\t2) 当开机后，<b>已打开的app被杀掉后</b>，如果可以自启动，<b>那么其OOM依然会被模块管理</b>。但若<b>开机后并未打开过，则模块不会管理其OOM</b>
+        \n\t\t3) 截至2023.11.03，模块对QQ、微信的推送进程默认处于“主进程”级别，即享受与主进程相同的处理方式。
+
+        \n\n<b>3. 其他问题</b>
+        \n\t\t1) 截至2023.11.03，模块版本1.6.3，红米K30Pro(lmi，MIUI13 22.7.8，安卓12)，红米Note5P(whyred，Nusantara，安卓13)。并不会与millet与NoActive 3.0(303)冲突，如果出现无法冻结请自行查找原因。
+    </string>
 </resources>

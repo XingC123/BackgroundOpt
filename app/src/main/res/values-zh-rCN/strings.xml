@@ -53,4 +53,5 @@
     <string name="showAllInstalledAppsSearchTextHint">输入应用名称</string>
     <string name="settingsForegroundProcTrimMemPolicyPrefText">前台进程内存紧张策略</string>
     <string name="settingsForegroundProcTrimMemEnablePrefText">启用前台进程内存紧张</string>
+    <string name="menu_main_activity_toolbar_feature">特性</string>
 </resources>
