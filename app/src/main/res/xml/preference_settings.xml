@@ -14,7 +14,8 @@
             android:defaultValue="false"
             android:title="@string/settingsAutoStopCompactPrefText"
             app:iconSpaceReserved="false"
-            app:key="@string/pref_key_autoStopCompactTask" />
+            app:key="@string/pref_key_autoStopCompactTask"
+            app:summary="@string/settingsAutoStopCompactPrefSummaryText" />
         <SwitchPreference
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
