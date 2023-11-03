@@ -3,6 +3,7 @@ package com.venus.backgroundopt.environment
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
+import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.utils.preference.PreferencesUtil
 import com.venus.backgroundopt.utils.preference.prefAll
 import java.util.concurrent.ConcurrentHashMap
@@ -59,5 +60,37 @@ object CommonProperties {
             PreferenceNameConstants.MAIN_SETTINGS,
             PreferenceKeyConstants.AUTO_STOP_COMPACT_TASK
         )
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 进程内存紧张                                                              *
+     *                                                                         *
+     **************************************************************************/
+    fun getEnableForegroundProcTrimMemPolicy(): Boolean {
+        return PreferencesUtil.getBoolean(
+            PreferenceNameConstants.MAIN_SETTINGS,
+            PreferenceKeyConstants.ENABLE_FOREGROUND_PROC_TRIM_MEM_POLICY
+        )
+    }
+
+    val foregroundProcTrimMemPolicyMap by lazy {
+        HashMap<String, Int>().apply {
+            put("RUNNING_MODERATE", ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE)
+            put("RUNNING_LOW", ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW)
+            put("RUNNING_CRITICAL", ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL)
+        }
+    }
+
+    fun getForegroundProcTrimMemPolicy(): Int {
+        return PreferencesUtil.getString(
+            PreferenceNameConstants.MAIN_SETTINGS,
+            PreferenceKeyConstants.FOREGROUND_PROC_TRIM_MEM_POLICY
+        )?.let {
+            foregroundProcTrimMemPolicyMap[it]
+                ?: run { foregroundProcTrimMemPolicyMap["RUNNING_MODERATE"]!! }
+        } ?: run {
+            foregroundProcTrimMemPolicyMap["RUNNING_MODERATE"]!!
+        }
     }
 }

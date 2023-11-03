@@ -3,8 +3,8 @@ package com.venus.backgroundopt.manager.process;
 import static com.venus.backgroundopt.core.RunningInfo.AppGroupEnum;
 
 import com.venus.backgroundopt.BuildConfig;
-import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.core.RunningInfo;
+import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
@@ -157,6 +157,14 @@ public class ProcessManager implements ILogger {
      *                                                                         *
      **************************************************************************/
     private final AppMemoryTrimManagerKt appMemoryTrimManager;
+
+    public void configureForegroundTrimCheckTask(boolean isEnable) {
+        appMemoryTrimManager.setEnableForegroundTrim(isEnable);
+    }
+
+    public void setForegroundTrimLevel(int level) {
+        appMemoryTrimManager.setForegroundTrimLevel(level);
+    }
 
     public Set<ProcessRecordKt> getForegroundTasks() {
         return appMemoryTrimManager.getForegroundTasks();

@@ -15,5 +15,23 @@
             android:title="@string/settingsAutoStopCompactPrefText"
             app:iconSpaceReserved="false"
             app:key="@string/pref_key_autoStopCompactTask" />
+        <SwitchPreference
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:defaultValue="false"
+            android:title="@string/settingsForegroundProcTrimMemEnablePrefText"
+            app:iconSpaceReserved="false"
+            app:key="@string/pref_key_enable_foreground_proc_trim_mem_policy" />
+        <ListPreference
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:defaultValue="@string/settingsForegroundProcTrimMemDefaultPolicyValue"
+            android:title="@string/settingsForegroundProcTrimMemPolicyPrefText"
+            app:enabled="false"
+            app:entries="@array/foreground_process_trim_mem_policy_entries"
+            app:entryValues="@array/foreground_process_trim_mem_policy_values"
+            app:iconSpaceReserved="false"
+            app:key="@string/pref_key_foreground_proc_trim_mem_policy"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 </PreferenceScreen>

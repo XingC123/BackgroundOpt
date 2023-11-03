@@ -63,4 +63,7 @@
     <string name="settingsAutoStopCompactPrefText">Automatically stop compacting task</string>
     <string name="menu_main_activity_toolbar_settings">Settings</string>
     <string name="showAllInstalledAppsSearchTextHint">input a name of app to search</string>
+    <string name="settingsForegroundProcTrimMemDefaultPolicyValue">RUNNING_MODERATE</string>
+    <string name="settingsForegroundProcTrimMemPolicyPrefText">Memory trimming policy for foreground process</string>
+    <string name="settingsForegroundProcTrimMemEnablePrefText">Enable Memory trimming for foreground process</string>
 </resources>
