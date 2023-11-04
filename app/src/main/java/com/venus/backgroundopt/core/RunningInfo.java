@@ -460,6 +460,7 @@ public class RunningInfo implements ILogger {
 
     /**
      * 处理Activity改变事件
+     *  <br>
      * 本方法处理的共有6大种情况, 本质就是从中找出切换app的方法:
      * <pre>
      *     a为第一个打开的Activity, b为第二个。
