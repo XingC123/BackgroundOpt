@@ -122,36 +122,16 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
 
         // 获取切换事件
         val event = args[2] as Int
-
         if (event !in handleEvents) {
             return
         }
 
         // 本次事件包名
         val componentName = (args[0] as? ComponentName) ?: return
-        val packageName = componentName.packageName
-
         // 本次事件用户
         val userId = args[1] as Int
 
-        val runningInfo = runningInfo
-        // 检查是否是系统重要进程
-        val normalAppResult = runningInfo.isNormalApp(userId, packageName)
-        if (!normalAppResult.isNormalApp) {
-            return
-        }
-
-        val appInfo = if (event == ACTIVITY_RESUMED /*|| event == ACTIVITY_PAUSED*/) {
-            runningInfo.computeRunningAppIfAbsent(
-                userId,
-                packageName,
-                normalAppResult.applicationInfo.uid
-            )
-        } else {
-            runningInfo.getRunningAppInfo(normalAppResult.applicationInfo.uid) ?: return
-        }
-
-        runningInfo.handleActivityEventChange(event, componentName, appInfo)
+        runningInfo.handleActivityEventChange(event, userId, componentName)
     }
 
     /* *************************************************************************

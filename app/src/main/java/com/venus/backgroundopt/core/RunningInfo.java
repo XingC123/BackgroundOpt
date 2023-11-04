@@ -27,6 +27,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
@@ -458,6 +461,42 @@ public class RunningInfo implements ILogger {
 
     private final Consumer<AppInfo> putIntoActiveAction = this::putIntoActiveAppGroup;
 
+    ExecutorService activityEventChangeExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
+
+    /**
+     * 以异步的方式处理Activity改变事件
+     *
+     * @param event         当前事件码
+     * @param userId        用户id
+     * @param componentName 组件
+     */
+    public void handleActivityEventChange(int event, int userId, @NonNull ComponentName componentName) {
+        activityEventChangeExecutor.submit(() -> {
+            String packageName = componentName.getPackageName();
+            // 检查是否是系统重要进程
+            NormalAppResult normalAppResult = runningInfo.isNormalApp(userId, packageName);
+            if (!normalAppResult.isNormalApp) {
+                return;
+            }
+
+            AppInfo appInfo;
+            if (event == ActivityManagerServiceHookKt.ACTIVITY_RESUMED /*|| event == ActivityManagerServiceHookKt.ACTIVITY_PAUSED*/) {
+                appInfo = runningInfo.computeRunningAppIfAbsent(
+                        userId,
+                        packageName,
+                        normalAppResult.applicationInfo.uid
+                );
+            } else {
+                appInfo = runningInfo.getRunningAppInfo(normalAppResult.applicationInfo.uid);
+                if (appInfo == null) {
+                    return;
+                }
+            }
+
+            runningInfo.handleActivityEventChange(event, componentName, appInfo);
+        });
+    }
+
     /**
      * 处理Activity改变事件
      *  <br>
@@ -482,7 +521,7 @@ public class RunningInfo implements ILogger {
      * @param componentName 当前组件
      * @param appInfo       app
      */
-    public void handleActivityEventChange(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
+    private void handleActivityEventChange(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
         switch (event) {
             case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
                 Consumer<AppInfo> consumer;
