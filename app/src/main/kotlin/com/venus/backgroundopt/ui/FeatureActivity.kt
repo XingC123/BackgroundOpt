@@ -15,6 +15,11 @@ class FeatureActivity : BaseActivity() {
     }
 
     override fun initToolBar(): Toolbar? {
-        return UiUtils.getToolbar(this, R.id.toolbarLeftTitleToolbar, "特性", enableCancelBtn = true)
+        return UiUtils.getToolbar(
+            this,
+            R.id.toolbarLeftTitleToolbar,
+            titleResId = R.string.menu_main_activity_toolbar_feature,
+            enableCancelBtn = true
+        )
     }
 }

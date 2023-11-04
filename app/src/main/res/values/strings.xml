@@ -66,13 +66,13 @@
     <string name="settingsForegroundProcTrimMemDefaultPolicyValue">RUNNING_MODERATE</string>
     <string name="settingsForegroundProcTrimMemPolicyPrefText">Memory trimming policy for foreground process</string>
     <string name="settingsForegroundProcTrimMemEnablePrefText">Enable Memory trimming for foreground process</string>
-    <string name="menu_main_activity_toolbar_feature">Feature</string>
+    <string name="menu_main_activity_toolbar_feature">User manual</string>
     <string name="activityFeatureFeatureIntroductionText" translatable="false">
         <b>1. 当前功能：</b>
         \n\t\t1) 进程保活(基于LMK)。
 
         \n\t\t2) 内存紧张：向应用发送虚假信息，假装可用内存已不足，促使其进行资源释放。
-        \n\t\t\t\t设置页面的“前台进程内存紧张策略”<b>越往下代表当前可用内存越紧张</b>。
+        \n\t\t\t\t设置页面的<u><i>“前台进程内存紧张策略”</i></u><b>越往下代表当前可用内存越紧张</b>。
 
         \n\t\t3) 内存压缩：对后台进程按照指定的规则进行压缩。
 
