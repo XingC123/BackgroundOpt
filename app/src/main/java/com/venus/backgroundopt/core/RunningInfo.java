@@ -412,7 +412,7 @@ public class RunningInfo implements ILogger {
      * @param pid     pid
      */
     public void removeProcess(@NonNull AppInfo appInfo, int uid, int pid) {
-        activityEventChangeExecutor.submit(() -> {
+        activityEventChangeExecutor.execute(() -> {
             ProcessRecordKt processRecord = appInfo.getProcess(pid);
             boolean isMainProcess = false;
             if (processRecord != null) {
@@ -473,7 +473,7 @@ public class RunningInfo implements ILogger {
      * @param componentName 组件
      */
     public void handleActivityEventChange(int event, int userId, @NonNull ComponentName componentName) {
-        activityEventChangeExecutor.submit(() -> {
+        activityEventChangeExecutor.execute(() -> {
             String packageName = componentName.getPackageName();
             // 检查是否是系统重要进程
             NormalAppResult normalAppResult = runningInfo.isNormalApp(userId, packageName);
