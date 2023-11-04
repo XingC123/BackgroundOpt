@@ -151,7 +151,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @return Int mDyingPid
          */
         @JvmStatic
-        fun getMDyingPid(processRecord: Any):Int {
+        fun getMDyingPid(processRecord: Any): Int {
             return processRecord.getIntFieldValue(FieldConstants.mDyingPid)
         }
 
@@ -422,12 +422,21 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
      * 进程内存调节                                                              *
      *                                                                         *
      **************************************************************************/
+    // 最大资源占用
     @JSONField(serialize = false)
-    var rssInBytes = Long.MIN_VALUE
+    var maxRssInBytes = Long.MIN_VALUE
 
-    fun updateRssInBytes() {
-        rssInBytes =
+    /**
+     * 更新最大内存资源占用
+     * @return Boolean 成功更新 -> true
+     */
+    fun updateMaxRssInBytes() {
+        val curRssInBytes =
             MemoryStatUtil.readMemoryStatFromFilesystem(uid, pid)?.rssInBytes ?: Long.MIN_VALUE
+
+        if (curRssInBytes > maxRssInBytes || curRssInBytes < 0L) {
+            maxRssInBytes = curRssInBytes
+        }
     }
 
     /**
@@ -436,10 +445,10 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
      * @return 返回这次更新前的值
      */
     @JSONField(serialize = false)
-    fun getAndUpdateRssInBytes(): Long {
-        val bytes = rssInBytes
+    fun getAndUpdateMaxRssInBytes(): Long {
+        val bytes = maxRssInBytes
         // 更新
-        updateRssInBytes()
+        updateMaxRssInBytes()
         return bytes
     }
 
@@ -450,15 +459,18 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
      */
     @JSONField(serialize = false)
     fun isNecessaryToOptimize(): Boolean {
-        val bytes = getAndUpdateRssInBytes()
-        var b = true
-        // 只有成功获取当前已用内存时才进行按比率判断, 其他情况直接默认处理
-        if (bytes != Long.MIN_VALUE) {
-            MemoryStatUtil.readMemoryStatFromFilesystem(uid, pid)?.let { memoryStat ->
-                b = (memoryStat.rssInBytes / bytes.toDouble()) > 0.5
-            }
+        // 最新的占用
+        val curRssInBytes =
+            MemoryStatUtil.readMemoryStatFromFilesystem(uid, pid)?.rssInBytes ?: Long.MIN_VALUE
+
+        // 当前占用高于之前记录的占用
+        if (curRssInBytes > maxRssInBytes || curRssInBytes < 0L) {
+            maxRssInBytes = curRssInBytes
+            return true
         }
-        return b
+
+        // 当前的占用/之前记录的占用
+        return curRssInBytes / maxRssInBytes.toDouble() > 0.5
     }
 
     /* *************************************************************************
