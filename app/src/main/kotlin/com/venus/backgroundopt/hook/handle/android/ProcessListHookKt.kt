@@ -103,11 +103,12 @@ class ProcessListHookKt(
             appInfo.getProcess(pid) ?: return
         /*?: appInfo.addProcess(runningInfo.activityManagerService.getProcessRecord(pid))*/
         val mainProcess = process.mainProcess
-//
-//        不需要执行, 暂时注释掉
-//        if (mainProcess && appInfo.appGroupEnum == AppGroupEnum.IDLE) {
-//            runningInfo.handleLastApp(appInfo)
-//        }
+
+        if (mainProcess && appInfo.appGroupEnum == AppGroupEnum.NONE) {
+            runningInfo.handleActivityEventChange(
+                ActivityManagerServiceHookKt.ACTIVITY_STOPPED, null, appInfo
+            )
+        }
 
         if (mainProcess || isUpgradeSubProcessLevel(process.processName)) { // 主进程
             if (process.fixedOomAdjScore != ProcessRecordKt.DEFAULT_MAIN_ADJ) {

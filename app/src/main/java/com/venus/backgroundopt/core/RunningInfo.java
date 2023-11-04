@@ -35,6 +35,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import de.robv.android.xposed.XC_MethodHook;
+
 /**
  * 运行信息
  *
@@ -543,7 +545,13 @@ public class RunningInfo implements ILogger {
      * @param componentName 当前组件
      * @param appInfo       app
      */
-    private void handleActivityEventChange(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
+    @UsageComment(
+            /**
+             * 在目前的逻辑实现下, 仅允许{@link com.venus.backgroundopt.hook.handle.android.ProcessListHookKt#handleSetOomAdj(XC_MethodHook.MethodHookParam)}调用
+            */
+            ""
+    )
+    public void handleActivityEventChange(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
         switch (event) {
             case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
                 Consumer<AppInfo> consumer;
