@@ -412,29 +412,31 @@ public class RunningInfo implements ILogger {
      * @param pid     pid
      */
     public void removeProcess(@NonNull AppInfo appInfo, int uid, int pid) {
-        ProcessRecordKt processRecord = appInfo.getProcess(pid);
-        boolean isMainProcess = false;
-        if (processRecord != null) {
-            isMainProcess = processRecord.getMainProcess();
-        }
-        String packageName = appInfo.getPackageName();
-
-        if (isMainProcess) {
-            removeRunningApp(appInfo);
-            if (BuildConfig.DEBUG) {
-                getLogger().debug("kill: " + packageName + ", uid: " + uid + " >>> 杀死App");
+        activityEventChangeExecutor.submit(() -> {
+            ProcessRecordKt processRecord = appInfo.getProcess(pid);
+            boolean isMainProcess = false;
+            if (processRecord != null) {
+                isMainProcess = processRecord.getMainProcess();
             }
-        } else {
-            ConcurrentUtilsKt.lock(appInfo, () -> {
-                // 移除进程记录
-                ProcessRecordKt process = appInfo.removeProcess(pid);
-                processManager.cancelCompactProcess(process);
+            String packageName = appInfo.getPackageName();
+
+            if (isMainProcess) {
+                removeRunningApp(appInfo);
                 if (BuildConfig.DEBUG) {
-                    getLogger().debug("kill: " + packageName + ", uid: " + uid + ", pid: " + pid + " >>> 子进程被杀");
+                    getLogger().debug("kill: " + packageName + ", uid: " + uid + " >>> 杀死App");
                 }
-                return null;
-            });
-        }
+            } else {
+                ConcurrentUtilsKt.lock(appInfo, () -> {
+                    // 移除进程记录
+                    ProcessRecordKt process = appInfo.removeProcess(pid);
+                    processManager.cancelCompactProcess(process);
+                    if (BuildConfig.DEBUG) {
+                        getLogger().debug("kill: " + packageName + ", uid: " + uid + ", pid: " + pid + " >>> 子进程被杀");
+                    }
+                    return null;
+                });
+            }
+        });
     }
 
     /* *************************************************************************
@@ -499,7 +501,7 @@ public class RunningInfo implements ILogger {
 
     /**
      * 处理Activity改变事件
-     *  <br>
+     * <br>
      * 本方法处理的共有6大种情况, 本质就是从中找出切换app的方法:
      * <pre>
      *     a为第一个打开的Activity, b为第二个。
