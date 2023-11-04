@@ -34,6 +34,26 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         const val backgroundTrimManagerName = "BackgroundAppMemoryTrimManager"
     }
 
+    var enableForegroundTrim = false
+        set(value) {
+            field = value
+
+            configureForegroundTrimCheckTask(value)
+        }
+    var foregroundTrimLevel = ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE
+        set(value) {
+            field = value
+            if (BuildConfig.DEBUG) {
+                logger.debug("实际的前台内存紧张级别的值: $foregroundTrimLevel")
+            }
+        }
+
+    @Volatile
+    private var isForegroundTaskRunning = false
+
+    @Volatile
+    var foregroundTaskScheduledFuture: ScheduledFuture<*>? = null
+
     // 线程池
     // 23.9.14: 仅分配一个线程, 防止前后台任务同时进行造成可能的掉帧
     private val executor = ScheduledThreadPoolExecutor(1).apply {
@@ -54,11 +74,7 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
      */
     private fun init() {
         // 前台任务
-        /*
-            23.9.18: 前台任务并没有严格的单独提交ScheduledFuture, 而是加入到统一检查组,
-                这意味着某些情况下, 个别前台甚至不会被执行(前台那么积极干嘛)
-         */
-        configureForegroundTrimCheckTask(enableForegroundTrim)
+        enableForegroundTrim = CommonProperties.getEnableForegroundProcTrimMemPolicy()
         if (!enableForegroundTrim && foregroundTaskScheduledFuture == null) {
             logger.info("禁用: 前台进程内存紧张")
         }
@@ -70,21 +86,6 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
             }
         }, backgroundInitialDelay, backgroundDelay, backgroundTimeUnit)
     }
-
-    var enableForegroundTrim = CommonProperties.getEnableForegroundProcTrimMemPolicy()
-        set(value) {
-            field = value
-
-            configureForegroundTrimCheckTask(value)
-        }
-    var foregroundTrimLevel =
-        if (enableForegroundTrim) CommonProperties.getForegroundProcTrimMemPolicy() else ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE
-
-    @Volatile
-    private var isForegroundTaskRunning = enableForegroundTrim
-
-    @Volatile
-    var foregroundTaskScheduledFuture: ScheduledFuture<*>? = null
 
     private fun configureForegroundTrimCheckTask(isEnable: Boolean) {
         foregroundTaskScheduledFuture?.let { scheduledFuture ->
@@ -100,6 +101,10 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         } ?: run {
             if (isEnable) {
                 foregroundTrimLevel = CommonProperties.getForegroundProcTrimMemPolicy()
+                /*
+                     23.9.18: 前台任务并没有严格的单独提交ScheduledFuture, 而是加入到统一检查组,
+                        这意味着某些情况下, 个别前台甚至不会被执行(前台那么积极干嘛)
+                 */
                 foregroundTaskScheduledFuture = executor.scheduleWithFixedDelay({
                     isForegroundTaskRunning = true
                     foregroundTasks.forEach {
