@@ -122,6 +122,7 @@ public class AppInfo implements ILogger, LockFlag {
     @SuppressWarnings("all")    // 别显示未final啦, 烦死辣
     private Map<Integer, ProcessRecordKt> processRecordMap = new ConcurrentHashMap<>();
 
+    @NonNull
     public ProcessRecordKt addProcess(@NonNull ProcessRecordKt processRecord) {
         return processRecordMap.computeIfAbsent(processRecord.getPid(), k -> {
             ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);

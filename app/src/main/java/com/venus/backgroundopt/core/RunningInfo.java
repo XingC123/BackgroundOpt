@@ -361,9 +361,7 @@ public class RunningInfo implements ILogger {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("打开新App: " + packageName + ", uid: " + uid);
             }
-            AppInfo appInfo = new AppInfo(userId, packageName, this).setUid(uid);
-            setAddedRunningApp(appInfo);
-            return appInfo;
+            return new AppInfo(userId, packageName, this).setUid(uid);
         });
     }
 
@@ -441,6 +439,37 @@ public class RunningInfo implements ILogger {
 
     /* *************************************************************************
      *                                                                         *
+     * 进程创建                                                                  *
+     *                                                                         *
+     **************************************************************************/
+    ExecutorService startProcessExecutorService = Executors.newSingleThreadExecutor();
+
+    /**
+     * 进程创建时的行为
+     *
+     * @param proc        安卓的{@link com.venus.backgroundopt.hook.constants.ClassConstants#ProcessRecord}
+     * @param uid         uid
+     * @param userId      userId
+     * @param packageName 包名
+     * @param pid         pid
+     */
+    public void startProcess(Object proc, int uid, int userId, String packageName, int pid) {
+        startProcessExecutorService.execute(() -> {
+            AppInfo appInfo = runningInfo.getRunningAppInfo(uid);
+            if (appInfo == null) {
+                if (!isNormalApp(userId, packageName).isNormalApp()) {
+                    return;
+                }
+                appInfo = computeRunningAppIfAbsent(userId, packageName, uid);
+            }
+
+            ProcessRecordKt processRecord = new ProcessRecordKt(activityManagerService, proc, pid, uid, userId, packageName);
+            appInfo.addProcess(processRecord);
+        });
+    }
+
+    /* *************************************************************************
+     *                                                                         *
      * app切换待处理队列                                                          *
      *                                                                         *
      **************************************************************************/
@@ -481,18 +510,9 @@ public class RunningInfo implements ILogger {
                 return;
             }
 
-            AppInfo appInfo;
-            if (event == ActivityManagerServiceHookKt.ACTIVITY_RESUMED /*|| event == ActivityManagerServiceHookKt.ACTIVITY_PAUSED*/) {
-                appInfo = runningInfo.computeRunningAppIfAbsent(
-                        userId,
-                        packageName,
-                        normalAppResult.applicationInfo.uid
-                );
-            } else {
-                appInfo = runningInfo.getRunningAppInfo(normalAppResult.applicationInfo.uid);
-                if (appInfo == null) {
-                    return;
-                }
+            AppInfo appInfo = runningInfo.getRunningAppInfo(normalAppResult.applicationInfo.uid);
+            if (appInfo == null) {
+                return;
             }
 
             runningInfo.handleActivityEventChange(event, componentName, appInfo);

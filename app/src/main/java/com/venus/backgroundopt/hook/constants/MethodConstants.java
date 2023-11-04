@@ -80,6 +80,7 @@ public interface MethodConstants {
     String readMemoryStatFromFilesystem = "readMemoryStatFromFilesystem";
     String getInteger = "getInteger";
     String removeLruProcessLocked = "removeLruProcessLocked";
+    String handleProcessStartedLocked = "handleProcessStartedLocked";
 
     /**
      * miui

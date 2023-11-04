@@ -7,9 +7,11 @@ import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
+import com.venus.backgroundopt.hook.base.action.afterHookAction
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
+import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
@@ -45,7 +47,19 @@ class ProcessListHookKt(
                 arrayOf(
                     beforeHookAction { handleRemoveLruProcessLocked(it) }
                 )
-            )*/
+            ),*/
+            HookPoint(
+                ClassConstants.ProcessList,
+                MethodConstants.handleProcessStartedLocked,
+                arrayOf(
+                    afterHookAction { handleHandleProcessStartedLocked(it) }
+                ),
+                ClassConstants.ProcessRecord,       // app
+                Int::class.javaPrimitiveType,       // pid
+                Boolean::class.javaPrimitiveType,   // usingWrapper
+                Long::class.javaPrimitiveType,      // expectedStartSeq
+                Boolean::class.javaPrimitiveType,   // procAttached
+            ),
         )
     }
 
@@ -74,7 +88,8 @@ class ProcessListHookKt(
     private fun handleSetOomAdj(param: MethodHookParam) {
         val uid = param.args[1] as Int
         val runningInfo = runningInfo
-        val appInfo = runningInfo.computeRunningAppIfAbsent(uid) ?: return
+//        val appInfo = runningInfo.computeRunningAppIfAbsent(uid) ?: return
+        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
         // 若app未进入后台, 则不进行设置
         if (appInfo.appGroupEnum !in processedAppGroup) {
             return
@@ -85,8 +100,8 @@ class ProcessListHookKt(
 
         // 获取当前进程对象
         val process =
-            appInfo.getProcess(pid)
-                ?: appInfo.addProcess(runningInfo.activityManagerService.getProcessRecord(pid))
+            appInfo.getProcess(pid) ?: return
+        /*?: appInfo.addProcess(runningInfo.activityManagerService.getProcessRecord(pid))*/
         val mainProcess = process.mainProcess
 //
 //        不需要执行, 暂时注释掉
@@ -159,5 +174,27 @@ class ProcessListHookKt(
         val pid = ProcessRecordKt.getMDyingPid(proc)
 
         runningInfo.removeProcess(appInfo, uid, pid)
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 进程新建                                                                  *
+     *                                                                         *
+     **************************************************************************/
+    fun handleHandleProcessStartedLocked(param: MethodHookParam) {
+        if (!(param.result as Boolean)) {
+            return
+        }
+
+        val proc = param.args[0]
+        val uid = ProcessRecordKt.getUID(proc)
+        if (uid < ActivityManagerService.USER_APP_UID_START_NUM) {
+            return
+        }
+
+        val pid = param.args[1] as Int
+        val userId = ProcessRecordKt.getUserId(proc)
+        val packageName = ProcessRecordKt.getPkgName(proc)
+        runningInfo.startProcess(proc, uid, userId, packageName, pid)
     }
 }

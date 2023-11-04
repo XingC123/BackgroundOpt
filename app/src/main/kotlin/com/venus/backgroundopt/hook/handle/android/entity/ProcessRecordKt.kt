@@ -145,6 +145,16 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         }
 
         /**
+         * 获取[ApplicationInfo]
+         *
+         * @param processRecord Any
+         */
+        @JvmStatic
+        fun getApplicationInfo(processRecord: Any): ApplicationInfo {
+            return processRecord.getObjectFieldValue(FieldConstants.info) as ApplicationInfo
+        }
+
+        /**
          * The process ID which will be set when we're killing this process.
          *
          * @param processRecord Any 安卓ProcessRecord
@@ -274,20 +284,35 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     @JSONField(serialize = false)
     lateinit var appInfo: AppInfo
 
-    constructor(activityManagerService: ActivityManagerService, processRecord: Any) : this() {
+    constructor(
+        activityManagerService: ActivityManagerService,
+        processRecord: Any,
+        pid: Int,
+        uid: Int,
+        userId: Int,
+        packageName: String
+    ) : this() {
+        this.activityManagerService = activityManagerService
         this.processRecord = processRecord
-        pid = getPid(processRecord)
-        uid = getUID(processRecord)
-        userId = getUserId(processRecord)
-        val applicationInfo =
-            processRecord.getObjectFieldValue(FieldConstants.info) as ApplicationInfo
-        packageName = applicationInfo.packageName
+        this.pid = pid
+        this.uid = uid
+        this.userId = userId
+        this.packageName = packageName
+
         processName = getProcessName(processRecord)
+        mainProcess = isMainProcess(packageName, processName)
         processStateRecord =
             ProcessStateRecord(processRecord.getObjectFieldValue(FieldConstants.mState))
-        this.activityManagerService = activityManagerService
-        mainProcess = isMainProcess(packageName, processName)
     }
+
+    constructor(activityManagerService: ActivityManagerService, processRecord: Any) : this(
+        activityManagerService,
+        processRecord,
+        getPid(processRecord),
+        getUID(processRecord),
+        getUserId(processRecord),
+        getApplicationInfo(processRecord).packageName
+    )
 
     /**
      * 设置默认的最大adj
