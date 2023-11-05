@@ -102,7 +102,15 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
                 String::class.java,                     // callingPackage
                 String::class.java,                     // callingFeatureId
                 Int::class.java                         // userId
-            )
+            ),
+            /*generateMatchedMethodHookPoint(
+                true,
+                ClassConstants.ActivityManagerService,
+                MethodConstants.performIdleMaintenance,
+                arrayOf(
+                    doNothingHookAction()
+                )
+            ),*/
         )
     }
 

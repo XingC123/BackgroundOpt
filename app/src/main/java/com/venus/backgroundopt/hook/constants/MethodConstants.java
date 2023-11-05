@@ -81,6 +81,9 @@ public interface MethodConstants {
     String getInteger = "getInteger";
     String removeLruProcessLocked = "removeLruProcessLocked";
     String handleProcessStartedLocked = "handleProcessStartedLocked";
+    String performIdleMaintenance = "performIdleMaintenance";
+    String updateAndTrimProcessLSP = "updateAndTrimProcessLSP";
+    String handleUpdateAndTrimProcessLSP = "handleUpdateAndTrimProcessLSP";
 
     /**
      * miui
