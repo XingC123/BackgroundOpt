@@ -444,7 +444,7 @@ public class RunningInfo implements ILogger {
      * 进程创建                                                                  *
      *                                                                         *
      **************************************************************************/
-    ExecutorService startProcessExecutorService = Executors.newSingleThreadExecutor();
+    ExecutorService startProcessExecutorService = Executors.newFixedThreadPool(2);
 
     /**
      * 进程创建时的行为
