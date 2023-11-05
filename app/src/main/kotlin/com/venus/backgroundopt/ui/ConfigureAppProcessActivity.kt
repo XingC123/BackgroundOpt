@@ -1,8 +1,10 @@
 package com.venus.backgroundopt.ui
 
 import android.os.Bundle
+import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -10,12 +12,16 @@ import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.TMP_DATA
 import com.venus.backgroundopt.utils.UiUtils
+import com.venus.backgroundopt.utils.message.MessageKeyConstants
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
+import com.venus.backgroundopt.utils.message.sendMessage
 import com.venus.backgroundopt.utils.preference.prefPut
 import com.venus.backgroundopt.utils.preference.prefValue
 
@@ -32,6 +38,20 @@ class ConfigureAppProcessActivity : BaseActivity() {
 
     override fun initToolBar(): Toolbar? {
         return UiUtils.getToolbar(this, R.id.toolbarLeftTitleToolbar, titleStr = "应用进程")
+    }
+
+    override fun getToolBarMenusResId(): Int {
+        return R.menu.menu_configure_app_proc_toolbar
+    }
+
+    override fun setOnMenuItemClickListener(menuItem: MenuItem) {
+        when (menuItem.itemId) {
+            R.id.configureAppProcAcitivityToolBarHelpMenuItem -> {
+                UiUtils.createDialog(
+                    this, R.layout.content_configure_app_proc_toolbar_help
+                ).show()
+            }
+        }
     }
 
     override fun getContentView(): Int {
@@ -56,6 +76,45 @@ class ConfigureAppProcessActivity : BaseActivity() {
             }
             findViewById<TextView>(R.id.configureAppProcessVersionCodeText)?.let {
                 it.text = appItem.longVersionCode.toString()
+            }
+        }
+
+        // 设置白名单控件的状态
+        runOnUiThread {
+            findViewById<SwitchCompat>(R.id.configureAppProcessAppDoNothingSwitch)?.let { switch ->
+                val packageName = appItem.packageName
+
+                // 获取本地配置
+                prefValue<AppOptimizePolicy>(
+                    PreferenceNameConstants.APP_OPTIMIZE_POLICY,
+                    packageName
+                )?.let { appOptimizePolicy ->
+                    switch.isChecked =
+                        (appOptimizePolicy.disableBackgroundTrimMem
+                                or appOptimizePolicy.disableBackgroundGc
+                                or appOptimizePolicy.disableForegroundTrimMem)
+                }
+
+                // 监听
+                switch.setOnCheckedChangeListener { _, isChecked ->
+                    val appOptimizePolicy = AppOptimizePolicy().apply {
+                        this.packageName = appItem.packageName
+                        this.disableForegroundTrimMem = isChecked
+                        this.disableBackgroundTrimMem = isChecked
+                        this.disableBackgroundGc = isChecked
+                    }
+                    // 保存到本地
+                    prefPut(
+                        PreferenceNameConstants.APP_OPTIMIZE_POLICY,
+                        commit = true,
+                        packageName,
+                        appOptimizePolicy
+                    )
+                    // 通知模块进程
+                    showProgressBarViewForAction(this, "正在设置") {
+                        sendMessage(this, MessageKeyConstants.appOptimizePolicy, appOptimizePolicy)
+                    }
+                }
             }
         }
 

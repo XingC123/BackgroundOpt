@@ -10,4 +10,5 @@ public interface PreferenceNameConstants {
     // 软件总设置
     String MAIN_SETTINGS = "main_settings";
     String SUB_PROCESS_OOM_POLICY = "subProcessOomPolicy";
+    String APP_OPTIMIZE_POLICY = "appOptimizePolicy";
 }

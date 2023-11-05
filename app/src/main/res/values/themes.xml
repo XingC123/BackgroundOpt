@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
     <style name="Theme.BackgroundOpt" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color. -->
@@ -24,6 +24,8 @@
 
         <!-- 溢出菜单图标颜色-->
         <item name="colorControlNormal">@android:color/white</item>
+
+        <item name="switchStyle">@style/SwitchStyle</item>
     </style>
 
     <!--溢出[弹出]菜单样式-->
@@ -40,6 +42,11 @@
         <item name="android:dropDownHorizontalOffset">0dp</item>
         <!-- 设置弹出菜单文字颜色 -->
         <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="SwitchStyle" parent="Base.Widget.AppCompat.CompoundButton.Switch">
+        <item name="thumbTint">#ECECEC</item>
+        <item name="trackTint">#BDBABC</item>
     </style>
 
 </resources>

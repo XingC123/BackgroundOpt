@@ -6,6 +6,7 @@ import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.log.ILogger
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledFuture
@@ -245,15 +246,18 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         trimManagerName: String,
         list: MutableSet<ProcessRecordKt>,
         processRecordKt: ProcessRecordKt,
-        block: () -> Unit
+        block: (AppOptimizePolicy?) -> Unit
     ) {
         if (!ProcessRecordKt.isValid(runningInfo, processRecordKt)) {
             removeTaskImpl(processRecordKt, trimManagerName, list, "进程不合法")
             return
         }
 
+        // 获取优化操作
+        val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[processRecordKt.packageName]
+
         if (processRecordKt.isNecessaryToOptimize()) {
-            block()
+            block(appOptimizePolicy)
         } else {
             if (BuildConfig.DEBUG) {
                 logger.debug("uid: ${processRecordKt.uid}, pid: ${processRecordKt.pid}, 包名: ${processRecordKt.packageName}不需要优化")
@@ -267,7 +271,16 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
      * @param processRecordKt 进程记录器
      */
     private fun executeForegroundTask(processRecordKt: ProcessRecordKt) {
-        executeTaskImpl(foregroundTrimManagerName, foregroundTasks, processRecordKt) {
+        executeTaskImpl(
+            foregroundTrimManagerName,
+            foregroundTasks,
+            processRecordKt
+        ) { appOptimizePolicy ->
+            appOptimizePolicy?.let { policy ->
+                if (policy.disableForegroundTrimMem) {
+                    return@executeTaskImpl
+                }
+            }
             trimMemory(
                 foregroundTrimManagerName,
                 processRecordKt,
@@ -287,7 +300,25 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
      * @param processRecordKt 进程记录器
      */
     private fun executeBackgroundTask(processRecordKt: ProcessRecordKt) {
-        executeTaskImpl(backgroundTrimManagerName, backgroundTasks, processRecordKt) {
+        executeTaskImpl(
+            backgroundTrimManagerName,
+            backgroundTasks,
+            processRecordKt
+        ) { appOptimizePolicy ->
+            appOptimizePolicy?.let { policy ->
+                if (!policy.disableBackgroundTrimMem) {
+                    trimMemory(
+                        backgroundTrimManagerName,
+                        processRecordKt,
+                        backgroundTrimLevel,
+                        backgroundTasks
+                    )
+                }
+                if (!policy.disableBackgroundGc) {
+                    gc(processRecordKt)
+                }
+                return@executeTaskImpl
+            }
             trimMemory(
                 backgroundTrimManagerName,
                 processRecordKt,

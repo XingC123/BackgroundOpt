@@ -13,6 +13,7 @@ import com.venus.backgroundopt.utils.log.logError
 import com.venus.backgroundopt.utils.log.logErrorAndroid
 import com.venus.backgroundopt.utils.log.logWarnAndroid
 import com.venus.backgroundopt.utils.message.handle.AppCompactListMessageHandler
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler
 import com.venus.backgroundopt.utils.message.handle.AutoStopCompactTaskMessageHandler
 import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandler
 import com.venus.backgroundopt.utils.message.handle.EnableForegroundProcTrimMemPolicyHandler
@@ -51,6 +52,7 @@ val registeredMessageHandler = mapOf(
     MessageKeyConstants.autoStopCompactTask to AutoStopCompactTaskMessageHandler(),
     MessageKeyConstants.enableForegroundProcTrimMemPolicy to EnableForegroundProcTrimMemPolicyHandler(),
     MessageKeyConstants.foregroundProcTrimMemPolicy to ForegroundProcTrimMemPolicyHandler(),
+    MessageKeyConstants.appOptimizePolicy to AppOptimizePolicyMessageHandler(),
 )
 
 // json传输的载体

@@ -85,4 +85,13 @@
         \n\t\t1) 截至2023.11.03，模块版本1.6.3，红米K30Pro(lmi，MIUI13 22.7.8，安卓12)，红米Note5P(whyred，Nusantara，安卓13)。并不会与millet与NoActive 3.0(303)冲突，如果出现无法冻结请自行查找原因。
     </string>
     <string name="settingsAutoStopCompactPrefSummaryText" translatable="false">无后台进程时自动停止检查任务</string>
+    <string name="configureAppProcessAppDoNothingSwitch">White list</string>
+    <string name="configureAppProcessAppDoNothingSwitchSummar" translatable="false">启用后不再进行OOM之外的操作</string>
+    <string name="appItemBackgroundTrimMemText" translatable="false">后台内存紧张</string>
+    <string name="appItemBackgroundGcText" translatable="false">后台GC</string>
+    <string name="appItemForegroundTrimMemText" translatable="false">前台内存紧张</string>
+    <string name="configureAppProcAcitivityToolBarHelpMenuItem">Help</string>
+    <string name="configureAppProcToolBarHelpTipText" translatable="false">
+        1. 白名单：设置为白名单的app只会进行最基础的OOM调节，而不会有其他操作。
+    </string>
 </resources>

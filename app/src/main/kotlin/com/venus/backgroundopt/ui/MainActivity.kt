@@ -61,13 +61,7 @@ class MainActivity : BaseActivity(), ILogger {
 
         // 获取后台任务列表
         findViewById<Button>(R.id.getBackgroundTasksBtn, moduleActive)?.setOnClickListener { _ ->
-            val listStr = sendMessage(
-                this,
-                MessageKeyConstants.getBackgroundTasks,
-            )
-            startActivity(Intent(this, ShowBackgroundTasksActivity::class.java).apply {
-                setIntentData(this, listStr)
-            })
+            startActivity(Intent(this, ShowBackgroundTasksActivity::class.java))
         }
 
         // 获取后台内存压缩任务列表

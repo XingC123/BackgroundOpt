@@ -4,6 +4,7 @@ import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.preference.PreferencesUtil
 import com.venus.backgroundopt.utils.preference.prefAll
 import java.util.concurrent.ConcurrentHashMap
@@ -92,5 +93,18 @@ object CommonProperties {
         } ?: run {
             foregroundProcTrimMemPolicyMap["RUNNING_MODERATE"]!!
         }
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 应用后台优化相关                                                           *
+     *                                                                         *
+     **************************************************************************/
+    /**
+     * app优化策略<packageName, [AppOptimizePolicy]>
+     */
+    val appOptimizePolicyMap: MutableMap<String, AppOptimizePolicy> by lazy {
+        (prefAll(PreferenceNameConstants.APP_OPTIMIZE_POLICY)
+            ?: ConcurrentHashMap<String, AppOptimizePolicy>())
     }
 }

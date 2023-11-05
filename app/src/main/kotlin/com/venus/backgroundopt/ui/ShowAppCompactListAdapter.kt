@@ -1,6 +1,8 @@
 package com.venus.backgroundopt.ui
 
 import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
@@ -34,6 +36,17 @@ class ShowAppCompactListAdapter(items: List<AppItem>) : ShowInfoFromAppItemAdapt
 
     override fun getViewHolder(view: View): ShowInfoFromAppItemViewHolder {
         return ShowAppCompactListViewHolder(view)
+    }
+
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): ShowInfoFromAppItemViewHolder {
+        return super.onCreateViewHolder(parent, viewType).apply {
+            itemView.findViewById<LinearLayout>(R.id.appItemAppOptimizePolicyLayout)?.let {
+                it.visibility = View.GONE
+            }
+        }
     }
 
     override fun onBindViewHolder(holder: ShowInfoFromAppItemViewHolder, position: Int) {

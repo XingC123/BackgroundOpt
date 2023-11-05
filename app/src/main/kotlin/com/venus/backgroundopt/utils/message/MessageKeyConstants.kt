@@ -17,5 +17,6 @@ interface MessageKeyConstants {
         const val autoStopCompactTask = "autoStopCompactTask"
         const val enableForegroundProcTrimMemPolicy = "enableForegroundProcTrimMemPolicy"
         const val foregroundProcTrimMemPolicy = "foregroundProcTrimMemPolicy"
+        const val appOptimizePolicy = "appOptimizePolicy"
     }
 }
