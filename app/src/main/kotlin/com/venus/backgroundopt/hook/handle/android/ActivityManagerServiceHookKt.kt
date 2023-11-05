@@ -73,7 +73,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
             generateMatchedMethodHookPoint(
                 true,
                 ClassConstants.ActivityManagerService,
-                "removePidLocked",
+                MethodConstants.removePidLocked,
                 arrayOf(
                     beforeHookAction { handleRemovePidLocked(it) }
                 )
@@ -91,7 +91,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
             ),
             HookPoint(
                 ClassConstants.ActivityManagerService,
-                "startService",
+                MethodConstants.startService,
                 arrayOf(
                     beforeHookAction { handleStartService(it) }
                 ),

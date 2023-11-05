@@ -84,6 +84,8 @@ public interface MethodConstants {
     String performIdleMaintenance = "performIdleMaintenance";
     String updateAndTrimProcessLSP = "updateAndTrimProcessLSP";
     String handleUpdateAndTrimProcessLSP = "handleUpdateAndTrimProcessLSP";
+    String removePidLocked = "removePidLocked";
+    String startService = "startService";
 
     /**
      * miui
