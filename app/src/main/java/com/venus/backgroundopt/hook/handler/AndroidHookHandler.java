@@ -17,6 +17,8 @@ import com.venus.backgroundopt.hook.handle.android.RecentTasksHook;
 import com.venus.backgroundopt.hook.handle.android.RoleControllerManagerHook;
 import com.venus.backgroundopt.hook.handle.android.SystemPropertiesHook;
 
+import java.util.HashMap;
+
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 /**
@@ -35,11 +37,7 @@ public class AndroidHookHandler extends PackageHook {
         ClassLoader classLoader = packageParam.classLoader;
         RunningInfo runningInfo = new RunningInfo(classLoader);
 
-        try {
-            SystemProperties.set("persist.sys.spc.enabled", "false");
-        } catch (Throwable throwable) {
-            getLogger().warn("米杀后台SystemProperties设置失败");
-        }
+        initSystemProp();
 
         // 资源Hook
 //        new ResourcesHook(classLoader, runningInfo);
@@ -79,5 +77,34 @@ public class AndroidHookHandler extends PackageHook {
         new SystemPropertiesHook(classLoader, runningInfo);
 
         new RoleControllerManagerHook(classLoader, runningInfo);
+    }
+
+    private void initSystemProp() {
+        HashMap<String, String> map = new HashMap<>() {
+            {
+                // 米杀后台SystemProperties
+                put("persist.sys.spc.enabled", "false");
+                /*
+                    lmk
+                 */
+                put("persist.sys.lmk.reportkills", "false");
+                put("sys.lmk.reportkills", "0");
+                // 是否在内存不足时杀死最"胖"的进程
+                put("ro.lmk.kill_heaviest_task", "false");
+                // 增强批量kill
+                put("ro.lmk.enhance_batch_kill", "false");
+                // 自适应lmk，内存波动大时杀的更积极点
+                // 只作用于minfree模式
+                put("ro.lmk.enable_adaptive_lmk", "false");
+            }
+        };
+
+        map.forEach((k, v) -> {
+            try {
+                SystemProperties.set(k, v);
+            } catch (Throwable throwable) {
+                getLogger().warn("[" + k + "]设置失败");
+            }
+        });
     }
 }
