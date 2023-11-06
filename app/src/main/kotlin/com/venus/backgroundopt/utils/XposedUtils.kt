@@ -12,6 +12,30 @@ import de.robv.android.xposed.XposedHelpers
  * @author XingC
  * @date 2023/10/17
  */
+fun String.newInstance(classLoader: ClassLoader, vararg args: Any?): Any? {
+    return XposedHelpers.findClass(this, classLoader)?.let { clazz ->
+        XposedHelpers.newInstance(clazz, *args)
+    }
+}
+
+fun String.newInstance(
+    classLoader: ClassLoader,
+    paramTypes: Array<out Class<*>>,
+    vararg args: Any?
+): Any? {
+    return XposedHelpers.findClass(this, classLoader)?.let { clazz ->
+        XposedHelpers.newInstance(clazz, paramTypes, *args)
+    }
+}
+
+fun Class<*>.newInstanceXp(vararg args: Any?): Any {
+    return XposedHelpers.newInstance(this, *args)
+}
+
+fun Class<*>.newInstanceXp(paramTypes: Array<out Class<*>>, vararg args: Any?): Any {
+    return XposedHelpers.newInstance(this, paramTypes, *args)
+}
+
 /* *************************************************************************
  *                                                                         *
  * 获取/设置类字段值                                                          *
@@ -283,6 +307,11 @@ fun String.afterConstructorHook(
     )
 }
 
+fun String.findClass(classLoader: ClassLoader): Class<*> {
+    return XposedHelpers.findClass(this, classLoader)
+}
+
+@JvmName("findClassWithType")
 @Suppress("UNCHECKED_CAST")
 fun <E> String.findClass(classLoader: ClassLoader): Class<E> {
     return XposedHelpers.findClass(this, classLoader) as Class<E>
