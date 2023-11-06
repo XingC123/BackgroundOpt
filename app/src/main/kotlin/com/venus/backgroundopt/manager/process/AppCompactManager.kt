@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit
 class AppCompactManager(// 封装的CachedAppOptimizer
     private val cachedAppOptimizer: CachedAppOptimizer,
     private val runningInfo: RunningInfo
-) : AbstractAppOptimizeManager(), ILogger {
+) : AbstractAppOptimizeManager(AppOptimizeEnum.PROCESS_COMPACT), ILogger {
     companion object {
         // 默认压缩级别
         const val DEFAULT_COMPACT_LEVEL = CachedAppOptimizer.COMPACT_ACTION_ANON

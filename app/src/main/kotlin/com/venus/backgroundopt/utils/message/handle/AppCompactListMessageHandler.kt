@@ -18,14 +18,9 @@ class AppCompactListMessageHandler : MessageHandler {
         value: String?
     ) {
         createResponse<Any>(param, value, setJsonData = true) {
-            runningInfo.processManager.compactProcessInfos.apply {
-                val map = runningInfo.processManager.compactProcessingResultMap
-                forEach { process ->
-                    // 设置真实oom_adj_score
-                    process.curAdj = process.getCurAdjNative()
-                    // 设置上一次执行状态
-                    process.processingResult = map[process]
-                }
+            runningInfo.processManager.compactProcessInfos.onEach { process ->
+                // 设置真实oom_adj_score
+                process.curAdj = process.getCurAdjNative()
             }
         }
     }

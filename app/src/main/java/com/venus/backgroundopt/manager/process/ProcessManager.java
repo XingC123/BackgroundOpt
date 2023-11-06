@@ -14,7 +14,6 @@ import com.venus.backgroundopt.utils.log.ILogger;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -61,10 +60,6 @@ public class ProcessManager implements ILogger {
 
     public Set<ProcessRecordKt> getCompactProcessInfos() {
         return appCompactManager.getCompactProcesses();
-    }
-
-    public Map<ProcessRecordKt, ProcessingResult> getCompactProcessingResultMap() {
-        return appCompactManager.getProcessLastProcessingResultMap();
     }
 
     public void setAutoStopCompactTask(boolean enable) {
