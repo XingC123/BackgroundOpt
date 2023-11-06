@@ -84,18 +84,6 @@ public class AndroidHookHandler extends PackageHook {
             {
                 // 米杀后台SystemProperties
                 put("persist.sys.spc.enabled", "false");
-                /*
-                    lmk
-                 */
-                put("persist.sys.lmk.reportkills", "false");
-                put("sys.lmk.reportkills", "0");
-                // 是否在内存不足时杀死最"胖"的进程
-                put("ro.lmk.kill_heaviest_task", "false");
-                // 增强批量kill
-                put("ro.lmk.enhance_batch_kill", "false");
-                // 自适应lmk，内存波动大时杀的更积极点
-                // 只作用于minfree模式
-                put("ro.lmk.enable_adaptive_lmk", "false");
             }
         };
 
@@ -103,7 +91,7 @@ public class AndroidHookHandler extends PackageHook {
             try {
                 SystemProperties.set(k, v);
             } catch (Throwable throwable) {
-                getLogger().warn("[" + k + "]设置失败");
+                getLogger().warn("[" + k + "]设置失败", throwable);
             }
         });
     }
