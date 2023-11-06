@@ -6,22 +6,19 @@ import com.venus.backgroundopt.utils.message.createResponse
 import de.robv.android.xposed.XC_MethodHook
 
 /**
- * 获取app压缩列表的消息处理器
+ * 启用或禁用前台进程内存紧张
  *
  * @author XingC
- * @date 2023/9/25
+ * @date 2023/11/3
  */
-class AppCompactListMessageHandler : MessageHandler {
+class EnableForegroundProcTrimMemPolicyHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,
         value: String?
     ) {
-        createResponse<Any>(param, value, setJsonData = true) {
-            runningInfo.processManager.compactProcessInfos.onEach { process ->
-                // 设置真实oom_adj_score
-                process.curAdj = process.getCurAdjNative()
-            }
+        createResponse<Boolean>(param, value) { isEnable ->
+            runningInfo.processManager.configureForegroundTrimCheckTask(isEnable)
         }
     }
 }

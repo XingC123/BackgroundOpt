@@ -1,7 +1,9 @@
 package com.venus.backgroundopt.entity.base
 
+import com.venus.backgroundopt.manager.process.AbstractAppOptimizeManager.AppOptimizeEnum
 import com.venus.backgroundopt.manager.process.ProcessingResult
 import com.venus.backgroundopt.utils.message.MessageFlag
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * @author XingC
@@ -35,7 +37,8 @@ open class BaseProcessInfoKt(
     lateinit var packageName: String
     lateinit var processName: String
 
-    var processingResult: ProcessingResult? = null
+    val lastProcessingResultMap =
+        ConcurrentHashMap<AppOptimizeEnum, ProcessingResult>(AppOptimizeEnum.values().size)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

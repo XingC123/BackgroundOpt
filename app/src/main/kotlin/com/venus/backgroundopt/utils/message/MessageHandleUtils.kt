@@ -13,8 +13,11 @@ import com.venus.backgroundopt.utils.log.logError
 import com.venus.backgroundopt.utils.log.logErrorAndroid
 import com.venus.backgroundopt.utils.log.logWarnAndroid
 import com.venus.backgroundopt.utils.message.handle.AppCompactListMessageHandler
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler
 import com.venus.backgroundopt.utils.message.handle.AutoStopCompactTaskMessageHandler
 import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandler
+import com.venus.backgroundopt.utils.message.handle.EnableForegroundProcTrimMemPolicyHandler
+import com.venus.backgroundopt.utils.message.handle.ForegroundProcTrimMemPolicyHandler
 import com.venus.backgroundopt.utils.message.handle.GetInstalledPackagesMessageHandler
 import com.venus.backgroundopt.utils.message.handle.RunningAppInfoMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMessageHandler
@@ -47,6 +50,9 @@ val registeredMessageHandler = mapOf(
     MessageKeyConstants.subProcessOomConfigChange to SubProcessOomConfigChangeMessageHandler(),
     MessageKeyConstants.getInstalledApps to GetInstalledPackagesMessageHandler(),
     MessageKeyConstants.autoStopCompactTask to AutoStopCompactTaskMessageHandler(),
+    MessageKeyConstants.enableForegroundProcTrimMemPolicy to EnableForegroundProcTrimMemPolicyHandler(),
+    MessageKeyConstants.foregroundProcTrimMemPolicy to ForegroundProcTrimMemPolicyHandler(),
+    MessageKeyConstants.appOptimizePolicy to AppOptimizePolicyMessageHandler(),
 )
 
 // json传输的载体

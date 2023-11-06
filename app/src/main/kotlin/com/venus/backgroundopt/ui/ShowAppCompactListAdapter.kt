@@ -1,9 +1,12 @@
 package com.venus.backgroundopt.ui
 
 import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
+import com.venus.backgroundopt.manager.process.AbstractAppOptimizeManager.AppOptimizeEnum
 import com.venus.backgroundopt.manager.process.AppCompactManager.ProcessCompactResultCode
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
 
@@ -36,14 +39,26 @@ class ShowAppCompactListAdapter(items: List<AppItem>) : ShowInfoFromAppItemAdapt
         return ShowAppCompactListViewHolder(view)
     }
 
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): ShowInfoFromAppItemViewHolder {
+        return super.onCreateViewHolder(parent, viewType).apply {
+            itemView.findViewById<LinearLayout>(R.id.appItemAppOptimizePolicyLayout)?.let {
+                it.visibility = View.GONE
+            }
+        }
+    }
+
     override fun onBindViewHolder(holder: ShowInfoFromAppItemViewHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         val viewHolder = holder as ShowAppCompactListViewHolder
+        val view = viewHolder.itemView
         val appItem = items[position]
 
-        appItem.processingResult?.let { processingResult ->
-            val textView = viewHolder.appItemLastProcessingResultText
-            val view = viewHolder.itemView
+        // 上一次执行结果
+        val textView = viewHolder.appItemLastProcessingResultText
+        appItem.lastProcessingResultMap[AppOptimizeEnum.PROCESS_COMPACT]?.let { processingResult ->
             val textResId =
                 when (processingResult.lastProcessingCode) {
                     ProcessCompactResultCode.success -> {
@@ -62,6 +77,8 @@ class ShowAppCompactListAdapter(items: List<AppItem>) : ShowInfoFromAppItemAdapt
                     }
                 }
             textView.setText(textResId)
+        } ?: run {
+            textView.text = ""
         }
     }
 

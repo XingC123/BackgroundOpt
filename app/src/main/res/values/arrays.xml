@@ -11,4 +11,16 @@
         <item>https://github.com/UISSD/Don-t-Kill</item>
         <item>https://github.com/myflavor/NoActive-UI</item>
     </string-array>
+
+    <!--前台进程内存紧张策略-->
+    <string-array name="foreground_process_trim_mem_policy_entries">
+        <item>系统内存稍低</item>
+        <item>系统内存相当低</item>
+        <item>系统内存不足</item>
+    </string-array>
+    <string-array name="foreground_process_trim_mem_policy_values">
+        <item>RUNNING_MODERATE</item>
+        <item>RUNNING_LOW</item>
+        <item>RUNNING_CRITICAL</item>
+    </string-array>
 </resources>

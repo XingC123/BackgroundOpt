@@ -7,14 +7,12 @@ import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
-import com.venus.backgroundopt.hook.base.action.afterHookAction
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.base.generateMatchedMethodHookPoint
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
-import com.venus.backgroundopt.utils.concurrent.lock
 import com.venus.backgroundopt.utils.getStaticIntFieldValue
 import com.venus.backgroundopt.utils.message.registeredMessageHandler
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -56,21 +54,29 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
 //                String::class.java, /* packageName */
 //                Int::class.java /* userId */
 //            ),
-            HookPoint(
+//            HookPoint(
+//                ClassConstants.ActivityManagerService,
+//                MethodConstants.cleanUpApplicationRecordLocked,
+//                arrayOf(
+//                    afterHookAction {
+//                        handleCleanUpApplicationRecordLocked(it)
+//                    }
+//                ),
+//                ClassConstants.ProcessRecord,
+//                Int::class.java,    /* pid */
+//                Boolean::class.java,    /* restarting */
+//                Boolean::class.java,    /* allowRestart */
+//                Int::class.java,    /* index */
+//                Boolean::class.java,    /* replacingPid */
+//                Boolean::class.java /* fromBinderDied */
+//            ),
+            generateMatchedMethodHookPoint(
+                true,
                 ClassConstants.ActivityManagerService,
-                MethodConstants.cleanUpApplicationRecordLocked,
+                MethodConstants.removePidLocked,
                 arrayOf(
-                    afterHookAction {
-                        handleCleanUpApplicationRecordLocked(it)
-                    }
-                ),
-                ClassConstants.ProcessRecord,
-                Int::class.java,    /* pid */
-                Boolean::class.java,    /* restarting */
-                Boolean::class.java,    /* allowRestart */
-                Int::class.java,    /* index */
-                Boolean::class.java,    /* replacingPid */
-                Boolean::class.java /* fromBinderDied */
+                    beforeHookAction { handleRemovePidLocked(it) }
+                )
             ),
             HookPoint(
                 ClassConstants.ActivityManagerService,
@@ -85,7 +91,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
             ),
             HookPoint(
                 ClassConstants.ActivityManagerService,
-                "startService",
+                MethodConstants.startService,
                 arrayOf(
                     beforeHookAction { handleStartService(it) }
                 ),
@@ -96,7 +102,15 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
                 String::class.java,                     // callingPackage
                 String::class.java,                     // callingFeatureId
                 Int::class.java                         // userId
-            )
+            ),
+            /*generateMatchedMethodHookPoint(
+                true,
+                ClassConstants.ActivityManagerService,
+                MethodConstants.performIdleMaintenance,
+                arrayOf(
+                    doNothingHookAction()
+                )
+            ),*/
         )
     }
 
@@ -116,36 +130,16 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
 
         // 获取切换事件
         val event = args[2] as Int
-
         if (event !in handleEvents) {
             return
         }
 
         // 本次事件包名
         val componentName = (args[0] as? ComponentName) ?: return
-        val packageName = componentName.packageName
-
         // 本次事件用户
         val userId = args[1] as Int
 
-        val runningInfo = runningInfo
-        // 检查是否是系统重要进程
-        val normalAppResult = runningInfo.isNormalApp(userId, packageName)
-        if (!normalAppResult.isNormalApp) {
-            return
-        }
-
-        val appInfo = if (event == ACTIVITY_RESUMED /*|| event == ACTIVITY_PAUSED*/) {
-            runningInfo.computeRunningAppIfAbsent(
-                userId,
-                packageName,
-                normalAppResult.applicationInfo.uid
-            )
-        } else {
-            runningInfo.getRunningAppInfo(normalAppResult.applicationInfo.uid) ?: return
-        }
-
-        runningInfo.handleActivityEventChange(event, componentName, appInfo)
+        runningInfo.handleActivityEventChange(event, userId, componentName)
     }
 
     /* *************************************************************************
@@ -174,34 +168,23 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
         }
     }
 
+    @Deprecated("有时候不执行。比如在王者荣耀里面两次返回从游戏内退出")
     private fun handleCleanUpApplicationRecordLocked(param: MethodHookParam) {
         val processRecord = param.args[0] as Any
         val uid = ProcessRecordKt.getUID(processRecord)
-        val appInfo = runningInfo.getRunningAppInfo(uid)
-
-        appInfo ?: return
-
+        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
         val pid = param.args[1] as Int
-        val processRecordKt = appInfo.getProcess(pid)
-        val mainProcess = processRecordKt?.mainProcess ?: false
-        val packageName = appInfo.packageName
 
-        if (mainProcess) {
-            runningInfo.removeRunningApp(appInfo)
-            if (BuildConfig.DEBUG) {
-                logger.debug("kill: ${packageName}, uid: $uid >>> 杀死App")
-            }
-        } else {
-            appInfo.lock {
-                // 移除进程记录
-                val process = appInfo.removeProcess(pid)
-                // 取消进程的待压缩任务
-                runningInfo.processManager.cancelCompactProcess(process)
-                if (BuildConfig.DEBUG) {
-                    logger.debug("kill: ${packageName}, uid: ${uid}, pid: $pid >>> 子进程被杀")
-                }
-            }
-        }
+        runningInfo.removeProcess(appInfo, uid, pid)
+    }
+
+    fun handleRemovePidLocked(param: MethodHookParam) {
+        val proc = param.args[1]
+        val uid = ProcessRecordKt.getUID(proc)
+        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
+        val pid = param.args[0] as Int
+
+        runningInfo.removeProcess(appInfo, uid, pid)
     }
 
     private fun handleKillProcessesBelowAdj(param: MethodHookParam) {

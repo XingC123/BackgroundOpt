@@ -158,6 +158,45 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/appItemAppOptimizePolicyLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="@drawable/item_space_vertical"
+                android:orientation="horizontal"
+                android:showDividers="middle">
+
+                <TextView
+                    android:id="@+id/appItemForegroundTrimMemText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:background="@drawable/border"
+                    android:paddingHorizontal="@dimen/padding_horizontal_if_use_border"
+                    android:paddingVertical="@dimen/padding_vertical_if_use_border"
+                    android:text="@string/appItemForegroundTrimMemText" />
+
+                <TextView
+                    android:id="@+id/appItemBackgroundTrimMemText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:background="@drawable/border"
+                    android:paddingHorizontal="@dimen/padding_horizontal_if_use_border"
+                    android:paddingVertical="@dimen/padding_vertical_if_use_border"
+                    android:text="@string/appItemBackgroundTrimMemText" />
+
+                <TextView
+                    android:id="@+id/appItemBackgroundGcText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:background="@drawable/border"
+                    android:paddingHorizontal="@dimen/padding_horizontal_if_use_border"
+                    android:paddingVertical="@dimen/padding_vertical_if_use_border"
+                    android:text="@string/appItemBackgroundGcText" />
+            </LinearLayout>
+
         </LinearLayout>
     </LinearLayout>
 

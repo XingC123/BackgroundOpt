@@ -103,7 +103,7 @@ object PackageUtils {
                         processName = baseProcessInfo.processName
                         oomAdjScore = baseProcessInfo.oomAdjScore
                         curAdj = baseProcessInfo.curAdj
-                        processingResult = baseProcessInfo.processingResult
+                        lastProcessingResultMap = baseProcessInfo.lastProcessingResultMap
                     }
                 }
             }

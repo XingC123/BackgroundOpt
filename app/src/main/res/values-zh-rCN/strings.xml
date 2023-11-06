@@ -50,4 +50,10 @@
     <string name="settingsModuleItemTitle">模块</string>
     <string name="settingsAutoStopCompactPrefText">自动停止压缩任务</string>
     <string name="menu_main_activity_toolbar_settings">设置</string>
+    <string name="showAllInstalledAppsSearchTextHint">输入应用名称</string>
+    <string name="settingsForegroundProcTrimMemPolicyPrefText">前台进程内存紧张策略</string>
+    <string name="settingsForegroundProcTrimMemEnablePrefText">启用前台进程内存紧张</string>
+    <string name="menu_main_activity_toolbar_feature">使用手册</string>
+    <string name="configureAppProcessAppDoNothingSwitch">白名单</string>
+    <string name="configureAppProcAcitivityToolBarHelpMenuItem">帮助</string>
 </resources>

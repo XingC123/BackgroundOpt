@@ -23,14 +23,14 @@ abstract class ShowInfoFromAppItemActivity : BaseActivity() {
         }
     }
 
-    abstract fun getShowInfoAdapter(appItems: List<AppItem>): ShowInfoFromAppItemAdapter
+    abstract fun getShowInfoAdapter(appItems: List<AppItem>, vararg others: Any?): ShowInfoFromAppItemAdapter
     abstract fun getRecyclerViewResId():Int
 
     open fun getToolBarTitle(): String {
         return ""
     }
 
-    private fun init() {
+    protected open fun init() {
         val stringExtra = getIntentData(intent)
         stringExtra ?: return
 
@@ -38,13 +38,16 @@ abstract class ShowInfoFromAppItemActivity : BaseActivity() {
         list ?: return
 
         val appItems = PackageUtils.getTargetApps(this, list)
+        initRecyclerView(appItems = appItems)
+    }
 
+    protected open fun initRecyclerView(appItems: List<AppItem>, vararg others: Any?) {
         runOnUiThread {
             findViewById<RecyclerView>(getRecyclerViewResId()).apply {
                 layoutManager = LinearLayoutManager(this@ShowInfoFromAppItemActivity).apply {
                     orientation = LinearLayoutManager.VERTICAL
                 }
-                adapter = getShowInfoAdapter(appItems)
+                adapter = getShowInfoAdapter(appItems, *others)
             }
         }
     }

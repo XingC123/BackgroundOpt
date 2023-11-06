@@ -5,9 +5,6 @@ import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
-import com.venus.backgroundopt.hook.base.action.beforeHookAction
-import com.venus.backgroundopt.hook.constants.ClassConstants
-import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.Process
 import com.venus.backgroundopt.manager.process.ProcessManager
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -29,17 +26,17 @@ class ProcessHookKt(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
 
     override fun getHookPoint(): Array<HookPoint> {
         return arrayOf(
-            HookPoint(
-                ClassConstants.Process,
-                MethodConstants.killProcessGroup,
-                arrayOf(
-                    beforeHookAction {
-                        handleKillApp(it)
-                    }
-                ),
-                Int::class.java,
-                Int::class.java
-            ),
+//            HookPoint(
+//                ClassConstants.Process,
+//                MethodConstants.killProcessGroup,
+//                arrayOf(
+//                    beforeHookAction {
+//                        handleKillApp(it)
+//                    }
+//                ),
+//                Int::class.java,
+//                Int::class.java
+//            ),
             /*HookPoint(
                 ClassConstants.Process,
                 MethodConstants.setProcessGroup,
@@ -52,34 +49,16 @@ class ProcessHookKt(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
         )
     }
 
+    @Deprecated("执行完毕后有可能会进入ProcessListHook.handleSetOomAdj导致再次新建")
     private fun handleKillApp(param: MethodHookParam) {
         val uid = param.args[0] as Int
+        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
         val pid = param.args[1] as Int
-        val appInfo = runningInfo.getRunningAppInfo(uid)
 
-        appInfo?.let {
-            var mPid = Int.MIN_VALUE
-            try {
-                mPid = appInfo.getmPid()
-            } catch (ignore: Exception) {
-            }
-            if (mPid == Int.MIN_VALUE) {
-                if (BuildConfig.DEBUG) {
-                    logger.warn("kill: ${appInfo.packageName}, uid: $uid >>>  mpid获取失败")
-                }
-            } else if (pid != mPid) {   // 处理子进程
-                // 移除进程记录
-                val processInfo = appInfo.removeProcess(pid)
-                // 取消进程的待压缩任务
-                runningInfo.processManager.cancelCompactProcess(processInfo)
-
-                if (BuildConfig.DEBUG) {
-                    logger.debug("kill: ${appInfo.packageName}, uid: ${uid}, pid: $pid >>> 子进程被杀")
-                }
-            }
-        }
+        runningInfo.removeProcess(appInfo, uid, pid)
     }
 
+    @Deprecated("实际实施起来非常复杂")
     private fun handleSetProcessGroup(param: MethodHookParam) {
         val pid = param.args[0] as Int
         val group = param.args[1] as Int

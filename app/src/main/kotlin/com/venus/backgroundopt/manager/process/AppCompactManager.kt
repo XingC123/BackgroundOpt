@@ -2,8 +2,8 @@ package com.venus.backgroundopt.manager.process
 
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.annotation.UsageComment
-import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.core.RunningInfo
+import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit
 class AppCompactManager(// 封装的CachedAppOptimizer
     private val cachedAppOptimizer: CachedAppOptimizer,
     private val runningInfo: RunningInfo
-) : AbstractAppOptimizeManager(), ILogger {
+) : AbstractAppOptimizeManager(AppOptimizeEnum.PROCESS_COMPACT), ILogger {
     companion object {
         // 默认压缩级别
         const val DEFAULT_COMPACT_LEVEL = CachedAppOptimizer.COMPACT_ACTION_ANON
@@ -215,7 +215,6 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     ) {
         compactProcesses.add(processRecordKt.also {
             it.setLastCompactTime(lastCompactTime)
-            it.updateRssInBytes()
         })
     }
 

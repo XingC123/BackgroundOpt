@@ -11,4 +11,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:title="@string/menu_main_activity_toolbar_about" />
+    <item
+        android:id="@+id/mainActivityFeatureMenuItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/menu_main_activity_toolbar_feature" />
 </menu>
