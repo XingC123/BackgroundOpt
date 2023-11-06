@@ -16,6 +16,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.service.ProcessDaemonService;
+import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils;
 import com.venus.backgroundopt.utils.concurrent.ConcurrentUtilsKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 
@@ -30,7 +31,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
@@ -425,7 +425,7 @@ public class RunningInfo implements ILogger {
      * @param pid     pid
      */
     public void removeProcess(@NonNull AppInfo appInfo, int uid, int pid) {
-        activityEventChangeExecutor.execute(() -> {
+        ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
             ProcessRecordKt processRecord = appInfo.getProcess(pid);
             boolean isMainProcess = false;
             if (processRecord != null) {
@@ -449,6 +449,7 @@ public class RunningInfo implements ILogger {
                     return null;
                 });
             }
+            return null;
         });
     }
 
@@ -469,17 +470,18 @@ public class RunningInfo implements ILogger {
      * @param pid         pid
      */
     public void startProcess(Object proc, int uid, int userId, String packageName, int pid) {
-        startProcessExecutorService.execute(() -> {
+        ConcurrentUtils.execute(startProcessExecutorService, () -> {
             AppInfo appInfo = runningInfo.getRunningAppInfo(uid);
             if (appInfo == null) {
                 if (!isNormalApp(userId, packageName).isNormalApp()) {
-                    return;
+                    return null;
                 }
                 appInfo = computeRunningAppIfAbsent(userId, packageName, uid);
             }
 
             ProcessRecordKt processRecord = new ProcessRecordKt(activityManagerService, proc, pid, uid, userId, packageName);
             appInfo.addProcess(processRecord);
+            return null;
         });
     }
 
@@ -507,7 +509,7 @@ public class RunningInfo implements ILogger {
 
     private final Consumer<AppInfo> putIntoActiveAction = this::putIntoActiveAppGroup;
 
-    ExecutorService activityEventChangeExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
+    ExecutorService activityEventChangeExecutor = Executors.newFixedThreadPool(2);
 
     /**
      * 以异步的方式处理Activity改变事件
@@ -517,20 +519,21 @@ public class RunningInfo implements ILogger {
      * @param componentName 组件
      */
     public void handleActivityEventChange(int event, int userId, @NonNull ComponentName componentName) {
-        activityEventChangeExecutor.execute(() -> {
+        ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
             String packageName = componentName.getPackageName();
             // 检查是否是系统重要进程
             NormalAppResult normalAppResult = runningInfo.isNormalApp(userId, packageName);
             if (!normalAppResult.isNormalApp) {
-                return;
+                return null;
             }
 
             AppInfo appInfo = runningInfo.getRunningAppInfo(normalAppResult.applicationInfo.uid);
             if (appInfo == null) {
-                return;
+                return null;
             }
 
             runningInfo.handleActivityEventChange(event, componentName, appInfo);
+            return null;
         });
     }
 
