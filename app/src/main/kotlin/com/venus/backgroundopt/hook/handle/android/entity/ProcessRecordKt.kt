@@ -3,9 +3,9 @@ package com.venus.backgroundopt.hook.handle.android.entity
 import android.content.pm.ApplicationInfo
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.BuildConfig
-import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
+import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
@@ -17,6 +17,7 @@ import com.venus.backgroundopt.utils.getIntFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
 import com.venus.backgroundopt.utils.getStringFieldValue
 import com.venus.backgroundopt.utils.log.ILogger
+import com.venus.backgroundopt.utils.log.logInfo
 import com.venus.backgroundopt.utils.setIntFieldValue
 import java.util.Objects
 import java.util.concurrent.TimeUnit
@@ -41,6 +42,22 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
         // 默认的子进程要设置的adj
         const val SUB_PROC_ADJ = DEFAULT_MAX_ADJ + 1
+
+        // 当前资源占用大于此值则进行优化
+        // 157286400 = 150MB *1024 * 1024
+        @JvmField
+        var minOptimizeRssInBytes = 157286400.0
+
+        // 资源占用因子
+        const val minOptimizeRssFactor = 0.02
+
+        init {
+            // 计算最小的、要进行优化的资源占用的值
+            RunningInfo.getInstance().memInfoReader?.let { memInfoReader ->
+                minOptimizeRssInBytes = memInfoReader.getTotalSize() * minOptimizeRssFactor
+                logInfo(logStr = "ProcessRecord: 最小触发优化资源占用大小 = ${minOptimizeRssInBytes / (1024 * 1024)}MB")
+            }
+        }
 
         @JvmStatic
         fun newInstance(
@@ -137,11 +154,32 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         /**
          * 获取pid
          *
-         * @param processRecord 安卓ProcessRecord。确保传入的是非空的, 此处可空类型只是为了使用方便
+         * @param processRecord 安卓ProcessRecord
          */
         @JvmStatic
         fun getPid(processRecord: Any): Int {
             return processRecord.getIntFieldValue(FieldConstants.mPid)
+        }
+
+        /**
+         * 获取[ApplicationInfo]
+         *
+         * @param processRecord Any
+         */
+        @JvmStatic
+        fun getApplicationInfo(processRecord: Any): ApplicationInfo {
+            return processRecord.getObjectFieldValue(FieldConstants.info) as ApplicationInfo
+        }
+
+        /**
+         * The process ID which will be set when we're killing this process.
+         *
+         * @param processRecord Any 安卓ProcessRecord
+         * @return Int mDyingPid
+         */
+        @JvmStatic
+        fun getMDyingPid(processRecord: Any): Int {
+            return processRecord.getIntFieldValue(FieldConstants.mDyingPid)
         }
 
         /**
@@ -182,7 +220,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @return 包名:进程名
          */
         @JvmStatic
-        fun getFullPackageName(processRecord: Any): String {
+        fun getFullProcessName(processRecord: Any): String {
             return PackageUtils.absoluteProcessName(
                 getPkgName(processRecord),
                 getProcessName(processRecord)
@@ -221,7 +259,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             }
 
             var curCorrectTimes = 1
-            while (curCorrectTimes <= 5) {
+            while (curCorrectTimes <= 10) {
                 processRecord.pid = getPid(processRecord.processRecord)
                 curCorrectTimes++
                 if (processRecord.pid <= 0) {
@@ -263,20 +301,35 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     @JSONField(serialize = false)
     lateinit var appInfo: AppInfo
 
-    constructor(activityManagerService: ActivityManagerService, processRecord: Any) : this() {
+    constructor(
+        activityManagerService: ActivityManagerService,
+        processRecord: Any,
+        pid: Int,
+        uid: Int,
+        userId: Int,
+        packageName: String
+    ) : this() {
+        this.activityManagerService = activityManagerService
         this.processRecord = processRecord
-        pid = getPid(processRecord)
-        uid = getUID(processRecord)
-        userId = getUserId(processRecord)
-        val applicationInfo =
-            processRecord.getObjectFieldValue(FieldConstants.info) as ApplicationInfo
-        packageName = applicationInfo.packageName
+        this.pid = pid
+        this.uid = uid
+        this.userId = userId
+        this.packageName = packageName
+
         processName = getProcessName(processRecord)
+        mainProcess = isMainProcess(packageName, processName)
         processStateRecord =
             ProcessStateRecord(processRecord.getObjectFieldValue(FieldConstants.mState))
-        this.activityManagerService = activityManagerService
-        mainProcess = isMainProcess(packageName, processName)
     }
+
+    constructor(activityManagerService: ActivityManagerService, processRecord: Any) : this(
+        activityManagerService,
+        processRecord,
+        getPid(processRecord),
+        getUID(processRecord),
+        getUserId(processRecord),
+        getApplicationInfo(processRecord).packageName
+    )
 
     /**
      * 设置默认的最大adj
@@ -411,25 +464,12 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
      * 进程内存调节                                                              *
      *                                                                         *
      **************************************************************************/
-    @JSONField(serialize = false)
-    var rssInBytes = Long.MIN_VALUE
-
-    fun updateRssInBytes() {
-        rssInBytes =
-            MemoryStatUtil.readMemoryStatFromFilesystem(uid, pid)?.rssInBytes ?: Long.MIN_VALUE
-    }
-
     /**
-     * 先获当前值, 再更新值
-     *
-     * @return 返回这次更新前的值
+     * 获取当前的资源占用
+     * @return Long 正常获取的值 >= 0, 获取异常 = Long.MIN_VALUE
      */
-    @JSONField(serialize = false)
-    fun getAndUpdateRssInBytes(): Long {
-        val bytes = rssInBytes
-        // 更新
-        updateRssInBytes()
-        return bytes
+    fun getCurRssInBytes(): Long {
+        return MemoryStatUtil.readMemoryStatFromFilesystem(uid, pid)?.rssInBytes ?: Long.MIN_VALUE
     }
 
     /**
@@ -439,15 +479,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
      */
     @JSONField(serialize = false)
     fun isNecessaryToOptimize(): Boolean {
-        val bytes = getAndUpdateRssInBytes()
-        var b = true
-        // 只有成功获取当前已用内存时才进行按比率判断, 其他情况直接默认处理
-        if (bytes != Long.MIN_VALUE) {
-            MemoryStatUtil.readMemoryStatFromFilesystem(uid, pid)?.let { memoryStat ->
-                b = (memoryStat.rssInBytes / bytes.toDouble()) > 0.5
-            }
-        }
-        return b
+        return getCurRssInBytes() > minOptimizeRssInBytes
     }
 
     /* *************************************************************************

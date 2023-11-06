@@ -2,11 +2,14 @@ package com.venus.backgroundopt.manager.process
 
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
+import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.log.ILogger
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
@@ -19,10 +22,9 @@ import java.util.concurrent.TimeUnit
 class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
     companion object {
         // 前台
-        const val foregroundInitialDelay = 0L
+        const val foregroundInitialDelay = 1L
         const val foregroundDelay = 10L
         val foregroundTimeUnit = TimeUnit.MINUTES
-        const val foregroundTrimLevel = ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL
         const val foregroundTrimManagerName = "ForegroundAppMemoryTrimManager"
 
         // 后台
@@ -33,9 +35,31 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         const val backgroundTrimManagerName = "BackgroundAppMemoryTrimManager"
     }
 
+    var enableForegroundTrim = false
+        set(value) {
+            field = value
+
+            configureForegroundTrimCheckTask(value)
+        }
+    var foregroundTrimLevel = ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE
+        set(value) {
+            field = value
+            if (BuildConfig.DEBUG) {
+                logger.debug("实际的前台内存紧张级别的值: $foregroundTrimLevel")
+            }
+        }
+
+    @Volatile
+    private var isForegroundTaskRunning = false
+
+    @Volatile
+    var foregroundTaskScheduledFuture: ScheduledFuture<*>? = null
+
     // 线程池
     // 23.9.14: 仅分配一个线程, 防止前后台任务同时进行造成可能的掉帧
-    private val executor = ScheduledThreadPoolExecutor(1)
+    private val executor = ScheduledThreadPoolExecutor(1).apply {
+        removeOnCancelPolicy = true
+    }
 
     val foregroundTasks: MutableSet<ProcessRecordKt> =
         Collections.newSetFromMap(ConcurrentHashMap())
@@ -51,15 +75,10 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
      */
     private fun init() {
         // 前台任务
-        /*
-            23.9.18: 前台任务并没有严格的单独提交ScheduledFuture, 而是加入到统一检查组,
-                这意味着某些情况下, 个别前台甚至不会被执行(前台那么积极干嘛)
-         */
-        executor.scheduleWithFixedDelay({
-            foregroundTasks.forEach {
-                executeForegroundTask(it)
-            }
-        }, foregroundInitialDelay, foregroundDelay, foregroundTimeUnit)
+        enableForegroundTrim = CommonProperties.getEnableForegroundProcTrimMemPolicy()
+        if (!enableForegroundTrim && foregroundTaskScheduledFuture == null) {
+            logger.info("禁用: 前台进程内存紧张")
+        }
 
         // 后台任务
         executor.scheduleWithFixedDelay({
@@ -67,6 +86,43 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
                 executeBackgroundTask(it)
             }
         }, backgroundInitialDelay, backgroundDelay, backgroundTimeUnit)
+    }
+
+    private fun configureForegroundTrimCheckTask(isEnable: Boolean) {
+        foregroundTaskScheduledFuture?.let { scheduledFuture ->
+            if (!isEnable) {
+                if (!isForegroundTaskRunning) {
+                    scheduledFuture.cancel(true)
+                    foregroundTaskScheduledFuture = null
+                    logger.info("禁用: 前台进程内存紧张")
+                } else {
+                    logger.info("禁用: 前台进程内存紧张(等待当前任务执行完毕)")
+                }
+            }
+        } ?: run {
+            if (isEnable) {
+                foregroundTrimLevel = CommonProperties.getForegroundProcTrimMemPolicy()
+                /*
+                     23.9.18: 前台任务并没有严格的单独提交ScheduledFuture, 而是加入到统一检查组,
+                        这意味着某些情况下, 个别前台甚至不会被执行(前台那么积极干嘛)
+                 */
+                foregroundTaskScheduledFuture = executor.scheduleWithFixedDelay({
+                    isForegroundTaskRunning = true
+                    foregroundTasks.forEach {
+                        executeForegroundTask(it)
+                    }
+                    isForegroundTaskRunning = false
+                    if (!enableForegroundTrim) {
+                        foregroundTaskScheduledFuture?.let {
+                            it.cancel(true)
+                            foregroundTaskScheduledFuture = null
+                            logger.info("禁用: 前台进程内存紧张")
+                        }
+                    }
+                }, foregroundInitialDelay, foregroundDelay, foregroundTimeUnit)
+                logger.info("启用: 前台进程内存紧张")
+            }
+        }
     }
 
     /**
@@ -135,8 +191,6 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         // 移除前台任务
         removeForegroundTask(processRecordKt)
 
-        processRecordKt.updateRssInBytes()
-
         val add = backgroundTasks.add(processRecordKt)
 
         if (BuildConfig.DEBUG) {
@@ -190,15 +244,18 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         trimManagerName: String,
         list: MutableSet<ProcessRecordKt>,
         processRecordKt: ProcessRecordKt,
-        block: () -> Unit
+        block: (AppOptimizePolicy?) -> Unit
     ) {
         if (!ProcessRecordKt.isValid(runningInfo, processRecordKt)) {
             removeTaskImpl(processRecordKt, trimManagerName, list, "进程不合法")
             return
         }
 
+        // 获取优化操作
+        val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[processRecordKt.packageName]
+
         if (processRecordKt.isNecessaryToOptimize()) {
-            block()
+            block(appOptimizePolicy)
         } else {
             if (BuildConfig.DEBUG) {
                 logger.debug("uid: ${processRecordKt.uid}, pid: ${processRecordKt.pid}, 包名: ${processRecordKt.packageName}不需要优化")
@@ -212,7 +269,16 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
      * @param processRecordKt 进程记录器
      */
     private fun executeForegroundTask(processRecordKt: ProcessRecordKt) {
-        executeTaskImpl(foregroundTrimManagerName, foregroundTasks, processRecordKt) {
+        executeTaskImpl(
+            foregroundTrimManagerName,
+            foregroundTasks,
+            processRecordKt
+        ) { appOptimizePolicy ->
+            appOptimizePolicy?.let { policy ->
+                if (policy.disableForegroundTrimMem) {
+                    return@executeTaskImpl
+                }
+            }
             trimMemory(
                 foregroundTrimManagerName,
                 processRecordKt,
@@ -232,7 +298,25 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
      * @param processRecordKt 进程记录器
      */
     private fun executeBackgroundTask(processRecordKt: ProcessRecordKt) {
-        executeTaskImpl(backgroundTrimManagerName, backgroundTasks, processRecordKt) {
+        executeTaskImpl(
+            backgroundTrimManagerName,
+            backgroundTasks,
+            processRecordKt
+        ) { appOptimizePolicy ->
+            appOptimizePolicy?.let { policy ->
+                if (!policy.disableBackgroundTrimMem) {
+                    trimMemory(
+                        backgroundTrimManagerName,
+                        processRecordKt,
+                        backgroundTrimLevel,
+                        backgroundTasks
+                    )
+                }
+                if (!policy.disableBackgroundGc) {
+                    gc(processRecordKt)
+                }
+                return@executeTaskImpl
+            }
             trimMemory(
                 backgroundTrimManagerName,
                 processRecordKt,

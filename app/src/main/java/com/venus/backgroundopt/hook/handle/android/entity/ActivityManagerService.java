@@ -8,8 +8,8 @@ import android.content.pm.PackageManager;
 import androidx.annotation.NonNull;
 
 import com.venus.backgroundopt.BuildConfig;
-import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.core.RunningInfo;
+import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
@@ -97,10 +97,8 @@ public class ActivityManagerService implements ILogger {
 
     public static boolean isImportantSystemApp(android.content.pm.ApplicationInfo applicationInfo) {
         return applicationInfo == null ||
-                applicationInfo.uid < USER_APP_UID_START_NUM && (
-                        applicationInfo.flags & (
-                                android.content.pm.ApplicationInfo.FLAG_SYSTEM |
-                                        android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP
+                (applicationInfo.flags &
+                        (android.content.pm.ApplicationInfo.FLAG_SYSTEM | android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP
                         )
                 ) != 0;
     }
@@ -123,12 +121,15 @@ public class ActivityManagerService implements ILogger {
          */
         //  普通应用程序的UID 都是从 10000开始的
         int uid = Integer.MIN_VALUE;
-        if (applicationInfo == null || (uid = applicationInfo.uid) < USER_APP_UID_START_NUM) {
-            if (BuildConfig.DEBUG) {
-                getLogger().debug("applicationInfo == null ?" + (applicationInfo == null) + ", applicationInfo.uid < USER_APP_UID_START_NUM ? " + (applicationInfo != null && applicationInfo.uid < USER_APP_UID_START_NUM));
-            }
+        boolean isNullApplicationInfo = applicationInfo == null;
 
-            if (uid != Integer.MIN_VALUE) {
+        if (isNullApplicationInfo ||
+                (applicationInfo.getApplicationInfo().flags & (
+                        android.content.pm.ApplicationInfo.FLAG_SYSTEM |
+                                android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)
+                ) != 0
+        ) {
+            if (!isNullApplicationInfo && (uid = applicationInfo.uid) != Integer.MIN_VALUE) {
                 NormalAppResult.normalAppUidMap.put(uid, notNormalAppResult);
             }
 

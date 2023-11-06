@@ -2,4 +2,6 @@
 <resources>
     <dimen name="padding_horizontal_if_use_border">5dp</dimen>
     <dimen name="padding_vertical_if_use_border">1dp</dimen>
+    <!--页边距-->
+    <dimen name="content_space">5dp</dimen>
 </resources>

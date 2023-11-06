@@ -15,5 +15,8 @@ interface MessageKeyConstants {
         const val subProcessOomConfigChange = "subProcessOomConfigChange"
         const val getInstalledApps = "getInstalledApps"
         const val autoStopCompactTask = "autoStopCompactTask"
+        const val enableForegroundProcTrimMemPolicy = "enableForegroundProcTrimMemPolicy"
+        const val foregroundProcTrimMemPolicy = "foregroundProcTrimMemPolicy"
+        const val appOptimizePolicy = "appOptimizePolicy"
     }
 }

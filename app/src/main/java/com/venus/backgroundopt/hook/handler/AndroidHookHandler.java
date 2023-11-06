@@ -17,6 +17,8 @@ import com.venus.backgroundopt.hook.handle.android.RecentTasksHook;
 import com.venus.backgroundopt.hook.handle.android.RoleControllerManagerHook;
 import com.venus.backgroundopt.hook.handle.android.SystemPropertiesHook;
 
+import java.util.HashMap;
+
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 /**
@@ -33,13 +35,9 @@ public class AndroidHookHandler extends PackageHook {
     @Override
     public void hook(XC_LoadPackage.LoadPackageParam packageParam) {
         ClassLoader classLoader = packageParam.classLoader;
-        RunningInfo runningInfo = new RunningInfo(classLoader);
+        RunningInfo runningInfo = getRunningInfo();
 
-        try {
-            SystemProperties.set("persist.sys.spc.enabled", "false");
-        } catch (Throwable throwable) {
-            getLogger().warn("米杀后台SystemProperties设置失败");
-        }
+        initSystemProp();
 
         // 资源Hook
 //        new ResourcesHook(classLoader, runningInfo);
@@ -56,6 +54,7 @@ public class AndroidHookHandler extends PackageHook {
 
         // 杀后台hook
 //        new ProcessHook(classLoader, runningInfo);
+//        new ProcessHookKt(classLoader, runningInfo);
 
         // oom_adj更新hook
         new ProcessStateRecordHook(classLoader, runningInfo);
@@ -78,5 +77,22 @@ public class AndroidHookHandler extends PackageHook {
         new SystemPropertiesHook(classLoader, runningInfo);
 
         new RoleControllerManagerHook(classLoader, runningInfo);
+    }
+
+    private void initSystemProp() {
+        HashMap<String, String> map = new HashMap<>() {
+            {
+                // 米杀后台SystemProperties
+                put("persist.sys.spc.enabled", "false");
+            }
+        };
+
+        map.forEach((k, v) -> {
+            try {
+                SystemProperties.set(k, v);
+            } catch (Throwable throwable) {
+                getLogger().warn("[" + k + "]设置失败", throwable);
+            }
+        });
     }
 }

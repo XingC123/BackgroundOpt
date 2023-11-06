@@ -79,6 +79,13 @@ public interface MethodConstants {
     String setCurRawAdj = "setCurRawAdj";
     String readMemoryStatFromFilesystem = "readMemoryStatFromFilesystem";
     String getInteger = "getInteger";
+    String removeLruProcessLocked = "removeLruProcessLocked";
+    String handleProcessStartedLocked = "handleProcessStartedLocked";
+    String performIdleMaintenance = "performIdleMaintenance";
+    String updateAndTrimProcessLSP = "updateAndTrimProcessLSP";
+    String handleUpdateAndTrimProcessLSP = "handleUpdateAndTrimProcessLSP";
+    String removePidLocked = "removePidLocked";
+    String startService = "startService";
 
     /**
      * miui

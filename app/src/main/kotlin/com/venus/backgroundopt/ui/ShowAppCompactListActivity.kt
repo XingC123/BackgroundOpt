@@ -13,7 +13,10 @@ import com.venus.backgroundopt.utils.UiUtils
  * @date 2023/9/25
  */
 class ShowAppCompactListActivity : ShowInfoFromAppItemActivity() {
-    override fun getShowInfoAdapter(appItems: List<AppItem>): ShowInfoFromAppItemAdapter {
+    override fun getShowInfoAdapter(
+        appItems: List<AppItem>,
+        vararg others: Any?
+    ): ShowInfoFromAppItemAdapter {
         return ShowAppCompactListAdapter(appItems)
     }
 
