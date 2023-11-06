@@ -35,7 +35,7 @@ public class AndroidHookHandler extends PackageHook {
     @Override
     public void hook(XC_LoadPackage.LoadPackageParam packageParam) {
         ClassLoader classLoader = packageParam.classLoader;
-        RunningInfo runningInfo = new RunningInfo(classLoader);
+        RunningInfo runningInfo = getRunningInfo();
 
         initSystemProp();
 
