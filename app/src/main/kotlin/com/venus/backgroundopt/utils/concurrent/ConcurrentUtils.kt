@@ -5,12 +5,42 @@ import com.venus.backgroundopt.utils.concurrent.lock.ReadWriteLockFlag
 import com.venus.backgroundopt.utils.concurrent.lock.lock
 import com.venus.backgroundopt.utils.concurrent.lock.readLock
 import com.venus.backgroundopt.utils.concurrent.lock.writeLock
+import com.venus.backgroundopt.utils.log.logError
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutorService
 
 /**
  * @author XingC
  * @date 2023/10/1
  */
+
+object ConcurrentUtils {
+    @JvmStatic
+    @JvmOverloads
+    fun execute(
+        executorService: ExecutorService,
+        exceptionBlock: ((Throwable) -> Unit)? = null,
+        block: () -> Unit
+    ) {
+        executorService.execute {
+            try {
+                block()
+            } catch (t: Throwable) {
+                exceptionBlock?.let { it(t) } ?: run {
+                    logError(
+                        methodName = "ConcurrentUtils.execute",
+                        logStr = "任务执行出错: ${t.message}",
+                        t = t
+                    )
+                }
+            }
+        }
+    }
+}
+
+fun ExecutorService.execute(exceptionBlock: ((Throwable) -> Unit)? = null, block: () -> Unit) {
+    ConcurrentUtils.execute(this, exceptionBlock, block)
+}
 
 val synchronizedSet by lazy { ConcurrentHashSet<Any>() }
 // ConcurrentHashMap<锁标识物, 锁对象>
@@ -58,4 +88,3 @@ inline fun ReadWriteLockFlag.readLock(block: () -> Unit) = readLock { block() }
  * @param block 要执行的代码块
  */
 inline fun ReadWriteLockFlag.writeLock(block: () -> Unit) = writeLock { block() }
-
