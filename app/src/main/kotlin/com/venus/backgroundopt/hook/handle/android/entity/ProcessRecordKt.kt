@@ -17,6 +17,7 @@ import com.venus.backgroundopt.utils.getIntFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
 import com.venus.backgroundopt.utils.getStringFieldValue
 import com.venus.backgroundopt.utils.log.ILogger
+import com.venus.backgroundopt.utils.log.logInfo
 import com.venus.backgroundopt.utils.setIntFieldValue
 import java.util.Objects
 import java.util.concurrent.TimeUnit
@@ -46,6 +47,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         // 157286400 = 150MB *1024 * 1024
         @JvmField
         var minOptimizeRssInBytes = 157286400.0
+
         // 资源占用因子
         const val minOptimizeRssFactor = 0.02
 
@@ -53,6 +55,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             // 计算最小的、要进行优化的资源占用的值
             RunningInfo.getInstance().memInfoReader?.let { memInfoReader ->
                 minOptimizeRssInBytes = memInfoReader.getTotalSize() * minOptimizeRssFactor
+                logInfo(logStr = "ProcessRecord: 最小触发优化资源占用大小 = ${minOptimizeRssInBytes / (1024 * 1024)}MB")
             }
         }
 
