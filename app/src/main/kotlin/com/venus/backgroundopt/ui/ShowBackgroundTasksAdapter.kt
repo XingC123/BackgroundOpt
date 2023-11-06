@@ -69,21 +69,18 @@ class ShowBackgroundTasksAdapter(
         val appItem = items[position]
         val packageName = appItem.packageName
         val viewHolder = holder as ShowBackgroundTasksViewHolder
+
         var enablePolicyForegroundTrim = false
+        var enablePolicyBackgroundTrim = true
+        var enablePolicyBackgroundGc = true
 
         backgroundTaskMessage.appOptimizePolicyMap[packageName]?.let { appOptimizePolicy ->
             enablePolicyForegroundTrim = !appOptimizePolicy.disableForegroundTrimMem
-            // 设置提示文字的可见性
-            setAppOptimizePolicyTextVisible(
-                viewHolder.appItemBackgroundTrimMemText,
-                !appOptimizePolicy.disableBackgroundTrimMem
-            )
-            setAppOptimizePolicyTextVisible(
-                viewHolder.appItemBackgroundGcText,
-                !appOptimizePolicy.disableBackgroundGc
-            )
+            enablePolicyBackgroundTrim = !appOptimizePolicy.disableBackgroundTrimMem
+            enablePolicyBackgroundGc = !appOptimizePolicy.disableBackgroundGc
         }
 
+        // 设置提示文字的可见性
         if (!enableForegroundProcTrimMem) {
             setAppOptimizePolicyTextVisible(viewHolder.appItemForegroundTrimMemText, false)
         } else {
@@ -92,6 +89,14 @@ class ShowBackgroundTasksAdapter(
                 enablePolicyForegroundTrim
             )
         }
+        setAppOptimizePolicyTextVisible(
+            viewHolder.appItemBackgroundTrimMemText,
+            enablePolicyBackgroundTrim
+        )
+        setAppOptimizePolicyTextVisible(
+            viewHolder.appItemBackgroundGcText,
+            enablePolicyBackgroundGc
+        )
     }
 
     private fun setAppOptimizePolicyTextVisible(textView: TextView, isVisible: Boolean) {
