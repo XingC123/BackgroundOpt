@@ -303,6 +303,11 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         mainProcess = isMainProcess(packageName, processName)
         processStateRecord =
             ProcessStateRecord(processRecord.getObjectFieldValue(FieldConstants.mState))
+
+        // 计算最小的、要进行优化的资源占用的值
+        RunningInfo.getInstance().memInfoReader?.let { memInfoReader ->
+            minOptimizeRssInBytes = memInfoReader.getTotalSize() * minOptimizeRssFactor
+        }
     }
 
     constructor(activityManagerService: ActivityManagerService, processRecord: Any) : this(
@@ -447,34 +452,20 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
      * 进程内存调节                                                              *
      *                                                                         *
      **************************************************************************/
-    // 最大资源占用
+    // 当前资源占用大于此值则进行优化
+    // 157286400 = 150MB *1024 * 1024
     @JSONField(serialize = false)
-    var maxRssInBytes = Long.MIN_VALUE
+    var minOptimizeRssInBytes = 157286400.0
+
+    @JSONField(serialize = false)
+    var minOptimizeRssFactor = 0.02
 
     /**
-     * 更新最大内存资源占用
-     * @return Boolean 成功更新 -> true
+     * 获取当前的资源占用
+     * @return Long 正常获取的值 >= 0, 获取异常 = Long.MIN_VALUE
      */
-    fun updateMaxRssInBytes() {
-        val curRssInBytes =
-            MemoryStatUtil.readMemoryStatFromFilesystem(uid, pid)?.rssInBytes ?: Long.MIN_VALUE
-
-        if (curRssInBytes > maxRssInBytes || curRssInBytes < 0L) {
-            maxRssInBytes = curRssInBytes
-        }
-    }
-
-    /**
-     * 先获当前值, 再更新值
-     *
-     * @return 返回这次更新前的值
-     */
-    @JSONField(serialize = false)
-    fun getAndUpdateMaxRssInBytes(): Long {
-        val bytes = maxRssInBytes
-        // 更新
-        updateMaxRssInBytes()
-        return bytes
+    fun getCurRssInBytes(): Long {
+        return MemoryStatUtil.readMemoryStatFromFilesystem(uid, pid)?.rssInBytes ?: Long.MIN_VALUE
     }
 
     /**
@@ -484,18 +475,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
      */
     @JSONField(serialize = false)
     fun isNecessaryToOptimize(): Boolean {
-        // 最新的占用
-        val curRssInBytes =
-            MemoryStatUtil.readMemoryStatFromFilesystem(uid, pid)?.rssInBytes ?: Long.MIN_VALUE
-
-        // 当前占用高于之前记录的占用
-        if (curRssInBytes > maxRssInBytes || curRssInBytes < 0L) {
-            maxRssInBytes = curRssInBytes
-            return true
-        }
-
-        // 当前的占用/之前记录的占用
-        return curRssInBytes / maxRssInBytes.toDouble() > 0.5
+        return getCurRssInBytes() > minOptimizeRssInBytes
     }
 
     /* *************************************************************************

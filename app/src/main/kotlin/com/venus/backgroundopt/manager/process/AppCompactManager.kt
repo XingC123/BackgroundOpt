@@ -215,7 +215,6 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     ) {
         compactProcesses.add(processRecordKt.also {
             it.setLastCompactTime(lastCompactTime)
-            it.updateMaxRssInBytes()
         })
     }
 

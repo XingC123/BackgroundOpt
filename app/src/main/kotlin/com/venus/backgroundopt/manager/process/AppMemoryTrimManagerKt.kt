@@ -191,8 +191,6 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         // 移除前台任务
         removeForegroundTask(processRecordKt)
 
-        processRecordKt.updateMaxRssInBytes()
-
         val add = backgroundTasks.add(processRecordKt)
 
         if (BuildConfig.DEBUG) {

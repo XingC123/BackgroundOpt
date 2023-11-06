@@ -12,6 +12,7 @@ import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ApplicationInfo;
+import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.service.ProcessDaemonService;
@@ -55,6 +56,8 @@ public class RunningInfo implements ILogger {
     public RunningInfo(ClassLoader classLoader) {
         runningInfo = this;
         this.classLoader = classLoader;
+
+        loadMemInfoReader();
     }
 
     private final ClassLoader classLoader;
@@ -82,6 +85,16 @@ public class RunningInfo implements ILogger {
                 hookTimes = Integer.MIN_VALUE;
             }
         }
+    }
+
+    private MemInfoReader memInfoReader;
+
+    public MemInfoReader getMemInfoReader() {
+        return memInfoReader;
+    }
+
+    private void loadMemInfoReader() {
+        memInfoReader = MemInfoReader.getInstance(classLoader);
     }
 
     /* *************************************************************************
