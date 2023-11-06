@@ -42,6 +42,20 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         // 默认的子进程要设置的adj
         const val SUB_PROC_ADJ = DEFAULT_MAX_ADJ + 1
 
+        // 当前资源占用大于此值则进行优化
+        // 157286400 = 150MB *1024 * 1024
+        @JvmField
+        var minOptimizeRssInBytes = 157286400.0
+        // 资源占用因子
+        const val minOptimizeRssFactor = 0.02
+
+        init {
+            // 计算最小的、要进行优化的资源占用的值
+            RunningInfo.getInstance().memInfoReader?.let { memInfoReader ->
+                minOptimizeRssInBytes = memInfoReader.getTotalSize() * minOptimizeRssFactor
+            }
+        }
+
         @JvmStatic
         fun newInstance(
             runningInfo: RunningInfo,
@@ -303,11 +317,6 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         mainProcess = isMainProcess(packageName, processName)
         processStateRecord =
             ProcessStateRecord(processRecord.getObjectFieldValue(FieldConstants.mState))
-
-        // 计算最小的、要进行优化的资源占用的值
-        RunningInfo.getInstance().memInfoReader?.let { memInfoReader ->
-            minOptimizeRssInBytes = memInfoReader.getTotalSize() * minOptimizeRssFactor
-        }
     }
 
     constructor(activityManagerService: ActivityManagerService, processRecord: Any) : this(
@@ -452,14 +461,6 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
      * 进程内存调节                                                              *
      *                                                                         *
      **************************************************************************/
-    // 当前资源占用大于此值则进行优化
-    // 157286400 = 150MB *1024 * 1024
-    @JSONField(serialize = false)
-    var minOptimizeRssInBytes = 157286400.0
-
-    @JSONField(serialize = false)
-    var minOptimizeRssFactor = 0.02
-
     /**
      * 获取当前的资源占用
      * @return Long 正常获取的值 >= 0, 获取异常 = Long.MIN_VALUE
