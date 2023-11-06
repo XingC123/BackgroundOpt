@@ -10,6 +10,7 @@ import com.venus.backgroundopt.R
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.ui.widget.QueryInfoDialog
+import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
 import com.venus.backgroundopt.utils.findViewById
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
@@ -66,13 +67,15 @@ class MainActivity : BaseActivity(), ILogger {
 
         // 获取后台内存压缩任务列表
         findViewById<Button>(R.id.getAppCompactItemsBtn, moduleActive)?.setOnClickListener { _ ->
-            val listStr = sendMessage(
-                this,
-                MessageKeyConstants.getAppCompactList,
-            )
-            startActivity(Intent(this, ShowAppCompactListActivity::class.java).apply {
-                setIntentData(this, listStr)
-            })
+            showProgressBarViewForAction(this, "正在获取...", enableNegativeBtn = true) {
+                val listStr = sendMessage(
+                    this,
+                    MessageKeyConstants.getAppCompactList,
+                )
+                startActivity(Intent(this, ShowAppCompactListActivity::class.java).apply {
+                    setIntentData(this, listStr)
+                })
+            }
         }
 
         // 转去设置应用进程页面
