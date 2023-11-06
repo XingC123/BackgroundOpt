@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.ui
 
+import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -22,8 +23,8 @@ class ShowBackgroundTasksAdapter(
 ) : ShowInfoFromAppItemAdapter(items) {
     private var enableForegroundProcTrimMem = false
 
-    override fun getText1Content(appItem: AppItem): String? {
-        return appItem.processName
+    override fun getText1Content(appItem: AppItem): String {
+        return appItem.appName
     }
 
     override fun getText2Content(appItem: AppItem): String {
@@ -51,6 +52,11 @@ class ShowBackgroundTasksAdapter(
         viewType: Int
     ): ShowInfoFromAppItemViewHolder {
         return super.onCreateViewHolder(parent, viewType).apply {
+            // 清空tip1的内容
+            itemView.findViewById<TextView>(R.id.appItemTipText1)?.let {
+                it.text = ""
+            }
+
             // 上次运行结果
             itemView.findViewById<LinearLayout>(R.id.appItemLastProcessingResultLayout)?.let {
                 it.visibility = View.GONE
@@ -108,11 +114,17 @@ class ShowBackgroundTasksAdapter(
     }
 
     class ShowBackgroundTasksViewHolder(itemView: View) : ShowInfoFromAppItemViewHolder(itemView) {
+        private val appItemText1:TextView
+
         val appItemForegroundTrimMemText: TextView
         val appItemBackgroundTrimMemText: TextView
         val appItemBackgroundGcText: TextView
 
         init {
+            appItemText1 = itemView.findViewById<TextView>(R.id.appItemText1).apply {
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 16F)
+            }
+
             appItemForegroundTrimMemText = itemView.findViewById(R.id.appItemForegroundTrimMemText)
             appItemBackgroundTrimMemText = itemView.findViewById(R.id.appItemBackgroundTrimMemText)
             appItemBackgroundGcText = itemView.findViewById(R.id.appItemBackgroundGcText)
