@@ -12,7 +12,7 @@
         <item>https://github.com/myflavor/NoActive-UI</item>
     </string-array>
 
-    <!--前台进程内存紧张策略-->
+    <!--前台进程内存回收策略-->
     <string-array name="foreground_process_trim_mem_policy_entries">
         <item>系统内存稍低</item>
         <item>系统内存相当低</item>
