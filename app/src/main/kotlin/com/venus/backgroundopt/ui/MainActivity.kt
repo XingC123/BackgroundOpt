@@ -10,12 +10,9 @@ import com.venus.backgroundopt.R
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.ui.widget.QueryInfoDialog
-import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
 import com.venus.backgroundopt.utils.findViewById
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
-import com.venus.backgroundopt.utils.message.sendMessage
-import com.venus.backgroundopt.utils.setIntentData
 
 
 class MainActivity : BaseActivity(), ILogger {
@@ -34,10 +31,27 @@ class MainActivity : BaseActivity(), ILogger {
     }
 
     override fun setOnMenuItemClickListener(menuItem: MenuItem) {
-        when(menuItem.itemId) {
-            R.id.MainActivityAboutMenuItem -> startActivity(Intent(this, AboutAppActivity::class.java))
-            R.id.mainActivitySettingsMenuItem -> startActivity(Intent(this, SettingsActivity::class.java))
-            R.id.mainActivityFeatureMenuItem -> startActivity(Intent(this, FeatureActivity::class.java))
+        when (menuItem.itemId) {
+            R.id.MainActivityAboutMenuItem -> startActivity(
+                Intent(
+                    this,
+                    AboutAppActivity::class.java
+                )
+            )
+
+            R.id.mainActivitySettingsMenuItem -> startActivity(
+                Intent(
+                    this,
+                    SettingsActivity::class.java
+                )
+            )
+
+            R.id.mainActivityFeatureMenuItem -> startActivity(
+                Intent(
+                    this,
+                    FeatureActivity::class.java
+                )
+            )
         }
     }
 
@@ -67,15 +81,7 @@ class MainActivity : BaseActivity(), ILogger {
 
         // 获取后台内存压缩任务列表
         findViewById<Button>(R.id.getAppCompactItemsBtn, moduleActive)?.setOnClickListener { _ ->
-            showProgressBarViewForAction(this, "正在获取...", enableNegativeBtn = true) {
-                val listStr = sendMessage(
-                    this,
-                    MessageKeyConstants.getAppCompactList,
-                )
-                startActivity(Intent(this, ShowAppCompactListActivity::class.java).apply {
-                    setIntentData(this, listStr)
-                })
-            }
+            startActivity(Intent(this, ShowAppCompactListActivity::class.java))
         }
 
         // 转去设置应用进程页面
