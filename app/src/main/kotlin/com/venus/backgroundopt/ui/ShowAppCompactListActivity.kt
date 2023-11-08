@@ -7,6 +7,9 @@ import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemActivity
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
 import com.venus.backgroundopt.utils.UiUtils
+import com.venus.backgroundopt.utils.message.MessageKeyConstants
+import com.venus.backgroundopt.utils.message.sendMessage
+import com.venus.backgroundopt.utils.setIntentData
 
 /**
  * @author XingC
@@ -18,6 +21,15 @@ class ShowAppCompactListActivity : ShowInfoFromAppItemActivity() {
         vararg others: Any?
     ): ShowInfoFromAppItemAdapter {
         return ShowAppCompactListAdapter(appItems)
+    }
+
+    override fun init() {
+        val listStr = sendMessage(
+            this,
+            MessageKeyConstants.getAppCompactList,
+        )
+        setIntentData(intent, listStr)
+        super.init()
     }
 
     override fun getRecyclerViewResId(): Int {

@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.utils.concurrent
 
+import com.venus.backgroundopt.environment.commonThreadPoolExecutor
 import com.venus.backgroundopt.utils.concurrent.lock.LockFlag
 import com.venus.backgroundopt.utils.concurrent.lock.ReadWriteLockFlag
 import com.venus.backgroundopt.utils.concurrent.lock.lock
@@ -18,11 +19,12 @@ object ConcurrentUtils {
     @JvmStatic
     @JvmOverloads
     fun execute(
-        executorService: ExecutorService,
+        executorService: ExecutorService? = null,
         exceptionBlock: ((Throwable) -> Unit)? = null,
         block: () -> Unit
     ) {
-        executorService.execute {
+        val service = executorService ?: commonThreadPoolExecutor
+        service.execute {
             try {
                 block()
             } catch (t: Throwable) {
@@ -38,10 +40,15 @@ object ConcurrentUtils {
     }
 }
 
-fun ExecutorService.execute(exceptionBlock: ((Throwable) -> Unit)? = null, block: () -> Unit) {
+fun ExecutorService?.execute(exceptionBlock: ((Throwable) -> Unit)? = null, block: () -> Unit) {
     ConcurrentUtils.execute(this, exceptionBlock, block)
 }
 
+/* *************************************************************************
+ *                                                                         *
+ * 锁                                                                      *
+ *                                                                         *
+ **************************************************************************/
 val synchronizedSet by lazy { ConcurrentHashSet<Any>() }
 // ConcurrentHashMap<锁标识物, 锁对象>
 // 不同锁标识物之间互不影响

@@ -24,7 +24,7 @@ class ShowBackgroundTasksAdapter(
     private var enableForegroundProcTrimMem = false
 
     override fun getText1Content(appItem: AppItem): String {
-        return appItem.appName
+        return ""
     }
 
     override fun getText2Content(appItem: AppItem): String {
@@ -52,11 +52,6 @@ class ShowBackgroundTasksAdapter(
         viewType: Int
     ): ShowInfoFromAppItemViewHolder {
         return super.onCreateViewHolder(parent, viewType).apply {
-            // 清空tip1的内容
-            itemView.findViewById<TextView>(R.id.appItemTipText1)?.let {
-                it.text = ""
-            }
-
             // 上次运行结果
             itemView.findViewById<LinearLayout>(R.id.appItemLastProcessingResultLayout)?.let {
                 it.visibility = View.GONE
@@ -75,6 +70,9 @@ class ShowBackgroundTasksAdapter(
         val appItem = items[position]
         val packageName = appItem.packageName
         val viewHolder = holder as ShowBackgroundTasksViewHolder
+
+        // 设置应用名
+        viewHolder.appItemTipText1.text = appItem.appName
 
         var enablePolicyForegroundTrim = false
         var enablePolicyBackgroundTrim = true
@@ -114,14 +112,14 @@ class ShowBackgroundTasksAdapter(
     }
 
     class ShowBackgroundTasksViewHolder(itemView: View) : ShowInfoFromAppItemViewHolder(itemView) {
-        private val appItemText1:TextView
+        val appItemTipText1:TextView
 
         val appItemForegroundTrimMemText: TextView
         val appItemBackgroundTrimMemText: TextView
         val appItemBackgroundGcText: TextView
 
         init {
-            appItemText1 = itemView.findViewById<TextView>(R.id.appItemText1).apply {
+            appItemTipText1 = itemView.findViewById<TextView>(R.id.appItemTipText1).apply {
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 16F)
             }
 

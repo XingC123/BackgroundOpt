@@ -118,9 +118,11 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                 when (val result = compactMethod(process)) {
                     ProcessCompactResultCode.success, ProcessCompactResultCode.doNothing -> {
                         if (result == ProcessCompactResultCode.success) {
-                            if (autoStopCompactTask) {
+                            // 1.6.3_release-183之后(不包括): 初衷是想在没有后台压缩进程时关闭。而此处会使得只要压缩成功就移除,
+                            // 而后续无法再进行压缩操作。因此不启用
+                            /*if (autoStopCompactTask) {
                                 cancelCompactProcess(process)
-                            }
+                            }*/
                             compactCount++
 
                             if (BuildConfig.DEBUG) {

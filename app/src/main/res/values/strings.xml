@@ -69,15 +69,15 @@
     <string name="menu_main_activity_toolbar_feature">User manual</string>
     <string name="activityFeatureFeatureIntroductionText" translatable="false">
         <b>1. 当前功能：</b>
-        \n\t\t1) 进程保活(基于LMK)。
+        \n\t\t1) 进程保活(基于LMK)。所有调整了adj的模块都与本模块冲突，除非它关于adj的设置可以关闭
 
-        \n\t\t2) 内存紧张：向应用发送虚假信息，假装可用内存已不足，促使其进行资源释放。
-        \n\t\t\t\t设置页面的<u><i>“前台进程内存紧张策略”</i></u><b>越往下代表当前可用内存越紧张</b>。
+        \n\t\t2) 内存回收：向应用发送虚假信息，假装可用内存已不足，促使其进行资源释放。
+        \n\t\t\t\t设置页面的<u><i>“前台进程内存回收策略”</i></u><b>越往下代表当前可用内存越紧张</b>。
 
         \n\t\t3) 内存压缩：对后台进程按照指定的规则进行压缩。
 
         \n\n<b>2. 补充说明：</b>
-        \n\t\t1) “内存紧张”和“内存压缩”受进程策略影响。
+        \n\t\t1) “内存回收”和“内存压缩”受进程策略影响。
         \n\t\t2) <b>自启<i>(开机自启/杀死后台后自启)</i>的app依然会被模块管理</b>。
         \n\t\t3) 截至2023.11.03，模块对QQ、微信的推送进程默认处于“主进程”级别，即享受与主进程相同的处理方式。
 
@@ -87,11 +87,21 @@
     <string name="settingsAutoStopCompactPrefSummaryText" translatable="false">无后台进程时自动停止检查任务</string>
     <string name="configureAppProcessAppDoNothingSwitch">White list</string>
     <string name="configureAppProcessAppDoNothingSwitchSummar" translatable="false">启用后不再进行OOM之外的操作</string>
-    <string name="appItemBackgroundTrimMemText" translatable="false">后台内存紧张</string>
+    <string name="appItemBackgroundTrimMemText" translatable="false">后台内存回收</string>
     <string name="appItemBackgroundGcText" translatable="false">后台GC</string>
-    <string name="appItemForegroundTrimMemText" translatable="false">前台内存紧张</string>
+    <string name="appItemForegroundTrimMemText" translatable="false">前台内存回收</string>
     <string name="configureAppProcAcitivityToolBarHelpMenuItem">Help</string>
     <string name="configureAppProcToolBarHelpTipText" translatable="false">
         1. 白名单：设置为白名单的app只会进行最基础的OOM调节，而不会有其他操作。
     </string>
+    <string name="installerAppToolbarHelpMenuItem">Help</string>
+    <string name="installedAppToolbarHelpTipText" translatable="false">1. 已配置：配置了所有可选项
+        \n2. 白名单：app优化白名单
+        \n3. OOM策略：配置了子进程OOM策略
+
+        \n\n<b>注：</b>
+        \n\t\t所有配置的修改，只有在重新进入“已安装app列表”的时候才会刷新界面显示
+    </string>
+    <string name="settingsToolbarBackupMenuItem">Backup</string>
+    <string name="settingsToolbarRestoreMenuItem">Restore</string>
 </resources>

@@ -55,7 +55,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             // 计算最小的、要进行优化的资源占用的值
             RunningInfo.getInstance().memInfoReader?.let { memInfoReader ->
                 minOptimizeRssInBytes = memInfoReader.getTotalSize() * minOptimizeRssFactor
-                logInfo(logStr = "ProcessRecord: 最小触发优化资源占用大小 = ${minOptimizeRssInBytes / (1024 * 1024)}MB")
+                logInfo(logStr = "ProcessRecord: 触发优化的最小进程资源占用 = ${minOptimizeRssInBytes / (1024 * 1024)}MB")
             }
         }
 
