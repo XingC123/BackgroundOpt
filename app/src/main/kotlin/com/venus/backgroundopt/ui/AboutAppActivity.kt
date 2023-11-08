@@ -38,6 +38,7 @@ class AboutAppActivity : BaseActivity() {
                 orientation = LinearLayoutManager.VERTICAL
             }
             adapter = AboutAppThanksAdapter(
+                resources.getStringArray(R.array.about_app_thanks_desc).toList(),
                 resources.getStringArray(R.array.about_app_thanks_url).toList()
             )
         }

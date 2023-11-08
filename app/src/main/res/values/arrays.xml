@@ -7,7 +7,13 @@
     </string-array>
 
     <!-- 致谢名单 -->
+    <string-array name="about_app_thanks_desc">
+        <item>Magisk模块: QQ微信负优化(author: @key)的内存回收功能的思路(gitee 404，无法给出地址)</item>
+        <item>Don-t-Kill</item>
+        <item>NoActive-UI</item>
+    </string-array>
     <string-array name="about_app_thanks_url">
+        <item/>
         <item>https://github.com/UISSD/Don-t-Kill</item>
         <item>https://github.com/myflavor/NoActive-UI</item>
     </string-array>
