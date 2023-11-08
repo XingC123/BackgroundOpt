@@ -94,4 +94,12 @@
     <string name="configureAppProcToolBarHelpTipText" translatable="false">
         1. 白名单：设置为白名单的app只会进行最基础的OOM调节，而不会有其他操作。
     </string>
+    <string name="installerAppToolbarHelpMenuItem">Help</string>
+    <string name="installedAppToolbarHelpTipText" translatable="false">1. 已配置：配置了所有可选项
+        \n2. 白名单：app优化白名单
+        \n3. OOM策略：配置了子进程OOM策略
+
+        \n\n<b>注：</b>
+        \n\t\t所有配置的修改，只有在重新进入“已安装app列表”的时候才会刷新界面显示
+    </string>
 </resources>
