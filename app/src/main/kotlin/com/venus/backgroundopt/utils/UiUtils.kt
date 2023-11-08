@@ -90,10 +90,32 @@ object UiUtils {
      */
     @JvmOverloads
     fun createDialog(context: Context, viewResId: Int, cancelable: Boolean = true): AlertDialog {
+        return createDialog(context, viewResId, "", cancelable)
+    }
+
+    @JvmOverloads
+    fun createDialog(
+        context: Context,
+        viewResId: Int,
+        text: String,
+        cancelable: Boolean = true
+    ): AlertDialog {
         return AlertDialog.Builder(context)
             .setCancelable(cancelable)
-            .setView(getView(context, viewResId))
+            .setView(getView(context, viewResId).apply {
+                findViewById<TextView>(R.id.contentCommonDialogText)?.text = text
+            })
             .create()
+    }
+
+    @JvmOverloads
+    fun createDialog(context: Context, text: String, cancelable: Boolean = true): AlertDialog {
+        return createDialog(
+            context,
+            viewResId = R.layout.content_common_dailog_view,
+            text,
+            cancelable
+        )
     }
 
     /**
