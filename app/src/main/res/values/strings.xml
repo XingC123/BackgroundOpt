@@ -102,4 +102,6 @@
         \n\n<b>注：</b>
         \n\t\t所有配置的修改，只有在重新进入“已安装app列表”的时候才会刷新界面显示
     </string>
+    <string name="settingsToolbarBackupMenuItem">Backup</string>
+    <string name="settingsToolbarRestoreMenuItem">Restore</string>
 </resources>
