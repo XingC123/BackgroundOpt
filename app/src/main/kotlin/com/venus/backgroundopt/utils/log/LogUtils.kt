@@ -26,7 +26,7 @@ private fun logImpl(
     logStr: String,
     t: Throwable? = null
 ) {
-    XposedBridge.log("Backgroundopt --> [${flag}]: ${methodName}: $logStr")
+    XposedBridge.log("Backgroundopt --> [${flag}]:${if (methodName == "") "" else " ${methodName}:"} $logStr")
     t?.let { XposedBridge.log(it) }
 }
 

@@ -45,7 +45,7 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         set(value) {
             field = value
             if (BuildConfig.DEBUG) {
-                logger.debug("实际的前台内存紧张级别的值: $foregroundTrimLevel")
+                logger.debug("实际的前台内存回收级别的值: $foregroundTrimLevel")
             }
         }
 
@@ -77,7 +77,7 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         // 前台任务
         enableForegroundTrim = CommonProperties.getEnableForegroundProcTrimMemPolicy()
         if (!enableForegroundTrim && foregroundTaskScheduledFuture == null) {
-            logger.info("禁用: 前台进程内存紧张")
+            logger.info("禁用: 前台进程内存回收")
         }
 
         // 后台任务
@@ -94,9 +94,9 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
                 if (!isForegroundTaskRunning) {
                     scheduledFuture.cancel(true)
                     foregroundTaskScheduledFuture = null
-                    logger.info("禁用: 前台进程内存紧张")
+                    logger.info("禁用: 前台进程内存回收")
                 } else {
-                    logger.info("禁用: 前台进程内存紧张(等待当前任务执行完毕)")
+                    logger.info("禁用: 前台进程内存回收(等待当前任务执行完毕)")
                 }
             }
         } ?: run {
@@ -116,11 +116,11 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
                         foregroundTaskScheduledFuture?.let {
                             it.cancel(true)
                             foregroundTaskScheduledFuture = null
-                            logger.info("禁用: 前台进程内存紧张")
+                            logger.info("禁用: 前台进程内存回收")
                         }
                     }
                 }, foregroundInitialDelay, foregroundDelay, foregroundTimeUnit)
-                logger.info("启用: 前台进程内存紧张")
+                logger.info("启用: 前台进程内存回收")
             }
         }
     }

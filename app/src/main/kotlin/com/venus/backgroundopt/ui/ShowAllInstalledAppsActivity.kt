@@ -1,6 +1,7 @@
 package com.venus.backgroundopt.ui
 
 import android.os.Bundle
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.widget.Toolbar
@@ -32,6 +33,18 @@ class ShowAllInstalledAppsActivity : BaseActivity() {
 
     override fun getContentView(): Int {
         return R.layout.activity_show_all_installed_apps
+    }
+
+    override fun getToolBarMenusResId(): Int {
+        return R.menu.menu_installed_app_toolbar
+    }
+
+    override fun setOnMenuItemClickListener(menuItem: MenuItem) {
+        when (menuItem.itemId) {
+            R.id.installerAppToolbarHelpMenuItem -> {
+                UiUtils.createDialog(this, R.layout.content_installed_app_toolbar_help).show()
+            }
+        }
     }
 
     private fun init() {

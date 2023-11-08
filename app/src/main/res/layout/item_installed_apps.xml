@@ -33,5 +33,13 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/installedAppItemAppNameText" />
+
+        <TextView
+            android:id="@+id/installedAppConfiguredFlagText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:textColor="@color/shanChui" />
+
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

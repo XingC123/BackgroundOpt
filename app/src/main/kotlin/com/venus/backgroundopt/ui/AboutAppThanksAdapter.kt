@@ -5,17 +5,21 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
+import com.venus.backgroundopt.utils.StringUtils
 import com.venus.backgroundopt.utils.getView
 
 /**
  * @author XingC
  * @date 2023/10/1
  */
-class AboutAppThanksAdapter(private val thanksProjectUrls: List<String>) :
+class AboutAppThanksAdapter(private val thanksProjectDescs: List<String>, private val thanksProjectUrls: List<String>) :
     RecyclerView.Adapter<AboutAppThanksAdapter.AboutAppThanksViewHolder>() {
     class AboutAppThanksViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val thanksDescText: TextView by lazy {
+            itemView.findViewById(R.id.aboutAppThanksItemDescText)
+        }
         val thanksUrlText: TextView by lazy {
-            itemView.findViewById(R.id.aboutAppThanksItemText)
+            itemView.findViewById(R.id.aboutAppThanksItemUrlText)
         }
     }
 
@@ -24,11 +28,18 @@ class AboutAppThanksAdapter(private val thanksProjectUrls: List<String>) :
     }
 
     override fun getItemCount(): Int {
-        return thanksProjectUrls.size
+        return thanksProjectDescs.size
     }
 
     override fun onBindViewHolder(holder: AboutAppThanksViewHolder, position: Int) {
+        val desc = thanksProjectDescs[position]
         val url = thanksProjectUrls[position]
-        holder.thanksUrlText.text = url
+        holder.thanksDescText.text = desc
+        if (StringUtils.isEmpty(url)) {
+            holder.thanksUrlText.visibility = View.GONE
+        } else {
+            holder.thanksUrlText.text = url
+            holder.thanksUrlText.visibility = View.VISIBLE
+        }
     }
 }

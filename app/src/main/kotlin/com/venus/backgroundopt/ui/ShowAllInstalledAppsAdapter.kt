@@ -24,10 +24,13 @@ class ShowAllInstalledAppsAdapter(private val appItems: List<AppItem>) :
     class ShowAllInstalledAppsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var appIcon: ImageView
         var appName: TextView
+        var installedAppConfiguredFlagText: TextView
 
         init {
             appIcon = itemView.findViewById(R.id.installedAppItemAppIcon)
             appName = itemView.findViewById(R.id.installedAppItemAppNameText)
+            installedAppConfiguredFlagText =
+                itemView.findViewById(R.id.installedAppConfiguredFlagText)
         }
     }
 
@@ -54,6 +57,29 @@ class ShowAllInstalledAppsAdapter(private val appItems: List<AppItem>) :
         val appItem = filterAppItems[position]
         holder.appIcon.setImageDrawable(appItem.appIcon)
         holder.appName.text = appItem.appName
+
+        // 设置显示已配置的设置的标识
+        val hasConfiguredAppOptimizePolicy =
+            appItem.appConfiguredEnumSet.contains(AppItem.AppConfiguredEnum.AppOptimizePolicy)
+        val hasConfiguredSubProcessOomPolicy =
+            appItem.appConfiguredEnumSet.contains(AppItem.AppConfiguredEnum.SubProcessOomPolicy)
+
+        if (hasConfiguredAppOptimizePolicy) {
+            if (hasConfiguredSubProcessOomPolicy) {
+                // 全部配置
+                holder.installedAppConfiguredFlagText.text = "已配置"
+            } else {
+                holder.installedAppConfiguredFlagText.text =
+                    AppItem.AppConfiguredEnum.AppOptimizePolicy.displayName
+            }
+        } else if (hasConfiguredSubProcessOomPolicy) {
+            // 只配置了子进程OOM策略
+            holder.installedAppConfiguredFlagText.text =
+                AppItem.AppConfiguredEnum.SubProcessOomPolicy.displayName
+        } else {
+            // 全都没有
+            holder.installedAppConfiguredFlagText.text = ""
+        }
 
         holder.itemView.setOnClickListener { view ->
             view.context.also { context ->

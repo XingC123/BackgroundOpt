@@ -51,7 +51,7 @@ class AppItem @JSONCreator constructor() : MessageFlag {
     var longVersionCode: Long = Long.MIN_VALUE
 
     @JSONField(serialize = false)
-    lateinit var lastProcessingResultMap:MutableMap<AppOptimizeEnum, ProcessingResult>
+    lateinit var lastProcessingResultMap: MutableMap<AppOptimizeEnum, ProcessingResult>
 
     constructor(packageName: String) : this() {
         this.packageName = packageName
@@ -69,4 +69,17 @@ class AppItem @JSONCreator constructor() : MessageFlag {
         this.appIcon = appIcon
         this.packageInfo = packageInfo
     }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 用于已安装app列表                                                          *
+     *                                                                         *
+     **************************************************************************/
+    enum class AppConfiguredEnum(val displayName:String) {
+        AppOptimizePolicy("白名单"),
+        SubProcessOomPolicy("OOM策略"),
+    }
+
+    @get:JSONField(serialize = false)
+    val appConfiguredEnumSet by lazy { HashSet<AppConfiguredEnum>() }
 }

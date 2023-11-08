@@ -92,7 +92,7 @@ public abstract class AppMemoryTrimManager implements ILogger {
         // 移除原有任务
         cancelScheduledFuture(appMemoryTrimTask);  // 移除原有的以充分保持轮循间隔
 
-        // 内存紧张任务立即执行。每隔3分钟执行
+        // 内存回收任务立即执行。每隔3分钟执行
         appMemoryTrimTask.scheduleTrimMemoryTask.scheduledFuture = executor.scheduleWithFixedDelay(
                 appMemoryTrimTask.scheduleTrimMemoryTask.runnable,
                 getTaskInitialDelay(),
@@ -198,7 +198,7 @@ public abstract class AppMemoryTrimManager implements ILogger {
      */
     class AppMemoryTrimTask {
         /**
-         * 内存紧张任务
+         * 内存回收任务
          */
         Task scheduleTrimMemoryTask;
         /**
