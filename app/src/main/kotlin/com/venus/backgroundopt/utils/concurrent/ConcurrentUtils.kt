@@ -41,8 +41,7 @@ object ConcurrentUtils {
 }
 
 fun ExecutorService?.execute(exceptionBlock: ((Throwable) -> Unit)? = null, block: () -> Unit) {
-    val executorService = this ?: commonThreadPoolExecutor
-    ConcurrentUtils.execute(executorService, exceptionBlock, block)
+    ConcurrentUtils.execute(this, exceptionBlock, block)
 }
 
 /* *************************************************************************
