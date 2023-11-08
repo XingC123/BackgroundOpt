@@ -45,6 +45,11 @@ fun ExecutorService?.execute(exceptionBlock: ((Throwable) -> Unit)? = null, bloc
     ConcurrentUtils.execute(executorService, exceptionBlock, block)
 }
 
+/* *************************************************************************
+ *                                                                         *
+ * 锁                                                                      *
+ *                                                                         *
+ **************************************************************************/
 val synchronizedSet by lazy { ConcurrentHashSet<Any>() }
 // ConcurrentHashMap<锁标识物, 锁对象>
 // 不同锁标识物之间互不影响
