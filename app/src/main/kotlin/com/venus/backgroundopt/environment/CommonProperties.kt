@@ -80,6 +80,7 @@ object CommonProperties {
             put("RUNNING_MODERATE", ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE)
             put("RUNNING_LOW", ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW)
             put("RUNNING_CRITICAL", ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL)
+            put("UI_HIDDEN", ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN)
         }
     }
 
