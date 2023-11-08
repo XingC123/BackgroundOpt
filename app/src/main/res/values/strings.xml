@@ -69,7 +69,7 @@
     <string name="menu_main_activity_toolbar_feature">User manual</string>
     <string name="activityFeatureFeatureIntroductionText" translatable="false">
         <b>1. 当前功能：</b>
-        \n\t\t1) 进程保活(基于LMK)。
+        \n\t\t1) 进程保活(基于LMK)。所有调整了adj的模块都与本模块冲突，除非它关于adj的设置可以关闭
 
         \n\t\t2) 内存回收：向应用发送虚假信息，假装可用内存已不足，促使其进行资源释放。
         \n\t\t\t\t设置页面的<u><i>“前台进程内存回收策略”</i></u><b>越往下代表当前可用内存越紧张</b>。
