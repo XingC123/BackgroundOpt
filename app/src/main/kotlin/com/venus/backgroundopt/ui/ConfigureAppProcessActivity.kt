@@ -16,8 +16,8 @@ import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.utils.PackageUtils
-import com.venus.backgroundopt.utils.TMP_DATA
 import com.venus.backgroundopt.utils.UiUtils
+import com.venus.backgroundopt.utils.getTmpData
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.message.sendMessage
@@ -60,7 +60,7 @@ class ConfigureAppProcessActivity : BaseActivity() {
 
 
     private fun init() {
-        appItem = TMP_DATA as AppItem
+        appItem = getTmpData() as AppItem
 
         // 设置基本数据
         runOnUiThread {

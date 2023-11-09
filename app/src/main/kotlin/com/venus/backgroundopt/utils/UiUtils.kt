@@ -22,26 +22,34 @@ import com.venus.backgroundopt.utils.log.logErrorAndroid
  */
 
 // 临时数据。在两个Activity之间使用。有线程安全问题
-@JvmField
-var TMP_DATA: Any? = null
+private var tmpData: Any? = null
 
-@JvmField
-var TMP_DATA_LIST: ArrayList<Any>? = null
+fun setTmpData(any: Any?) {
+    tmpData = any
+}
 
-fun putTmpListData(vararg value: Any) {
-    TMP_DATA_LIST = arrayListOf(*value)
+fun getTmpData(): Any? {
+    val o = tmpData
+    tmpData = null
+    return o
+}
+
+private var tmpListData: ArrayList<Any>? = null
+
+fun setTmpListData(vararg value: Any) {
+    tmpListData = arrayListOf(*value)
 }
 
 fun getTmpListData(): ArrayList<Any>? {
-    val list = TMP_DATA_LIST
-    TMP_DATA_LIST = null
+    val list = tmpListData
+    tmpListData = null
 
     return list
 }
 
 @Suppress("UNCHECKED_CAST")
 fun <E> getTmpListData(index: Int): E? {
-    return TMP_DATA_LIST?.get(index) as? E
+    return tmpListData?.get(index) as? E
 }
 
 fun setIntentData(intent: Intent, data: String?) {
@@ -130,7 +138,7 @@ object UiUtils {
     ): AlertDialog {
         return AlertDialog.Builder(context)
             .setCancelable(cancelable)
-            .setView(getView(context, viewResId).apply { viewBlock(this) })
+            .setView(context.getView(viewResId).apply { viewBlock(this) })
             .setNegativeBtn(context, enableNegativeBtn, negativeBtnText, negativeBlock)
             .setPositiveBtn(context, enablePositiveBtn, positiveBtnText, positiveBlock)
             .create()
