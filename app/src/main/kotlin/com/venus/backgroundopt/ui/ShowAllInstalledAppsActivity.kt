@@ -10,9 +10,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.ui.base.BaseActivity
-import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.UiUtils
+import com.venus.backgroundopt.utils.showProgressBarViewForAction
 
 /**
  * @author XingC
@@ -26,7 +26,7 @@ class ShowAllInstalledAppsActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        showProgressBarViewForAction(this, "正在获取已安装应用...") {
+        showProgressBarViewForAction("正在获取已安装应用...") {
             init()
         }
     }

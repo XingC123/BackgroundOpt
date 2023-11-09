@@ -13,6 +13,8 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.content.res.ResourcesCompat
 import com.alibaba.fastjson2.JSON
 import com.venus.backgroundopt.R
+import com.venus.backgroundopt.utils.concurrent.newThreadTask
+import com.venus.backgroundopt.utils.log.logErrorAndroid
 
 /**
  * @author XingC
@@ -168,6 +170,56 @@ object UiUtils {
         )
     }
 
+    @JvmStatic
+    fun createProgressBarView(
+        context: Context,
+        text: String,
+        cancelable: Boolean = false,
+        enableNegativeBtn: Boolean = true,
+        negativeBtnText: String = "放弃"
+    ): AlertDialog {
+        val view = LayoutInflater.from(context).inflate(R.layout.dialog_progress_bar, null)
+
+        view.findViewById<TextView>(R.id.progressBarText)?.let {
+            it.text = text
+        }
+
+        return AlertDialog.Builder(context)
+            .setCancelable(cancelable)
+            .setView(view)
+            .setNegativeBtn(
+                context,
+                enableNegativeBtn,
+                negativeBtnText
+            )
+            .create()
+    }
+
+    @JvmStatic
+    fun showProgressBarViewForAction(
+        context: Context,
+        text: String,
+        cancelable: Boolean = false,
+        enableNegativeBtn: Boolean = true,
+        negativeBtnText: String = "放弃",
+        action: () -> Unit
+    ) {
+        val dialog =
+            createProgressBarView(context, text, cancelable, enableNegativeBtn, negativeBtnText)
+        dialog.show()
+        newThreadTask {
+            runCatching {
+                action()
+            }.onFailure {
+                logErrorAndroid(
+                    logStr = "showProgressBarViewForAction: 进度条事件执行出错",
+                    t = it
+                )
+            }
+            dialog.dismiss()
+        }
+    }
+
     /**
      * 获取[Toolbar]
      *
@@ -259,4 +311,21 @@ inline fun AlertDialog.Builder.setPositiveBtn(
         }
     }
     return this
+}
+
+fun Context.showProgressBarViewForAction(
+    text: String,
+    cancelable: Boolean = false,
+    enableNegativeBtn: Boolean = true,
+    negativeBtnText: String = "放弃",
+    action: () -> Unit
+) {
+    UiUtils.showProgressBarViewForAction(
+        this,
+        text,
+        cancelable,
+        enableNegativeBtn,
+        negativeBtnText,
+        action
+    )
 }
