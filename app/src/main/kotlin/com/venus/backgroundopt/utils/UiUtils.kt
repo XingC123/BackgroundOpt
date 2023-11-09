@@ -90,31 +90,81 @@ object UiUtils {
      */
     @JvmOverloads
     fun createDialog(context: Context, viewResId: Int, cancelable: Boolean = true): AlertDialog {
-        return createDialog(context, viewResId, "", cancelable)
+        return createDialog(context, viewResId, {}, cancelable)
+    }
+
+    /**
+     * 创建对话框
+     * @param context Context 当前上下文
+     * @param viewResId Int 布局文件资源id
+     * @param viewBlock Function1<View, Unit> 要对布局文件创建的[View]执行的操作
+     * @param cancelable Boolean 点击空白处是否可以取消对话框
+     * @param enableNegativeBtn Boolean 启用返回按钮
+     * @param negativeBtnText String 返回按钮文字
+     * @param negativeBlock Function2<DialogInterface, Int, Unit> 返回按钮执行的操作
+     * @param enablePositiveBtn Boolean 启用确认按钮
+     * @param positiveBtnText String 确认按钮文本
+     * @param positiveBlock Function2<DialogInterface, Int, Unit> 确认按钮执行的操作
+     * @return AlertDialog
+     */
+    @JvmOverloads
+    fun createDialog(
+        context: Context,
+        viewResId: Int,
+        viewBlock: View.() -> Unit,
+        cancelable: Boolean = true,
+        enableNegativeBtn: Boolean = false,
+        negativeBtnText: String = "放弃",
+        negativeBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
+            dialogInterface.dismiss()
+            (context as Activity).finish()
+        },
+        enablePositiveBtn: Boolean = false,
+        positiveBtnText: String = "确认",
+        positiveBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
+            dialogInterface.dismiss()
+            (context as Activity).finish()
+        },
+    ): AlertDialog {
+        return AlertDialog.Builder(context)
+            .setCancelable(cancelable)
+            .setView(getView(context, viewResId).apply { viewBlock(this) })
+            .setNegativeBtn(context, enableNegativeBtn, negativeBtnText, negativeBlock)
+            .setPositiveBtn(context, enablePositiveBtn, positiveBtnText, positiveBlock)
+            .create()
     }
 
     @JvmOverloads
     fun createDialog(
         context: Context,
-        viewResId: Int,
         text: String,
-        cancelable: Boolean = true
+        cancelable: Boolean = true,
+        enableNegativeBtn: Boolean = false,
+        negativeBtnText: String = "放弃",
+        negativeBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
+            dialogInterface.dismiss()
+            (context as Activity).finish()
+        },
+        enablePositiveBtn: Boolean = false,
+        positiveBtnText: String = "确认",
+        positiveBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
+            dialogInterface.dismiss()
+            (context as Activity).finish()
+        },
     ): AlertDialog {
-        return AlertDialog.Builder(context)
-            .setCancelable(cancelable)
-            .setView(getView(context, viewResId).apply {
-                findViewById<TextView>(R.id.contentCommonDialogText)?.text = text
-            })
-            .create()
-    }
-
-    @JvmOverloads
-    fun createDialog(context: Context, text: String, cancelable: Boolean = true): AlertDialog {
         return createDialog(
             context,
             viewResId = R.layout.content_common_dailog_view,
-            text,
-            cancelable
+            viewBlock = {
+                findViewById<TextView>(R.id.contentCommonDialogText)?.text = text
+            },
+            cancelable,
+            enableNegativeBtn,
+            negativeBtnText,
+            negativeBlock,
+            enablePositiveBtn,
+            positiveBtnText,
+            positiveBlock
         )
     }
 
@@ -194,3 +244,19 @@ inline fun AlertDialog.Builder.setNegativeBtn(
     return this
 }
 
+inline fun AlertDialog.Builder.setPositiveBtn(
+    context: Context,
+    enablePositiveBtn: Boolean = false,
+    positiveBtnText: String = "确认",
+    crossinline block: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
+        dialogInterface.dismiss()
+        (context as Activity).finish()
+    }
+): AlertDialog.Builder {
+    if (enablePositiveBtn) {
+        setNegativeButton(positiveBtnText) { dialogInterface, i ->
+            block(dialogInterface, i)
+        }
+    }
+    return this
+}
