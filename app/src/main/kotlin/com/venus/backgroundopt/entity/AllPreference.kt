@@ -33,16 +33,16 @@ class AllPreference(private val activity: ComponentActivity) {
                         context.prefAll<SubProcessOomPolicy>(PreferenceNameConstants.SUB_PROCESS_OOM_POLICY)
                     val jsonString = JsonUtils.toJsonString(jsonPreference)
                     outputStream?.write(jsonString.toByteArray(StandardCharsets.UTF_8)) ?: run {
-                        UiUtils.createDialog(activity.baseContext, text = "备份失败, 文件流为空")
+                        UiUtils.createDialog(activity.baseContext, text = "备份失败, 文件流为空").show()
                     }
                 }
             }.onFailure {
                 UiUtils.createDialog(
                     activity.baseContext,
                     text = "备份失败, 错误信息: ${it.message}"
-                )
+                ).show()
             }.onSuccess {
-                UiUtils.createDialog(activity.baseContext, text = "备份成功")
+                UiUtils.createDialog(activity.baseContext, text = "备份成功").show()
             }
         }
 
@@ -86,9 +86,9 @@ class AllPreference(private val activity: ComponentActivity) {
                 UiUtils.createDialog(
                     activity.baseContext,
                     text = "恢复备份失败, 错误信息: ${it.message}"
-                )
+                ).show()
             }.onSuccess {
-                UiUtils.createDialog(activity.baseContext, text = "恢复备份成功")
+                UiUtils.createDialog(activity.baseContext, text = "恢复备份成功").show()
             }
         }
 
