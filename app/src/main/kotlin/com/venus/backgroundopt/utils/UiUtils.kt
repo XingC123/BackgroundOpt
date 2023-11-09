@@ -68,8 +68,8 @@ inline fun <reified E> getIntentDataToList(intent: Intent): List<E>? {
     }
 }
 
-fun getView(context: Context, layoutResId: Int): View =
-    LayoutInflater.from(context).inflate(layoutResId, null)
+fun Context.getView(layoutResId: Int): View =
+    LayoutInflater.from(this).inflate(layoutResId, null)
 
 fun <E : View> Activity.findViewById(resId: Int, enable: Boolean = true): E? {
     return if (enable) {

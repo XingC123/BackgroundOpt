@@ -24,7 +24,7 @@ class AboutAppThanksAdapter(private val thanksProjectDescs: List<String>, privat
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AboutAppThanksViewHolder {
-        return AboutAppThanksViewHolder(getView(parent.context, R.layout.item_about_app_thanks))
+        return AboutAppThanksViewHolder(parent.context.getView(R.layout.item_about_app_thanks))
     }
 
     override fun getItemCount(): Int {
