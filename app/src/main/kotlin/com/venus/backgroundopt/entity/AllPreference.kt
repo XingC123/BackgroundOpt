@@ -88,7 +88,7 @@ class AllPreference(private val activity: ComponentActivity) {
                     text = "恢复备份失败, 错误信息: ${it.message}"
                 ).show()
             }.onSuccess {
-                UiUtils.createDialog(activity.baseContext, text = "恢复备份成功").show()
+                UiUtils.createDialog(activity.baseContext, text = "恢复备份成功, 重启生效").show()
             }
         }
 
