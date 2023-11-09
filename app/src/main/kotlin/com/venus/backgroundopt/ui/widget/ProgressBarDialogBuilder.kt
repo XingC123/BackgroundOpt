@@ -7,7 +7,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.R
-import com.venus.backgroundopt.environment.newThreadTask
+import com.venus.backgroundopt.utils.concurrent.newThreadTask
 import com.venus.backgroundopt.utils.setNegativeBtn
 
 /**
@@ -52,17 +52,16 @@ class ProgressBarDialogBuilder {
                 createProgressBarView(context, text, cancelable, enableNegativeBtn, negativeBtnText)
             dialog.show()
             newThreadTask {
-                try {
+                runCatching {
                     action()
-                } catch (ignore: Exception) {
+                }.onFailure {
                     Log.e(
                         BuildConfig.APPLICATION_ID,
                         "showProgressBarViewForAction: 进度条事件执行出错",
-                        ignore
+                        it
                     )
-                } finally {
-                    dialog.dismiss()
                 }
+                dialog.dismiss()
             }
         }
     }

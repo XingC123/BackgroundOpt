@@ -4,9 +4,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
-import com.venus.backgroundopt.environment.newThreadTask
 import com.venus.backgroundopt.utils.JsonUtils
 import com.venus.backgroundopt.utils.UiUtils
+import com.venus.backgroundopt.utils.concurrent.newThreadTaskResult
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.preference.prefAll
 import com.venus.backgroundopt.utils.preference.prefEdit
@@ -22,72 +22,70 @@ class AllPreference(private val activity: ComponentActivity) {
     private val backupLauncher =
         activity.registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
             uri ?: return@registerForActivityResult
-            newThreadTask {
-                runCatching {
-                    activity.contentResolver.openOutputStream(uri).use { outputStream ->
-                        val context = activity.baseContext
-                        val jsonPreference = JsonPreference()
-                        jsonPreference.mainSettingsMap =
-                            context.prefAll(PreferenceNameConstants.MAIN_SETTINGS)
-                        jsonPreference.appOptimizePolicyMap =
-                            context.prefAll<AppOptimizePolicy>(PreferenceNameConstants.APP_OPTIMIZE_POLICY)
-                        jsonPreference.subProcessOomPolicyMap =
-                            context.prefAll<SubProcessOomPolicy>(PreferenceNameConstants.SUB_PROCESS_OOM_POLICY)
-                        val jsonString = JsonUtils.toJsonString(jsonPreference)
-                        outputStream?.write(jsonString.toByteArray(StandardCharsets.UTF_8)) ?: run {
-                            showDialog("备份失败, 文件流为空")
-                        }
+
+            newThreadTaskResult {
+                activity.contentResolver.openOutputStream(uri).use { outputStream ->
+                    val context = activity.baseContext
+                    val jsonPreference = JsonPreference()
+                    jsonPreference.mainSettingsMap =
+                        context.prefAll(PreferenceNameConstants.MAIN_SETTINGS)
+                    jsonPreference.appOptimizePolicyMap =
+                        context.prefAll<AppOptimizePolicy>(PreferenceNameConstants.APP_OPTIMIZE_POLICY)
+                    jsonPreference.subProcessOomPolicyMap =
+                        context.prefAll<SubProcessOomPolicy>(PreferenceNameConstants.SUB_PROCESS_OOM_POLICY)
+                    val jsonString = JsonUtils.toJsonString(jsonPreference)
+                    outputStream?.write(jsonString.toByteArray(StandardCharsets.UTF_8)) ?: run {
+                        throw NullPointerException("文件流为空")
                     }
-                }.onFailure {
-                    showDialog("备份失败, 错误信息: ${it.message}")
-                }.onSuccess {
-                    showDialog("备份成功")
                 }
+            }.onFailure {
+                showDialog("备份失败, 错误信息: ${it.message}")
+            }.onSuccess {
+                showDialog("备份成功")
             }
         }
 
     private val restoreLauncher =
         activity.registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri ?: return@registerForActivityResult
-            newThreadTask {
-                runCatching {
-                    activity.contentResolver.openInputStream(uri)
-                        ?.reader(StandardCharsets.UTF_8).use { inputStream ->
-                            inputStream?.readText()
-                        }?.let { json ->
-                            val allPreference =
-                                JsonUtils.parseObject(json, JsonPreference::class.java)
-                            // 写入配置
-                            val context = activity.baseContext
 
-                            context.prefEdit(
-                                PreferenceNameConstants.APP_OPTIMIZE_POLICY,
-                                commit = true
-                            ) {
-                                allPreference.appOptimizePolicyMap.forEach(this::putObject)
-                            }
+            newThreadTaskResult {
+                activity.contentResolver.openInputStream(uri)
+                    ?.reader(StandardCharsets.UTF_8).use { inputStream ->
+                        inputStream?.readText()
+                    }?.let { json ->
+                        val allPreference =
+                            JsonUtils.parseObject(json, JsonPreference::class.java)
+                        // 写入配置
+                        val context = activity.baseContext
 
-                            context.prefEdit(
-                                PreferenceNameConstants.SUB_PROCESS_OOM_POLICY,
-                                commit = true
-                            ) {
-                                allPreference.subProcessOomPolicyMap.forEach(this::putObject)
-                            }
+                        context.prefEdit(
+                            PreferenceNameConstants.APP_OPTIMIZE_POLICY,
+                            commit = true
+                        ) {
+                            allPreference.appOptimizePolicyMap.forEach(this::putObject)
+                        }
 
-                            context.prefEdit(PreferenceNameConstants.MAIN_SETTINGS, commit = true) {
-                                allPreference.mainSettingsMap.forEach { (prefKey, value) ->
-                                    when (value) {
-                                        is Boolean -> putBoolean(prefKey, value)
-                                        is String -> putString(prefKey, value)
-                                    }
+                        context.prefEdit(
+                            PreferenceNameConstants.SUB_PROCESS_OOM_POLICY,
+                            commit = true
+                        ) {
+                            allPreference.subProcessOomPolicyMap.forEach(this::putObject)
+                        }
+
+                        context.prefEdit(PreferenceNameConstants.MAIN_SETTINGS, commit = true) {
+                            allPreference.mainSettingsMap.forEach { (prefKey, value) ->
+                                when (value) {
+                                    is Boolean -> putBoolean(prefKey, value)
+                                    is String -> putString(prefKey, value)
                                 }
                             }
                         }
-                }.onFailure {
-                    showDialog("恢复备份失败, 错误信息: ${it.message}")
-                }.onSuccess {
-                    showDialog(text = "恢复备份成功, 重启生效")
-                }
+                    }
+            }.onFailure {
+                showDialog("恢复备份失败, 错误信息: ${it.message}")
+            }.onSuccess {
+                showDialog(text = "恢复备份成功, 重启生效")
             }
         }
 
@@ -106,7 +104,7 @@ class AllPreference(private val activity: ComponentActivity) {
                 activity,
                 text = text,
                 enablePositiveBtn = true,
-                positiveBlock = {dialogInterface, _ ->
+                positiveBlock = { dialogInterface, _ ->
                     dialogInterface.dismiss()
                 }
             ).show()
