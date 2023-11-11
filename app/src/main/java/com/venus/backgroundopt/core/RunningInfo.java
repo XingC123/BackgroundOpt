@@ -458,8 +458,6 @@ public class RunningInfo implements ILogger {
      * 进程创建                                                                  *
      *                                                                         *
      **************************************************************************/
-    ExecutorService startProcessExecutorService = Executors.newFixedThreadPool(2);
-
     /**
      * 进程创建时的行为
      *
@@ -470,7 +468,7 @@ public class RunningInfo implements ILogger {
      * @param pid         pid
      */
     public void startProcess(Object proc, int uid, int userId, String packageName, int pid) {
-        ConcurrentUtils.execute(startProcessExecutorService, () -> {
+        ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
             AppInfo appInfo = runningInfo.getRunningAppInfo(uid);
             if (appInfo == null) {
                 if (!isNormalApp(userId, packageName).isNormalApp()) {
@@ -509,7 +507,7 @@ public class RunningInfo implements ILogger {
 
     private final Consumer<AppInfo> putIntoActiveAction = this::putIntoActiveAppGroup;
 
-    ExecutorService activityEventChangeExecutor = Executors.newFixedThreadPool(2);
+    ExecutorService activityEventChangeExecutor = Executors.newFixedThreadPool(4);
 
     /**
      * 以异步的方式处理Activity改变事件
