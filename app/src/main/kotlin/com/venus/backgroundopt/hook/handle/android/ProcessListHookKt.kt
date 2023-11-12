@@ -128,7 +128,7 @@ class ProcessListHookKt(
                     )
                 }
             } else {
-                param.result = null
+//                param.result = null
                 appInfo.modifyProcessRecord(pid, oomAdjScore)
             }
         } else { // 子进程的处理

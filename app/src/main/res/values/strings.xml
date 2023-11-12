@@ -104,4 +104,6 @@
     </string>
     <string name="settingsToolbarBackupMenuItem">Backup</string>
     <string name="settingsToolbarRestoreMenuItem">Restore</string>
+    <string name="settingsOomStrictMode">Strtic oom mode</string>
+    <string name="settingsOomStrictModeSummary" translatable="false">开启以将主进程的最大adj限制到更低水平</string>
 </resources>
