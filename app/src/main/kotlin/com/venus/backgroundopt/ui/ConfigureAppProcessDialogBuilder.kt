@@ -30,7 +30,7 @@ object ConfigureAppProcessDialogBuilder {
     ): AlertDialog {
         return AlertDialog.Builder(context)
             .setCancelable(true)
-            .setView(getView(context, R.layout.dialog_sub_process_policy_choose).apply {
+            .setView(context.getView(R.layout.dialog_sub_process_policy_choose).apply {
                 val curPolicy = subProcessOomPolicy.policyEnum
 
                 // 获取按钮

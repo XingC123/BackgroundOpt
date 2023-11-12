@@ -1,6 +1,5 @@
 package com.venus.backgroundopt.utils.concurrent
 
-import com.venus.backgroundopt.environment.commonThreadPoolExecutor
 import com.venus.backgroundopt.utils.concurrent.lock.LockFlag
 import com.venus.backgroundopt.utils.concurrent.lock.ReadWriteLockFlag
 import com.venus.backgroundopt.utils.concurrent.lock.lock
@@ -9,6 +8,7 @@ import com.venus.backgroundopt.utils.concurrent.lock.writeLock
 import com.venus.backgroundopt.utils.log.logError
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 /**
  * @author XingC
@@ -38,10 +38,52 @@ object ConcurrentUtils {
             }
         }
     }
+
+    @JvmStatic
+    fun executeResult(
+        executorService: ExecutorService? = null,
+        block: (ExecutorService) -> Unit
+    ): Result<Unit> {
+        return runCatching {
+            val service = executorService ?: commonThreadPoolExecutor
+            service.execute { block(service) }
+        }
+    }
+
+    @JvmStatic
+    fun executeResult(
+        executorService: ExecutorService? = null,
+        block: () -> Unit
+    ): Result<Unit> {
+        return executeResult(executorService) { _ ->
+            block()
+        }
+    }
 }
 
-fun ExecutorService?.execute(exceptionBlock: ((Throwable) -> Unit)? = null, block: () -> Unit) {
-    ConcurrentUtils.execute(this, exceptionBlock, block)
+inline fun ExecutorService?.executeResult(crossinline block: (ExecutorService) -> Unit): Result<Unit> =
+    ConcurrentUtils.executeResult(this) { executorService ->
+        block(executorService)
+    }
+
+inline fun ExecutorService?.executeResult(crossinline block: () -> Unit): Result<Unit> =
+    executeResult { _ -> block() }
+
+/* *************************************************************************
+ *                                                                         *
+ * 全局线程池                                                                *
+ *                                                                         *
+ **************************************************************************/
+val commonThreadPoolExecutor: ExecutorService = Executors.newFixedThreadPool(2)
+
+inline fun newThreadTask(crossinline block: () -> Unit) {
+    commonThreadPoolExecutor.execute {
+        block()
+    }
+}
+
+inline fun newThreadTaskResult(crossinline block: () -> Unit): Result<Unit> {
+    return commonThreadPoolExecutor.executeResult(block)
 }
 
 /* *************************************************************************

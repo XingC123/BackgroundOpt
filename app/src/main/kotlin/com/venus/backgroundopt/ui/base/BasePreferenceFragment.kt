@@ -9,8 +9,8 @@ import androidx.preference.PreferenceFragmentCompat
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
-import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
 import com.venus.backgroundopt.utils.preference.pref
+import com.venus.backgroundopt.utils.showProgressBarViewForAction
 
 /**
  * PreferenceFragment的拓展类
@@ -42,8 +42,7 @@ open class BasePreferenceFragment<T : Activity> : PreferenceFragmentCompat() {
     }
 
     fun preferenceChangeAction(text: String = "正在设置...", action: () -> Unit) {
-        showProgressBarViewForAction(
-            requireContext(),
+        requireContext().showProgressBarViewForAction(
             text,
             enableNegativeBtn = false,
             action = action

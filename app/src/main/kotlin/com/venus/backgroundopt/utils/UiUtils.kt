@@ -13,6 +13,8 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.content.res.ResourcesCompat
 import com.alibaba.fastjson2.JSON
 import com.venus.backgroundopt.R
+import com.venus.backgroundopt.utils.concurrent.newThreadTask
+import com.venus.backgroundopt.utils.log.logErrorAndroid
 
 /**
  * @author XingC
@@ -20,26 +22,34 @@ import com.venus.backgroundopt.R
  */
 
 // 临时数据。在两个Activity之间使用。有线程安全问题
-@JvmField
-var TMP_DATA: Any? = null
+private var tmpData: Any? = null
 
-@JvmField
-var TMP_DATA_LIST: ArrayList<Any>? = null
+fun setTmpData(any: Any?) {
+    tmpData = any
+}
 
-fun putTmpListData(vararg value: Any) {
-    TMP_DATA_LIST = arrayListOf(*value)
+fun getTmpData(): Any? {
+    val o = tmpData
+    tmpData = null
+    return o
+}
+
+private var tmpListData: ArrayList<Any>? = null
+
+fun setTmpListData(vararg value: Any) {
+    tmpListData = arrayListOf(*value)
 }
 
 fun getTmpListData(): ArrayList<Any>? {
-    val list = TMP_DATA_LIST
-    TMP_DATA_LIST = null
+    val list = tmpListData
+    tmpListData = null
 
     return list
 }
 
 @Suppress("UNCHECKED_CAST")
 fun <E> getTmpListData(index: Int): E? {
-    return TMP_DATA_LIST?.get(index) as? E
+    return tmpListData?.get(index) as? E
 }
 
 fun setIntentData(intent: Intent, data: String?) {
@@ -66,8 +76,8 @@ inline fun <reified E> getIntentDataToList(intent: Intent): List<E>? {
     }
 }
 
-fun getView(context: Context, layoutResId: Int): View =
-    LayoutInflater.from(context).inflate(layoutResId, null)
+fun Context.getView(layoutResId: Int): View =
+    LayoutInflater.from(this).inflate(layoutResId, null)
 
 fun <E : View> Activity.findViewById(resId: Int, enable: Boolean = true): E? {
     return if (enable) {
@@ -90,32 +100,132 @@ object UiUtils {
      */
     @JvmOverloads
     fun createDialog(context: Context, viewResId: Int, cancelable: Boolean = true): AlertDialog {
-        return createDialog(context, viewResId, "", cancelable)
+        return createDialog(context, viewResId, {}, cancelable)
+    }
+
+    /**
+     * 创建对话框
+     * @param context Context 当前上下文
+     * @param viewResId Int 布局文件资源id
+     * @param viewBlock Function1<View, Unit> 要对布局文件创建的[View]执行的操作
+     * @param cancelable Boolean 点击空白处是否可以取消对话框
+     * @param enableNegativeBtn Boolean 启用返回按钮
+     * @param negativeBtnText String 返回按钮文字
+     * @param negativeBlock Function2<DialogInterface, Int, Unit> 返回按钮执行的操作
+     * @param enablePositiveBtn Boolean 启用确认按钮
+     * @param positiveBtnText String 确认按钮文本
+     * @param positiveBlock Function2<DialogInterface, Int, Unit> 确认按钮执行的操作
+     * @return AlertDialog
+     */
+    @JvmOverloads
+    fun createDialog(
+        context: Context,
+        viewResId: Int,
+        viewBlock: View.() -> Unit,
+        cancelable: Boolean = true,
+        enableNegativeBtn: Boolean = false,
+        negativeBtnText: String = "放弃",
+        negativeBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
+            dialogInterface.dismiss()
+            (context as Activity).finish()
+        },
+        enablePositiveBtn: Boolean = false,
+        positiveBtnText: String = "确认",
+        positiveBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
+            dialogInterface.dismiss()
+            (context as Activity).finish()
+        },
+    ): AlertDialog {
+        return AlertDialog.Builder(context)
+            .setCancelable(cancelable)
+            .setView(context.getView(viewResId).apply { viewBlock(this) })
+            .setNegativeBtn(context, enableNegativeBtn, negativeBtnText, negativeBlock)
+            .setPositiveBtn(context, enablePositiveBtn, positiveBtnText, positiveBlock)
+            .create()
     }
 
     @JvmOverloads
     fun createDialog(
         context: Context,
-        viewResId: Int,
         text: String,
-        cancelable: Boolean = true
+        cancelable: Boolean = true,
+        enableNegativeBtn: Boolean = false,
+        negativeBtnText: String = "放弃",
+        negativeBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
+            dialogInterface.dismiss()
+            (context as Activity).finish()
+        },
+        enablePositiveBtn: Boolean = false,
+        positiveBtnText: String = "确认",
+        positiveBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
+            dialogInterface.dismiss()
+            (context as Activity).finish()
+        },
     ): AlertDialog {
-        return AlertDialog.Builder(context)
-            .setCancelable(cancelable)
-            .setView(getView(context, viewResId).apply {
-                findViewById<TextView>(R.id.contentCommonDialogText)?.text = text
-            })
-            .create()
-    }
-
-    @JvmOverloads
-    fun createDialog(context: Context, text: String, cancelable: Boolean = true): AlertDialog {
         return createDialog(
             context,
             viewResId = R.layout.content_common_dailog_view,
-            text,
-            cancelable
+            viewBlock = {
+                findViewById<TextView>(R.id.contentCommonDialogText)?.text = text
+            },
+            cancelable,
+            enableNegativeBtn,
+            negativeBtnText,
+            negativeBlock,
+            enablePositiveBtn,
+            positiveBtnText,
+            positiveBlock
         )
+    }
+
+    @JvmStatic
+    fun createProgressBarView(
+        context: Context,
+        text: String,
+        cancelable: Boolean = false,
+        enableNegativeBtn: Boolean = true,
+        negativeBtnText: String = "放弃"
+    ): AlertDialog {
+        val view = LayoutInflater.from(context).inflate(R.layout.dialog_progress_bar, null)
+
+        view.findViewById<TextView>(R.id.progressBarText)?.let {
+            it.text = text
+        }
+
+        return AlertDialog.Builder(context)
+            .setCancelable(cancelable)
+            .setView(view)
+            .setNegativeBtn(
+                context,
+                enableNegativeBtn,
+                negativeBtnText
+            )
+            .create()
+    }
+
+    @JvmStatic
+    fun showProgressBarViewForAction(
+        context: Context,
+        text: String,
+        cancelable: Boolean = false,
+        enableNegativeBtn: Boolean = true,
+        negativeBtnText: String = "放弃",
+        action: () -> Unit
+    ) {
+        val dialog =
+            createProgressBarView(context, text, cancelable, enableNegativeBtn, negativeBtnText)
+        dialog.show()
+        newThreadTask {
+            runCatching {
+                action()
+            }.onFailure {
+                logErrorAndroid(
+                    logStr = "showProgressBarViewForAction: 进度条事件执行出错",
+                    t = it
+                )
+            }
+            dialog.dismiss()
+        }
     }
 
     /**
@@ -194,3 +304,36 @@ inline fun AlertDialog.Builder.setNegativeBtn(
     return this
 }
 
+inline fun AlertDialog.Builder.setPositiveBtn(
+    context: Context,
+    enablePositiveBtn: Boolean = false,
+    positiveBtnText: String = "确认",
+    crossinline block: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
+        dialogInterface.dismiss()
+        (context as Activity).finish()
+    }
+): AlertDialog.Builder {
+    if (enablePositiveBtn) {
+        setNegativeButton(positiveBtnText) { dialogInterface, i ->
+            block(dialogInterface, i)
+        }
+    }
+    return this
+}
+
+fun Context.showProgressBarViewForAction(
+    text: String,
+    cancelable: Boolean = false,
+    enableNegativeBtn: Boolean = true,
+    negativeBtnText: String = "放弃",
+    action: () -> Unit
+) {
+    UiUtils.showProgressBarViewForAction(
+        this,
+        text,
+        cancelable,
+        enableNegativeBtn,
+        negativeBtnText,
+        action
+    )
+}

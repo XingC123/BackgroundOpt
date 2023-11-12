@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.utils.StringUtils
-import com.venus.backgroundopt.utils.TMP_DATA
+import com.venus.backgroundopt.utils.setTmpData
 
 /**
  * @author XingC
@@ -88,7 +88,7 @@ class ShowAllInstalledAppsAdapter(private val appItems: List<AppItem>) :
                         context,
                         ConfigureAppProcessActivity::class.java
                     ).apply {
-                        TMP_DATA = appItem
+                        setTmpData(appItem)
                     })
             }
         }

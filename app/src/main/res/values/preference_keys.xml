@@ -3,4 +3,5 @@
     <string name="pref_key_autoStopCompactTask" translatable="false">pref_key_autoStopCompactTask</string>
     <string name="pref_key_enable_foreground_proc_trim_mem_policy" translatable="false">pref_key_enable_foreground_proc_trim_mem_policy</string>
     <string name="pref_key_foreground_proc_trim_mem_policy" translatable="false">pref_key_foreground_proc_trim_mem_policy</string>
+    <string name="pref_key_strict_oom_mode" translatable="false">pref_key_strict_oom_mode</string>
 </resources>

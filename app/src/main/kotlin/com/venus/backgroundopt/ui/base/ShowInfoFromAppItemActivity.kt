@@ -6,9 +6,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.alibaba.fastjson2.JSON
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
-import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.getIntentData
+import com.venus.backgroundopt.utils.showProgressBarViewForAction
 
 /**
  * @author XingC
@@ -18,7 +18,7 @@ abstract class ShowInfoFromAppItemActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        showProgressBarViewForAction(this, "正在加载...") {
+        showProgressBarViewForAction("正在加载...") {
             init()
         }
     }
