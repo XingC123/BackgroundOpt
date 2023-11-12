@@ -540,8 +540,11 @@ public class RunningInfo implements ILogger {
      * @param componentName 组件
      */
     public void handleActivityEventChange(int event, int userId, @NonNull ComponentName componentName) {
+        handleActivityEventChange(event, userId, componentName.getPackageName(), componentName);
+    }
+
+    public void handleActivityEventChange(int event, int userId, @NonNull String packageName, @Nullable ComponentName componentName) {
         ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
-            String packageName = componentName.getPackageName();
             // 检查是否是系统重要进程
             NormalAppResult normalAppResult = isNormalApp(userId, packageName);
             AppInfo appInfo;
@@ -584,7 +587,7 @@ public class RunningInfo implements ILogger {
             */
             ""
     )
-    public void handleActivityEventChange(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
+    public void handleActivityEventChange(int event, @Nullable ComponentName componentName, @NonNull AppInfo appInfo) {
         switch (event) {
             case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
                 Consumer<AppInfo> consumer;

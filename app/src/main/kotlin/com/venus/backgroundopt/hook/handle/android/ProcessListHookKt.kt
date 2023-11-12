@@ -104,12 +104,6 @@ class ProcessListHookKt(
         /*?: appInfo.addProcess(runningInfo.activityManagerService.getProcessRecord(pid))*/
         val mainProcess = process.mainProcess
 
-        if (mainProcess && appInfo.appGroupEnum == AppGroupEnum.NONE) {
-            runningInfo.handleActivityEventChange(
-                ActivityManagerServiceHookKt.ACTIVITY_STOPPED, null, appInfo
-            )
-        }
-
         if (mainProcess || isUpgradeSubProcessLevel(process.processName)) { // 主进程
             if (process.fixedOomAdjScore != ProcessRecordKt.DEFAULT_MAIN_ADJ) {
                 process.oomAdjScore = oomAdjScore
@@ -164,7 +158,13 @@ class ProcessListHookKt(
                 appInfo.modifyProcessRecord(pid, oomAdjScore)
             }
         }
-        return
+
+        if (mainProcess && appInfo.appGroupEnum == AppGroupEnum.NONE) {
+            // 必须同步调用, 不能使用异步。否则可能出现app先进入Active分组, 又被放入idle分组
+            runningInfo.handleActivityEventChange(
+                ActivityManagerServiceHookKt.ACTIVITY_STOPPED, null, appInfo
+            )
+        }
     }
 
     @Deprecated("ProcessRecordKt.getMDyingPid(proc)有时候为0")
