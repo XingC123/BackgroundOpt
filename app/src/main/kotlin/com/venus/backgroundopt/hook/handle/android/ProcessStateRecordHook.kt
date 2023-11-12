@@ -104,7 +104,7 @@ class ProcessStateRecordHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) 
             enableStrictOomMode = PreferencesUtil.getBoolean(
                 PreferenceNameConstants.MAIN_SETTINGS,
                 PreferenceKeyConstants.STRICT_OOM_MODE,
-                true
+                false
             )
             logInfo(logStr = "OOM严格模式: $enableStrictOomMode")
         }
