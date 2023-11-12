@@ -15,15 +15,15 @@ import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.ui.base.BaseActivity
-import com.venus.backgroundopt.ui.widget.showProgressBarViewForAction
 import com.venus.backgroundopt.utils.PackageUtils
-import com.venus.backgroundopt.utils.TMP_DATA
 import com.venus.backgroundopt.utils.UiUtils
+import com.venus.backgroundopt.utils.getTmpData
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.message.sendMessage
 import com.venus.backgroundopt.utils.preference.prefPut
 import com.venus.backgroundopt.utils.preference.prefValue
+import com.venus.backgroundopt.utils.showProgressBarViewForAction
 
 class ConfigureAppProcessActivity : BaseActivity() {
     private lateinit var appItem: AppItem
@@ -31,7 +31,7 @@ class ConfigureAppProcessActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        showProgressBarViewForAction(this, "正在加载...") {
+        showProgressBarViewForAction("正在加载...") {
             init()
         }
     }
@@ -60,7 +60,7 @@ class ConfigureAppProcessActivity : BaseActivity() {
 
 
     private fun init() {
-        appItem = TMP_DATA as AppItem
+        appItem = getTmpData() as AppItem
 
         // 设置基本数据
         runOnUiThread {
@@ -111,7 +111,7 @@ class ConfigureAppProcessActivity : BaseActivity() {
                         appOptimizePolicy
                     )
                     // 通知模块进程
-                    showProgressBarViewForAction(this, "正在设置") {
+                    showProgressBarViewForAction("正在设置") {
                         sendMessage(this, MessageKeyConstants.appOptimizePolicy, appOptimizePolicy)
                     }
                 }

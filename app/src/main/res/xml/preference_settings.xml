@@ -34,5 +34,13 @@
             app:iconSpaceReserved="false"
             app:key="@string/pref_key_foreground_proc_trim_mem_policy"
             app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:defaultValue="false"
+            android:title="@string/settingsOomStrictMode"
+            app:iconSpaceReserved="false"
+            app:key="@string/pref_key_strict_oom_mode"
+            app:summary="@string/settingsOomStrictModeSummary" />
     </PreferenceCategory>
 </PreferenceScreen>

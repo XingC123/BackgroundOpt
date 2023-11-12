@@ -134,6 +134,25 @@ public class AppInfo implements ILogger, LockFlag {
         });
     }
 
+    @NonNull
+    public ProcessRecordKt addProcess(@NonNull Object proc, int pid) {
+        return processRecordMap.computeIfAbsent(pid, k -> {
+            ProcessRecordKt processRecord = new ProcessRecordKt(
+                    runningInfo.getActivityManagerService(),
+                    proc, pid, uid, userId, packageName
+            );
+
+            // 做一些额外操作
+            ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
+            if (processRecord.getMainProcess()) {
+                setmProcessRecord(processRecord);
+            }
+            processRecord.setAppInfo(this);
+
+            return processRecord;
+        });
+    }
+
     @Nullable
     public ProcessRecordKt getProcess(int pid) {
         return processRecordMap.get(pid);

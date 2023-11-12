@@ -381,6 +381,31 @@ public class RunningInfo implements ILogger {
     }
 
     /**
+     * 若 {@link #runningApps} 中没有此uid记录, 将进行计算创建
+     *
+     * @param userId      目标app对应用户id
+     * @param packageName 目标app包名
+     * @param uid         目标app的uid
+     * @param proc        安卓的进程记录{@link com.venus.backgroundopt.hook.constants.ClassConstants#ProcessRecord}
+     * @param pid         进程的pid
+     * @return nonNull if it is a normal app
+     */
+    @Nullable
+    public AppInfo computeRunningAppIfAbsent(int userId, String packageName, int uid, Object proc, int pid) {
+        return runningApps.computeIfAbsent(uid, key -> {
+            if (!isNormalApp(userId, packageName).isNormalApp) {
+                return null;
+            }
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("打开新App: " + packageName + ", uid: " + uid);
+            }
+            AppInfo appInfo = new AppInfo(userId, packageName, this).setUid(uid);
+            appInfo.addProcess(proc, pid);
+            return appInfo;
+        });
+    }
+
+    /**
      * 根据{@link AppInfo}从运行列表中移除
      *
      * @param appInfo app信息
@@ -458,7 +483,6 @@ public class RunningInfo implements ILogger {
      * 进程创建                                                                  *
      *                                                                         *
      **************************************************************************/
-    ExecutorService startProcessExecutorService = Executors.newFixedThreadPool(2);
 
     /**
      * 进程创建时的行为
@@ -470,17 +494,14 @@ public class RunningInfo implements ILogger {
      * @param pid         pid
      */
     public void startProcess(Object proc, int uid, int userId, String packageName, int pid) {
-        ConcurrentUtils.execute(startProcessExecutorService, () -> {
-            AppInfo appInfo = runningInfo.getRunningAppInfo(uid);
+        ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
+            AppInfo appInfo = computeRunningAppIfAbsent(userId, packageName, uid, proc, pid);
             if (appInfo == null) {
-                if (!isNormalApp(userId, packageName).isNormalApp()) {
-                    return null;
-                }
-                appInfo = computeRunningAppIfAbsent(userId, packageName, uid);
+                return null;
             }
 
-            ProcessRecordKt processRecord = new ProcessRecordKt(activityManagerService, proc, pid, uid, userId, packageName);
-            appInfo.addProcess(processRecord);
+            // 若为主进程, 在创建AppInfo时已经添加过, 再次appInfo.addProcess不会进行添加
+            appInfo.addProcess(proc, pid);
             return null;
         });
     }
@@ -509,7 +530,7 @@ public class RunningInfo implements ILogger {
 
     private final Consumer<AppInfo> putIntoActiveAction = this::putIntoActiveAppGroup;
 
-    ExecutorService activityEventChangeExecutor = Executors.newFixedThreadPool(2);
+    ExecutorService activityEventChangeExecutor = Executors.newFixedThreadPool(4);
 
     /**
      * 以异步的方式处理Activity改变事件
@@ -519,20 +540,19 @@ public class RunningInfo implements ILogger {
      * @param componentName 组件
      */
     public void handleActivityEventChange(int event, int userId, @NonNull ComponentName componentName) {
+        handleActivityEventChange(event, userId, componentName.getPackageName(), componentName);
+    }
+
+    public void handleActivityEventChange(int event, int userId, @NonNull String packageName, @Nullable ComponentName componentName) {
         ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
-            String packageName = componentName.getPackageName();
             // 检查是否是系统重要进程
-            NormalAppResult normalAppResult = runningInfo.isNormalApp(userId, packageName);
-            if (!normalAppResult.isNormalApp) {
+            NormalAppResult normalAppResult = isNormalApp(userId, packageName);
+            AppInfo appInfo;
+            if (!normalAppResult.isNormalApp || (appInfo = getRunningAppInfo(normalAppResult.applicationInfo.uid)) == null) {
                 return null;
             }
 
-            AppInfo appInfo = runningInfo.getRunningAppInfo(normalAppResult.applicationInfo.uid);
-            if (appInfo == null) {
-                return null;
-            }
-
-            runningInfo.handleActivityEventChange(event, componentName, appInfo);
+            handleActivityEventChange(event, componentName, appInfo);
             return null;
         });
     }
@@ -567,7 +587,7 @@ public class RunningInfo implements ILogger {
             */
             ""
     )
-    public void handleActivityEventChange(int event, ComponentName componentName, @NonNull AppInfo appInfo) {
+    public void handleActivityEventChange(int event, @Nullable ComponentName componentName, @NonNull AppInfo appInfo) {
         switch (event) {
             case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
                 Consumer<AppInfo> consumer;

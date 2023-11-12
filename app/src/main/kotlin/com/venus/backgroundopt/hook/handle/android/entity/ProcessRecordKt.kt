@@ -9,6 +9,7 @@ import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
+import com.venus.backgroundopt.hook.handle.android.ProcessStateRecordHook
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_NEWLINE_TERM
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_OUT_LONG
 import com.venus.backgroundopt.utils.PackageUtils
@@ -34,14 +35,14 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             intArrayOf(PROC_NEWLINE_TERM or PROC_OUT_LONG)
         }
 
-        // 默认的最大adj
-        const val DEFAULT_MAX_ADJ = ProcessList.VISIBLE_APP_ADJ
-
         // 默认的主进程要设置的adj
         const val DEFAULT_MAIN_ADJ = ProcessList.FOREGROUND_APP_ADJ
 
         // 默认的子进程要设置的adj
-        const val SUB_PROC_ADJ = DEFAULT_MAX_ADJ + 1
+        const val SUB_PROC_ADJ = ProcessList.VISIBLE_APP_ADJ + 1
+
+        // 默认的最大adj
+        var defaultMaxAdj = ProcessList.VISIBLE_APP_ADJ
 
         // 当前资源占用大于此值则进行优化
         // 157286400 = 150MB *1024 * 1024
@@ -52,6 +53,11 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         const val minOptimizeRssFactor = 0.02
 
         init {
+            // 根据配置文件决定defaultMaxAdj
+            val enableStrictOomMode = ProcessStateRecordHook.enableStrictOomMode
+            defaultMaxAdj = if (enableStrictOomMode) ProcessList.VISIBLE_APP_ADJ else ProcessList.PREVIOUS_APP_ADJ
+            logInfo(logStr = "最大adj: $defaultMaxAdj")
+
             // 计算最小的、要进行优化的资源占用的值
             RunningInfo.getInstance().memInfoReader?.let { memInfoReader ->
                 minOptimizeRssInBytes = memInfoReader.getTotalSize() * minOptimizeRssFactor
@@ -336,7 +342,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
      */
     @JSONField(serialize = false)
     fun setDefaultMaxAdj() {
-        setMaxAdj(DEFAULT_MAX_ADJ)
+        setMaxAdj(defaultMaxAdj)
     }
 
     /**
