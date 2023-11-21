@@ -254,7 +254,7 @@ public class AppInfo implements ILogger, LockFlag {
                     ap.set(null);
                 }
 
-                if (!(obj instanceof AppGroupEnum)) {
+                if (!(obj instanceof AppGroupEnum) && !(obj instanceof Lock)) {
                     field.set(this, null);
                 }
             }
