@@ -522,7 +522,11 @@ public class RunningInfo implements ILogger {
 
     private final Consumer<AppInfo> putIntoActiveAction = this::putIntoActiveAppGroup;
 
-    ExecutorService activityEventChangeExecutor = Executors.newFixedThreadPool(4);
+    private ExecutorService activityEventChangeExecutor = Executors.newFixedThreadPool(4);
+
+    public ExecutorService getActivityEventChangeExecutor() {
+        return activityEventChangeExecutor;
+    }
 
     /**
      * 以异步的方式处理Activity改变事件

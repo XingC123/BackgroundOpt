@@ -13,6 +13,8 @@ import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils
+import com.venus.backgroundopt.utils.concurrent.lock
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
@@ -159,11 +161,24 @@ class ProcessListHookKt(
             }
         }
 
-        if (mainProcess && appInfo.appGroupEnum == AppGroupEnum.NONE) {
-            // 必须同步调用, 不能使用异步。否则可能出现app先进入Active分组, 又被放入idle分组
-            runningInfo.handleActivityEventChange(
-                ActivityManagerServiceHookKt.ACTIVITY_STOPPED, null, appInfo
-            )
+        if (mainProcess) {
+            ConcurrentUtils.execute(runningInfo.activityEventChangeExecutor, { throwable ->
+                logger.error(
+                    "检查App(userId: ${appInfo.userId}, 包名: ${appInfo.packageName}, uid: $uid" +
+                            ")是否需要放置到idle分组出错: ${throwable.message}",
+                    throwable
+                )
+            }) {
+                appInfo.lock {
+                    if (appInfo.appGroupEnum == AppGroupEnum.NONE) {
+                        runningInfo.handleActivityEventChange(
+                            ActivityManagerServiceHookKt.ACTIVITY_STOPPED,
+                            null,
+                            appInfo
+                        )
+                    }
+                }
+            }
         }
     }
 
