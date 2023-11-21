@@ -67,26 +67,6 @@ public class RunningInfo implements ILogger {
         return classLoader;
     }
 
-    /**
-     * hook 次数
-     */
-    private static final Object infoLock = new Object();
-    private int hookTimes = Integer.MIN_VALUE;
-
-    public int getHookTimes() {
-        synchronized (infoLock) {
-            return hookTimes;
-        }
-    }
-
-    public void updateHookTimes() {
-        synchronized (infoLock) {
-            if (hookTimes == Integer.MAX_VALUE) {
-                hookTimes = Integer.MIN_VALUE;
-            }
-        }
-    }
-
     private MemInfoReader memInfoReader;
 
     public MemInfoReader getMemInfoReader() {
