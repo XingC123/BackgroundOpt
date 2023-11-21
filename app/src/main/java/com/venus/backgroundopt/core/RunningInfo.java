@@ -430,7 +430,10 @@ public class RunningInfo implements ILogger {
      * @param pid     pid
      */
     public void removeProcess(@NonNull AppInfo appInfo, int uid, int pid) {
-        ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
+        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
+            getLogger().error("移除进程出现错误: " + throwable.getMessage(), throwable);
+            return null;
+        }, () -> {
             ProcessRecordKt processRecord = appInfo.getProcess(pid);
             boolean isMainProcess = false;
             if (processRecord != null) {
@@ -474,7 +477,10 @@ public class RunningInfo implements ILogger {
      * @param pid         pid
      */
     public void startProcess(Object proc, int uid, int userId, String packageName, int pid) {
-        ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
+        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
+            getLogger().error("创建进程出现错误: " + throwable.getMessage(), throwable);
+            return null;
+        }, () -> {
             AppInfo appInfo = computeRunningAppIfAbsent(userId, packageName, uid, proc, pid);
             if (appInfo == null) {
                 return null;
@@ -524,7 +530,10 @@ public class RunningInfo implements ILogger {
     }
 
     public void handleActivityEventChange(int event, int userId, @NonNull String packageName, @Nullable ComponentName componentName) {
-        ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
+        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
+            getLogger().error("处理app切换事件错误: " + throwable.getMessage(), throwable);
+            return null;
+        }, () -> {
             // 检查是否是系统重要进程
             NormalAppResult normalAppResult = isNormalApp(userId, packageName);
             AppInfo appInfo;
