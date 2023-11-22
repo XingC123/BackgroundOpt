@@ -60,7 +60,7 @@ object PreferencesUtil {
                 JsonUtils.parseObject(v, clazz)
             } catch (t: Throwable) {
                 logError(logStr = "反序列化错误: v: ${v}, 类型: ${clazz.canonicalName}", t = t)
-                null
+                defaultValue
             }
         } ?: defaultValue
     }
