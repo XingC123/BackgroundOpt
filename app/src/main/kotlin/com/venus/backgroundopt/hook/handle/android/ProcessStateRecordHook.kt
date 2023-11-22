@@ -1,8 +1,6 @@
 package com.venus.backgroundopt.hook.handle.android
 
 import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
-import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
@@ -10,8 +8,6 @@ import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessStateRecord
-import com.venus.backgroundopt.utils.log.logInfo
-import com.venus.backgroundopt.utils.preference.PreferencesUtil
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
@@ -41,9 +37,6 @@ class ProcessStateRecordHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) 
     }
 
     private fun handleSetCurAdj(param: MethodHookParam) {
-        if (!enableStrictOomMode) {
-            return
-        }
         val processStateRecord = param.thisObject
         val processRecordKt =
             ProcessRecordKt(
@@ -70,9 +63,6 @@ class ProcessStateRecordHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) 
     }
 
     private fun handleGetCurAdj(param: MethodHookParam) {
-        if (!enableStrictOomMode) {
-            return
-        }
         val processStateRecord = param.thisObject
         val processRecordKt =
             ProcessRecordKt(
@@ -94,19 +84,6 @@ class ProcessStateRecordHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) 
                 logger.debug("getCurAdj() >>> 包名: ${processRecordKt.packageName}, uid: ${processRecordKt.uid}, pid: ${processRecordKt.pid}, 目标主进程, 给你返回${ProcessRecordKt.DEFAULT_MAIN_ADJ}")
             }*/
             param.result = ProcessRecordKt.DEFAULT_MAIN_ADJ
-        }
-    }
-
-    companion object {
-        var enableStrictOomMode = true
-
-        init {
-            enableStrictOomMode = PreferencesUtil.getBoolean(
-                PreferenceNameConstants.MAIN_SETTINGS,
-                PreferenceKeyConstants.STRICT_OOM_MODE,
-                false
-            )
-            logInfo(logStr = "OOM严格模式: $enableStrictOomMode")
         }
     }
 }
