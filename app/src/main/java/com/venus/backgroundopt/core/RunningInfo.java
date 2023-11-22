@@ -437,11 +437,12 @@ public class RunningInfo implements ILogger {
             );
             return null;
         }, () -> {
-            ProcessRecordKt processRecord = appInfo.getProcess(pid);
             boolean isMainProcess = false;
-            if (processRecord != null) {
-                isMainProcess = processRecord.getMainProcess();
+            ProcessRecordKt processRecord = appInfo.getProcess(pid);
+            if (processRecord == null) {
+                return null;
             }
+            isMainProcess = processRecord.getMainProcess();
             String packageName = appInfo.getPackageName();
 
             if (isMainProcess) {

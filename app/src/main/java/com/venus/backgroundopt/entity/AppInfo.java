@@ -155,7 +155,7 @@ public class AppInfo implements ILogger, LockFlag {
 
     @Nullable
     public ProcessRecordKt getProcess(int pid) {
-        return processRecordMap.get(pid);
+        return processRecordMap == null ? null : processRecordMap.get(pid);
     }
 
     public void modifyProcessRecord(int pid, int oomAdjScore) {
