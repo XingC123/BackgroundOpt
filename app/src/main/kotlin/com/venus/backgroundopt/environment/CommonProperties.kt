@@ -1,9 +1,11 @@
 package com.venus.backgroundopt.environment
 
+import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
+import com.venus.backgroundopt.utils.log.logInfo
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.preference.PreferencesUtil
 import com.venus.backgroundopt.utils.preference.prefAll
@@ -49,6 +51,21 @@ object CommonProperties {
                 }
             }
         }
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * OOM                                                                     *
+     *                                                                         *
+     **************************************************************************/
+    val oomWorkModePref by lazy {
+        val oomWorkMode = PreferencesUtil.getString(
+            PreferenceNameConstants.MAIN_SETTINGS,
+            PreferenceKeyConstants.OOM_WORK_MODE,
+            OomWorkModePref.MODE_BALANCE.toString()
+        )!!
+        logInfo(logStr = "Oom工作模式: $oomWorkMode")
+        OomWorkModePref(oomWorkMode.toInt())
     }
 
     /* *************************************************************************

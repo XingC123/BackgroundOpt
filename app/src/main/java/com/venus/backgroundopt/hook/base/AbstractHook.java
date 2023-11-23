@@ -39,8 +39,4 @@ public abstract class AbstractHook implements ILogger {
     public ClassLoader getClassLoader() {
         return classLoader;
     }
-
-    public boolean isHookTimeChanged() {
-        return this.lastHookTimes == this.runningInfo.getHookTimes();
-    }
 }

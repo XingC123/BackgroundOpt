@@ -3,6 +3,8 @@ package com.venus.backgroundopt.hook.handler;
 import android.os.Build;
 
 import com.venus.backgroundopt.core.RunningInfo;
+import com.venus.backgroundopt.entity.preference.OomWorkModePref;
+import com.venus.backgroundopt.environment.CommonProperties;
 import com.venus.backgroundopt.environment.SystemProperties;
 import com.venus.backgroundopt.hook.base.PackageHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerConstantsHook;
@@ -35,7 +37,7 @@ public class AndroidHookHandler extends PackageHook {
     @Override
     public void hook(XC_LoadPackage.LoadPackageParam packageParam) {
         ClassLoader classLoader = packageParam.classLoader;
-        RunningInfo runningInfo = getRunningInfo();
+        RunningInfo runningInfo = new RunningInfo(classLoader);
 
         initSystemProp();
 
@@ -57,7 +59,9 @@ public class AndroidHookHandler extends PackageHook {
 //        new ProcessHookKt(classLoader, runningInfo);
 
         // oom_adj更新hook
-        new ProcessStateRecordHook(classLoader, runningInfo);
+        if (CommonProperties.INSTANCE.getOomWorkModePref().getOomMode() == OomWorkModePref.MODE_STRICT) {
+            new ProcessStateRecordHook(classLoader, runningInfo);
+        }
         new ProcessListHookKt(classLoader, runningInfo);
 
         // 安卓虚进程处理hook
