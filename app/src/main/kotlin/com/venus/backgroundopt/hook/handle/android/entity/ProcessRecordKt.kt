@@ -58,7 +58,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             val oomMode = CommonProperties.oomWorkModePref.oomMode
             defaultMaxAdj = when (oomMode) {
                 OomWorkModePref.MODE_STRICT -> ProcessList.VISIBLE_APP_ADJ
-                OomWorkModePref.MODE_NEGATIVE -> ProcessList.PREVIOUS_APP_ADJ
+                OomWorkModePref.MODE_NEGATIVE -> ProcessList.HEAVY_WEIGHT_APP_ADJ
                 else -> ProcessList.UNKNOWN_ADJ
             }
             logInfo(logStr = "最大adj: $defaultMaxAdj")
