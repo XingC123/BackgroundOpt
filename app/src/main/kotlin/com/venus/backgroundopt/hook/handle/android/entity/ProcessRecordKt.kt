@@ -7,9 +7,10 @@ import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
+import com.venus.backgroundopt.entity.preference.OomWorkModePref
+import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
-import com.venus.backgroundopt.hook.handle.android.ProcessStateRecordHook
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_NEWLINE_TERM
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_OUT_LONG
 import com.venus.backgroundopt.utils.PackageUtils
@@ -42,7 +43,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         const val SUB_PROC_ADJ = ProcessList.VISIBLE_APP_ADJ + 1
 
         // 默认的最大adj
-        var defaultMaxAdj = ProcessList.VISIBLE_APP_ADJ
+        var defaultMaxAdj = ProcessList.UNKNOWN_ADJ
 
         // 当前资源占用大于此值则进行优化
         // 157286400 = 150MB *1024 * 1024
@@ -54,8 +55,12 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
         init {
             // 根据配置文件决定defaultMaxAdj
-            val enableStrictOomMode = ProcessStateRecordHook.enableStrictOomMode
-            defaultMaxAdj = if (enableStrictOomMode) ProcessList.VISIBLE_APP_ADJ else ProcessList.PREVIOUS_APP_ADJ
+            val oomMode = CommonProperties.oomWorkModePref.oomMode
+            defaultMaxAdj = when (oomMode) {
+                OomWorkModePref.MODE_STRICT -> ProcessList.VISIBLE_APP_ADJ
+                OomWorkModePref.MODE_NEGATIVE -> ProcessList.PREVIOUS_APP_ADJ
+                else -> ProcessList.UNKNOWN_ADJ
+            }
             logInfo(logStr = "最大adj: $defaultMaxAdj")
 
             // 计算最小的、要进行优化的资源占用的值

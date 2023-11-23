@@ -3,6 +3,7 @@ package com.venus.backgroundopt.hook.handle.android
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
+import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.base.HookPoint
@@ -13,6 +14,8 @@ import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils
+import com.venus.backgroundopt.utils.concurrent.lock
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
@@ -108,9 +111,12 @@ class ProcessListHookKt(
             if (process.fixedOomAdjScore != ProcessRecordKt.DEFAULT_MAIN_ADJ) {
                 process.oomAdjScore = oomAdjScore
                 process.fixedOomAdjScore = ProcessRecordKt.DEFAULT_MAIN_ADJ
-                process.setDefaultMaxAdj()
 
-                param.args[2] = ProcessRecordKt.DEFAULT_MAIN_ADJ
+                if (CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_STRICT ||
+                    CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE
+                ) {
+                    process.setDefaultMaxAdj()
+                }
 
                 if (BuildConfig.DEBUG) {
                     logProcessOomChanged(
@@ -122,8 +128,12 @@ class ProcessListHookKt(
                     )
                 }
             } else {
-//                param.result = null
                 appInfo.modifyProcessRecord(pid, oomAdjScore)
+            }
+
+            // 修改实际的参数
+            if (CommonProperties.oomWorkModePref.oomMode != OomWorkModePref.MODE_NEGATIVE) {
+                param.args[2] = ProcessRecordKt.DEFAULT_MAIN_ADJ
             }
         } else { // 子进程的处理
             if (process.fixedOomAdjScore != ProcessRecordKt.SUB_PROC_ADJ) { // 第一次记录子进程 或 进程调整策略置为默认
@@ -159,11 +169,24 @@ class ProcessListHookKt(
             }
         }
 
-        if (mainProcess && appInfo.appGroupEnum == AppGroupEnum.NONE) {
-            // 必须同步调用, 不能使用异步。否则可能出现app先进入Active分组, 又被放入idle分组
-            runningInfo.handleActivityEventChange(
-                ActivityManagerServiceHookKt.ACTIVITY_STOPPED, null, appInfo
-            )
+        if (mainProcess) {
+            ConcurrentUtils.execute(runningInfo.activityEventChangeExecutor, { throwable ->
+                logger.error(
+                    "检查App(userId: ${appInfo.userId}, 包名: ${appInfo.packageName}, uid: $uid" +
+                            ")是否需要放置到idle分组出错: ${throwable.message}",
+                    throwable
+                )
+            }) {
+                appInfo.lock {
+                    if (appInfo.appGroupEnum == AppGroupEnum.NONE) {
+                        runningInfo.handleActivityEventChange(
+                            ActivityManagerServiceHookKt.ACTIVITY_STOPPED,
+                            null,
+                            appInfo
+                        )
+                    }
+                }
+            }
         }
     }
 

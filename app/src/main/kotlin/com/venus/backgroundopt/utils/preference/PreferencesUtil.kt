@@ -6,7 +6,9 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.alibaba.fastjson2.JSON
 import com.venus.backgroundopt.BuildConfig
+import com.venus.backgroundopt.utils.JsonUtils
 import com.venus.backgroundopt.utils.convertValueToTargetType
+import com.venus.backgroundopt.utils.log.logError
 import de.robv.android.xposed.XSharedPreferences
 import de.robv.android.xposed.XposedBridge
 
@@ -51,6 +53,17 @@ object PreferencesUtil {
         defaultValue: MutableSet<String>? = null
     ): MutableSet<String>? =
         getPref(path)?.getStringSet(key, defaultValue)
+
+    fun <E> getObject(path: String, key: String, clazz: Class<E>, defaultValue: E?): E? {
+        return getString(path, key)?.let { v ->
+            try {
+                JsonUtils.parseObject(v, clazz)
+            } catch (t: Throwable) {
+                logError(logStr = "反序列化错误: v: ${v}, 类型: ${clazz.canonicalName}", t = t)
+                defaultValue
+            }
+        } ?: defaultValue
+    }
 }
 
 inline fun <reified E> prefAll(path: String): MutableMap<String, E>? {

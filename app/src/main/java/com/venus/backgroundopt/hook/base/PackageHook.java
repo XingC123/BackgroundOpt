@@ -1,7 +1,6 @@
 package com.venus.backgroundopt.hook.base;
 
 import com.venus.backgroundopt.annotation.HookPackageName;
-import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.environment.SystemProperties;
 import com.venus.backgroundopt.utils.log.ILogger;
 
@@ -13,14 +12,8 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
  * @date 2023/2/8
  */
 public abstract class PackageHook implements ILogger {
-    private final RunningInfo runningInfo;
 
     public PackageHook(XC_LoadPackage.LoadPackageParam packageParam) {
-        this.runningInfo = new RunningInfo(packageParam.classLoader);
-
-        // 更新RunningInfo内的hook次数
-        this.runningInfo.updateHookTimes();
-
         // 环境
         SystemProperties.loadSystemPropertiesClazz(packageParam.classLoader);
 
@@ -40,8 +33,4 @@ public abstract class PackageHook implements ILogger {
     }
 
     public abstract void hook(XC_LoadPackage.LoadPackageParam packageParam);
-
-    public RunningInfo getRunningInfo() {
-        return runningInfo;
-    }
 }

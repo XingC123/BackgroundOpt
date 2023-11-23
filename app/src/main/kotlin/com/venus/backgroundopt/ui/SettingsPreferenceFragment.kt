@@ -5,6 +5,7 @@ import androidx.preference.ListPreference
 import androidx.preference.SwitchPreference
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.ui.base.BasePreferenceFragment
+import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.sendMessage
 
@@ -76,6 +77,21 @@ class SettingsPreferenceFragment : BasePreferenceFragment<SettingsActivity>() {
                         newValue
                     )
                 }
+                true
+            }
+        }
+
+        // oom工作模式
+        findPreference<ListPreference>(PreferenceKeyConstants.OOM_WORK_MODE)?.apply {
+            setOnPreferenceChangeListener { _, _ ->
+                UiUtils.createDialog(
+                    requireActivity(),
+                    text = "更改此配置需要重启生效",
+                    enablePositiveBtn = true,
+                    positiveBlock = { dialogInterface, _ ->
+                        dialogInterface.dismiss()
+                    }
+                ).show()
                 true
             }
         }

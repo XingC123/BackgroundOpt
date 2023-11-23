@@ -67,26 +67,6 @@ public class RunningInfo implements ILogger {
         return classLoader;
     }
 
-    /**
-     * hook 次数
-     */
-    private static final Object infoLock = new Object();
-    private int hookTimes = Integer.MIN_VALUE;
-
-    public int getHookTimes() {
-        synchronized (infoLock) {
-            return hookTimes;
-        }
-    }
-
-    public void updateHookTimes() {
-        synchronized (infoLock) {
-            if (hookTimes == Integer.MAX_VALUE) {
-                hookTimes = Integer.MIN_VALUE;
-            }
-        }
-    }
-
     private MemInfoReader memInfoReader;
 
     public MemInfoReader getMemInfoReader() {
@@ -450,12 +430,19 @@ public class RunningInfo implements ILogger {
      * @param pid     pid
      */
     public void removeProcess(@NonNull AppInfo appInfo, int uid, int pid) {
-        ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
-            ProcessRecordKt processRecord = appInfo.getProcess(pid);
+        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
+            getLogger().error(
+                    "移除进程(uid: " + uid + ",pid: " + pid + ")出现错误: " + throwable.getMessage(),
+                    throwable
+            );
+            return null;
+        }, () -> {
             boolean isMainProcess = false;
-            if (processRecord != null) {
-                isMainProcess = processRecord.getMainProcess();
+            ProcessRecordKt processRecord = appInfo.getProcess(pid);
+            if (processRecord == null) {
+                return null;
             }
+            isMainProcess = processRecord.getMainProcess();
             String packageName = appInfo.getPackageName();
 
             if (isMainProcess) {
@@ -494,7 +481,13 @@ public class RunningInfo implements ILogger {
      * @param pid         pid
      */
     public void startProcess(Object proc, int uid, int userId, String packageName, int pid) {
-        ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
+        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
+            getLogger().error(
+                    "创建进程(userId: " + userId + ", 包名: " + packageName + "uid: " + uid + ", pid: " + pid + ")出现错误: " + throwable.getMessage(),
+                    throwable
+            );
+            return null;
+        }, () -> {
             AppInfo appInfo = computeRunningAppIfAbsent(userId, packageName, uid, proc, pid);
             if (appInfo == null) {
                 return null;
@@ -530,7 +523,11 @@ public class RunningInfo implements ILogger {
 
     private final Consumer<AppInfo> putIntoActiveAction = this::putIntoActiveAppGroup;
 
-    ExecutorService activityEventChangeExecutor = Executors.newFixedThreadPool(4);
+    private ExecutorService activityEventChangeExecutor = Executors.newFixedThreadPool(4);
+
+    public ExecutorService getActivityEventChangeExecutor() {
+        return activityEventChangeExecutor;
+    }
 
     /**
      * 以异步的方式处理Activity改变事件
@@ -544,7 +541,13 @@ public class RunningInfo implements ILogger {
     }
 
     public void handleActivityEventChange(int event, int userId, @NonNull String packageName, @Nullable ComponentName componentName) {
-        ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
+        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
+            getLogger().error(
+                    "处理app切换事件(userId: " + userId + "包名: " + packageName + ", event: " + event + ")错误: " + throwable.getMessage(),
+                    throwable
+            );
+            return null;
+        }, () -> {
             // 检查是否是系统重要进程
             NormalAppResult normalAppResult = isNormalApp(userId, packageName);
             AppInfo appInfo;

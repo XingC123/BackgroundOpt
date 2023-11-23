@@ -34,13 +34,15 @@
             app:iconSpaceReserved="false"
             app:key="@string/pref_key_foreground_proc_trim_mem_policy"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <ListPreference
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:defaultValue="false"
-            android:title="@string/settingsOomStrictMode"
+            android:defaultValue="3"
+            android:title="@string/settingsOomWorkModePrefText"
+            app:entries="@array/oom_work_mode_entries"
+            app:entryValues="@array/oom_work_mode_values"
             app:iconSpaceReserved="false"
-            app:key="@string/pref_key_strict_oom_mode"
-            app:summary="@string/settingsOomStrictModeSummary" />
+            app:key="@string/pref_key_oom_work_mode"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 </PreferenceScreen>
