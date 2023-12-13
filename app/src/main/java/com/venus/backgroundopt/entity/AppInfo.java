@@ -118,9 +118,10 @@ public class AppInfo implements ILogger, LockFlag {
     /**
      * 进程信息映射<pid, ProcessInfo>
      * 没有设置为 final, 因为在{@link AppInfo#clearAppInfo()}中需要反射来置空
+     * 初始容量为4。一般一个app的进程数在这个数字附近，即便不够而扩容的时候，容量也是8, 比默认的16小, 且很大程度上完全够用
      */
     @SuppressWarnings("all")    // 别显示未final啦, 烦死辣
-    private Map<Integer, ProcessRecordKt> processRecordMap = new ConcurrentHashMap<>();
+    private Map<Integer, ProcessRecordKt> processRecordMap = new ConcurrentHashMap<>(4);
 
     @NonNull
     public ProcessRecordKt addProcess(@NonNull ProcessRecordKt processRecord) {
