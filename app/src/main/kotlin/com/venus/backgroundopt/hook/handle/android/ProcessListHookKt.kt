@@ -108,9 +108,21 @@ class ProcessListHookKt(
         val mainProcess = process.mainProcess
 
         if (mainProcess || isUpgradeSubProcessLevel(process.processName)) { // 主进程
-            if (process.fixedOomAdjScore != ProcessRecordKt.DEFAULT_MAIN_ADJ) {
+            // 获取自定义主进程oom分数
+            val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[process.packageName]
+            val finalMainAdj = if (appOptimizePolicy?.enableCustomMainProcessOomScore == true) {
+                if (appOptimizePolicy.customMainProcessOomScore == Int.MIN_VALUE) {
+                    ProcessRecordKt.DEFAULT_MAIN_ADJ
+                } else {
+                    appOptimizePolicy.customMainProcessOomScore
+                }
+            } else {
+                ProcessRecordKt.DEFAULT_MAIN_ADJ
+            }
+
+            if (process.fixedOomAdjScore != finalMainAdj) {
                 process.oomAdjScore = oomAdjScore
-                process.fixedOomAdjScore = ProcessRecordKt.DEFAULT_MAIN_ADJ
+                process.fixedOomAdjScore = finalMainAdj
 
                 if (CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_STRICT ||
                     CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE
@@ -124,7 +136,7 @@ class ProcessListHookKt(
                         uid,
                         pid,
                         mainProcess,
-                        param.args[2] as Int
+                        finalMainAdj
                     )
                 }
             } else {
@@ -133,7 +145,7 @@ class ProcessListHookKt(
 
             // 修改实际的参数
             if (CommonProperties.oomWorkModePref.oomMode != OomWorkModePref.MODE_NEGATIVE) {
-                param.args[2] = ProcessRecordKt.DEFAULT_MAIN_ADJ
+                param.args[2] = finalMainAdj
             }
         } else { // 子进程的处理
             if (process.fixedOomAdjScore != ProcessRecordKt.SUB_PROC_ADJ) { // 第一次记录子进程 或 进程调整策略置为默认
