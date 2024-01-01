@@ -513,7 +513,8 @@ public class RunningInfo implements ILogger {
     }
 
     // 活跃分组
-    private final Set<AppInfo> activeAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    // 初始容量为4.一般前台app数量不会到达这个数吧?
+    private final Set<AppInfo> activeAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>(4));
 
     // 后台分组
     private final Set<AppInfo> idleAppGroup = Collections.newSetFromMap(new ConcurrentHashMap<>());
