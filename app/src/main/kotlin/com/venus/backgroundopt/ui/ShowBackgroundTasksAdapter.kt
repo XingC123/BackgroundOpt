@@ -74,7 +74,7 @@ class ShowBackgroundTasksAdapter(
         // 设置应用名
         viewHolder.appItemTipText1.text = appItem.appName
 
-        var enablePolicyForegroundTrim = false
+        var enablePolicyForegroundTrim = enableForegroundProcTrimMem
         var enablePolicyBackgroundTrim = true
         var enablePolicyBackgroundGc = true
 

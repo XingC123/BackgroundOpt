@@ -61,8 +61,11 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         removeOnCancelPolicy = true
     }
 
+    /**
+     * 初始容量为4。此列表放置的是app主进程, 因此同步于[RunningInfo.activeAppGroup]的初始容量
+     */
     val foregroundTasks: MutableSet<ProcessRecordKt> =
-        Collections.newSetFromMap(ConcurrentHashMap())
+        Collections.newSetFromMap(ConcurrentHashMap(4))
     val backgroundTasks: MutableSet<ProcessRecordKt> =
         Collections.newSetFromMap(ConcurrentHashMap())
 
