@@ -2,6 +2,7 @@ package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
@@ -30,5 +31,9 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         var disableForegroundTrimMem = false
         var disableBackgroundTrimMem = false
         var disableBackgroundGc = false
+
+        // 自定义的主进程oom分数
+        var enableCustomMainProcessOomScore = false
+        var customMainProcessOomScore = Int.MIN_VALUE
     }
 }

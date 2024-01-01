@@ -2,6 +2,8 @@ package com.venus.backgroundopt.ui
 
 import android.os.Bundle
 import android.view.MenuItem
+import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
@@ -16,6 +18,7 @@ import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.utils.PackageUtils
+import com.venus.backgroundopt.utils.StringUtils
 import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.getTmpData
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
@@ -81,39 +84,84 @@ class ConfigureAppProcessActivity : BaseActivity() {
 
         // 设置白名单控件的状态
         runOnUiThread {
-            findViewById<SwitchCompat>(R.id.configureAppProcessAppDoNothingSwitch)?.let { switch ->
-                val packageName = appItem.packageName
+            val curPackageName = appItem.packageName
+            // 获取本地配置
+            val appOptimizePolicy = prefValue<AppOptimizePolicy>(
+                PreferenceNameConstants.APP_OPTIMIZE_POLICY,
+                curPackageName
+            ) ?: AppOptimizePolicy().apply {
+                this.packageName = curPackageName
+            }
 
+            // 白名单
+            findViewById<SwitchCompat>(R.id.configureAppProcessAppDoNothingSwitch)?.let { switch ->
                 // 获取本地配置
-                prefValue<AppOptimizePolicy>(
-                    PreferenceNameConstants.APP_OPTIMIZE_POLICY,
-                    packageName
-                )?.let { appOptimizePolicy ->
-                    switch.isChecked =
-                        (appOptimizePolicy.disableBackgroundTrimMem
-                                or appOptimizePolicy.disableBackgroundGc
-                                or appOptimizePolicy.disableForegroundTrimMem)
-                }
+                switch.isChecked =
+                    (appOptimizePolicy.disableBackgroundTrimMem or
+                            appOptimizePolicy.disableBackgroundGc or
+                            appOptimizePolicy.disableForegroundTrimMem)
 
                 // 监听
                 switch.setOnCheckedChangeListener { _, isChecked ->
-                    val appOptimizePolicy = AppOptimizePolicy().apply {
-                        this.packageName = appItem.packageName
-                        this.disableForegroundTrimMem = isChecked
-                        this.disableBackgroundTrimMem = isChecked
-                        this.disableBackgroundGc = isChecked
+                    appOptimizePolicy.disableForegroundTrimMem = isChecked
+                    appOptimizePolicy.disableBackgroundTrimMem = isChecked
+                    appOptimizePolicy.disableBackgroundGc = isChecked
+
+                    appOptimizePolicySaveAction(appOptimizePolicy)
+                }
+            }
+
+            /*
+                自定义主进程oom分数
+             */
+            // 输入框
+            val customMainProcessOomScoreEditText =
+                findViewById<EditText>(R.id.configureAppProcessCustomMainProcessOomScoreEditText)
+            // 应用按钮
+            val customMainProcessOomScoreApplyBtn =
+                findViewById<Button>(R.id.configureAppProcessCustomMainProcessOomScoreApplyBtn)?.apply {
+                    setOnClickListener { _ ->
+                        val inputOomScore = customMainProcessOomScoreEditText?.text.toString().trim()
+                        if (StringUtils.isEmpty(inputOomScore)) {
+                            return@setOnClickListener
+                        }
+                        appOptimizePolicy.customMainProcessOomScore = inputOomScore.toInt()
+
+                        appOptimizePolicySaveAction(appOptimizePolicy)
                     }
-                    // 保存到本地
-                    prefPut(
-                        PreferenceNameConstants.APP_OPTIMIZE_POLICY,
-                        commit = true,
-                        packageName,
-                        appOptimizePolicy
-                    )
-                    // 通知模块进程
-                    showProgressBarViewForAction("正在设置") {
-                        sendMessage(this, MessageKeyConstants.appOptimizePolicy, appOptimizePolicy)
+                }
+            // 启用/禁用此功能
+            findViewById<SwitchCompat>(R.id.configureAppProcessCustomMainProcessOomScoreSwitch)?.let { switch ->
+                // 开关的ui状态
+                switch.isChecked =
+                    appOptimizePolicy.enableCustomMainProcessOomScore.also { isEnabled ->
+                        if (isEnabled) {
+                            customMainProcessOomScoreEditText?.let {
+                                it.isEnabled = true
+                                // 从配置中读取值
+                                it.setText(
+                                    appOptimizePolicy.customMainProcessOomScore.toString(),
+                                    TextView.BufferType.EDITABLE
+                                )
+                            }
+                        }
                     }
+
+                fun enableInputArea(enabled: Boolean) {
+                    customMainProcessOomScoreEditText?.isEnabled = enabled
+                    customMainProcessOomScoreApplyBtn?.isEnabled = enabled
+                }
+                // 默认是否启用输入框
+                enableInputArea(switch.isChecked)
+                // 监听
+                switch.setOnCheckedChangeListener { _, isChecked ->
+                    // 写入数据到对象
+                    appOptimizePolicy.enableCustomMainProcessOomScore = isChecked
+
+                    appOptimizePolicySaveAction(appOptimizePolicy)
+
+                    // 输入框禁用与启用
+                    enableInputArea(isChecked)
                 }
             }
         }
@@ -158,6 +206,20 @@ class ConfigureAppProcessActivity : BaseActivity() {
                 adapter =
                     ConfigureAppProcessAdapter(appItem.processes.toList(), subProcessOomPolicyList)
             }
+        }
+    }
+
+    private fun appOptimizePolicySaveAction(appOptimizePolicy: AppOptimizePolicy) {
+        // 保存到本地
+        prefPut(
+            PreferenceNameConstants.APP_OPTIMIZE_POLICY,
+            commit = true,
+            appOptimizePolicy.packageName,
+            appOptimizePolicy
+        )
+        // 通知模块进程
+        showProgressBarViewForAction("正在设置") {
+            sendMessage(this, MessageKeyConstants.appOptimizePolicy, appOptimizePolicy)
         }
     }
 }
