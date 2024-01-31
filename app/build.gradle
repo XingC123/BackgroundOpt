@@ -96,7 +96,7 @@ android {
 
             versionNameSuffix generateSuffix()
 
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', 'proguard-log.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules2.pro', 'proguard-log.pro'
         }
 
         debug {
@@ -105,17 +105,21 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_19
-        targetCompatibility JavaVersion.VERSION_19
+        sourceCompatibility JavaVersion.VERSION_20
+        targetCompatibility JavaVersion.VERSION_20
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_19.toString()
+        jvmTarget = JavaVersion.VERSION_20.toString()
     }
 //    packagingOptions {
 //        jniLibs {
 //            useLegacyPackaging true
 //        }
 //    }
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     android.applicationVariants.configureEach {
         variant ->
