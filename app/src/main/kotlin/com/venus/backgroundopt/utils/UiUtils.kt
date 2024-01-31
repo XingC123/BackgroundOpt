@@ -15,6 +15,7 @@ import com.alibaba.fastjson2.JSON
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.utils.concurrent.newThreadTask
 import com.venus.backgroundopt.utils.log.logErrorAndroid
+import java.lang.ref.WeakReference
 
 /**
  * @author XingC
@@ -22,14 +23,14 @@ import com.venus.backgroundopt.utils.log.logErrorAndroid
  */
 
 // 临时数据。在两个Activity之间使用。有线程安全问题
-private var tmpData: Any? = null
+private var tmpData: WeakReference<Any>? = null
 
 fun setTmpData(any: Any?) {
-    tmpData = any
+    tmpData = WeakReference(any)
 }
 
 fun getTmpData(): Any? {
-    val o = tmpData
+    val o = tmpData?.get()
     tmpData = null
     return o
 }
