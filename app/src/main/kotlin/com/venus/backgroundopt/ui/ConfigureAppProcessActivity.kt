@@ -10,6 +10,7 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
@@ -27,6 +28,8 @@ import com.venus.backgroundopt.utils.message.sendMessage
 import com.venus.backgroundopt.utils.preference.prefPut
 import com.venus.backgroundopt.utils.preference.prefValue
 import com.venus.backgroundopt.utils.showProgressBarViewForAction
+import kotlin.reflect.KMutableProperty0
+import kotlin.reflect.KMutableProperty1
 
 class ConfigureAppProcessActivity : BaseActivity() {
     private lateinit var appItem: AppItem
@@ -82,8 +85,10 @@ class ConfigureAppProcessActivity : BaseActivity() {
             }
         }
 
-        // 设置白名单控件的状态
         runOnUiThread {
+            /*
+                app优化策略
+             */
             val curPackageName = appItem.packageName
             // 获取本地配置
             val appOptimizePolicy = prefValue<AppOptimizePolicy>(
@@ -91,10 +96,11 @@ class ConfigureAppProcessActivity : BaseActivity() {
                 curPackageName
             ) ?: AppOptimizePolicy().apply {
                 this.packageName = curPackageName
+                this.versionCode = BuildConfig.VERSION_CODE
             }
 
             // 白名单
-            findViewById<SwitchCompat>(R.id.configureAppProcessAppDoNothingSwitch)?.let { switch ->
+            /*findViewById<SwitchCompat>(R.id.configureAppProcessAppDoNothingSwitch)?.let { switch ->
                 // 获取本地配置
                 switch.isChecked =
                     (appOptimizePolicy.disableBackgroundTrimMem or
@@ -109,7 +115,34 @@ class ConfigureAppProcessActivity : BaseActivity() {
 
                     appOptimizePolicySaveAction(appOptimizePolicy)
                 }
+            }*/
+            fun initAppMemoryOptimizeSwitch(
+                switch: SwitchCompat?,
+                policy: KMutableProperty0<Boolean>
+            ) {
+                switch?.let { sw ->
+                    // 启用状态
+                    sw.isChecked = policy.get()
+                    // 监听
+                    sw.setOnCheckedChangeListener { _, isChecked ->
+                        policy.set(isChecked)
+                        appOptimizePolicySaveAction(appOptimizePolicy)
+                    }
+                }
             }
+
+            initAppMemoryOptimizeSwitch(
+                findViewById(R.id.configureAppProcessForegroundMemoryTrim),
+                appOptimizePolicy::disableForegroundTrimMem
+            )
+            initAppMemoryOptimizeSwitch(
+                findViewById(R.id.configureAppProcessBackgroundMemoryTrim),
+                appOptimizePolicy::disableBackgroundTrimMem
+            )
+            initAppMemoryOptimizeSwitch(
+                findViewById(R.id.configureAppProcessBackgroundGc),
+                appOptimizePolicy::disableBackgroundGc
+            )
 
             /*
                 自定义主进程oom分数
@@ -121,7 +154,8 @@ class ConfigureAppProcessActivity : BaseActivity() {
             val customMainProcessOomScoreApplyBtn =
                 findViewById<Button>(R.id.configureAppProcessCustomMainProcessOomScoreApplyBtn)?.apply {
                     setOnClickListener { _ ->
-                        val inputOomScore = customMainProcessOomScoreEditText?.text.toString().trim()
+                        val inputOomScore =
+                            customMainProcessOomScoreEditText?.text.toString().trim()
                         if (StringUtils.isEmpty(inputOomScore)) {
                             return@setOnClickListener
                         }

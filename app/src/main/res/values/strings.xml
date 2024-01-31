@@ -110,4 +110,7 @@
     <string name="configureAppProcessCustomMainProcessOomScoreText">Custom main Process oom score</string>
     <string name="configureAppProcessCustomMainProcessOomScoreTipText" translatable="false">(-1000~1000)</string>
     <string name="configureAppProcessCustomMainProcessOomScoreApplyBtn">Apply</string>
+    <string name="configureAppProcessForegroundMemoryTrim">Foreground Mem Trim</string>
+    <string name="configureAppProcessBackgroundMemoryTrim">Background Mem Trim</string>
+    <string name="configureAppProcessBackgroundGc">Background Gc</string>
 </resources>

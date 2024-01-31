@@ -138,7 +138,41 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/configureAppProcessAppDoNothingSwitch"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/border"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="@dimen/padding_horizontal_if_use_border"
+                    android:paddingVertical="@dimen/padding_vertical_if_use_border">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/configureAppProcessForegroundMemoryTrim"
+                        style="@style/Theme.AppTheme"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/configureAppProcessForegroundMemoryTrim"
+                        android:textSize="16sp" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/configureAppProcessBackgroundMemoryTrim"
+                        style="@style/Theme.AppTheme"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/configureAppProcessBackgroundMemoryTrim"
+                        android:textSize="16sp" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/configureAppProcessBackgroundGc"
+                        style="@style/Theme.AppTheme"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/configureAppProcessBackgroundGc"
+                        android:textSize="16sp" />
+                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"

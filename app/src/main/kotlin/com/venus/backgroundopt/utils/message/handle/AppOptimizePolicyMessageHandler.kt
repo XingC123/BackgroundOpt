@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.utils.message.handle
 
+import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
@@ -27,10 +28,14 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
     }
 
     class AppOptimizePolicy : MessageFlag {
+        // 版本号
+        // 用以针对不同版本时期的配置进行不同的逻辑
+        var versionCode: Int = -1
+
         lateinit var packageName: String
         var disableForegroundTrimMem = false
         var disableBackgroundTrimMem = false
-        var disableBackgroundGc = false
+        var disableBackgroundGc = true
 
         // 自定义的主进程oom分数
         var enableCustomMainProcessOomScore = false

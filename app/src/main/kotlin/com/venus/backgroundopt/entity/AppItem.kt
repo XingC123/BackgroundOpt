@@ -76,7 +76,7 @@ class AppItem @JSONCreator constructor() : MessageFlag {
      *                                                                         *
      **************************************************************************/
     enum class AppConfiguredEnum(val displayName:String) {
-        AppOptimizePolicy("白名单"),
+        AppOptimizePolicy("App内存优化策略"),
         SubProcessOomPolicy("OOM策略"),
     }
 

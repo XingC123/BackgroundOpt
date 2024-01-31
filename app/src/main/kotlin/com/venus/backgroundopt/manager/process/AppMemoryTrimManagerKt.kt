@@ -307,6 +307,12 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
             processRecordKt
         ) { appOptimizePolicy ->
             appOptimizePolicy?.let { policy ->
+                // 在debug_632版本以前, app优化策略并没有提供单独的配置选项,
+                // 而是将"前台内存优化"、"后台内存优化"、"后台GC"统称为"白名单"
+                // 而在debug_632版本时默认禁用了"后台GC"
+                // 如果不加以判断, 会对现有逻辑产生影响
+                val versionCodeLessThan632 = policy.versionCode < 632
+
                 if (!policy.disableBackgroundTrimMem) {
                     trimMemory(
                         backgroundTrimManagerName,
@@ -315,18 +321,22 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
                         backgroundTasks
                     )
                 }
-                if (!policy.disableBackgroundGc) {
+                if (!policy.disableBackgroundGc && !versionCodeLessThan632) {
                     gc(processRecordKt)
                 }
                 return@executeTaskImpl
             }
+            /*
+                默认执行的操作
+             */
             trimMemory(
                 backgroundTrimManagerName,
                 processRecordKt,
                 backgroundTrimLevel,
                 backgroundTasks
             )
-            gc(processRecordKt)
+            // debug_632 版本开始默认不执行
+            // gc(processRecordKt)
         }
     }
 
