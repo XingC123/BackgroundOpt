@@ -46,12 +46,12 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         var defaultMaxAdj = ProcessList.UNKNOWN_ADJ
 
         // 当前资源占用大于此值则进行优化
-        // 157286400 = 150MB *1024 * 1024
+        // 268435456 = 256MB *1024 * 1024
         @JvmField
-        var minOptimizeRssInBytes = 157286400.0
+        var minOptimizeRssInBytes = 268435456.0
 
         // 资源占用因子
-        const val minOptimizeRssFactor = 0.02
+        const val minOptimizeRssFactor = 0.035
 
         init {
             // 根据配置文件决定defaultMaxAdj
