@@ -31,6 +31,7 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         // 版本号
         // 用以针对不同版本时期的配置进行不同的逻辑
         var versionCode: Int = -1
+        var versionName: String = "none"
 
         lateinit var packageName: String
         var disableForegroundTrimMem = false

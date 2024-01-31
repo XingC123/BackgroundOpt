@@ -97,6 +97,7 @@ class ConfigureAppProcessActivity : BaseActivity() {
             ) ?: AppOptimizePolicy().apply {
                 this.packageName = curPackageName
                 this.versionCode = BuildConfig.VERSION_CODE
+                this.versionName = BuildConfig.VERSION_NAME
             }
 
             // 白名单
