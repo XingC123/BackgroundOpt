@@ -76,7 +76,7 @@ class ShowBackgroundTasksAdapter(
 
         var enablePolicyForegroundTrim = enableForegroundProcTrimMem
         var enablePolicyBackgroundTrim = true
-        var enablePolicyBackgroundGc = true
+        var enablePolicyBackgroundGc = false
 
         backgroundTaskMessage.appOptimizePolicyMap[packageName]?.let { appOptimizePolicy ->
             enablePolicyForegroundTrim = !appOptimizePolicy.disableForegroundTrimMem
