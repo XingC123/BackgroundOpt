@@ -124,7 +124,7 @@ class ConfigureAppProcessActivity : BaseActivity() {
             ) {
                 switch?.let { sw ->
                     // 启用状态
-                    sw.isChecked = policy.get()
+                    sw.isChecked = !policy.get()
                     // 监听
                     sw.setOnCheckedChangeListener { _, isChecked ->
                         policy.set(isChecked)
