@@ -311,6 +311,10 @@ fun String.findClass(classLoader: ClassLoader): Class<*> {
     return XposedHelpers.findClass(this, classLoader)
 }
 
+fun String.findClassIfExists(classLoader: ClassLoader): Class<*>? {
+    return XposedHelpers.findClassIfExists(this, classLoader)
+}
+
 @JvmName("findClassWithType")
 @Suppress("UNCHECKED_CAST")
 fun <E> String.findClass(classLoader: ClassLoader): Class<E> {
