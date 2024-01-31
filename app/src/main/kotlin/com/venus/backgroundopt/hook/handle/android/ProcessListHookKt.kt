@@ -13,6 +13,7 @@ import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.utils.concurrent.lock
@@ -111,7 +112,9 @@ class ProcessListHookKt(
             // 获取自定义主进程oom分数
             val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[process.packageName]
             val finalMainAdj = if (appOptimizePolicy?.enableCustomMainProcessOomScore == true) {
-                if (appOptimizePolicy.customMainProcessOomScore == Int.MIN_VALUE) {
+                if (appOptimizePolicy.customMainProcessOomScore < ProcessList.NATIVE_ADJ ||
+                    appOptimizePolicy.customMainProcessOomScore >= ProcessList.UNKNOWN_ADJ
+                ) {
                     ProcessRecordKt.DEFAULT_MAIN_ADJ
                 } else {
                     appOptimizePolicy.customMainProcessOomScore

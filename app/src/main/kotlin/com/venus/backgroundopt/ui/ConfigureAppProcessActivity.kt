@@ -17,6 +17,7 @@ import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.StringUtils
@@ -160,7 +161,24 @@ class ConfigureAppProcessActivity : BaseActivity() {
                         if (StringUtils.isEmpty(inputOomScore)) {
                             return@setOnClickListener
                         }
-                        appOptimizePolicy.customMainProcessOomScore = inputOomScore.toInt()
+
+                        val oomScore = try {
+                            inputOomScore.toInt()
+                        } catch (e: Exception) {
+                            Int.MIN_VALUE
+                        }
+                        // 不合法的取值
+                        if (oomScore < ProcessList.NATIVE_ADJ || oomScore >= ProcessList.UNKNOWN_ADJ) {
+                            UiUtils.createDialog(
+                                context = context,
+                                text = "不合法的输入值",
+                                cancelable = true,
+                                enableNegativeBtn = true
+                            ).show()
+                            return@setOnClickListener
+                        }
+
+                        appOptimizePolicy.customMainProcessOomScore = oomScore
 
                         appOptimizePolicySaveAction(appOptimizePolicy)
                     }
