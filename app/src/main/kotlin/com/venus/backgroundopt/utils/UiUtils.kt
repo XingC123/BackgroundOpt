@@ -15,7 +15,7 @@ import com.alibaba.fastjson2.JSON
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.utils.concurrent.newThreadTask
 import com.venus.backgroundopt.utils.log.logErrorAndroid
-import java.lang.ref.WeakReference
+import java.lang.ref.SoftReference
 
 /**
  * @author XingC
@@ -23,10 +23,10 @@ import java.lang.ref.WeakReference
  */
 
 // 临时数据。在两个Activity之间使用。有线程安全问题
-private var tmpData: WeakReference<Any>? = null
+private var tmpData: SoftReference<Any>? = null
 
 fun setTmpData(any: Any?) {
-    tmpData = WeakReference(any)
+    tmpData = SoftReference(any)
 }
 
 fun getTmpData(): Any? {
