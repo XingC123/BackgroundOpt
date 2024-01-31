@@ -87,6 +87,7 @@ public interface MethodConstants {
     String removePidLocked = "removePidLocked";
     String startService = "startService";
     String updateLowMemStateLSP = "updateLowMemStateLSP";
+    String killAppIfBgRestrictedAndCachedIdleLocked = "killAppIfBgRestrictedAndCachedIdleLocked";
 
     /**
      * miui

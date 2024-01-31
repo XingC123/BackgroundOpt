@@ -7,6 +7,7 @@ import com.venus.backgroundopt.entity.preference.OomWorkModePref;
 import com.venus.backgroundopt.environment.CommonProperties;
 import com.venus.backgroundopt.environment.SystemProperties;
 import com.venus.backgroundopt.hook.base.PackageHook;
+import com.venus.backgroundopt.hook.handle.android.ProcessListHookNew;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerConstantsHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
@@ -87,6 +88,8 @@ public class AndroidHookHandler extends PackageHook {
         new LowMemDetectorHook(classLoader, runningInfo);
 
         new AppProfilerHook(classLoader, runningInfo);
+
+        new ProcessListHookNew(classLoader, runningInfo);
     }
 
     private void initSystemProp() {
