@@ -17,6 +17,8 @@ public interface ClassConstants {
     String PhantomProcessList = "com.android.server.am.PhantomProcessList";
     String ProcessCachedOptimizerRecord = "com.android.server.am.ProcessCachedOptimizerRecord";
     String ActivityManagerShellCommand = "com.android.server.am.ActivityManagerShellCommand";
+    String LowMemDetector = "com.android.server.am.LowMemDetector";
+    String LowMemThread = "com.android.server.am.LowMemDetector.LowMemThread";
     String RecentTasks = "com.android.server.wm.RecentTasks";
     String Task = "com.android.server.wm.Task";
     String ComponentName = "android.content.ComponentName";
