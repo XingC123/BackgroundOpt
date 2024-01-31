@@ -86,6 +86,7 @@ public interface MethodConstants {
     String handleUpdateAndTrimProcessLSP = "handleUpdateAndTrimProcessLSP";
     String removePidLocked = "removePidLocked";
     String startService = "startService";
+    String updateLowMemStateLSP = "updateLowMemStateLSP";
 
     /**
      * miui
