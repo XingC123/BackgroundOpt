@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.hook.handle.android
 
+import android.os.Build
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.base.IHook
 import com.venus.backgroundopt.hook.constants.ClassConstants
@@ -16,6 +17,7 @@ class ProcessListHookNew(
 ) : IHook(classLoader, runningInfo) {
     override fun hook() {
         ClassConstants.ProcessList.beforeHook(
+            enable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU,
             classLoader = classLoader,
             methodName = MethodConstants.killAppIfBgRestrictedAndCachedIdleLocked,
             paramTypes = arrayOf(ClassConstants.ProcessRecord, Long::class.javaPrimitiveType)
