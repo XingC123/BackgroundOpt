@@ -23,6 +23,6 @@ class AppProfilerHook(
             classLoader = classLoader,
             methodName = MethodConstants.updateLowMemStateLSP,
             hookAllMethod = true,
-        ) { it.result = null }
+        ) { it.result = false }
     }
 }
