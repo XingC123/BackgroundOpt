@@ -70,7 +70,7 @@ class ShowAllInstalledAppsActivity : BaseActivity() {
                 layoutManager = LinearLayoutManager(this@ShowAllInstalledAppsActivity).apply {
                     orientation = LinearLayoutManager.VERTICAL
                 }
-                adapter = ShowAllInstalledAppsAdapter(appItems)
+                adapter = ShowAllInstalledAppsAdapter2(appItems)
 
                 // 设置搜索栏隐藏/显示行为
 //                setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->

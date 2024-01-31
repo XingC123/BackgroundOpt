@@ -286,6 +286,20 @@ object UiUtils {
             }
         }
     }
+
+    /**
+     * 设置组件的可见性
+     * 当不可见时, 会从布局空间中移除(不是移除控件)
+     * @param component View 要设置的组件
+     * @param isVisible Boolean 可见性
+     */
+    fun setComponentVisible(component: View, isVisible: Boolean) {
+        if (isVisible) {
+            component.visibility = View.VISIBLE
+        } else {
+            component.visibility = View.GONE
+        }
+    }
 }
 
 inline fun AlertDialog.Builder.setNegativeBtn(

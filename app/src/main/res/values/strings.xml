@@ -113,4 +113,7 @@
     <string name="configureAppProcessForegroundMemoryTrim">Foreground Mem Trim</string>
     <string name="configureAppProcessBackgroundMemoryTrim">Background Mem Trim</string>
     <string name="configureAppProcessBackgroundGc">Background Gc</string>
+    <string name="itemInstalledAppsMemTrimFlagText" translatable="false">App内存回收策略</string>
+    <string name="itemInstalledAppsCustomMainProcOomScoreFlagText" translatable="false">自定义主进程OOM</string>
+    <string name="itemInstalledAppsOomPolicyFlagText" translatable="false">OOM策略</string>
 </resources>

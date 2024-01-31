@@ -148,10 +148,16 @@ object PackageUtils {
             val packageName = appItem.packageName
             // app是否启用优化
             var hasConfiguredAppOptimizePolicy = false
+            // 自定义oom
+            var hasConfiguredMainProcessCustomOomScore = false
             appOptimizePolicies[packageName]?.let {
                 if (it.disableForegroundTrimMem or it.disableBackgroundTrimMem or it.disableBackgroundGc) {
                     appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.AppOptimizePolicy)
                     hasConfiguredAppOptimizePolicy = true
+                }
+                if (it.enableCustomMainProcessOomScore) {
+                    appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.CustomMainProcessOomScore)
+                    hasConfiguredMainProcessCustomOomScore = true
                 }
             }
 
@@ -166,7 +172,9 @@ object PackageUtils {
                     }
                 }
             }
-            return hasConfiguredAppOptimizePolicy or hasConfiguredSubProcessOomPolicy
+            return hasConfiguredAppOptimizePolicy or
+                    hasConfiguredMainProcessCustomOomScore or
+                    hasConfiguredSubProcessOomPolicy
         }
 
         // 排序器
