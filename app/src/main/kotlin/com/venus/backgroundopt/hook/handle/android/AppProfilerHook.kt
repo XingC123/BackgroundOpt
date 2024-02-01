@@ -3,8 +3,11 @@ package com.venus.backgroundopt.hook.handle.android
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.base.IHook
 import com.venus.backgroundopt.hook.constants.ClassConstants
+import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
+import com.venus.backgroundopt.utils.afterConstructorHook
 import com.venus.backgroundopt.utils.beforeHook
+import com.venus.backgroundopt.utils.setIntFieldValue
 
 /**
  * @author XingC
@@ -24,5 +27,32 @@ class AppProfilerHook(
             methodName = MethodConstants.updateLowMemStateLSP,
             hookAllMethod = true,
         ) { it.result = false }
+
+        // com.android.internal.app.procstats.ProcessStats.ADJ_MEM_FACTOR_NORMAL
+        val ADJ_MEM_FACTOR_NORMAL = 0
+
+        ClassConstants.AppProfiler.afterConstructorHook(
+            classLoader = classLoader,
+            hookAllMethod = true
+        ) {
+            it.thisObject.setIntFieldValue(FieldConstants.mMemFactorOverride, ADJ_MEM_FACTOR_NORMAL)
+        }
+
+        ClassConstants.AppProfiler.beforeHook(
+            classLoader = classLoader,
+            methodName = MethodConstants.isLastMemoryLevelNormal,
+        ) { it.result = true }
+
+        ClassConstants.AppProfiler.beforeHook(
+            classLoader = classLoader,
+            methodName = MethodConstants.getLastMemoryLevelLocked,
+        ) { it.result = ADJ_MEM_FACTOR_NORMAL }
+
+        // 本模块的内存回收替代
+        ClassConstants.AppProfiler.beforeHook(
+            classLoader = classLoader,
+            methodName = MethodConstants.trimMemoryUiHiddenIfNecessaryLSP,
+            hookAllMethod = true
+        ) {it.result = null}
     }
 }

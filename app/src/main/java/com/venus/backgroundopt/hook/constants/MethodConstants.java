@@ -88,6 +88,14 @@ public interface MethodConstants {
     String startService = "startService";
     String updateLowMemStateLSP = "updateLowMemStateLSP";
     String killAppIfBgRestrictedAndCachedIdleLocked = "killAppIfBgRestrictedAndCachedIdleLocked";
+    String setMemFactorOverride = "setMemFactorOverride";
+    String isLastMemoryLevelNormal = "isLastMemoryLevelNormal";
+    String getLastMemoryLevelLocked = "getLastMemoryLevelLocked";
+    String trimMemoryUiHiddenIfNecessaryLSP = "trimMemoryUiHiddenIfNecessaryLSP";
+    String waitForPressure = "waitForPressure";
+    String getMemFactor = "getMemFactor";
+    String run = "run";
+    String isAvailable = "isAvailable";
 
     /**
      * miui
