@@ -3,6 +3,7 @@ package com.venus.backgroundopt.utils.message.handle
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.DefaultValueManager
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
@@ -35,6 +36,11 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         )
         @JSONField(serialize = false)
         var disableForegroundTrimMem: Boolean? = null
+            set(value) {
+                enableForegroundTrimMem = value?.let { !it }
+                    ?: DefaultValueManager.enableForegroundTrimMem
+                field = value
+            }
 
         @Deprecated(
             message = "容易误解",
@@ -42,6 +48,11 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         )
         @JSONField(serialize = false)
         var disableBackgroundTrimMem: Boolean? = null
+            set(value) {
+                enableBackgroundTrimMem = value?.let { !it }
+                    ?: DefaultValueManager.enableBackgroundTrimMem
+                field = value
+            }
 
         @Deprecated(
             message = "容易误解",
@@ -49,6 +60,10 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         )
         @JSONField(serialize = false)
         var disableBackgroundGc: Boolean? = null
+            set(value) {
+                enableBackgroundGc = value?.let { !it } ?: DefaultValueManager.enableBackgroundGc
+                field = value
+            }
 
         var enableForegroundTrimMem: Boolean? = null
         var enableBackgroundTrimMem: Boolean? = null

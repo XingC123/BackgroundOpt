@@ -158,16 +158,6 @@ object PackageUtils {
                     appOptimizePolicy.disableBackgroundGc != null
                 ) {
                     // 正在使用旧版配置
-                    // 解析旧版参数
-                    appOptimizePolicy.enableForegroundTrimMem =
-                        appOptimizePolicy.disableForegroundTrimMem?.let { !it }
-                            ?: DefaultValueManager.enableForegroundTrimMem
-                    appOptimizePolicy.enableBackgroundTrimMem =
-                        appOptimizePolicy.disableBackgroundTrimMem?.let { !it }
-                            ?: DefaultValueManager.enableBackgroundTrimMem
-                    appOptimizePolicy.enableBackgroundGc =
-                        appOptimizePolicy.disableBackgroundGc?.let { !it }
-                            ?: DefaultValueManager.enableBackgroundGc
                     // 保存新版参数
                     ConfigureAppProcessActivity.saveAppMemoryOptimize(appOptimizePolicy, context)
                 }
