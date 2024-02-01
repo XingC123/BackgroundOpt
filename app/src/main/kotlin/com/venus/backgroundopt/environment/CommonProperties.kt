@@ -88,7 +88,8 @@ object CommonProperties {
     fun getEnableForegroundProcTrimMemPolicy(): Boolean {
         return PreferencesUtil.getBoolean(
             PreferenceNameConstants.MAIN_SETTINGS,
-            PreferenceKeyConstants.ENABLE_FOREGROUND_PROC_TRIM_MEM_POLICY
+            PreferenceKeyConstants.ENABLE_FOREGROUND_PROC_TRIM_MEM_POLICY,
+            DefaultValueManager.enableForegroundTrimMem
         )
     }
 

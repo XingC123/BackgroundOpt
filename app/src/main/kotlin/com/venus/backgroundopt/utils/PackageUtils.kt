@@ -9,7 +9,9 @@ import android.os.Build
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
+import com.venus.backgroundopt.environment.DefaultValueManager
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
+import com.venus.backgroundopt.ui.ConfigureAppProcessActivity
 import com.venus.backgroundopt.utils.log.logErrorAndroid
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.preference.prefAll
@@ -151,10 +153,30 @@ object PackageUtils {
             // 自定义oom
             var hasConfiguredMainProcessCustomOomScore = false
             appOptimizePolicies[packageName]?.let {
-                if (it.disableForegroundTrimMem or it.disableBackgroundTrimMem or it.disableBackgroundGc) {
+                if (it.disableForegroundTrimMem != null ||
+                    it.disableBackgroundTrimMem != null ||
+                    it.disableBackgroundGc != null
+                ) {
+                    // 正在使用旧版配置
+                    // 解析旧版参数
+                    it.enableForegroundTrimMem =
+                        it.disableForegroundTrimMem ?: DefaultValueManager.enableForegroundTrimMem
+                    it.enableBackgroundTrimMem =
+                        it.disableBackgroundTrimMem ?: DefaultValueManager.enableBackgroundTrimMem
+                    it.enableBackgroundGc =
+                        it.disableBackgroundGc ?: DefaultValueManager.enableBackgroundGc
+                    // 保存新版参数
+                    ConfigureAppProcessActivity.saveAppMemoryOptimize(it, context)
+                }
+
+                if (it.enableForegroundTrimMem == !DefaultValueManager.enableForegroundTrimMem ||
+                    it.enableBackgroundTrimMem == !DefaultValueManager.enableBackgroundTrimMem ||
+                    it.enableBackgroundGc == !DefaultValueManager.enableBackgroundGc
+                ) {
                     appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.AppOptimizePolicy)
                     hasConfiguredAppOptimizePolicy = true
                 }
+
                 if (it.enableCustomMainProcessOomScore) {
                     appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.CustomMainProcessOomScore)
                     hasConfiguredMainProcessCustomOomScore = true

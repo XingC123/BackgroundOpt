@@ -66,4 +66,7 @@
     <string name="configureAppProcessForegroundMemoryTrim">前台内存回收</string>
     <string name="configureAppProcessBackgroundMemoryTrim">后台内存回收</string>
     <string name="configureAppProcessBackgroundGc">后台GC</string>
+    <string name="configAppProcessFgMemTrimDefaultRadio">默认</string>
+    <string name="configAppProcessFgMemTrimEnableRadio">启用</string>
+    <string name="configAppProcessFgMemTrimDisableRadio">禁用</string>
 </resources>

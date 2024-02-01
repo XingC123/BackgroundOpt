@@ -116,4 +116,7 @@
     <string name="itemInstalledAppsMemTrimFlagText" translatable="false">App内存回收策略</string>
     <string name="itemInstalledAppsCustomMainProcOomScoreFlagText" translatable="false">自定义主进程OOM</string>
     <string name="itemInstalledAppsOomPolicyFlagText" translatable="false">OOM策略</string>
+    <string name="configAppProcessFgMemTrimDefaultRadio">Default</string>
+    <string name="configAppProcessFgMemTrimEnableRadio">Enable</string>
+    <string name="configAppProcessFgMemTrimDisableRadio">Disable</string>
 </resources>

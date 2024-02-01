@@ -1,16 +1,18 @@
 package com.venus.backgroundopt.ui
 
+import android.content.Context
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
@@ -30,7 +32,6 @@ import com.venus.backgroundopt.utils.preference.prefPut
 import com.venus.backgroundopt.utils.preference.prefValue
 import com.venus.backgroundopt.utils.showProgressBarViewForAction
 import kotlin.reflect.KMutableProperty0
-import kotlin.reflect.KMutableProperty1
 
 class ConfigureAppProcessActivity : BaseActivity() {
     private lateinit var appItem: AppItem
@@ -97,53 +98,73 @@ class ConfigureAppProcessActivity : BaseActivity() {
                 curPackageName
             ) ?: AppOptimizePolicy().apply {
                 this.packageName = curPackageName
-                this.versionCode = BuildConfig.VERSION_CODE
-                this.versionName = BuildConfig.VERSION_NAME
             }
 
-            // 白名单
-            /*findViewById<SwitchCompat>(R.id.configureAppProcessAppDoNothingSwitch)?.let { switch ->
-                // 获取本地配置
-                switch.isChecked =
-                    (appOptimizePolicy.disableBackgroundTrimMem or
-                            appOptimizePolicy.disableBackgroundGc or
-                            appOptimizePolicy.disableForegroundTrimMem)
-
-                // 监听
-                switch.setOnCheckedChangeListener { _, isChecked ->
-                    appOptimizePolicy.disableForegroundTrimMem = isChecked
-                    appOptimizePolicy.disableBackgroundTrimMem = isChecked
-                    appOptimizePolicy.disableBackgroundGc = isChecked
-
-                    appOptimizePolicySaveAction(appOptimizePolicy)
-                }
-            }*/
-            fun initAppMemoryOptimizeSwitch(
-                switch: SwitchCompat?,
-                policy: KMutableProperty0<Boolean>
+            fun initAppMemoryOptimizeRadioGroup(
+                radioGroupId: Int,
+                policy: KMutableProperty0<Boolean?>,
+                buttonIdArr: Array<Int>
             ) {
-                switch?.let { sw ->
-                    // 启用状态
-                    sw.isChecked = !policy.get()
-                    // 监听
-                    sw.setOnCheckedChangeListener { _, isChecked ->
-                        policy.set(!isChecked)
+                findViewById<RadioGroup>(radioGroupId)?.let { group ->
+                    // 初始选中
+                    val initialCheckedBtnId = when (policy.get()) {
+                        null -> buttonIdArr[0]
+                        true -> buttonIdArr[1]
+                        false -> buttonIdArr[2]
+                    }
+                    group.check(initialCheckedBtnId)
+
+                    // 事件监听
+                    group.setOnCheckedChangeListener { _, checkedId ->
+                        when (findViewById<RadioButton>(checkedId).id) {
+                            buttonIdArr[0] -> {
+                                policy.set(null)
+                            }
+
+                            buttonIdArr[1] -> {
+                                policy.set(true)
+                            }
+
+                            buttonIdArr[2] -> {
+                                policy.set(false)
+                            }
+
+                            else -> {
+                                policy.set(null)
+                            }
+                        }
+
                         appOptimizePolicySaveAction(appOptimizePolicy)
                     }
                 }
             }
 
-            initAppMemoryOptimizeSwitch(
-                findViewById(R.id.configureAppProcessForegroundMemoryTrim),
-                appOptimizePolicy::disableForegroundTrimMem
+            initAppMemoryOptimizeRadioGroup(
+                radioGroupId = R.id.configAppProcessFgMemTrimGroup,
+                policy = appOptimizePolicy::enableForegroundTrimMem,
+                buttonIdArr = arrayOf(
+                    R.id.configAppProcessFgMemTrimDefaultRadio,
+                    R.id.configAppProcessFgMemTrimEnableRadio,
+                    R.id.configAppProcessFgMemTrimDisableRadio,
+                )
             )
-            initAppMemoryOptimizeSwitch(
-                findViewById(R.id.configureAppProcessBackgroundMemoryTrim),
-                appOptimizePolicy::disableBackgroundTrimMem
+            initAppMemoryOptimizeRadioGroup(
+                radioGroupId = R.id.configAppProcessBgMemTrimGroup,
+                policy = appOptimizePolicy::enableBackgroundTrimMem,
+                buttonIdArr = arrayOf(
+                    R.id.configAppProcessBgMemTrimDefaultRadio,
+                    R.id.configAppProcessBgMemTrimEnableRadio,
+                    R.id.configAppProcessBgMemTrimDisableRadio,
+                )
             )
-            initAppMemoryOptimizeSwitch(
-                findViewById(R.id.configureAppProcessBackgroundGc),
-                appOptimizePolicy::disableBackgroundGc
+            initAppMemoryOptimizeRadioGroup(
+                radioGroupId = R.id.configAppProcessBgGcGroup,
+                policy = appOptimizePolicy::enableBackgroundGc,
+                buttonIdArr = arrayOf(
+                    R.id.configAppProcessBgGcDefaultRadio,
+                    R.id.configAppProcessBgGcEnableRadio,
+                    R.id.configAppProcessBgGcDisableRadio,
+                )
             )
 
             /*
@@ -264,15 +285,22 @@ class ConfigureAppProcessActivity : BaseActivity() {
 
     private fun appOptimizePolicySaveAction(appOptimizePolicy: AppOptimizePolicy) {
         // 保存到本地
-        prefPut(
-            PreferenceNameConstants.APP_OPTIMIZE_POLICY,
-            commit = true,
-            appOptimizePolicy.packageName,
-            appOptimizePolicy
-        )
+        saveAppMemoryOptimize(appOptimizePolicy, this)
         // 通知模块进程
         showProgressBarViewForAction("正在设置") {
             sendMessage(this, MessageKeyConstants.appOptimizePolicy, appOptimizePolicy)
+        }
+    }
+
+    companion object {
+        @JvmStatic
+        fun saveAppMemoryOptimize(appOptimizePolicy: AppOptimizePolicy, context: Context) {
+            context.prefPut(
+                PreferenceNameConstants.APP_OPTIMIZE_POLICY,
+                commit = true,
+                appOptimizePolicy.packageName,
+                appOptimizePolicy
+            )
         }
     }
 }

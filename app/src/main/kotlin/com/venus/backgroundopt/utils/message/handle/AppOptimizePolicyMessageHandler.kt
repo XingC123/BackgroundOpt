@@ -1,9 +1,8 @@
 package com.venus.backgroundopt.utils.message.handle
 
-import com.venus.backgroundopt.BuildConfig
+import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.environment.CommonProperties
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
@@ -28,15 +27,32 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
     }
 
     class AppOptimizePolicy : MessageFlag {
-        // 版本号
-        // 用以针对不同版本时期的配置进行不同的逻辑
-        var versionCode: Int = -1
-        var versionName: String = "none"
-
         lateinit var packageName: String
-        var disableForegroundTrimMem = false
-        var disableBackgroundTrimMem = false
-        var disableBackgroundGc = true
+
+        @Deprecated(
+            message = "容易误解",
+            replaceWith = ReplaceWith(expression = "enableForegroundTrimMem")
+        )
+        @JSONField(serialize = false)
+        var disableForegroundTrimMem: Boolean? = null
+
+        @Deprecated(
+            message = "容易误解",
+            replaceWith = ReplaceWith(expression = "enableBackgroundTrimMem")
+        )
+        @JSONField(serialize = false)
+        var disableBackgroundTrimMem: Boolean? = null
+
+        @Deprecated(
+            message = "容易误解",
+            replaceWith = ReplaceWith(expression = "enableBackgroundGc")
+        )
+        @JSONField(serialize = false)
+        var disableBackgroundGc: Boolean? = null
+
+        var enableForegroundTrimMem: Boolean? = null
+        var enableBackgroundTrimMem: Boolean? = null
+        var enableBackgroundGc: Boolean? = null
 
         // 自定义的主进程oom分数
         var enableCustomMainProcessOomScore = false
