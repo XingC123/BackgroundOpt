@@ -300,7 +300,7 @@ fun String.beforeConstructorHook(
 ) {
     beforeHook(
         classLoader,
-        null,
+        this.substring(this.lastIndexOf(".") + 1),
         enable,
         hookAllMethod,
         HookPoint.MethodType.Constructor,
@@ -318,7 +318,7 @@ fun String.afterConstructorHook(
 ) {
     afterHook(
         classLoader,
-        null,
+        this.substring(this.lastIndexOf(".") + 1),
         enable,
         hookAllMethod,
         HookPoint.MethodType.Constructor,
