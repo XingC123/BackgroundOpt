@@ -152,32 +152,35 @@ object PackageUtils {
             var hasConfiguredAppOptimizePolicy = false
             // 自定义oom
             var hasConfiguredMainProcessCustomOomScore = false
-            appOptimizePolicies[packageName]?.let {
-                if (it.disableForegroundTrimMem != null ||
-                    it.disableBackgroundTrimMem != null ||
-                    it.disableBackgroundGc != null
+            appOptimizePolicies[packageName]?.let { appOptimizePolicy ->
+                if (appOptimizePolicy.disableForegroundTrimMem != null ||
+                    appOptimizePolicy.disableBackgroundTrimMem != null ||
+                    appOptimizePolicy.disableBackgroundGc != null
                 ) {
                     // 正在使用旧版配置
                     // 解析旧版参数
-                    it.enableForegroundTrimMem =
-                        it.disableForegroundTrimMem ?: DefaultValueManager.enableForegroundTrimMem
-                    it.enableBackgroundTrimMem =
-                        it.disableBackgroundTrimMem ?: DefaultValueManager.enableBackgroundTrimMem
-                    it.enableBackgroundGc =
-                        it.disableBackgroundGc ?: DefaultValueManager.enableBackgroundGc
+                    appOptimizePolicy.enableForegroundTrimMem =
+                        appOptimizePolicy.disableForegroundTrimMem?.let { !it }
+                            ?: DefaultValueManager.enableForegroundTrimMem
+                    appOptimizePolicy.enableBackgroundTrimMem =
+                        appOptimizePolicy.disableBackgroundTrimMem?.let { !it }
+                            ?: DefaultValueManager.enableBackgroundTrimMem
+                    appOptimizePolicy.enableBackgroundGc =
+                        appOptimizePolicy.disableBackgroundGc?.let { !it }
+                            ?: DefaultValueManager.enableBackgroundGc
                     // 保存新版参数
-                    ConfigureAppProcessActivity.saveAppMemoryOptimize(it, context)
+                    ConfigureAppProcessActivity.saveAppMemoryOptimize(appOptimizePolicy, context)
                 }
 
-                if (it.enableForegroundTrimMem == !DefaultValueManager.enableForegroundTrimMem ||
-                    it.enableBackgroundTrimMem == !DefaultValueManager.enableBackgroundTrimMem ||
-                    it.enableBackgroundGc == !DefaultValueManager.enableBackgroundGc
+                if (appOptimizePolicy.enableForegroundTrimMem == !DefaultValueManager.enableForegroundTrimMem ||
+                    appOptimizePolicy.enableBackgroundTrimMem == !DefaultValueManager.enableBackgroundTrimMem ||
+                    appOptimizePolicy.enableBackgroundGc == !DefaultValueManager.enableBackgroundGc
                 ) {
                     appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.AppOptimizePolicy)
                     hasConfiguredAppOptimizePolicy = true
                 }
 
-                if (it.enableCustomMainProcessOomScore) {
+                if (appOptimizePolicy.enableCustomMainProcessOomScore) {
                     appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.CustomMainProcessOomScore)
                     hasConfiguredMainProcessCustomOomScore = true
                 }
