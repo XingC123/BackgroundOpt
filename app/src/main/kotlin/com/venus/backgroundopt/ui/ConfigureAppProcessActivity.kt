@@ -127,7 +127,7 @@ class ConfigureAppProcessActivity : BaseActivity() {
                     sw.isChecked = !policy.get()
                     // 监听
                     sw.setOnCheckedChangeListener { _, isChecked ->
-                        policy.set(isChecked)
+                        policy.set(!isChecked)
                         appOptimizePolicySaveAction(appOptimizePolicy)
                     }
                 }
