@@ -68,34 +68,34 @@ private fun logAndroidImpl(
     }
 }
 
-fun logInfo(methodName: String = "", logStr: String) {
+fun logInfo(logStr: String, methodName: String = "") {
     logImpl("I", methodName, logStr)
 }
 
-fun logInfoAndroid(methodName: String = "", logStr: String, t: Throwable? = null) {
+fun logInfoAndroid(logStr: String, methodName: String = "", t: Throwable? = null) {
     logAndroidImpl("I", methodName, logStr, t)
 }
 
-fun logDebug(methodName: String = "", logStr: String, t: Throwable? = null) {
+fun logDebug(logStr: String, methodName: String = "", t: Throwable? = null) {
     logImpl("D", methodName, logStr, t)
 }
 
-fun logDebugAndroid(methodName: String = "", logStr: String, t: Throwable? = null) {
+fun logDebugAndroid(logStr: String, methodName: String = "", t: Throwable? = null) {
     logAndroidImpl("D", methodName, logStr, t)
 }
 
-fun logWarn(methodName: String = "", logStr: String, t: Throwable? = null) {
+fun logWarn(logStr: String, methodName: String = "", t: Throwable? = null) {
     logImpl("W", methodName, logStr, t)
 }
 
-fun logWarnAndroid(methodName: String = "", logStr: String, t: Throwable? = null) {
+fun logWarnAndroid(logStr: String, methodName: String = "", t: Throwable? = null) {
     logAndroidImpl("W", methodName, logStr, t)
 }
 
-fun logError(methodName: String = "", logStr: String, t: Throwable? = null) {
+fun logError(logStr: String, methodName: String = "", t: Throwable? = null) {
     logImpl("E", methodName, logStr, t)
 }
 
-fun logErrorAndroid(methodName: String = "", logStr: String, t: Throwable? = null) {
+fun logErrorAndroid(logStr: String, methodName: String = "", t: Throwable? = null) {
     logAndroidImpl("E", methodName, logStr, t)
 }
