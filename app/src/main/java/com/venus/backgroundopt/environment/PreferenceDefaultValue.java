@@ -12,7 +12,7 @@ import com.venus.backgroundopt.utils.preference.PreferencesUtilKt;
  * @author XingC
  * @date 2024/2/1
  */
-public interface DefaultValueManager {
+public interface PreferenceDefaultValue {
     /* *************************************************************************
      *                                                                         *
      * app内存优化策略                                                           *
@@ -31,4 +31,11 @@ public interface DefaultValueManager {
                 enableForegroundTrimMem
         );
     }
+
+    /* *************************************************************************
+     *                                                                         *
+     * webview进程处理                                                           *
+     *                                                                         *
+     **************************************************************************/
+    boolean enableWebviewProcessProtect = true;
 }

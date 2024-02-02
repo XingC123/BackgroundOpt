@@ -103,5 +103,11 @@ class SettingsPreferenceFragment : BasePreferenceFragment<SettingsActivity>() {
                 true
             }
         }
+
+        // app的webview进程保护
+        initSwitchPreferenceChangeListener(
+            switchPreference = findPreference(PreferenceKeyConstants.APP_WEBVIEW_PROCESS_PROTECT),
+            messageKey = MessageKeyConstants.appWebviewProcessProtect,
+        )
     }
 }

@@ -9,7 +9,7 @@ import android.os.Build
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
-import com.venus.backgroundopt.environment.DefaultValueManager
+import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.ui.ConfigureAppProcessActivity
 import com.venus.backgroundopt.utils.log.logErrorAndroid
@@ -162,9 +162,9 @@ object PackageUtils {
                     ConfigureAppProcessActivity.saveAppMemoryOptimize(appOptimizePolicy, context)
                 }
 
-                if (appOptimizePolicy.enableForegroundTrimMem == !DefaultValueManager.enableForegroundTrimMem ||
-                    appOptimizePolicy.enableBackgroundTrimMem == !DefaultValueManager.enableBackgroundTrimMem ||
-                    appOptimizePolicy.enableBackgroundGc == !DefaultValueManager.enableBackgroundGc
+                if (appOptimizePolicy.enableForegroundTrimMem == !PreferenceDefaultValue.enableForegroundTrimMem ||
+                    appOptimizePolicy.enableBackgroundTrimMem == !PreferenceDefaultValue.enableBackgroundTrimMem ||
+                    appOptimizePolicy.enableBackgroundGc == !PreferenceDefaultValue.enableBackgroundGc
                 ) {
                     appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.AppOptimizePolicy)
                     hasConfiguredAppOptimizePolicy = true

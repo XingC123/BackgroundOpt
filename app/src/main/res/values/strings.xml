@@ -119,4 +119,6 @@
     <string name="configAppProcessFgMemTrimDefaultRadio">Default</string>
     <string name="configAppProcessFgMemTrimEnableRadio">Enable</string>
     <string name="configAppProcessFgMemTrimDisableRadio">Disable</string>
+    <string name="settingsAppWebviewProcessProtect">Protect app webview</string>
+    <string name="settingsAppWebviewProcessProtectSummary" translatable="false">防止webview被关闭导致页面重载</string>
 </resources>

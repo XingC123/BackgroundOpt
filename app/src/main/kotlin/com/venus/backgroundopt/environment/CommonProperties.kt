@@ -5,6 +5,7 @@ import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
+import com.venus.backgroundopt.reference.ObjectReference
 import com.venus.backgroundopt.utils.log.logInfo
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.preference.PreferencesUtil
@@ -89,7 +90,7 @@ object CommonProperties {
         return PreferencesUtil.getBoolean(
             PreferenceNameConstants.MAIN_SETTINGS,
             PreferenceKeyConstants.ENABLE_FOREGROUND_PROC_TRIM_MEM_POLICY,
-            DefaultValueManager.enableForegroundTrimMem
+            PreferenceDefaultValue.enableForegroundTrimMem
         )
     }
 
@@ -125,5 +126,20 @@ object CommonProperties {
     val appOptimizePolicyMap: MutableMap<String, AppOptimizePolicy> by lazy {
         (prefAll(PreferenceNameConstants.APP_OPTIMIZE_POLICY)
             ?: ConcurrentHashMap<String, AppOptimizePolicy>())
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * webview进程的处理                                                         *
+     *                                                                         *
+     **************************************************************************/
+    val enableWebviewProcessProtect by lazy {
+        ObjectReference(
+            PreferencesUtil.getBoolean(
+                path = PreferenceNameConstants.MAIN_SETTINGS,
+                key = PreferenceKeyConstants.APP_WEBVIEW_PROCESS_PROTECT,
+                defaultValue = PreferenceDefaultValue.enableWebviewProcessProtect
+            )
+        )
     }
 }

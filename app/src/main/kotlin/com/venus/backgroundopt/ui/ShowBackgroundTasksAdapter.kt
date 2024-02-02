@@ -7,7 +7,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
-import com.venus.backgroundopt.environment.DefaultValueManager
+import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
 import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandler
 
@@ -56,7 +56,7 @@ class ShowBackgroundTasksAdapter(
             }
             // 设置前台可见性
             enableForegroundProcTrimMem =
-                DefaultValueManager.isEnableForegroundTrimMem(this.itemView.context)
+                PreferenceDefaultValue.isEnableForegroundTrimMem(this.itemView.context)
         }
     }
 
@@ -70,8 +70,8 @@ class ShowBackgroundTasksAdapter(
         viewHolder.appItemTipText1.text = appItem.appName
 
         var enablePolicyForegroundTrim = enableForegroundProcTrimMem
-        var enablePolicyBackgroundTrim = DefaultValueManager.enableBackgroundTrimMem
-        var enablePolicyBackgroundGc = DefaultValueManager.enableBackgroundGc
+        var enablePolicyBackgroundTrim = PreferenceDefaultValue.enableBackgroundTrimMem
+        var enablePolicyBackgroundGc = PreferenceDefaultValue.enableBackgroundGc
 
         backgroundTaskMessage.appOptimizePolicyMap[packageName]?.let { appOptimizePolicy ->
             enablePolicyForegroundTrim = appOptimizePolicy.enableForegroundTrimMem != false

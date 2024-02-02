@@ -108,7 +108,8 @@ class ProcessListHookKt(
         /*?: appInfo.addProcess(runningInfo.activityManagerService.getProcessRecord(pid))*/
         val mainProcess = process.mainProcess
 
-        if (mainProcess || isUpgradeSubProcessLevel(process.processName)) { // 主进程
+        if (mainProcess || isUpgradeSubProcessLevel(process.processName) ||
+            (CommonProperties.enableWebviewProcessProtect.value && process.webviewProcess)) { // 主进程
             // 获取自定义主进程oom分数
             val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[process.packageName]
             val finalMainAdj = if (appOptimizePolicy?.enableCustomMainProcessOomScore == true) {

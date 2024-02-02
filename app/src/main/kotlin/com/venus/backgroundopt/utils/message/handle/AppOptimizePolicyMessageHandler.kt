@@ -3,7 +3,7 @@ package com.venus.backgroundopt.utils.message.handle
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.environment.CommonProperties
-import com.venus.backgroundopt.environment.DefaultValueManager
+import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
@@ -38,7 +38,7 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         var disableForegroundTrimMem: Boolean? = null
             set(value) {
                 enableForegroundTrimMem = value?.let { !it }
-                    ?: DefaultValueManager.enableForegroundTrimMem
+                    ?: PreferenceDefaultValue.enableForegroundTrimMem
                 field = value
             }
 
@@ -50,7 +50,7 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         var disableBackgroundTrimMem: Boolean? = null
             set(value) {
                 enableBackgroundTrimMem = value?.let { !it }
-                    ?: DefaultValueManager.enableBackgroundTrimMem
+                    ?: PreferenceDefaultValue.enableBackgroundTrimMem
                 field = value
             }
 
@@ -61,7 +61,7 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         @JSONField(serialize = false)
         var disableBackgroundGc: Boolean? = null
             set(value) {
-                enableBackgroundGc = value?.let { !it } ?: DefaultValueManager.enableBackgroundGc
+                enableBackgroundGc = value?.let { !it } ?: PreferenceDefaultValue.enableBackgroundGc
                 field = value
             }
 

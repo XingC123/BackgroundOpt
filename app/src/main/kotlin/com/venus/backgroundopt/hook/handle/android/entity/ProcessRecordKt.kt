@@ -286,6 +286,16 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
                 }
             }
         }
+
+        /**
+         * 是否是webview进程
+         * @param processRecord Any 安卓的ProcessRecord对象
+         * @return Boolean 是 -> true
+         */
+        @JvmStatic
+        fun isWebviewProc(processRecord: Any): Boolean {
+            return getProcessName(processRecord).contains("SandboxedProcessService")
+        }
     }
 
     // 反射拿到的安卓的processRecord对象
@@ -337,6 +347,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
         processName = getProcessName(processRecord)
         mainProcess = isMainProcess(packageName, processName)
+        webviewProcess = Companion.isWebviewProc(processRecord)
         processStateRecord =
             ProcessStateRecord(processRecord.getObjectFieldValue(FieldConstants.mState))
     }
