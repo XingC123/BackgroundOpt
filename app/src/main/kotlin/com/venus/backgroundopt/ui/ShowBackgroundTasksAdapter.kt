@@ -74,9 +74,12 @@ class ShowBackgroundTasksAdapter(
         var enablePolicyBackgroundGc = PreferenceDefaultValue.enableBackgroundGc
 
         backgroundTaskMessage.appOptimizePolicyMap[packageName]?.let { appOptimizePolicy ->
-            enablePolicyForegroundTrim = appOptimizePolicy.enableForegroundTrimMem != false
-            enablePolicyBackgroundTrim = appOptimizePolicy.enableBackgroundTrimMem != false
-            enablePolicyBackgroundGc = appOptimizePolicy.enableBackgroundGc != false
+            enablePolicyForegroundTrim =
+                appOptimizePolicy.enableForegroundTrimMem ?: enablePolicyForegroundTrim
+            enablePolicyBackgroundTrim =
+                appOptimizePolicy.enableBackgroundTrimMem ?: enablePolicyBackgroundTrim
+            enablePolicyBackgroundGc =
+                appOptimizePolicy.enableBackgroundGc ?: enablePolicyBackgroundGc
         }
 
         // 设置提示文字的可见性
