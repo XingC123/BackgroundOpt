@@ -42,8 +42,8 @@
     </style>
 
     <style name="SwitchStyle" parent="Base.Widget.AppCompat.CompoundButton.Switch">
-        <item name="thumbTint">#ECECEC</item>
-        <item name="trackTint">#BDBABC</item>
+<!--        <item name="thumbTint">#ECECEC</item>-->
+<!--        <item name="trackTint">#BDBABC</item>-->
     </style>
 
     <!-- toolbar的菜单栏三个点点的颜色 -->
