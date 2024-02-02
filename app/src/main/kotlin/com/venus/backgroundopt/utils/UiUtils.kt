@@ -300,6 +300,11 @@ object UiUtils {
             component.visibility = View.GONE
         }
     }
+
+    fun dpToPx(dp: Float, context: Context): Int {
+        val density = context.resources.displayMetrics.density
+        return (dp * density).toInt()
+    }
 }
 
 inline fun AlertDialog.Builder.setNegativeBtn(

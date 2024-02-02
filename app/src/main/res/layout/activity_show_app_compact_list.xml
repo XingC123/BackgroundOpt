@@ -39,6 +39,8 @@
             android:divider="@drawable/item_space_horizontal"
             android:gravity="center_horizontal"
             android:orientation="vertical"
+            android:paddingHorizontal="@dimen/content_space"
+            android:paddingVertical="@dimen/content_space"
             android:showDividers="middle">
 
             <TextView
