@@ -24,9 +24,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="?attr/colorPrimary"
-                android:theme="@style/Theme.AppTheme"
+                android:theme="@style/ToolbarMenu"
                 app:menu="@menu/menu_main_activity_toolbar"
-                app:popupTheme="@style/OverflowMenuStyle"/>
+                app:popupTheme="@style/OverflowMenuStyle" />
 
             <TextView
                 android:id="@+id/textView4"
