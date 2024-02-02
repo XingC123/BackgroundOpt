@@ -49,6 +49,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
+                    android:background="@drawable/border"
+                    android:paddingHorizontal="@dimen/padding_horizontal_if_use_border"
+                    android:paddingVertical="@dimen/padding_vertical_if_use_border"
                     android:text="@string/itemInstalledAppsMemTrimFlagText"
                     android:textColor="@color/shanChui" />
 
@@ -57,6 +60,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
+                    android:background="@drawable/border"
+                    android:paddingHorizontal="@dimen/padding_horizontal_if_use_border"
+                    android:paddingVertical="@dimen/padding_vertical_if_use_border"
                     android:text="@string/itemInstalledAppsCustomMainProcOomScoreFlagText"
                     android:textColor="@color/shanChui" />
 
@@ -65,6 +71,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
+                    android:background="@drawable/border"
+                    android:paddingHorizontal="@dimen/padding_horizontal_if_use_border"
+                    android:paddingVertical="@dimen/padding_vertical_if_use_border"
                     android:text="@string/itemInstalledAppsOomPolicyFlagText"
                     android:textColor="@color/shanChui" />
             </LinearLayout>
