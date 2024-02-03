@@ -13,24 +13,31 @@ import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.utils.StringUtils
+import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.setTmpData
 
 /**
  * @author XingC
  * @date 2023/9/27
  */
-class ShowAllInstalledAppsAdapter(private val appItems: List<AppItem>) :
-    RecyclerView.Adapter<ShowAllInstalledAppsAdapter.ShowAllInstalledAppsViewHolder>(), Filterable {
+class ShowAllInstalledAppsAdapter2(private val appItems: List<AppItem>) :
+    RecyclerView.Adapter<ShowAllInstalledAppsAdapter2.ShowAllInstalledAppsViewHolder>(), Filterable {
     class ShowAllInstalledAppsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var appIcon: ImageView
         var appName: TextView
-        var installedAppConfiguredFlagText: TextView
+        var itemInstalledAppsMemTrimFlagText: TextView
+        var itemInstalledAppsCustomMainProcOomScoreFlagText: TextView
+        var itemInstalledAppsOomPolicyFlagText: TextView
 
         init {
             appIcon = itemView.findViewById(R.id.installedAppItemAppIcon)
             appName = itemView.findViewById(R.id.installedAppItemAppNameText)
-            installedAppConfiguredFlagText =
-                itemView.findViewById(R.id.installedAppConfiguredFlagText)
+            itemInstalledAppsMemTrimFlagText =
+                itemView.findViewById(R.id.itemInstalledAppsMemTrimFlagText)
+            itemInstalledAppsCustomMainProcOomScoreFlagText =
+                itemView.findViewById(R.id.itemInstalledAppsCustomMainProcOomScoreFlagText)
+            itemInstalledAppsOomPolicyFlagText =
+                itemView.findViewById(R.id.itemInstalledAppsOomPolicyFlagText)
         }
     }
 
@@ -45,7 +52,7 @@ class ShowAllInstalledAppsAdapter(private val appItems: List<AppItem>) :
     ): ShowAllInstalledAppsViewHolder {
         val view: View =
             LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_installed_apps, parent, false)
+                .inflate(R.layout.item_installed_apps2, parent, false)
         return ShowAllInstalledAppsViewHolder(view)
     }
 
@@ -59,36 +66,24 @@ class ShowAllInstalledAppsAdapter(private val appItems: List<AppItem>) :
         holder.appName.text = appItem.appName
 
         // 设置显示已配置的设置的标识
-        val hasConfiguredAppOptimizePolicy =
-            appItem.appConfiguredEnumSet.contains(AppItem.AppConfiguredEnum.AppOptimizePolicy)
-        val hasConfiguredMainProcessCustomOomScore =
-            appItem.appConfiguredEnumSet.contains(AppItem.AppConfiguredEnum.CustomMainProcessOomScore)
-        val hasConfiguredSubProcessOomPolicy =
-            appItem.appConfiguredEnumSet.contains(AppItem.AppConfiguredEnum.SubProcessOomPolicy)
-
-        if (hasConfiguredAppOptimizePolicy) {
-            if (hasConfiguredSubProcessOomPolicy) {
-                if (hasConfiguredMainProcessCustomOomScore) {
-                    // 全部配置
-                    holder.installedAppConfiguredFlagText.text = "已配置"
-                }
-                holder.installedAppConfiguredFlagText.text =
-                    AppItem.AppConfiguredEnum.SubProcessOomPolicy.displayName
-            } else {
-                holder.installedAppConfiguredFlagText.text =
-                    AppItem.AppConfiguredEnum.AppOptimizePolicy.displayName
-            }
-        } else if (hasConfiguredSubProcessOomPolicy) {
-            // 只配置了子进程OOM策略
-            holder.installedAppConfiguredFlagText.text =
-                AppItem.AppConfiguredEnum.SubProcessOomPolicy.displayName
-        } else if (hasConfiguredMainProcessCustomOomScore) {
-            holder.installedAppConfiguredFlagText.text =
-                AppItem.AppConfiguredEnum.CustomMainProcessOomScore.displayName
-        } else {
-            // 全都没有
-            holder.installedAppConfiguredFlagText.text = ""
+        fun setAppFlagTextVisible(component:View, appConfiguredEnum: AppItem.AppConfiguredEnum) {
+            UiUtils.setComponentVisible(
+                component,
+                appItem.appConfiguredEnumSet.contains(appConfiguredEnum)
+            )
         }
+        setAppFlagTextVisible(
+            holder.itemInstalledAppsMemTrimFlagText,
+            AppItem.AppConfiguredEnum.AppOptimizePolicy
+        )
+        setAppFlagTextVisible(
+            holder.itemInstalledAppsCustomMainProcOomScoreFlagText,
+            AppItem.AppConfiguredEnum.CustomMainProcessOomScore
+        )
+        setAppFlagTextVisible(
+            holder.itemInstalledAppsOomPolicyFlagText,
+            AppItem.AppConfiguredEnum.SubProcessOomPolicy
+        )
 
         holder.itemView.setOnClickListener { view ->
             view.context.also { context ->

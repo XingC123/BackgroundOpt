@@ -7,11 +7,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
-import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
-import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
+import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
 import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandler
-import com.venus.backgroundopt.utils.preference.pref
 
 /**
  * @author XingC
@@ -58,10 +56,7 @@ class ShowBackgroundTasksAdapter(
             }
             // 设置前台可见性
             enableForegroundProcTrimMem =
-                this.itemView.context.pref(PreferenceNameConstants.MAIN_SETTINGS).getBoolean(
-                    PreferenceKeyConstants.ENABLE_FOREGROUND_PROC_TRIM_MEM_POLICY,
-                    false
-                )
+                PreferenceDefaultValue.isEnableForegroundTrimMem(this.itemView.context)
         }
     }
 
@@ -75,13 +70,16 @@ class ShowBackgroundTasksAdapter(
         viewHolder.appItemTipText1.text = appItem.appName
 
         var enablePolicyForegroundTrim = enableForegroundProcTrimMem
-        var enablePolicyBackgroundTrim = true
-        var enablePolicyBackgroundGc = true
+        var enablePolicyBackgroundTrim = PreferenceDefaultValue.enableBackgroundTrimMem
+        var enablePolicyBackgroundGc = PreferenceDefaultValue.enableBackgroundGc
 
         backgroundTaskMessage.appOptimizePolicyMap[packageName]?.let { appOptimizePolicy ->
-            enablePolicyForegroundTrim = !appOptimizePolicy.disableForegroundTrimMem
-            enablePolicyBackgroundTrim = !appOptimizePolicy.disableBackgroundTrimMem
-            enablePolicyBackgroundGc = !appOptimizePolicy.disableBackgroundGc
+            enablePolicyForegroundTrim =
+                appOptimizePolicy.enableForegroundTrimMem ?: enablePolicyForegroundTrim
+            enablePolicyBackgroundTrim =
+                appOptimizePolicy.enableBackgroundTrimMem ?: enablePolicyBackgroundTrim
+            enablePolicyBackgroundGc =
+                appOptimizePolicy.enableBackgroundGc ?: enablePolicyBackgroundGc
         }
 
         // 设置提示文字的可见性
@@ -112,7 +110,7 @@ class ShowBackgroundTasksAdapter(
     }
 
     class ShowBackgroundTasksViewHolder(itemView: View) : ShowInfoFromAppItemViewHolder(itemView) {
-        val appItemTipText1:TextView
+        val appItemTipText1: TextView
 
         val appItemForegroundTrimMemText: TextView
         val appItemBackgroundTrimMemText: TextView

@@ -5,6 +5,7 @@ import com.venus.backgroundopt.utils.log.logError
 import com.venus.backgroundopt.utils.log.logInfo
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
+import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 
@@ -271,6 +272,25 @@ fun String.afterHook(
     }, hookAllMethod, methodType, *paramTypes)
 }
 
+fun String.replaceHook(
+    classLoader: ClassLoader,
+    methodName: String?,
+    enable: Boolean = true,
+    hookAllMethod: Boolean = false,
+    methodType: HookPoint.MethodType = HookPoint.MethodType.Member,
+    vararg paramTypes: Any?,
+    block: (MethodHookParam) -> Any?
+) {
+    if (!enable) {
+        return
+    }
+    hookMethod(classLoader, methodName, object : XC_MethodReplacement() {
+        override fun replaceHookedMethod(param: MethodHookParam): Any? {
+            return block(param)
+        }
+    }, hookAllMethod, methodType, *paramTypes)
+}
+
 fun String.beforeConstructorHook(
     classLoader: ClassLoader,
     enable: Boolean = true,
@@ -280,7 +300,7 @@ fun String.beforeConstructorHook(
 ) {
     beforeHook(
         classLoader,
-        null,
+        this.substring(this.lastIndexOf(".") + 1),
         enable,
         hookAllMethod,
         HookPoint.MethodType.Constructor,
@@ -298,7 +318,7 @@ fun String.afterConstructorHook(
 ) {
     afterHook(
         classLoader,
-        null,
+        this.substring(this.lastIndexOf(".") + 1),
         enable,
         hookAllMethod,
         HookPoint.MethodType.Constructor,
@@ -309,6 +329,10 @@ fun String.afterConstructorHook(
 
 fun String.findClass(classLoader: ClassLoader): Class<*> {
     return XposedHelpers.findClass(this, classLoader)
+}
+
+fun String.findClassIfExists(classLoader: ClassLoader): Class<*>? {
+    return XposedHelpers.findClassIfExists(this, classLoader)
 }
 
 @JvmName("findClassWithType")

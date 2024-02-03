@@ -9,7 +9,9 @@ import android.os.Build
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
+import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
+import com.venus.backgroundopt.ui.ConfigureAppProcessActivity
 import com.venus.backgroundopt.utils.log.logErrorAndroid
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.preference.prefAll
@@ -148,10 +150,29 @@ object PackageUtils {
             val packageName = appItem.packageName
             // app是否启用优化
             var hasConfiguredAppOptimizePolicy = false
-            appOptimizePolicies[packageName]?.let {
-                if (it.disableForegroundTrimMem or it.disableBackgroundTrimMem or it.disableBackgroundGc) {
+            // 自定义oom
+            var hasConfiguredMainProcessCustomOomScore = false
+            appOptimizePolicies[packageName]?.let { appOptimizePolicy ->
+                if (appOptimizePolicy.disableForegroundTrimMem != null ||
+                    appOptimizePolicy.disableBackgroundTrimMem != null ||
+                    appOptimizePolicy.disableBackgroundGc != null
+                ) {
+                    // 正在使用旧版配置
+                    // 保存新版参数
+                    ConfigureAppProcessActivity.saveAppMemoryOptimize(appOptimizePolicy, context)
+                }
+
+                if (appOptimizePolicy.enableForegroundTrimMem == !PreferenceDefaultValue.enableForegroundTrimMem ||
+                    appOptimizePolicy.enableBackgroundTrimMem == !PreferenceDefaultValue.enableBackgroundTrimMem ||
+                    appOptimizePolicy.enableBackgroundGc == !PreferenceDefaultValue.enableBackgroundGc
+                ) {
                     appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.AppOptimizePolicy)
                     hasConfiguredAppOptimizePolicy = true
+                }
+
+                if (appOptimizePolicy.enableCustomMainProcessOomScore) {
+                    appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.CustomMainProcessOomScore)
+                    hasConfiguredMainProcessCustomOomScore = true
                 }
             }
 
@@ -166,7 +187,9 @@ object PackageUtils {
                     }
                 }
             }
-            return hasConfiguredAppOptimizePolicy or hasConfiguredSubProcessOomPolicy
+            return hasConfiguredAppOptimizePolicy or
+                    hasConfiguredMainProcessCustomOomScore or
+                    hasConfiguredSubProcessOomPolicy
         }
 
         // 排序器

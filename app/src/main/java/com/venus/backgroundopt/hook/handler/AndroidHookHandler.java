@@ -7,10 +7,15 @@ import com.venus.backgroundopt.entity.preference.OomWorkModePref;
 import com.venus.backgroundopt.environment.CommonProperties;
 import com.venus.backgroundopt.environment.SystemProperties;
 import com.venus.backgroundopt.hook.base.PackageHook;
+import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookNew;
+import com.venus.backgroundopt.hook.handle.android.OomAdjusterHookNew;
+import com.venus.backgroundopt.hook.handle.android.ProcessListHookNew;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerConstantsHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
+import com.venus.backgroundopt.hook.handle.android.AppProfilerHook;
 import com.venus.backgroundopt.hook.handle.android.DeletePackageHelperHook;
+import com.venus.backgroundopt.hook.handle.android.LowMemDetectorHook;
 import com.venus.backgroundopt.hook.handle.android.PackageManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.PhantomProcessListHook;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt;
@@ -81,6 +86,16 @@ public class AndroidHookHandler extends PackageHook {
         new SystemPropertiesHook(classLoader, runningInfo);
 
         new RoleControllerManagerHook(classLoader, runningInfo);
+
+        new LowMemDetectorHook(classLoader, runningInfo);
+
+        new AppProfilerHook(classLoader, runningInfo);
+
+        new ProcessListHookNew(classLoader, runningInfo);
+
+        new OomAdjusterHookNew(classLoader, runningInfo);
+
+        new ActivityManagerServiceHookNew(classLoader, runningInfo);
     }
 
     private void initSystemProp() {
