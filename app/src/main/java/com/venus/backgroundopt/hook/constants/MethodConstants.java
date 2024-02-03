@@ -96,6 +96,7 @@ public interface MethodConstants {
     String getMemFactor = "getMemFactor";
     String run = "run";
     String isAvailable = "isAvailable";
+    String shouldKillExcessiveProcesses = "shouldKillExcessiveProcesses";
 
     /**
      * miui
