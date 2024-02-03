@@ -21,18 +21,26 @@ class SettingsPreferenceFragment : BasePreferenceFragment<SettingsActivity>() {
     }
 
     private fun init() {
-        findPreference<SwitchPreference>(PreferenceKeyConstants.AUTO_STOP_COMPACT_TASK)?.let { switchPreference ->
-            switchPreference.setOnPreferenceChangeListener { _, newValue ->
+        fun initSwitchPreferenceChangeListener(
+            switchPreference: SwitchPreference?,
+            messageKey: String,
+        ) {
+            switchPreference?.setOnPreferenceChangeListener { _, newValue ->
                 preferenceChangeAction {
                     sendMessage(
                         requireActivity(),
-                        MessageKeyConstants.autoStopCompactTask,
+                        messageKey,
                         newValue
                     )
                 }
                 true
             }
         }
+
+        initSwitchPreferenceChangeListener(
+            switchPreference = findPreference(PreferenceKeyConstants.AUTO_STOP_COMPACT_TASK),
+            messageKey = MessageKeyConstants.autoStopCompactTask,
+        )
 
         // 前台进程内存紧张
         val foregroundProcTrimMemPreference =
@@ -95,5 +103,11 @@ class SettingsPreferenceFragment : BasePreferenceFragment<SettingsActivity>() {
                 true
             }
         }
+
+        // app的webview进程保护
+        initSwitchPreferenceChangeListener(
+            switchPreference = findPreference(PreferenceKeyConstants.APP_WEBVIEW_PROCESS_PROTECT),
+            messageKey = MessageKeyConstants.appWebviewProcessProtect,
+        )
     }
 }

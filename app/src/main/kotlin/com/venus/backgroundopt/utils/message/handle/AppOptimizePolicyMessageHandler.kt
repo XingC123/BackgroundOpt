@@ -1,8 +1,9 @@
 package com.venus.backgroundopt.utils.message.handle
 
+import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.environment.CommonProperties
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
@@ -28,9 +29,45 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
 
     class AppOptimizePolicy : MessageFlag {
         lateinit var packageName: String
-        var disableForegroundTrimMem = false
-        var disableBackgroundTrimMem = false
-        var disableBackgroundGc = false
+
+        @Deprecated(
+            message = "容易误解",
+            replaceWith = ReplaceWith(expression = "enableForegroundTrimMem")
+        )
+        @JSONField(serialize = false)
+        var disableForegroundTrimMem: Boolean? = null
+            set(value) {
+                enableForegroundTrimMem = value?.let { !it }
+                    ?: PreferenceDefaultValue.enableForegroundTrimMem
+                field = value
+            }
+
+        @Deprecated(
+            message = "容易误解",
+            replaceWith = ReplaceWith(expression = "enableBackgroundTrimMem")
+        )
+        @JSONField(serialize = false)
+        var disableBackgroundTrimMem: Boolean? = null
+            set(value) {
+                enableBackgroundTrimMem = value?.let { !it }
+                    ?: PreferenceDefaultValue.enableBackgroundTrimMem
+                field = value
+            }
+
+        @Deprecated(
+            message = "容易误解",
+            replaceWith = ReplaceWith(expression = "enableBackgroundGc")
+        )
+        @JSONField(serialize = false)
+        var disableBackgroundGc: Boolean? = null
+            set(value) {
+                enableBackgroundGc = value?.let { !it } ?: PreferenceDefaultValue.enableBackgroundGc
+                field = value
+            }
+
+        var enableForegroundTrimMem: Boolean? = null
+        var enableBackgroundTrimMem: Boolean? = null
+        var enableBackgroundGc: Boolean? = null
 
         // 自定义的主进程oom分数
         var enableCustomMainProcessOomScore = false

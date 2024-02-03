@@ -62,4 +62,7 @@ public interface FieldConstants {
     String hasTopUi = "hasTopUi";
     String ACTIVITY_DESTROYED = "ACTIVITY_DESTROYED";
     String mDyingPid = "mDyingPid";
+    String mMemFactorOverride = "mMemFactorOverride";
+    String mPressureState = "mPressureState";
+    String mAvailable = "mAvailable";
 }

@@ -40,6 +40,9 @@ open class BaseProcessInfoKt(
     val lastProcessingResultMap =
         ConcurrentHashMap<AppOptimizeEnum, ProcessingResult>(AppOptimizeEnum.values().size)
 
+    // 是否是webview进程
+    var webviewProcess = false
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

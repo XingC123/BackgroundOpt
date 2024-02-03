@@ -110,4 +110,15 @@
     <string name="configureAppProcessCustomMainProcessOomScoreText">Custom main Process oom score</string>
     <string name="configureAppProcessCustomMainProcessOomScoreTipText" translatable="false">(-1000~1000)</string>
     <string name="configureAppProcessCustomMainProcessOomScoreApplyBtn">Apply</string>
+    <string name="configureAppProcessForegroundMemoryTrim">Foreground Mem Trim</string>
+    <string name="configureAppProcessBackgroundMemoryTrim">Background Mem Trim</string>
+    <string name="configureAppProcessBackgroundGc">Background Gc</string>
+    <string name="itemInstalledAppsMemTrimFlagText" translatable="false">App内存回收策略</string>
+    <string name="itemInstalledAppsCustomMainProcOomScoreFlagText" translatable="false">自定义主进程OOM</string>
+    <string name="itemInstalledAppsOomPolicyFlagText" translatable="false">OOM策略</string>
+    <string name="configAppProcessFgMemTrimDefaultRadio">Default</string>
+    <string name="configAppProcessFgMemTrimEnableRadio">Enable</string>
+    <string name="configAppProcessFgMemTrimDisableRadio">Disable</string>
+    <string name="settingsAppWebviewProcessProtect">Protect app webview</string>
+    <string name="settingsAppWebviewProcessProtectSummary" translatable="false">防止webview被关闭导致页面重载</string>
 </resources>

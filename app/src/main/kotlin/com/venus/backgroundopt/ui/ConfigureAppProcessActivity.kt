@@ -1,10 +1,13 @@
 package com.venus.backgroundopt.ui
 
+import android.content.Context
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
@@ -16,6 +19,7 @@ import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.StringUtils
@@ -27,6 +31,7 @@ import com.venus.backgroundopt.utils.message.sendMessage
 import com.venus.backgroundopt.utils.preference.prefPut
 import com.venus.backgroundopt.utils.preference.prefValue
 import com.venus.backgroundopt.utils.showProgressBarViewForAction
+import kotlin.reflect.KMutableProperty0
 
 class ConfigureAppProcessActivity : BaseActivity() {
     private lateinit var appItem: AppItem
@@ -82,8 +87,10 @@ class ConfigureAppProcessActivity : BaseActivity() {
             }
         }
 
-        // 设置白名单控件的状态
         runOnUiThread {
+            /*
+                app优化策略
+             */
             val curPackageName = appItem.packageName
             // 获取本地配置
             val appOptimizePolicy = prefValue<AppOptimizePolicy>(
@@ -93,23 +100,72 @@ class ConfigureAppProcessActivity : BaseActivity() {
                 this.packageName = curPackageName
             }
 
-            // 白名单
-            findViewById<SwitchCompat>(R.id.configureAppProcessAppDoNothingSwitch)?.let { switch ->
-                // 获取本地配置
-                switch.isChecked =
-                    (appOptimizePolicy.disableBackgroundTrimMem or
-                            appOptimizePolicy.disableBackgroundGc or
-                            appOptimizePolicy.disableForegroundTrimMem)
+            fun initAppMemoryOptimizeRadioGroup(
+                radioGroupId: Int,
+                policy: KMutableProperty0<Boolean?>,
+                buttonIdArr: Array<Int>
+            ) {
+                findViewById<RadioGroup>(radioGroupId)?.let { group ->
+                    // 初始选中
+                    val initialCheckedBtnId = when (policy.get()) {
+                        null -> buttonIdArr[0]
+                        true -> buttonIdArr[1]
+                        false -> buttonIdArr[2]
+                    }
+                    group.check(initialCheckedBtnId)
 
-                // 监听
-                switch.setOnCheckedChangeListener { _, isChecked ->
-                    appOptimizePolicy.disableForegroundTrimMem = isChecked
-                    appOptimizePolicy.disableBackgroundTrimMem = isChecked
-                    appOptimizePolicy.disableBackgroundGc = isChecked
+                    // 事件监听
+                    group.setOnCheckedChangeListener { _, checkedId ->
+                        when (findViewById<RadioButton>(checkedId).id) {
+                            buttonIdArr[0] -> {
+                                policy.set(null)
+                            }
 
-                    appOptimizePolicySaveAction(appOptimizePolicy)
+                            buttonIdArr[1] -> {
+                                policy.set(true)
+                            }
+
+                            buttonIdArr[2] -> {
+                                policy.set(false)
+                            }
+
+                            else -> {
+                                policy.set(null)
+                            }
+                        }
+
+                        appOptimizePolicySaveAction(appOptimizePolicy)
+                    }
                 }
             }
+
+            initAppMemoryOptimizeRadioGroup(
+                radioGroupId = R.id.configAppProcessFgMemTrimGroup,
+                policy = appOptimizePolicy::enableForegroundTrimMem,
+                buttonIdArr = arrayOf(
+                    R.id.configAppProcessFgMemTrimDefaultRadio,
+                    R.id.configAppProcessFgMemTrimEnableRadio,
+                    R.id.configAppProcessFgMemTrimDisableRadio,
+                )
+            )
+            initAppMemoryOptimizeRadioGroup(
+                radioGroupId = R.id.configAppProcessBgMemTrimGroup,
+                policy = appOptimizePolicy::enableBackgroundTrimMem,
+                buttonIdArr = arrayOf(
+                    R.id.configAppProcessBgMemTrimDefaultRadio,
+                    R.id.configAppProcessBgMemTrimEnableRadio,
+                    R.id.configAppProcessBgMemTrimDisableRadio,
+                )
+            )
+            initAppMemoryOptimizeRadioGroup(
+                radioGroupId = R.id.configAppProcessBgGcGroup,
+                policy = appOptimizePolicy::enableBackgroundGc,
+                buttonIdArr = arrayOf(
+                    R.id.configAppProcessBgGcDefaultRadio,
+                    R.id.configAppProcessBgGcEnableRadio,
+                    R.id.configAppProcessBgGcDisableRadio,
+                )
+            )
 
             /*
                 自定义主进程oom分数
@@ -121,11 +177,29 @@ class ConfigureAppProcessActivity : BaseActivity() {
             val customMainProcessOomScoreApplyBtn =
                 findViewById<Button>(R.id.configureAppProcessCustomMainProcessOomScoreApplyBtn)?.apply {
                     setOnClickListener { _ ->
-                        val inputOomScore = customMainProcessOomScoreEditText?.text.toString().trim()
+                        val inputOomScore =
+                            customMainProcessOomScoreEditText?.text.toString().trim()
                         if (StringUtils.isEmpty(inputOomScore)) {
                             return@setOnClickListener
                         }
-                        appOptimizePolicy.customMainProcessOomScore = inputOomScore.toInt()
+
+                        val oomScore = try {
+                            inputOomScore.toInt()
+                        } catch (e: Exception) {
+                            Int.MIN_VALUE
+                        }
+                        // 不合法的取值
+                        if (oomScore < ProcessList.NATIVE_ADJ || oomScore >= ProcessList.UNKNOWN_ADJ) {
+                            UiUtils.createDialog(
+                                context = context,
+                                text = "不合法的输入值",
+                                cancelable = true,
+                                enableNegativeBtn = true
+                            ).show()
+                            return@setOnClickListener
+                        }
+
+                        appOptimizePolicy.customMainProcessOomScore = oomScore
 
                         appOptimizePolicySaveAction(appOptimizePolicy)
                     }
@@ -211,15 +285,22 @@ class ConfigureAppProcessActivity : BaseActivity() {
 
     private fun appOptimizePolicySaveAction(appOptimizePolicy: AppOptimizePolicy) {
         // 保存到本地
-        prefPut(
-            PreferenceNameConstants.APP_OPTIMIZE_POLICY,
-            commit = true,
-            appOptimizePolicy.packageName,
-            appOptimizePolicy
-        )
+        saveAppMemoryOptimize(appOptimizePolicy, this)
         // 通知模块进程
         showProgressBarViewForAction("正在设置") {
             sendMessage(this, MessageKeyConstants.appOptimizePolicy, appOptimizePolicy)
+        }
+    }
+
+    companion object {
+        @JvmStatic
+        fun saveAppMemoryOptimize(appOptimizePolicy: AppOptimizePolicy, context: Context) {
+            context.prefPut(
+                PreferenceNameConstants.APP_OPTIMIZE_POLICY,
+                commit = true,
+                appOptimizePolicy.packageName,
+                appOptimizePolicy
+            )
         }
     }
 }

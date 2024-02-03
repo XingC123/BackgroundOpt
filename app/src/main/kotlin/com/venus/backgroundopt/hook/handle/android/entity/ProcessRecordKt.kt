@@ -46,12 +46,17 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         var defaultMaxAdj = ProcessList.UNKNOWN_ADJ
 
         // 当前资源占用大于此值则进行优化
-        // 157286400 = 150MB *1024 * 1024
+        // 268435456 = 256MB *1024 * 1024
         @JvmField
-        var minOptimizeRssInBytes = 157286400.0
+        var minOptimizeRssInBytes = 268435456.0
+
+        // 触发内存优化的资源占用大小的封顶阈值
+        // 由于当前算法是根据最大内存计算。因此需要一个限制, 防止因为内存过大而导致阈值过高
+        // 419430400 = 400 * 1024 * 1024
+        const val maxOptimizeRssInBytes = 419430400.0
 
         // 资源占用因子
-        const val minOptimizeRssFactor = 0.02
+        const val minOptimizeRssFactor = 0.035
 
         init {
             // 根据配置文件决定defaultMaxAdj
@@ -65,7 +70,10 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
             // 计算最小的、要进行优化的资源占用的值
             RunningInfo.getInstance().memInfoReader?.let { memInfoReader ->
-                minOptimizeRssInBytes = memInfoReader.getTotalSize() * minOptimizeRssFactor
+                minOptimizeRssInBytes =
+                    (memInfoReader.getTotalSize() * minOptimizeRssFactor).coerceAtMost(
+                        maxOptimizeRssInBytes
+                    )
                 logInfo(logStr = "ProcessRecord: 触发优化的最小进程资源占用 = ${minOptimizeRssInBytes / (1024 * 1024)}MB")
             }
         }
@@ -278,6 +286,16 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
                 }
             }
         }
+
+        /**
+         * 是否是webview进程
+         * @param processRecord Any 安卓的ProcessRecord对象
+         * @return Boolean 是 -> true
+         */
+        @JvmStatic
+        fun isWebviewProc(processRecord: Any): Boolean {
+            return getProcessName(processRecord).contains("SandboxedProcessService")
+        }
     }
 
     // 反射拿到的安卓的processRecord对象
@@ -329,6 +347,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
         processName = getProcessName(processRecord)
         mainProcess = isMainProcess(packageName, processName)
+        webviewProcess = Companion.isWebviewProc(processRecord)
         processStateRecord =
             ProcessStateRecord(processRecord.getObjectFieldValue(FieldConstants.mState))
     }

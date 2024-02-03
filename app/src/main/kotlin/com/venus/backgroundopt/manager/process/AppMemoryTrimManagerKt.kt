@@ -31,7 +31,7 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         const val backgroundInitialDelay = 2L  // 初始时间相比前台任务延后2个单位时间
         const val backgroundDelay = 10L
         val backgroundTimeUnit = TimeUnit.MINUTES
-        const val backgroundTrimLevel = ComponentCallbacks2.TRIM_MEMORY_MODERATE
+        const val backgroundTrimLevel = ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN
         const val backgroundTrimManagerName = "BackgroundAppMemoryTrimManager"
     }
 
@@ -278,7 +278,7 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
             processRecordKt
         ) { appOptimizePolicy ->
             appOptimizePolicy?.let { policy ->
-                if (policy.disableForegroundTrimMem) {
+                if (policy.enableForegroundTrimMem == false) {
                     return@executeTaskImpl
                 }
             }
@@ -307,7 +307,7 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
             processRecordKt
         ) { appOptimizePolicy ->
             appOptimizePolicy?.let { policy ->
-                if (!policy.disableBackgroundTrimMem) {
+                if (policy.enableBackgroundTrimMem != false) {
                     trimMemory(
                         backgroundTrimManagerName,
                         processRecordKt,
@@ -315,18 +315,22 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
                         backgroundTasks
                     )
                 }
-                if (!policy.disableBackgroundGc) {
+                if (policy.enableBackgroundGc != false) {
                     gc(processRecordKt)
                 }
                 return@executeTaskImpl
             }
+            /*
+                默认执行的操作
+             */
             trimMemory(
                 backgroundTrimManagerName,
                 processRecordKt,
                 backgroundTrimLevel,
                 backgroundTasks
             )
-            gc(processRecordKt)
+            // debug_632 版本开始默认不执行
+            // gc(processRecordKt)
         }
     }
 

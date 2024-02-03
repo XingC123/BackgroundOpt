@@ -15,6 +15,7 @@ import com.alibaba.fastjson2.JSON
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.utils.concurrent.newThreadTask
 import com.venus.backgroundopt.utils.log.logErrorAndroid
+import java.lang.ref.SoftReference
 
 /**
  * @author XingC
@@ -22,14 +23,14 @@ import com.venus.backgroundopt.utils.log.logErrorAndroid
  */
 
 // 临时数据。在两个Activity之间使用。有线程安全问题
-private var tmpData: Any? = null
+private var tmpData: SoftReference<Any>? = null
 
 fun setTmpData(any: Any?) {
-    tmpData = any
+    tmpData = SoftReference(any)
 }
 
 fun getTmpData(): Any? {
-    val o = tmpData
+    val o = tmpData?.get()
     tmpData = null
     return o
 }
@@ -284,6 +285,25 @@ object UiUtils {
                 }
             }
         }
+    }
+
+    /**
+     * 设置组件的可见性
+     * 当不可见时, 会从布局空间中移除(不是移除控件)
+     * @param component View 要设置的组件
+     * @param isVisible Boolean 可见性
+     */
+    fun setComponentVisible(component: View, isVisible: Boolean) {
+        if (isVisible) {
+            component.visibility = View.VISIBLE
+        } else {
+            component.visibility = View.GONE
+        }
+    }
+
+    fun dpToPx(dp: Float, context: Context): Int {
+        val density = context.resources.displayMetrics.density
+        return (dp * density).toInt()
     }
 }
 

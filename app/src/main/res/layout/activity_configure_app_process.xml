@@ -23,12 +23,10 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="10dp"
             android:divider="@drawable/item_space_horizontal"
             android:orientation="vertical"
+            android:paddingHorizontal="@dimen/content_space"
+            android:paddingVertical="@dimen/content_space"
             android:showDividers="middle">
 
             <LinearLayout
@@ -138,7 +136,141 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/configureAppProcessAppDoNothingSwitch"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/border"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="@dimen/padding_horizontal_if_use_border"
+                    android:paddingVertical="@dimen/padding_vertical_if_use_border">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/textView8"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/configureAppProcessForegroundMemoryTrim"
+                            android:textSize="16sp" />
+
+                        <RadioGroup
+                            android:id="@+id/configAppProcessFgMemTrimGroup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkedButton="@id/configAppProcessFgMemTrimDefaultRadio"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessFgMemTrimDefaultRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimDefaultRadio" />
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessFgMemTrimEnableRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimEnableRadio" />
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessFgMemTrimDisableRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimDisableRadio" />
+                        </RadioGroup>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/textView10"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/configureAppProcessBackgroundMemoryTrim"
+                            android:textSize="16sp" />
+
+                        <RadioGroup
+                            android:id="@+id/configAppProcessBgMemTrimGroup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkedButton="@id/configAppProcessBgMemTrimDefaultRadio"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessBgMemTrimDefaultRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimDefaultRadio" />
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessBgMemTrimEnableRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimEnableRadio" />
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessBgMemTrimDisableRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimDisableRadio" />
+                        </RadioGroup>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/textView11"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/configureAppProcessBackgroundGc"
+                            android:textSize="16sp" />
+
+                        <RadioGroup
+                            android:id="@+id/configAppProcessBgGcGroup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkedButton="@id/configAppProcessBgGcDefaultRadio"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessBgGcDefaultRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimDefaultRadio" />
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessBgGcEnableRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimEnableRadio" />
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessBgGcDisableRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimDisableRadio" />
+                        </RadioGroup>
+                    </LinearLayout>
+
+                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"

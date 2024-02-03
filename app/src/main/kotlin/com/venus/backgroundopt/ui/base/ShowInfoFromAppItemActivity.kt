@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.alibaba.fastjson2.JSON
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
+import com.venus.backgroundopt.ui.style.RecycleViewItemSpaceDecoration
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.getIntentData
 import com.venus.backgroundopt.utils.showProgressBarViewForAction
@@ -23,8 +24,12 @@ abstract class ShowInfoFromAppItemActivity : BaseActivity() {
         }
     }
 
-    abstract fun getShowInfoAdapter(appItems: List<AppItem>, vararg others: Any?): ShowInfoFromAppItemAdapter
-    abstract fun getRecyclerViewResId():Int
+    abstract fun getShowInfoAdapter(
+        appItems: List<AppItem>,
+        vararg others: Any?
+    ): ShowInfoFromAppItemAdapter
+
+    abstract fun getRecyclerViewResId(): Int
 
     open fun getToolBarTitle(): String {
         return ""
@@ -48,6 +53,7 @@ abstract class ShowInfoFromAppItemActivity : BaseActivity() {
                     orientation = LinearLayoutManager.VERTICAL
                 }
                 adapter = getShowInfoAdapter(appItems, *others)
+                addItemDecoration(RecycleViewItemSpaceDecoration(context))
             }
         }
     }

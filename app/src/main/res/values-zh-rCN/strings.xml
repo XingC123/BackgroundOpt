@@ -63,4 +63,11 @@
     <string name="settingsOomWorkModePrefText">OOM工作模式</string>
     <string name="configureAppProcessCustomMainProcessOomScoreText">自定义主进程OOM值</string>
     <string name="configureAppProcessCustomMainProcessOomScoreApplyBtn">应用</string>
+    <string name="configureAppProcessForegroundMemoryTrim">前台内存回收</string>
+    <string name="configureAppProcessBackgroundMemoryTrim">后台内存回收</string>
+    <string name="configureAppProcessBackgroundGc">后台GC</string>
+    <string name="configAppProcessFgMemTrimDefaultRadio">默认</string>
+    <string name="configAppProcessFgMemTrimEnableRadio">启用</string>
+    <string name="configAppProcessFgMemTrimDisableRadio">禁用</string>
+    <string name="settingsAppWebviewProcessProtect">保护app创建的webview</string>
 </resources>

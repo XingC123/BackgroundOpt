@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.ui.base.BaseActivity
+import com.venus.backgroundopt.ui.style.RecycleViewItemSpaceDecoration
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.showProgressBarViewForAction
@@ -54,7 +55,7 @@ class ShowAllInstalledAppsActivity : BaseActivity() {
         val searchAppNameText = findViewById<EditText>(R.id.showAllInstalledAppsSearchText)
         findViewById<Button>(R.id.showAllInstalledAppsSearchBtn).setOnClickListener { _ ->
             searchAppNameText.text.toString().apply {
-                (recyclerView.adapter as ShowAllInstalledAppsAdapter).filter.filter(this)
+                (recyclerView.adapter as ShowAllInstalledAppsAdapter2).filter.filter(this)
             }
         }
 
@@ -70,7 +71,8 @@ class ShowAllInstalledAppsActivity : BaseActivity() {
                 layoutManager = LinearLayoutManager(this@ShowAllInstalledAppsActivity).apply {
                     orientation = LinearLayoutManager.VERTICAL
                 }
-                adapter = ShowAllInstalledAppsAdapter(appItems)
+                adapter = ShowAllInstalledAppsAdapter2(appItems)
+                addItemDecoration(RecycleViewItemSpaceDecoration(context))
 
                 // 设置搜索栏隐藏/显示行为
 //                setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->

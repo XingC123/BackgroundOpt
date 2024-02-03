@@ -18,5 +18,6 @@ interface MessageKeyConstants {
         const val enableForegroundProcTrimMemPolicy = "enableForegroundProcTrimMemPolicy"
         const val foregroundProcTrimMemPolicy = "foregroundProcTrimMemPolicy"
         const val appOptimizePolicy = "appOptimizePolicy"
+        const val appWebviewProcessProtect = "appWebviewProcessProtect"
     }
 }

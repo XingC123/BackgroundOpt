@@ -22,9 +22,6 @@
         <!-- 加入toolbar溢出【弹出】菜单的风格 -->
         <item name="actionOverflowMenuStyle">@style/OverflowMenuStyle</item>
 
-        <!-- 溢出菜单图标颜色-->
-        <item name="colorControlNormal">@android:color/white</item>
-
         <item name="switchStyle">@style/SwitchStyle</item>
     </style>
 
@@ -45,8 +42,14 @@
     </style>
 
     <style name="SwitchStyle" parent="Base.Widget.AppCompat.CompoundButton.Switch">
-        <item name="thumbTint">#ECECEC</item>
-        <item name="trackTint">#BDBABC</item>
+<!--        <item name="thumbTint">#ECECEC</item>-->
+<!--        <item name="trackTint">#BDBABC</item>-->
+    </style>
+
+    <!-- toolbar的菜单栏三个点点的颜色 -->
+    <style name="ToolbarMenu" parent="Theme.AppTheme">
+        <!-- 溢出菜单图标颜色-->
+        <item name="colorControlNormal">@android:color/white</item>
     </style>
 
 </resources>

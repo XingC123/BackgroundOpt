@@ -373,11 +373,17 @@ public class RunningInfo implements ILogger {
     @Nullable
     public AppInfo computeRunningAppIfAbsent(int userId, String packageName, int uid, Object proc, int pid) {
         return runningApps.computeIfAbsent(uid, key -> {
-            if (!isNormalApp(userId, packageName).isNormalApp) {
+            // boolean isWebviewProc = false;
+            if (!(isNormalApp(userId, packageName).isNormalApp /*||
+                    (CommonProperties.INSTANCE.getEnableWebviewProcessProtect().getValue() &&
+                            (isWebviewProc = ProcessRecordKt.isWebviewProc(proc)))*/
+            )) {
                 return null;
             }
             if (BuildConfig.DEBUG) {
+                // if (!isWebviewProc) {
                 getLogger().debug("打开新App: " + packageName + ", uid: " + uid);
+                // }
             }
             AppInfo appInfo = new AppInfo(userId, packageName, this).setUid(uid);
             appInfo.addProcess(proc, pid);
