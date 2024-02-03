@@ -109,24 +109,31 @@ class ProcessListHookKt(
         val mainProcess = process.mainProcess
 
         if (mainProcess || isUpgradeSubProcessLevel(process.processName) ||
-            (CommonProperties.enableWebviewProcessProtect.value && process.webviewProcess)) { // 主进程
+            (CommonProperties.enableWebviewProcessProtect.value && process.webviewProcess)
+        ) { // 主进程
             // 获取自定义主进程oom分数
             val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[process.packageName]
-            val finalMainAdj = if (appOptimizePolicy?.enableCustomMainProcessOomScore == true) {
-                if (appOptimizePolicy.customMainProcessOomScore < ProcessList.NATIVE_ADJ ||
-                    appOptimizePolicy.customMainProcessOomScore >= ProcessList.UNKNOWN_ADJ
+            val possibleFinalAdj =
+                // 是否配置了自定义主进程adj
+                if (appOptimizePolicy?.enableCustomMainProcessOomScore == true &&
+                    /* 对自定义的主进程adj进行合法性确认 */
+                    appOptimizePolicy.customMainProcessOomScore >= ProcessList.NATIVE_ADJ &&
+                    appOptimizePolicy.customMainProcessOomScore < ProcessList.UNKNOWN_ADJ
                 ) {
-                    ProcessRecordKt.DEFAULT_MAIN_ADJ
-                } else {
                     appOptimizePolicy.customMainProcessOomScore
+                } else {
+                    ProcessRecordKt.DEFAULT_MAIN_ADJ
                 }
+            val finalAdj = if (mainProcess) {
+                possibleFinalAdj
             } else {
-                ProcessRecordKt.DEFAULT_MAIN_ADJ
+                // 子进程升级、webview进程都默认比主进程adj大
+                possibleFinalAdj + 1
             }
 
-            if (process.fixedOomAdjScore != finalMainAdj) {
+            if (process.fixedOomAdjScore != finalAdj) {
                 process.oomAdjScore = oomAdjScore
-                process.fixedOomAdjScore = finalMainAdj
+                process.fixedOomAdjScore = finalAdj
 
                 if (CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_STRICT ||
                     CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE
@@ -140,7 +147,7 @@ class ProcessListHookKt(
                         uid,
                         pid,
                         mainProcess,
-                        finalMainAdj
+                        finalAdj
                     )
                 }
             } else {
@@ -149,7 +156,7 @@ class ProcessListHookKt(
 
             // 修改实际的参数
             if (CommonProperties.oomWorkModePref.oomMode != OomWorkModePref.MODE_NEGATIVE) {
-                param.args[2] = finalMainAdj
+                param.args[2] = finalAdj
             }
         } else { // 子进程的处理
             if (process.fixedOomAdjScore != ProcessRecordKt.SUB_PROC_ADJ) { // 第一次记录子进程 或 进程调整策略置为默认
