@@ -6,6 +6,7 @@ import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.reference.ObjectReference
+import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.log.logInfo
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.preference.PreferencesUtil
@@ -16,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
  * @author XingC
  * @date 2023/9/26
  */
-object CommonProperties {
+object CommonProperties : ILogger {
     // 模块是否激活
     fun isModuleActive(): Boolean {
         return false
@@ -141,5 +142,22 @@ object CommonProperties {
                 defaultValue = PreferenceDefaultValue.enableWebviewProcessProtect
             )
         )
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * Simple Lmk                                                              *
+     *                                                                         *
+     **************************************************************************/
+    val enableSimpleLmk by lazy {
+        val isEnabled = ObjectReference(
+            PreferencesUtil.getBoolean(
+                path = PreferenceNameConstants.MAIN_SETTINGS,
+                key = PreferenceKeyConstants.SIMPLE_LMK,
+                defaultValue = PreferenceDefaultValue.enableSimpleLmk
+            )
+        )
+        logger.info("Simple Lmk: ${isEnabled.value}")
+        isEnabled
     }
 }

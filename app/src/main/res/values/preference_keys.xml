@@ -6,4 +6,5 @@
     <string name="pref_key_strict_oom_mode" translatable="false">pref_key_strict_oom_mode</string>
     <string name="pref_key_oom_work_mode" translatable="false">pref_key_oom_work_mode</string>
     <string name="pref_key_app_webview_process_protect" translatable="false">pref_key_app_webview_process_protect</string>
+    <string name="pref_key_simple_lmk" translatable="false">pref_key_simple_lmk</string>
 </resources>

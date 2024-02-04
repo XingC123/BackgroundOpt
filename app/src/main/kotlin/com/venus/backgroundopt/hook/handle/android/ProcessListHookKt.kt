@@ -17,7 +17,9 @@ import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.utils.concurrent.lock
+import com.venus.backgroundopt.utils.message.handle.getCustomMainProcessOomScore
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * @author XingC
@@ -30,6 +32,15 @@ class ProcessListHookKt(
     companion object {
         @JvmField
         val processedAppGroup = arrayOf(AppGroupEnum.NONE, AppGroupEnum.IDLE)
+
+        const val MAX_ALLOWED_OOM_SCORE_ADJ = ProcessList.UNKNOWN_ADJ - 1
+
+        const val minSimpleLmkOomScore = 0
+        const val maxSimpleLmkOomScore = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
+        const val simpleLmkConvertDivisor = MAX_ALLOWED_OOM_SCORE_ADJ / maxSimpleLmkOomScore
+        const val minSimpleLmkOtherProcessOomScore = maxSimpleLmkOomScore + 1
+
+        const val simpleLmkMaxAndMinOffset = maxSimpleLmkOomScore - minSimpleLmkOomScore
     }
 
     override fun getHookPoint(): Array<HookPoint> {
@@ -89,6 +100,8 @@ class ProcessListHookKt(
                 "pid: ${pid}, adj: $curAdj"
     )
 
+    val simpleLmkOomScoreMap = ConcurrentHashMap<Int, Int>(8)
+
     private fun handleSetOomAdj(param: MethodHookParam) {
         val uid = param.args[1] as Int
         val runningInfo = runningInfo
@@ -111,27 +124,44 @@ class ProcessListHookKt(
         if (mainProcess || isUpgradeSubProcessLevel(process.processName) ||
             (CommonProperties.enableWebviewProcessProtect.value && process.webviewProcess)
         ) { // 主进程
-            // 获取自定义主进程oom分数
+            val useSimpleLmk =
+                CommonProperties.enableSimpleLmk.value /*&& (oomAdjScore in minSimpleLmkOomScore..maxSimpleLmkOomScore)*/
             val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[process.packageName]
-            val possibleFinalAdj =
-                // 是否配置了自定义主进程adj
-                if (appOptimizePolicy?.enableCustomMainProcessOomScore == true &&
-                    /* 对自定义的主进程adj进行合法性确认 */
-                    appOptimizePolicy.customMainProcessOomScore >= ProcessList.NATIVE_ADJ &&
-                    appOptimizePolicy.customMainProcessOomScore < ProcessList.UNKNOWN_ADJ
-                ) {
-                    appOptimizePolicy.customMainProcessOomScore
+
+            var possibleFinalAdj = appOptimizePolicy.getCustomMainProcessOomScore()
+            val finalAdj = if (useSimpleLmk) {
+                possibleFinalAdj = possibleFinalAdj
+                    ?: simpleLmkOomScoreMap.computeIfAbsent(oomAdjScore) { oomAdjScore / simpleLmkConvertDivisor }
+                if (mainProcess) {
+                    possibleFinalAdj
                 } else {
-                    ProcessRecordKt.DEFAULT_MAIN_ADJ
+                    // 检查范围
+                    /*val adj = possibleFinalAdj + simpleLmkMaxAndMinOffset
+                    if (adj <= maxSimpleLmkOomScore) {
+                        minSimpleLmkOtherProcessOomScore
+                    } else if (adj > ProcessList.VISIBLE_APP_ADJ) {
+                        ProcessList.VISIBLE_APP_ADJ
+                    } else {
+                        adj
+                    }*/
+                    // 在当前minSimpleLmkOomScore = 0, maxSimpleLmkOomScore = 50,
+                    // simpleLmkConvertDivisor = (ProcessList.UNKNOWN_ADJ - 1) / maxSimpleLmkOomScore
+                    // 的情况下possibleFinalAdj + simpleLmkMaxAndMinOffset永远小于ProcessList.VISIBLE_APP_ADJ
+                    (possibleFinalAdj + simpleLmkMaxAndMinOffset).coerceAtLeast(
+                        minSimpleLmkOtherProcessOomScore
+                    )
                 }
-            val finalAdj = if (mainProcess) {
-                possibleFinalAdj
             } else {
-                // 子进程升级、webview进程都默认比主进程adj大
-                possibleFinalAdj + 1
+                possibleFinalAdj = possibleFinalAdj ?: ProcessRecordKt.DEFAULT_MAIN_ADJ
+                if (mainProcess) {
+                    possibleFinalAdj
+                } else {
+                    // 子进程升级、webview进程都默认比主进程adj大
+                    (possibleFinalAdj + 1).coerceAtMost(ProcessList.VISIBLE_APP_ADJ)
+                }
             }
 
-            if (process.fixedOomAdjScore != finalAdj) {
+            if (!useSimpleLmk && process.fixedOomAdjScore != finalAdj) {
                 process.oomAdjScore = oomAdjScore
                 process.fixedOomAdjScore = finalAdj
 

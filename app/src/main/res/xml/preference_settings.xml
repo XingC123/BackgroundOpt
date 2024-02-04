@@ -52,5 +52,13 @@
             app:iconSpaceReserved="false"
             app:key="@string/pref_key_app_webview_process_protect"
             app:summary="@string/settingsAppWebviewProcessProtectSummary" />
+        <SwitchPreference
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:defaultValue="true"
+            android:title="@string/settingsSimpleLmk"
+            app:iconSpaceReserved="false"
+            app:key="@string/pref_key_simple_lmk"
+            app:summary="@string/setrtingsSimpleLmkSummary" />
     </PreferenceCategory>
 </PreferenceScreen>

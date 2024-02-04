@@ -121,4 +121,6 @@
     <string name="configAppProcessFgMemTrimDisableRadio">Disable</string>
     <string name="settingsAppWebviewProcessProtect">Protect app webview</string>
     <string name="settingsAppWebviewProcessProtectSummary" translatable="false">防止webview被关闭导致页面重载</string>
+    <string name="settingsSimpleLmk" translatable="false">简单lmk</string>
+    <string name="setrtingsSimpleLmkSummary" translatable="false">开启以使用算法融合系统lmk值</string>
 </resources>

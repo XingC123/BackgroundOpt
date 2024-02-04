@@ -21,6 +21,7 @@ import com.venus.backgroundopt.utils.message.handle.EnableForegroundProcTrimMemP
 import com.venus.backgroundopt.utils.message.handle.ForegroundProcTrimMemPolicyHandler
 import com.venus.backgroundopt.utils.message.handle.GetInstalledPackagesMessageHandler
 import com.venus.backgroundopt.utils.message.handle.RunningAppInfoMessageHandler
+import com.venus.backgroundopt.utils.message.handle.SimpleLmkMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMessageHandler
 import com.venus.backgroundopt.utils.message.handle.TargetAppGroupMessageHandler
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -55,6 +56,7 @@ val registeredMessageHandler = mapOf(
     MessageKeyConstants.foregroundProcTrimMemPolicy to ForegroundProcTrimMemPolicyHandler(),
     MessageKeyConstants.appOptimizePolicy to AppOptimizePolicyMessageHandler(),
     MessageKeyConstants.appWebviewProcessProtect to AppWebviewProcessProtectMessageHandler(),
+    MessageKeyConstants.enableSimpleLmk to SimpleLmkMessageHandler(),
 )
 
 // json传输的载体

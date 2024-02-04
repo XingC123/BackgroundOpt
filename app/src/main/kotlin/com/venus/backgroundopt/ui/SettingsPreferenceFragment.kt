@@ -109,5 +109,11 @@ class SettingsPreferenceFragment : BasePreferenceFragment<SettingsActivity>() {
             switchPreference = findPreference(PreferenceKeyConstants.APP_WEBVIEW_PROCESS_PROTECT),
             messageKey = MessageKeyConstants.appWebviewProcessProtect,
         )
+
+        // simple lmk
+        initSwitchPreferenceChangeListener(
+            switchPreference = findPreference(PreferenceKeyConstants.SIMPLE_LMK),
+            messageKey = MessageKeyConstants.enableSimpleLmk
+        )
     }
 }

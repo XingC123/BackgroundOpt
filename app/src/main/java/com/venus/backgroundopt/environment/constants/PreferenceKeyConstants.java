@@ -11,4 +11,5 @@ public interface PreferenceKeyConstants {
     String OOM_WORK_MODE = "pref_key_oom_work_mode";
     String STRICT_OOM_MODE = "pref_key_strict_oom_mode";
     String APP_WEBVIEW_PROCESS_PROTECT = "pref_key_app_webview_process_protect";
+    String SIMPLE_LMK = "pref_key_simple_lmk";
 }
