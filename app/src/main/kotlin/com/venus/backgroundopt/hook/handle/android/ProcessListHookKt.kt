@@ -222,6 +222,9 @@ class ProcessListHookKt(
             }
         }
 
+        // 修改curAdj
+        process.processStateRecord.curAdj = param.args[2] as Int
+
         if (mainProcess) {
             ConcurrentUtils.execute(runningInfo.activityEventChangeExecutor, { throwable ->
                 logger.error(

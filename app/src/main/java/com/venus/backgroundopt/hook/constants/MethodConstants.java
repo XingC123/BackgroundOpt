@@ -99,6 +99,7 @@ public interface MethodConstants {
     String shouldKillExcessiveProcesses = "shouldKillExcessiveProcesses";
     String onOomAdjustChanged = "onOomAdjustChanged";
     String setSetAdj = "setSetAdj";
+    String getSetAdj = "getSetAdj";
 
     /**
      * miui
