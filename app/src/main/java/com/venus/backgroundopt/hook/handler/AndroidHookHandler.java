@@ -8,6 +8,7 @@ import com.venus.backgroundopt.environment.CommonProperties;
 import com.venus.backgroundopt.environment.SystemProperties;
 import com.venus.backgroundopt.hook.base.PackageHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookNew;
+import com.venus.backgroundopt.hook.handle.android.CachedAppOptimizerHook;
 import com.venus.backgroundopt.hook.handle.android.OomAdjusterHookNew;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookNew;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerConstantsHook;
@@ -96,6 +97,8 @@ public class AndroidHookHandler extends PackageHook {
         new OomAdjusterHookNew(classLoader, runningInfo);
 
         new ActivityManagerServiceHookNew(classLoader, runningInfo);
+
+        new CachedAppOptimizerHook(classLoader, runningInfo);
     }
 
     private void initSystemProp() {

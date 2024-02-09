@@ -97,6 +97,8 @@ public interface MethodConstants {
     String run = "run";
     String isAvailable = "isAvailable";
     String shouldKillExcessiveProcesses = "shouldKillExcessiveProcesses";
+    String onOomAdjustChanged = "onOomAdjustChanged";
+    String setSetAdj = "setSetAdj";
 
     /**
      * miui
