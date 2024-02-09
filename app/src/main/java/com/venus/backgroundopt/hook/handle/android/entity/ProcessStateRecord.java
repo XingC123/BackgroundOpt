@@ -7,8 +7,6 @@ import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.utils.XposedUtilsKt;
 
-import org.jetbrains.annotations.NotNull;
-
 import de.robv.android.xposed.XposedHelpers;
 
 /**
@@ -57,19 +55,19 @@ public class ProcessStateRecord {
     }
 
     public void setCurAdj(int curAdj) {
-        setCurAdj(this, curAdj);
+        setCurAdj(processStateRecord, curAdj);
     }
 
     public int getCurAdj() {
-        return XposedUtilsKt.getIntFieldValue(this, MethodConstants.getCurAdj);
+        return XposedUtilsKt.getIntFieldValue(processStateRecord, MethodConstants.getCurAdj);
     }
 
     public void setSetAdj(int setAdj) {
-        setSetAdj(this, setAdj);
+        setSetAdj(processStateRecord, setAdj);
     }
 
     public int getSetAdj() {
-        return XposedUtilsKt.getIntFieldValue(this, MethodConstants.getSetAdj);
+        return XposedUtilsKt.getIntFieldValue(processStateRecord, MethodConstants.getSetAdj);
     }
 
     public boolean hasForegroundActivities() {
