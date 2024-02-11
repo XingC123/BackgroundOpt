@@ -414,6 +414,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         if (hasSetMaxAdj()) {
             try {
                 processStateRecord.maxAdj = ProcessList.UNKNOWN_ADJ
+                recordMaxAdj = 0
                 if (BuildConfig.DEBUG) {
                     logger.debug("pid: [${pid}] >>> maxAdj重置成功")
                 }
