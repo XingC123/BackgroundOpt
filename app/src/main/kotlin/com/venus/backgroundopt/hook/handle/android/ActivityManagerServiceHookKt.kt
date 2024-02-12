@@ -201,7 +201,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
             return
         }
 
-        val key = dataIntent.type       // 此次请求的key
+        val key = dataIntent.type ?: return       // 此次请求的key
         val value = dataIntent.action   // 请求的值
 
         registeredMessageHandler[key]?.handle(runningInfo, param, value)
