@@ -14,7 +14,6 @@ import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.getStaticIntFieldValue
-import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.registeredMessageHandler
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
@@ -202,18 +201,9 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
             return
         }
 
-        val key = dataIntent.type ?: return       // 此次请求的key
+        val key = dataIntent.type       // 此次请求的key
         val value = dataIntent.action   // 请求的值
 
-        registeredMessageHandler[key]?.let { classOrInstance ->
-            val messageHandler = registeredMessageHandler.compute(key) { _, _ ->
-                if (classOrInstance is Class<*>) {
-                    classOrInstance.getDeclaredConstructor().newInstance()
-                } else {
-                    classOrInstance
-                }
-            } as MessageHandler
-            messageHandler.handle(runningInfo, param, value)
-        }
+        registeredMessageHandler[key]?.handle(runningInfo, param, value)
     }
 }

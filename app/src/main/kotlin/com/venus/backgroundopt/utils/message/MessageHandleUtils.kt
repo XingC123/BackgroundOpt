@@ -25,7 +25,6 @@ import com.venus.backgroundopt.utils.message.handle.SimpleLmkMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMessageHandler
 import com.venus.backgroundopt.utils.message.handle.TargetAppGroupMessageHandler
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * ui与模块主进程通信工具类
@@ -43,29 +42,22 @@ const val CUR_CLASS_PREFIX = "com.venus.backgroundopt.utils.message.MessageHandl
 @JvmField
 val nullComponentName = ComponentName(NULL_DATA, NULL_FLAG)
 
-/**
- * 已注册的消息处理器
- * <key name, Class or instance: MessageHandler>
- */
+// 已注册的消息处理器
 @JvmField
-val registeredMessageHandler = ConcurrentHashMap<String, Any>().apply {
-    this[MessageKeyConstants.getRunningAppInfo] = RunningAppInfoMessageHandler::class.java
-    this[MessageKeyConstants.getTargetAppGroup] = TargetAppGroupMessageHandler::class.java
-    this[MessageKeyConstants.getBackgroundTasks] = BackgroundTasksMessageHandler::class.java
-    this[MessageKeyConstants.getAppCompactList] = AppCompactListMessageHandler::class.java
-    this[MessageKeyConstants.subProcessOomConfigChange] =
-        SubProcessOomConfigChangeMessageHandler::class.java
-    this[MessageKeyConstants.getInstalledApps] = GetInstalledPackagesMessageHandler::class.java
-    this[MessageKeyConstants.autoStopCompactTask] = AutoStopCompactTaskMessageHandler::class.java
-    this[MessageKeyConstants.enableForegroundProcTrimMemPolicy] =
-        EnableForegroundProcTrimMemPolicyHandler::class.java
-    this[MessageKeyConstants.foregroundProcTrimMemPolicy] =
-        ForegroundProcTrimMemPolicyHandler::class.java
-    this[MessageKeyConstants.appOptimizePolicy] = AppOptimizePolicyMessageHandler::class.java
-    this[MessageKeyConstants.appWebviewProcessProtect] =
-        AppWebviewProcessProtectMessageHandler::class.java
-    this[MessageKeyConstants.enableSimpleLmk] = SimpleLmkMessageHandler::class.java
-}
+val registeredMessageHandler = mapOf(
+    MessageKeyConstants.getRunningAppInfo to RunningAppInfoMessageHandler(),
+    MessageKeyConstants.getTargetAppGroup to TargetAppGroupMessageHandler(),
+    MessageKeyConstants.getBackgroundTasks to BackgroundTasksMessageHandler(),
+    MessageKeyConstants.getAppCompactList to AppCompactListMessageHandler(),
+    MessageKeyConstants.subProcessOomConfigChange to SubProcessOomConfigChangeMessageHandler(),
+    MessageKeyConstants.getInstalledApps to GetInstalledPackagesMessageHandler(),
+    MessageKeyConstants.autoStopCompactTask to AutoStopCompactTaskMessageHandler(),
+    MessageKeyConstants.enableForegroundProcTrimMemPolicy to EnableForegroundProcTrimMemPolicyHandler(),
+    MessageKeyConstants.foregroundProcTrimMemPolicy to ForegroundProcTrimMemPolicyHandler(),
+    MessageKeyConstants.appOptimizePolicy to AppOptimizePolicyMessageHandler(),
+    MessageKeyConstants.appWebviewProcessProtect to AppWebviewProcessProtectMessageHandler(),
+    MessageKeyConstants.enableSimpleLmk to SimpleLmkMessageHandler(),
+)
 
 // json传输的载体
 data class Message<T>(var v: T?) : MessageFlag
