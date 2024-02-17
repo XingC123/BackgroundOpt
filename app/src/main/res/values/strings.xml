@@ -81,6 +81,7 @@
         \n\t\t\t\t如果你对某app启用了自定义主进程oom，那么仍将会使用设置的参数，而不会进行处理。
         \n\t\t\t\t如果你使用了宽松模式，那么模块也不会进行处理(只会在第一次触发oom设置时处理一次，后续不进行处理)。
         \n\t\t\t\t如果你觉得影响保后台，那么关闭此模式即可。
+        \n\t\t\t\t<b>仅当OOM工作模式为"平衡模式"时才生效。</b>
 
         \n\n<b>2. 补充说明：</b>
         \n\t\t1) “内存回收”和“内存压缩”受进程策略影响。
@@ -128,5 +129,5 @@
     <string name="settingsAppWebviewProcessProtect">Protect app webview</string>
     <string name="settingsAppWebviewProcessProtectSummary" translatable="false">防止webview被关闭导致页面重载</string>
     <string name="settingsSimpleLmk" translatable="false">简单lmk</string>
-    <string name="setrtingsSimpleLmkSummary" translatable="false">开启以使用算法融合系统lmk值</string>
+    <string name="setrtingsSimpleLmkSummary" translatable="false">开启以使用算法融合系统lmk值(需使用平衡模式)</string>
 </resources>
