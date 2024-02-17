@@ -18,7 +18,7 @@
     <string name="appItemTipUid">"uid: "</string>
     <string name="appItemTipText4">tip4:</string>
     <string name="appItemTipOomAdjScore">"oomAdjScore: "</string>
-    <string name="configureappProcessAppNameText">应用名</string>
+    <string name="configureAppProcessAppNameText">应用名</string>
     <string name="configureAppProcessVersionNameTipText">"versionName: "</string>
     <string name="configureAppProcessVersionCodeTipText">"versionCode: "</string>
     <string name="configureAppProcessItemProcessNameText">processName</string>

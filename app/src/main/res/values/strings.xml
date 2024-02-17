@@ -17,7 +17,7 @@
     <string name="appItemTipUid">uid:</string>
     <string name="appItemTipText4">tip4:</string>
     <string name="appItemTipOomAdjScore">"oom_adj_score: "</string>
-    <string name="configureappProcessAppNameText">name of application</string>
+    <string name="configureAppProcessAppNameText">name of application</string>
     <string name="configureAppProcessVersionNameTipText">"versionName: "</string>
     <string name="configureAppProcessVersionCodeTipText">"versionCode: "</string>
     <string name="configureAppProcessItemProcessNameText">processName</string>
@@ -36,7 +36,7 @@
     <string name="showAllInstalledAppToolBar">Installed applications</string>
     <string name="menu_main_activity_toolbar_about">About</string>
     <string name="aboutAppProjectPathTipText">Project path</string>
-    <string name="aboutAppProjectPathText">https://github.com/XingC123/BackgroundOpt</string>
+    <string name="aboutAppProjectPathText" translatable="false">https://github.com/XingC123/BackgroundOpt</string>
     <string name="aboutAppThanksTip">Thanks</string>
     <string name="aboutAppToolBar">About</string>
     <string name="showAppCompactListToolBarText">List of processes to be compressed</string>
@@ -46,10 +46,10 @@
     </string>
     <string name="showBackgroundTasksToolBarText">Background tasks</string>
     <string name="appItemLastProcessingResultTipText">Last processing result:</string>
-    <string name="appItemLastProcessingSuccessResultText">✔</string>
-    <string name="appItemLastProcessingDoNothingResultText">▬</string>
+    <string name="appItemLastProcessingSuccessResultText" translatable="false">✔</string>
+    <string name="appItemLastProcessingDoNothingResultText" translatable="false">▬</string>
     <string name="showAppCompactLisToolBarHelp">Help</string>
-    <string name="showAppCompactLisToolBarHelpTipText">
+    <string name="showAppCompactLisToolBarHelpTipText" translatable="false">
         1. “上次执行结果”的值含义：
         \n\t\t1) ✔：意味着<b>已经执行过</b>。
         \n\t\t2) ▬：意味着<b>不满足执行条件因而未执行</b>(主进程: 未达到最短压缩时间。子进程: adj不满足压缩要求)
@@ -58,12 +58,12 @@
 
         \n2. <u><b>列表并非完全实时列表。</b></u>你所获取的列表，只是你点击按钮的一瞬间拿出来的数据。在进行展示时，<u><b>该数据可能已经被移除。</b></u>后台任务几分钟执行一次，因此实时刷新列表这个功能并没有意义。
     </string>
-    <string name="appItemLastProcessingUnnecessaryResultText">✪</string>
+    <string name="appItemLastProcessingUnnecessaryResultText" translatable="false">✪</string>
     <string name="settingsModuleItemTitle">Module</string>
     <string name="settingsAutoStopCompactPrefText">Automatically stop compacting task</string>
     <string name="menu_main_activity_toolbar_settings">Settings</string>
     <string name="showAllInstalledAppsSearchTextHint">input a name of app to search</string>
-    <string name="settingsForegroundProcTrimMemDefaultPolicyValue">RUNNING_MODERATE</string>
+    <string name="settingsForegroundProcTrimMemDefaultPolicyValue" translatable="false">RUNNING_MODERATE</string>
     <string name="settingsForegroundProcTrimMemPolicyPrefText">Memory trimming policy for foreground process</string>
     <string name="settingsForegroundProcTrimMemEnablePrefText">Enable Memory trimming for foreground process</string>
     <string name="menu_main_activity_toolbar_feature">User manual</string>
@@ -129,5 +129,5 @@
     <string name="settingsAppWebviewProcessProtect">Protect app webview</string>
     <string name="settingsAppWebviewProcessProtectSummary" translatable="false">防止webview被关闭导致页面重载</string>
     <string name="settingsSimpleLmk" translatable="false">简单lmk</string>
-    <string name="setrtingsSimpleLmkSummary" translatable="false">开启以使用算法融合系统lmk值(需使用平衡模式)</string>
+    <string name="settingsSimpleLmkSummary" translatable="false">开启以使用算法融合系统lmk值(需使用平衡模式)</string>
 </resources>

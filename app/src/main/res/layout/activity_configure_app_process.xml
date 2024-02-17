@@ -55,7 +55,7 @@
                         android:id="@+id/configureAppProcessAppNameText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/configureappProcessAppNameText"
+                        android:text="@string/configureAppProcessAppNameText"
                         android:textSize="20sp"
                         android:textStyle="bold" />
 
