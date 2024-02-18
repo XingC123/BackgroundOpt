@@ -61,6 +61,7 @@ class ShowAllInstalledAppsActivity : BaseActivity() {
 
         val appItems = PackageUtils.getInstalledPackages(this) { packageInfo ->
             !ActivityManagerService.isImportantSystemApp(packageInfo.applicationInfo)
+                    || PackageUtils.isHasActivity(packageInfo)
         }
 //        sendMessageAcceptList<AppItem>(
 //            this,

@@ -12,6 +12,7 @@ import com.venus.backgroundopt.entity.FindAppResult;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
+import com.venus.backgroundopt.utils.PackageUtils;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.lang.reflect.InvocationTargetException;
@@ -178,11 +179,12 @@ public class ActivityManagerService implements ILogger {
 
     public boolean isHasActivity(String packageName) {
         try {
-            ActivityInfo[] activities = getPackageManager().getPackageInfo(
-                    packageName,
-                    PackageManager.GET_ACTIVITIES
-            ).activities;
-            return activities != null && activities.length > 0;
+            return PackageUtils.INSTANCE.isHasActivity(
+                    getPackageManager().getPackageInfo(
+                            packageName,
+                            PackageManager.GET_ACTIVITIES
+                    )
+            );
         } catch (Throwable throwable) {
             return false;
         }

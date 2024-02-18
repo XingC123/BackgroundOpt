@@ -13,6 +13,7 @@ import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.ui.ConfigureAppProcessActivity
 import com.venus.backgroundopt.utils.log.logErrorAndroid
+import com.venus.backgroundopt.utils.log.logInfoAndroid
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.preference.prefAll
 import java.text.Collator
@@ -42,7 +43,7 @@ object PackageUtils {
         }
     }
 
-    const val PACKAGE_INFO_FLAG = 0
+    const val PACKAGE_INFO_FLAG = 0 or PackageManager.GET_ACTIVITIES
 //    PackageManager.MATCH_UNINSTALLED_PACKAGES or PackageManager.GET_ACTIVITIES    // 在某些系统可能存在获取不到app的情况
 
     private fun getPackageInfo(
@@ -305,5 +306,15 @@ object PackageUtils {
         componentInfos.forEach { componentInfo ->
             set.add(absoluteProcessName(componentInfo.packageName, componentInfo.processName))
         }
+    }
+
+    /**
+     * 给定的app是否有界面
+     *
+     * @param packageInfo PackageInfo 包信息
+     * @return Boolean 有界面 -> true
+     */
+    fun isHasActivity(packageInfo: PackageInfo): Boolean {
+        return !packageInfo.activities.isNullOrEmpty()
     }
 }
