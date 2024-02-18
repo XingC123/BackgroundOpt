@@ -71,6 +71,17 @@ public class AppInfo implements ILogger, LockFlag {
 
     private final AtomicReference<ComponentName> componentNameAtomicReference = new AtomicReference<>(null);
 
+    private FindAppResult findAppResult;
+
+    @Nullable
+    public FindAppResult getFindAppResult() {
+        return findAppResult;
+    }
+
+    public void setFindAppResult(@Nullable FindAppResult findAppResult) {
+        this.findAppResult = findAppResult;
+    }
+
     public boolean isSwitchEventHandled() {
         return switchEventHandled.get();
     }

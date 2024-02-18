@@ -107,6 +107,12 @@ class ProcessListHookKt(
         val runningInfo = runningInfo
 //        val appInfo = runningInfo.computeRunningAppIfAbsent(uid) ?: return
         val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
+        // 若当前为重要系统app, 则检查是否有界面
+        if (runningInfo.isImportantSystemApp(appInfo.userId, appInfo.packageName)
+            && appInfo.findAppResult?.hasActivity != true
+        ) {
+            return
+        }
         // 若app未进入后台, 则不进行设置
         if (appInfo.appGroupEnum !in processedAppGroup) {
             return

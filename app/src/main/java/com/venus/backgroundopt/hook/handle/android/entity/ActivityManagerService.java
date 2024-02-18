@@ -1,15 +1,14 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
-import static com.venus.backgroundopt.core.RunningInfo.NormalAppResult;
-
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 
-import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.entity.AppInfo;
+import com.venus.backgroundopt.entity.FindAppResult;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
@@ -93,60 +92,35 @@ public class ActivityManagerService implements ILogger {
         return this.context.getPackageManager();
     }
 
-    private final NormalAppResult notNormalAppResult = new NormalAppResult().setNormalApp(false);
-
+    /**
+     * 是否是重要的系统app。<br>
+     * 安卓源码ActivityManagerService.java判断方式:
+     * <pre>
+     *     final boolean isSystemApp = process == null ||
+     *                                       (process.info.flags & (ApplicationInfo.FLAG_SYSTEM |
+     *                                                              ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0;
+     *             final boolean isSystemApp = (
+     *                     applicationInfo.flags & (
+     *                             ApplicationInfo.FLAG_SYSTEM |
+     *                                     ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0;
+     * </pre>
+     * <p>
+     * 关于UID: <br>
+     * 1. app的uid/100000（10000还是100000）计算为userid填到u0处<br>
+     * 2. app的uid减去10000填到axx处<br>
+     * 例如某个app的uid是10022，则计算出来ps打印得到uid字串就是u0_a22<br>
+     * 普通应用程序的UID 都是从 10000开始的<br>
+     *
+     * @param applicationInfo 安卓的{@link android.content.pm.ApplicationInfo}实例对象
+     * @return 是重要系统app -> true
+     */
     public static boolean isImportantSystemApp(android.content.pm.ApplicationInfo applicationInfo) {
         return applicationInfo == null ||
                 (applicationInfo.flags &
-                        (android.content.pm.ApplicationInfo.FLAG_SYSTEM | android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP
-                        )
+                        /*(android.content.pm.ApplicationInfo.FLAG_SYSTEM | android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP
+                        )*/
+                        android.content.pm.ApplicationInfo.FLAG_SYSTEM
                 ) != 0;
-    }
-
-    public NormalAppResult isImportantSystemApp(int userId, String packageName) {
-        ApplicationInfo applicationInfo = getApplicationInfo(userId, packageName);
-
-        // 安卓源码ActivityManagerService.java判断方式:
-//            final boolean isSystemApp = process == null ||
-//                                      (process.info.flags & (ApplicationInfo.FLAG_SYSTEM |
-//                                                             ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0;
-//            final boolean isSystemApp = (
-//                    applicationInfo.flags & (
-//                            ApplicationInfo.FLAG_SYSTEM |
-//                                    ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0;
-        /*
-            ① app的uid/100000（10000还是100000）计算为userid填到u0处
-            ② app的uid减去10000填到axx处
-            例如某个app的uid是10022，则计算出来ps打印得到uid字串就是u0_a22
-         */
-        //  普通应用程序的UID 都是从 10000开始的
-        int uid = Integer.MIN_VALUE;
-        boolean isNullApplicationInfo = applicationInfo == null;
-
-        if (isNullApplicationInfo ||
-                (applicationInfo.getApplicationInfo().flags & (
-                        android.content.pm.ApplicationInfo.FLAG_SYSTEM |
-                                android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)
-                ) != 0
-        ) {
-            if (!isNullApplicationInfo && (uid = applicationInfo.uid) != Integer.MIN_VALUE) {
-                NormalAppResult.normalAppUidMap.put(uid, notNormalAppResult);
-            }
-
-            return notNormalAppResult;
-        } else {
-            if (BuildConfig.DEBUG) {
-                getLogger().debug("当前获取的applicationInfo的信息: userId: " + userId + ", packageName: " + packageName + ", uid: " + applicationInfo.uid);
-            }
-
-            NormalAppResult normalAppResult = new NormalAppResult();
-            normalAppResult.setNormalApp(true);
-            normalAppResult.setApplicationInfo(applicationInfo);
-
-            NormalAppResult.normalAppUidMap.put(uid, normalAppResult);
-
-            return normalAppResult;
-        }
     }
 
     public ApplicationInfo getApplicationInfo(AppInfo appInfo) {
@@ -176,6 +150,20 @@ public class ActivityManagerService implements ILogger {
         return null;
     }
 
+    private final FindAppResult notNormalAppFindAppResult = new FindAppResult();
+
+    public FindAppResult getFindAppResult(int userId, String packageName) {
+        ApplicationInfo applicationInfo = getApplicationInfo(userId, packageName);
+
+        if (applicationInfo == null) {
+            return notNormalAppFindAppResult;
+        } else {
+            FindAppResult findAppResult = new FindAppResult(applicationInfo);
+            findAppResult.setHasActivity(isHasActivity(packageName));
+            return findAppResult;
+        }
+    }
+
     /**
      * 获取app的uid
      * 注意: 如果是多开app, 通过此方法获取得到的uid仍然为主用户下的uid
@@ -186,6 +174,18 @@ public class ActivityManagerService implements ILogger {
      */
     public int getAppUID(int userId, String packageName) {
         return getApplicationInfo(userId, packageName).uid;
+    }
+
+    public boolean isHasActivity(String packageName) {
+        try {
+            ActivityInfo[] activities = getPackageManager().getPackageInfo(
+                    packageName,
+                    PackageManager.GET_ACTIVITIES
+            ).activities;
+            return activities != null && activities.length > 0;
+        } catch (Throwable throwable) {
+            return false;
+        }
     }
 
     public boolean isForegroundApp(AppInfo appInfo) {
