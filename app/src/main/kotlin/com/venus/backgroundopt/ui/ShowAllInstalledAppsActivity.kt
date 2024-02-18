@@ -55,7 +55,7 @@ class ShowAllInstalledAppsActivity : BaseActivity() {
         val searchAppNameText = findViewById<EditText>(R.id.showAllInstalledAppsSearchText)
         findViewById<Button>(R.id.showAllInstalledAppsSearchBtn).setOnClickListener { _ ->
             searchAppNameText.text.toString().apply {
-                (recyclerView.adapter as ShowAllInstalledAppsAdapter2).filter.filter(this)
+                (recyclerView.adapter as ShowAllInstalledAppsAdapter3).filter.filter(this)
             }
         }
 
