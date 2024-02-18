@@ -96,9 +96,9 @@ public class RunningInfo implements ILogger {
      *                                                                         *
      **************************************************************************/
     /**
-     * 每次打开app, 都会获取{@link android.content.pm.ApplicationInfo}。本集合用来缓存结果。
-     * key: 主用户 -> packageName, 其他用户: userId:packageName
-     * value: {@link FindAppResult}
+     * 每次打开app, 都会获取{@link android.content.pm.ApplicationInfo}。本集合用来缓存结果。<br>
+     * key: 主用户 -> packageName, 其他用户: userId:packageName<br>
+     * value: {@link FindAppResult}<br>
      * 例:
      * <pre>
      *     1) (userId = 0, packageName=com.venus.aaa) -> (key): com.venus.aaa
@@ -314,7 +314,7 @@ public class RunningInfo implements ILogger {
     }
 
     /**
-     * 移除进程。
+     * 移除进程。<br>
      * 额外处理与进程相关的任务。
      *
      * @param appInfo 应用信息
@@ -455,8 +455,7 @@ public class RunningInfo implements ILogger {
     }
 
     /**
-     * 处理Activity改变事件
-     * <br>
+     * 处理Activity改变事件<br>
      * 本方法处理的共有6大种情况, 本质就是从中找出切换app的方法:
      * <pre>
      *     a为第一个打开的Activity, b为第二个。
