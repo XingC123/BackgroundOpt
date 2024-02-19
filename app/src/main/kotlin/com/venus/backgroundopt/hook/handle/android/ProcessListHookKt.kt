@@ -236,6 +236,7 @@ class ProcessListHookKt(
             process.processStateRecord.curAdj = param.args[2] as Int
         }
 
+        // 有的app启动后并未拥有过界面, 因此在其设置oom的时候将其送入后台分组
         if (mainProcess) {
             ConcurrentUtils.execute(runningInfo.activityEventChangeExecutor, { throwable ->
                 logger.error(
