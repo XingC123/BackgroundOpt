@@ -51,7 +51,7 @@
                     android:id="@+id/imageView"
                     android:layout_width="150dp"
                     android:layout_height="150dp"
-                    android:src="@mipmap/ic_launcher_new" />
+                    android:src="@mipmap/ic_launcher_new2" />
 
                 <TextView
                     android:id="@+id/textView"
