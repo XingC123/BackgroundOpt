@@ -115,14 +115,31 @@ class SettingsPreferenceFragment : BasePreferenceFragment<SettingsActivity>() {
         val globalOomScoreValuePreference =
             findPreference<EditTextPreference>(PreferenceKeyConstants.GLOBAL_OOM_SCORE_VALUE)?.apply {
                 setOnPreferenceChangeListener { _, newValue ->
-                    preferenceChangeAction {
-                        sendMessage(
-                            context = requireActivity(),
-                            key = MessageKeyConstants.globalOomScoreValue,
-                            value = newValue
-                        )
+                    var isValid = false
+                    (newValue as? Int)?.let { score->
+                        isValid = GlobalOomScorePolicy.isCustomGlobalOomScoreIllegal(score)
                     }
-                    true
+                    if (isValid) {
+                        preferenceChangeAction {
+                            sendMessage(
+                                context = requireActivity(),
+                                key = MessageKeyConstants.globalOomScoreValue,
+                                value = newValue
+                            )
+                        }
+                    } else {
+                        UiUtils.createDialog(
+                            context = requireActivity(),
+                            text = "参数值不合法",
+                            cancelable = false,
+                            enablePositiveBtn = true,
+                            positiveBlock = {dialogInterface, i ->
+                                dialogInterface.dismiss()
+                            }
+                        ).show()
+                    }
+
+                    isValid
                 }
             }
 

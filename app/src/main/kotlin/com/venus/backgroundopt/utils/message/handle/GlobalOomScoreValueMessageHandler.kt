@@ -2,7 +2,6 @@ package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.environment.CommonProperties
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
 import de.robv.android.xposed.XC_MethodHook
@@ -21,7 +20,7 @@ class GlobalOomScoreValueMessageHandler : MessageHandler {
             param = param,
             value = value
         ) { score ->
-            if (ProcessList.NATIVE_ADJ <= score && score < ProcessList.UNKNOWN_ADJ) {
+            if (GlobalOomScorePolicy.isCustomGlobalOomScoreIllegal(score)) {
                 CommonProperties.globalOomScorePolicy.value.customGlobalOomScore = score
             } else {
                 logger.warn("不合法的全局OOM分数: ${score}")

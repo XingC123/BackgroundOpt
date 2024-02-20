@@ -2,6 +2,7 @@ package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
@@ -32,6 +33,22 @@ class GlobalOomScorePolicy : MessageFlag {
     var globalOomScoreEffectiveScope: GlobalOomScoreEffectiveScopeEnum =
         GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS
     var customGlobalOomScore: Int = Int.MIN_VALUE
+
+    companion object {
+        @JvmStatic
+        fun isCustomGlobalOomScoreIllegal(score: Int): Boolean {
+            return ProcessList.NATIVE_ADJ <= score && score < ProcessList.UNKNOWN_ADJ
+        }
+
+        @JvmStatic
+        fun getCustomGlobalOomScoreIfIllegal(score: Int, defaultValue: Int): Int {
+            return if (isCustomGlobalOomScoreIllegal(score)) {
+                score
+            } else {
+                defaultValue
+            }
+        }
+    }
 }
 
 enum class GlobalOomScoreEffectiveScopeEnum : MessageFlag {
