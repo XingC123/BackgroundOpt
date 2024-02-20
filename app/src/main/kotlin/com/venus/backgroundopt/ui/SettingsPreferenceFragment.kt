@@ -8,6 +8,7 @@ import androidx.preference.SwitchPreference
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.ui.base.BasePreferenceFragment
 import com.venus.backgroundopt.utils.UiUtils
+import com.venus.backgroundopt.utils.log.logInfoAndroid
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScorePolicy
@@ -115,9 +116,12 @@ class SettingsPreferenceFragment : BasePreferenceFragment<SettingsActivity>() {
         val globalOomScoreValuePreference =
             findPreference<EditTextPreference>(PreferenceKeyConstants.GLOBAL_OOM_SCORE_VALUE)?.apply {
                 setOnPreferenceChangeListener { _, newValue ->
-                    var isValid = false
-                    (newValue as? Int)?.let { score->
-                        isValid = GlobalOomScorePolicy.isCustomGlobalOomScoreIllegal(score)
+                    val isValid = try {
+                        (newValue as? String)?.toInt()?.let { score ->
+                            GlobalOomScorePolicy.isCustomGlobalOomScoreIllegal(score)
+                        } ?: false
+                    } catch (t: Throwable) {
+                        false
                     }
                     if (isValid) {
                         preferenceChangeAction {
@@ -133,7 +137,7 @@ class SettingsPreferenceFragment : BasePreferenceFragment<SettingsActivity>() {
                             text = "参数值不合法",
                             cancelable = false,
                             enablePositiveBtn = true,
-                            positiveBlock = {dialogInterface, i ->
+                            positiveBlock = { dialogInterface, i ->
                                 dialogInterface.dismiss()
                             }
                         ).show()
