@@ -20,6 +20,9 @@ import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandle
 import com.venus.backgroundopt.utils.message.handle.EnableForegroundProcTrimMemPolicyHandler
 import com.venus.backgroundopt.utils.message.handle.ForegroundProcTrimMemPolicyHandler
 import com.venus.backgroundopt.utils.message.handle.GetInstalledPackagesMessageHandler
+import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeMessageHandler
+import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreMessageHandler
+import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreValueMessageHandler
 import com.venus.backgroundopt.utils.message.handle.RunningAppInfoMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SimpleLmkMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMessageHandler
@@ -57,6 +60,10 @@ val registeredMessageHandler = mapOf(
     MessageKeyConstants.appOptimizePolicy to AppOptimizePolicyMessageHandler(),
     MessageKeyConstants.appWebviewProcessProtect to AppWebviewProcessProtectMessageHandler(),
     MessageKeyConstants.enableSimpleLmk to SimpleLmkMessageHandler(),
+    MessageKeyConstants.enableGlobalOomScore to GlobalOomScoreMessageHandler(),
+    MessageKeyConstants.globalOomScoreEffectiveScope to GlobalOomScoreEffectiveScopeMessageHandler(),
+    MessageKeyConstants.globalOomScoreValue to GlobalOomScoreValueMessageHandler(),
+
 )
 
 // json传输的载体

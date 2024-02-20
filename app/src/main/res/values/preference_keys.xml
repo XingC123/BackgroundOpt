@@ -7,4 +7,8 @@
     <string name="pref_key_oom_work_mode" translatable="false">pref_key_oom_work_mode</string>
     <string name="pref_key_app_webview_process_protect" translatable="false">pref_key_app_webview_process_protect</string>
     <string name="pref_key_simple_lmk" translatable="false">pref_key_simple_lmk</string>
+    <!-- 全局OOM分数 -->
+    <string name="pref_key_global_oom_score" translatable="false">pref_key_global_oom_score</string>
+    <string name="pref_key_global_oom_score_effective_scope" translatable="false">pref_key_global_oom_score_effective_scope</string>
+    <string name="pref_key_global_oom_score_value" translatable="false">pref_key_global_oom_score_value</string>
 </resources>

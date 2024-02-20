@@ -5,7 +5,7 @@
     <PreferenceCategory
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:title="@string/settingsModuleItemTitle"
+        android:title="@string/settingsMemOptimizeItemTitle"
         app:iconSpaceReserved="false">
 
         <SwitchPreference
@@ -34,6 +34,21 @@
             app:iconSpaceReserved="false"
             app:key="@string/pref_key_foreground_proc_trim_mem_policy"
             app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:defaultValue="true"
+            android:title="@string/settingsAppWebviewProcessProtect"
+            app:iconSpaceReserved="false"
+            app:key="@string/pref_key_app_webview_process_protect"
+            app:summary="@string/settingsAppWebviewProcessProtectSummary" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/settingsOomHandleItemTitle"
+        app:iconSpaceReserved="false">
+
         <ListPreference
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -48,17 +63,44 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:defaultValue="true"
-            android:title="@string/settingsAppWebviewProcessProtect"
-            app:iconSpaceReserved="false"
-            app:key="@string/pref_key_app_webview_process_protect"
-            app:summary="@string/settingsAppWebviewProcessProtectSummary" />
-        <SwitchPreference
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:defaultValue="true"
             android:title="@string/settingsSimpleLmk"
             app:iconSpaceReserved="false"
             app:key="@string/pref_key_simple_lmk"
             app:summary="@string/settingsSimpleLmkSummary" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/settingsOtherItemTitle"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreference
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:defaultValue="false"
+            android:title="@string/settingsGlobalOomScorePrefText"
+            app:iconSpaceReserved="false"
+            app:key="@string/pref_key_global_oom_score" />
+        <ListPreference
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:defaultValue="@string/settingsGlobalOomScoreEffectiveScopeDefaulValue"
+            android:title="@string/settingsGlobalOomScoreEffectiveScopePrefText"
+            app:dependency="@string/pref_key_global_oom_score"
+            app:entries="@array/global_oom_score_effective_scope_entries"
+            app:entryValues="@array/global_oom_score_effective_scope_values"
+            app:iconSpaceReserved="false"
+            app:key="@string/pref_key_global_oom_score_effective_scope"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/settingsCustomGlobalOomScorePrefText"
+            app:dependency="@string/pref_key_global_oom_score"
+            app:iconSpaceReserved="false"
+            app:key="@string/pref_key_global_oom_score_value"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 </PreferenceScreen>

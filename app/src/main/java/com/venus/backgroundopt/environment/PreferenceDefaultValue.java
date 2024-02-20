@@ -6,6 +6,8 @@ import androidx.annotation.NonNull;
 
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants;
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
+import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum;
 import com.venus.backgroundopt.utils.preference.PreferencesUtilKt;
 
 /**
@@ -45,4 +47,13 @@ public interface PreferenceDefaultValue {
      *                                                                         *
      **************************************************************************/
     boolean enableSimpleLmk = true;
+
+    /* *************************************************************************
+     *                                                                         *
+     * 全局OOM                                                                  *
+     *                                                                         *
+     **************************************************************************/
+    boolean enableGlobalOomScore = false;
+    String globalOomScoreEffectiveScopeName = GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS.name();
+    int customGlobalOomScoreValue = ProcessList.NATIVE_ADJ;
 }

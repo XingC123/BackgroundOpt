@@ -5,10 +5,13 @@ import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.reference.ObjectReference
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.log.logInfo
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
+import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
+import com.venus.backgroundopt.utils.message.handle.GlobalOomScorePolicy
 import com.venus.backgroundopt.utils.preference.PreferencesUtil
 import com.venus.backgroundopt.utils.preference.prefAll
 import java.util.concurrent.ConcurrentHashMap
@@ -159,5 +162,44 @@ object CommonProperties : ILogger {
         )
         logger.info("Simple Lmk: ${isEnabled.value}")
         isEnabled
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 全局OOM                                                                  *
+     *                                                                         *
+     **************************************************************************/
+    val globalOomScorePolicy by lazy {
+        val isEnabled = PreferencesUtil.getBoolean(
+            path = PreferenceNameConstants.MAIN_SETTINGS,
+            key = PreferenceKeyConstants.GLOBAL_OOM_SCORE,
+            defaultValue = PreferenceDefaultValue.enableGlobalOomScore
+        )
+        val policy = GlobalOomScorePolicy().apply {
+            if (!isEnabled) {
+                return@apply
+            }
+
+            enabled = true
+            globalOomScoreEffectiveScope = GlobalOomScoreEffectiveScopeEnum.valueOf(
+                PreferencesUtil.getString(
+                    path = PreferenceNameConstants.MAIN_SETTINGS,
+                    key = PreferenceKeyConstants.GLOBAL_OOM_SCORE_EFFECTIVE_SCOPE,
+                    defaultValue = PreferenceDefaultValue.globalOomScoreEffectiveScopeName
+                )!!
+            )
+            val scoreValue = PreferencesUtil.getString(
+                path = PreferenceNameConstants.MAIN_SETTINGS,
+                key = PreferenceKeyConstants.GLOBAL_OOM_SCORE_VALUE,
+                defaultValue = PreferenceDefaultValue.customGlobalOomScoreValue.toString()
+            )!!.toInt()
+            customGlobalOomScore =
+                if (ProcessList.NATIVE_ADJ <= scoreValue && scoreValue < ProcessList.UNKNOWN_ADJ) {
+                    scoreValue
+                } else {
+                    PreferenceDefaultValue.customGlobalOomScoreValue
+                }
+        }
+        ObjectReference(policy)
     }
 }

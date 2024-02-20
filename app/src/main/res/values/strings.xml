@@ -130,4 +130,12 @@
     <string name="settingsAppWebviewProcessProtectSummary" translatable="false">防止webview被关闭导致页面重载</string>
     <string name="settingsSimpleLmk" translatable="false">简单lmk</string>
     <string name="settingsSimpleLmkSummary" translatable="false">开启以使用算法融合系统lmk值(需使用平衡模式)</string>
+    <string name="settingsMemOptimizeItemTitle" translatable="false">优化任务</string>
+    <string name="settingsOomHandleItemTitle" translatable="false">OOM处理</string>
+    <string name="settingsOtherItemTitle" translatable="false">其他</string>
+    <string name="settingsGlobalOomScorePrefText" translatable="false">启用全局OOM</string>
+    <string name="settingsGlobalOomScoreEffectiveScopePrefText" translatable="false">全局OOM生效范围</string>
+    <string name="settingsCustomGlobalOomScorePrefText" translatable="false">自定义全局OOM值</string>
+    <string name="settingsCustomGlobalOomScoreSummaryPrefText" translatable="false">未设置</string>
+    <string name="settingsGlobalOomScoreEffectiveScopeDefaulValue" translatable="false">MAIN_PROCESS</string>
 </resources>

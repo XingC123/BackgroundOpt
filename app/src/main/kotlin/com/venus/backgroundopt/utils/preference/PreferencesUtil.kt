@@ -129,6 +129,38 @@ inline fun <reified E> Context.prefAll(name: String): MutableMap<String, E> {
     return convertValueToTargetType(pref(name).all)
 }
 
+fun Context.prefBoolean(
+    name: String,
+    key: String,
+    defaultValue: Boolean = false
+): Boolean {
+    return pref(name).getBoolean(key, defaultValue)
+}
+
+fun Context.prefInt(
+    name: String,
+    key: String,
+    defaultValue: Int = Int.MIN_VALUE
+): Int {
+    return pref(name).getInt(key, defaultValue)
+}
+
+fun Context.prefLong(
+    name: String,
+    key: String,
+    defaultValue: Long = Long.MIN_VALUE
+): Long {
+    return pref(name).getLong(key, defaultValue)
+}
+
+fun Context.prefString(
+    name: String,
+    key: String,
+    defaultValue: String? = null
+): String? {
+    return pref(name).getString(key, defaultValue)
+}
+
 fun SharedPreferences.Editor.putObject(key: String, value: Any) {
     putString(key, JSON.toJSONString(value))
 }

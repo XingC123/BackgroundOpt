@@ -20,5 +20,8 @@ interface MessageKeyConstants {
         const val appOptimizePolicy = "appOptimizePolicy"
         const val appWebviewProcessProtect = "appWebviewProcessProtect"
         const val enableSimpleLmk = "enableSimpleLmk"
+        const val enableGlobalOomScore = "enableGlobalOomScore"
+        const val globalOomScoreEffectiveScope = "globalOomScoreEffectiveScope"
+        const val globalOomScoreValue = "globalOomScoreValue"
     }
 }
