@@ -35,18 +35,11 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         const val backgroundTrimManagerName = "BackgroundAppMemoryTrimManager"
     }
 
-    var enableForegroundTrim = false
+    var enableForegroundTrim = CommonProperties.isEnableForegroundProcTrimMem()
         set(value) {
             field = value
 
             configureForegroundTrimCheckTask(value)
-        }
-    var foregroundTrimLevel = ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE
-        set(value) {
-            field = value
-            if (BuildConfig.DEBUG) {
-                logger.debug("实际的前台内存回收级别的值: $foregroundTrimLevel")
-            }
         }
 
     @Volatile
@@ -78,7 +71,7 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
      */
     private fun init() {
         // 前台任务
-        enableForegroundTrim = CommonProperties.getEnableForegroundProcTrimMemPolicy()
+        enableForegroundTrim = CommonProperties.isEnableForegroundProcTrimMem()
         if (!enableForegroundTrim && foregroundTaskScheduledFuture == null) {
             logger.info("禁用: 前台进程内存回收")
         }
@@ -104,7 +97,6 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
             }
         } ?: run {
             if (isEnable) {
-                foregroundTrimLevel = CommonProperties.getForegroundProcTrimMemPolicy()
                 /*
                      23.9.18: 前台任务并没有严格的单独提交ScheduledFuture, 而是加入到统一检查组,
                         这意味着某些情况下, 个别前台甚至不会被执行(前台那么积极干嘛)
@@ -123,7 +115,7 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
                         }
                     }
                 }, foregroundInitialDelay, foregroundDelay, foregroundTimeUnit)
-                logger.info("启用: 前台进程内存回收")
+                logger.info("启用: 前台进程内存回收。回收等级为: ${CommonProperties.getForegroundProcTrimMemLevelUiName()}")
             }
         }
     }
@@ -285,7 +277,7 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
             trimMemory(
                 foregroundTrimManagerName,
                 processRecordKt,
-                foregroundTrimLevel,
+                CommonProperties.getForegroundProcTrimMemLevel(),
                 foregroundTasks
             )
         }

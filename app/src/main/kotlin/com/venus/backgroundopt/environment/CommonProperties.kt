@@ -4,11 +4,12 @@ import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
-import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.reference.ObjectReference
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.log.logInfo
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
+import com.venus.backgroundopt.utils.message.handle.ForegroundProcTrimMemLevelEnum
+import com.venus.backgroundopt.utils.message.handle.ForegroundProcTrimMemPolicy
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScorePolicy
 import com.venus.backgroundopt.utils.preference.PreferencesUtil
@@ -89,34 +90,34 @@ object CommonProperties : ILogger {
      * 进程内存紧张                                                              *
      *                                                                         *
      **************************************************************************/
-    fun getEnableForegroundProcTrimMemPolicy(): Boolean {
-        return PreferencesUtil.getBoolean(
+    val foregroundProcTrimMemPolicy by lazy {
+        val isEnabled = PreferencesUtil.getBoolean(
             PreferenceNameConstants.MAIN_SETTINGS,
             PreferenceKeyConstants.ENABLE_FOREGROUND_PROC_TRIM_MEM_POLICY,
             PreferenceDefaultValue.enableForegroundTrimMem
         )
+        val enumName = PreferencesUtil.getString(
+            path = PreferenceNameConstants.MAIN_SETTINGS,
+            key = PreferenceKeyConstants.FOREGROUND_PROC_TRIM_MEM_POLICY,
+            defaultValue = PreferenceDefaultValue.foregroundProcTrimMemLevelEnumName
+        )!!
+        val levelEnum = ForegroundProcTrimMemLevelEnum.valueOf(enumName)
+
+        val policy = ForegroundProcTrimMemPolicy().apply {
+            this.isEnabled = isEnabled
+            this.foregroundProcTrimMemLevelEnum = levelEnum
+        }
+
+        ObjectReference(policy)
     }
 
-    val foregroundProcTrimMemPolicyMap by lazy {
-        HashMap<String, Int>().apply {
-            put("RUNNING_MODERATE", ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE)
-            put("RUNNING_LOW", ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW)
-            put("RUNNING_CRITICAL", ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL)
-            put("UI_HIDDEN", ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN)
-        }
-    }
+    fun isEnableForegroundProcTrimMem() = foregroundProcTrimMemPolicy.value.isEnabled
 
-    fun getForegroundProcTrimMemPolicy(): Int {
-        return PreferencesUtil.getString(
-            PreferenceNameConstants.MAIN_SETTINGS,
-            PreferenceKeyConstants.FOREGROUND_PROC_TRIM_MEM_POLICY
-        )?.let {
-            foregroundProcTrimMemPolicyMap[it]
-                ?: run { foregroundProcTrimMemPolicyMap["RUNNING_MODERATE"]!! }
-        } ?: run {
-            foregroundProcTrimMemPolicyMap["RUNNING_MODERATE"]!!
-        }
-    }
+    fun getForegroundProcTrimMemLevel() =
+        foregroundProcTrimMemPolicy.value.foregroundProcTrimMemLevelEnum.level
+
+    fun getForegroundProcTrimMemLevelUiName(): String =
+        foregroundProcTrimMemPolicy.value.foregroundProcTrimMemLevelEnum.uiName
 
     /* *************************************************************************
      *                                                                         *

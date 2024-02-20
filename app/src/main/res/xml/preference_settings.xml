@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:defaultValue="@string/settingsForegroundProcTrimMemDefaultPolicyValue"
             android:title="@string/settingsForegroundProcTrimMemPolicyPrefText"
-            app:enabled="false"
+            app:dependency="@string/pref_key_enable_foreground_proc_trim_mem_policy"
             app:entries="@array/foreground_process_trim_mem_policy_entries"
             app:entryValues="@array/foreground_process_trim_mem_policy_values"
             app:iconSpaceReserved="false"

@@ -157,10 +157,6 @@ public class ProcessManager implements ILogger {
         appMemoryTrimManager.setEnableForegroundTrim(isEnable);
     }
 
-    public void setForegroundTrimLevel(int level) {
-        appMemoryTrimManager.setForegroundTrimLevel(level);
-    }
-
     public Set<ProcessRecordKt> getForegroundTasks() {
         return appMemoryTrimManager.getForegroundTasks();
     }
