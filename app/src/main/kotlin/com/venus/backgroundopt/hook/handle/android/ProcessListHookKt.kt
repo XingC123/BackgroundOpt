@@ -108,16 +108,20 @@ class ProcessListHookKt(
         val runningInfo = runningInfo
 //        val appInfo = runningInfo.computeRunningAppIfAbsent(uid) ?: return
         val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
-        // 若当前为重要系统app, 则检查是否有界面
+
         val globalOomScorePolicy = CommonProperties.globalOomScorePolicy.value
-        if (!globalOomScorePolicy.enabled && runningInfo.isImportantSystemApp(appInfo.userId, appInfo.packageName)
-            && appInfo.findAppResult?.hasActivity != true
-        ) {
-            return
-        }
-        // 若app未进入后台, 则不进行设置
-        if (appInfo.appGroupEnum !in processedAppGroup) {
-            return
+        if (!globalOomScorePolicy.enabled) {
+            // 若当前为重要系统app, 则检查是否有界面
+            if (runningInfo.isImportantSystemApp(appInfo.userId, appInfo.packageName)
+                && appInfo.findAppResult?.hasActivity != true
+            ) {
+                return
+            }
+
+            // 若app未进入后台, 则不进行设置
+            if (appInfo.appGroupEnum !in processedAppGroup) {
+                return
+            }
         }
 
         val pid = param.args[0] as Int
@@ -131,16 +135,19 @@ class ProcessListHookKt(
 
         val globalOomScoreEffectiveScopeEnum = globalOomScorePolicy.globalOomScoreEffectiveScope
         val customGlobalOomScore = globalOomScorePolicy.customGlobalOomScore
-        // 是否对所有进程应用oom修改
+        // 对所有进程应用oom修改
         if (globalOomScorePolicy.enabled && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL) {
             param.args[2] = customGlobalOomScore
             appInfo.modifyProcessRecord(pid, customGlobalOomScore)
         } else {
             if (oomAdjScore >= 0 || globalOomScorePolicy.enabled) {
-                if (mainProcess || isUpgradeSubProcessLevel(process.processName) ||
-                    (CommonProperties.enableWebviewProcessProtect.value && process.webviewProcess)
-                ) { // 主进程
-                    if (CommonProperties.oomWorkModePref.oomMode != OomWorkModePref.MODE_NEGATIVE) {
+                if (mainProcess
+                    || isUpgradeSubProcessLevel(process.processName)
+                    || (CommonProperties.enableWebviewProcessProtect.value && process.webviewProcess)
+                ) {
+                    if (CommonProperties.oomWorkModePref.oomMode != OomWorkModePref.MODE_NEGATIVE
+                        || globalOomScorePolicy.enabled
+                    ) {
                         val useSimpleLmk =
                             CommonProperties.enableSimpleLmk.value /*&& (oomAdjScore in minSimpleLmkOomScore..maxSimpleLmkOomScore)*/
                         val appOptimizePolicy =
@@ -149,6 +156,7 @@ class ProcessListHookKt(
                         var possibleFinalAdj = appOptimizePolicy.getCustomMainProcessOomScore()
                         val finalAdj =
                             if (globalOomScorePolicy.enabled) {
+                                // 进程独立配置优先于全局oom
                                 possibleFinalAdj ?: customGlobalOomScore
                             } else
                             // simple lmk 只在平衡模式生效
