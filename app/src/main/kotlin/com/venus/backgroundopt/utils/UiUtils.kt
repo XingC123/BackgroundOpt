@@ -128,13 +128,11 @@ object UiUtils {
         negativeBtnText: String = "放弃",
         negativeBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
             dialogInterface.dismiss()
-            (context as Activity).finish()
         },
         enablePositiveBtn: Boolean = false,
         positiveBtnText: String = "确认",
         positiveBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
             dialogInterface.dismiss()
-            (context as Activity).finish()
         },
     ): AlertDialog {
         return AlertDialog.Builder(context)
@@ -154,13 +152,11 @@ object UiUtils {
         negativeBtnText: String = "放弃",
         negativeBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
             dialogInterface.dismiss()
-            (context as Activity).finish()
         },
         enablePositiveBtn: Boolean = false,
         positiveBtnText: String = "确认",
         positiveBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
             dialogInterface.dismiss()
-            (context as Activity).finish()
         },
     ): AlertDialog {
         return createDialog(
