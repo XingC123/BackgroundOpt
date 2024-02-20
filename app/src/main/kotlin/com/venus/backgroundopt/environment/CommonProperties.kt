@@ -207,6 +207,9 @@ object CommonProperties : ILogger {
                 defaultValue = PreferenceDefaultValue.customGlobalOomScoreValue
             )
         }
-        ObjectReference(policy)
+        ObjectReference(policy).apply {
+            val oomScorePolicy = this.value
+            logger.info(oomScorePolicy.toString())
+        }
     }
 }

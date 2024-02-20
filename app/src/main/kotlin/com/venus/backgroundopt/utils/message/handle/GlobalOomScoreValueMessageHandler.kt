@@ -22,6 +22,7 @@ class GlobalOomScoreValueMessageHandler : MessageHandler {
         ) { score ->
             if (GlobalOomScorePolicy.isCustomGlobalOomScoreIllegal(score)) {
                 CommonProperties.globalOomScorePolicy.value.customGlobalOomScore = score
+                logger.info("全局oom分数切换为: $score")
             } else {
                 logger.warn("不合法的全局OOM分数: ${score}")
             }

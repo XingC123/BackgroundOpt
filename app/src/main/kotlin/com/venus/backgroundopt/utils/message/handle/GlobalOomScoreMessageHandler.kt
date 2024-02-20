@@ -23,6 +23,7 @@ class GlobalOomScoreMessageHandler : MessageHandler {
             value = value
         ) { globalOomScorePolicy: GlobalOomScorePolicy ->
             CommonProperties.globalOomScorePolicy.value = globalOomScorePolicy
+            logger.info("切换全局oom策略。$globalOomScorePolicy")
             null
         }
     }
@@ -33,6 +34,14 @@ class GlobalOomScorePolicy : MessageFlag {
     var globalOomScoreEffectiveScope: GlobalOomScoreEffectiveScopeEnum =
         GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS
     var customGlobalOomScore: Int = Int.MIN_VALUE
+
+    override fun toString(): String {
+        return if (enabled) {
+            "[启用]全局OOM, 范围: ${globalOomScoreEffectiveScope.uiName}, oom分数: $customGlobalOomScore"
+        } else {
+            "[禁用]全局OOM"
+        }
+    }
 
     companion object {
         @JvmStatic
@@ -51,8 +60,8 @@ class GlobalOomScorePolicy : MessageFlag {
     }
 }
 
-enum class GlobalOomScoreEffectiveScopeEnum : MessageFlag {
-    MAIN_PROCESS,
-    MAIN_AND_SUB_PROCESS,
-    ALL,
+enum class GlobalOomScoreEffectiveScopeEnum(val uiName:String) : MessageFlag {
+    MAIN_PROCESS("主进程(有界面)"),
+    MAIN_AND_SUB_PROCESS("主+子进程(有界面)"),
+    ALL("所有进程"),
 }
