@@ -138,13 +138,15 @@ object CommonProperties : ILogger {
      *                                                                         *
      **************************************************************************/
     val enableWebviewProcessProtect by lazy {
-        ObjectReference(
+        val objectReference = ObjectReference(
             PreferencesUtil.getBoolean(
                 path = PreferenceNameConstants.MAIN_SETTINGS,
                 key = PreferenceKeyConstants.APP_WEBVIEW_PROCESS_PROTECT,
                 defaultValue = PreferenceDefaultValue.enableWebviewProcessProtect
             )
         )
+        logger.info("[${if (objectReference.value) "启用" else "禁用"}]Webview进程保护")
+        objectReference
     }
 
     /* *************************************************************************
@@ -153,15 +155,15 @@ object CommonProperties : ILogger {
      *                                                                         *
      **************************************************************************/
     val enableSimpleLmk by lazy {
-        val isEnabled = ObjectReference(
+        val objectReference = ObjectReference(
             PreferencesUtil.getBoolean(
                 path = PreferenceNameConstants.MAIN_SETTINGS,
                 key = PreferenceKeyConstants.SIMPLE_LMK,
                 defaultValue = PreferenceDefaultValue.enableSimpleLmk
             )
         )
-        logger.info("Simple Lmk: ${isEnabled.value}")
-        isEnabled
+        logger.info("[${if (objectReference.value) "启用" else "禁用"}]Simple Lmk")
+        objectReference
     }
 
     /* *************************************************************************
@@ -208,9 +210,7 @@ object CommonProperties : ILogger {
                 defaultValue = PreferenceDefaultValue.customGlobalOomScoreValue
             )
         }
-        ObjectReference(policy).apply {
-            val oomScorePolicy = this.value
-            logger.info(oomScorePolicy.toString())
-        }
+        logger.info(policy.toString())
+        ObjectReference(policy)
     }
 }
