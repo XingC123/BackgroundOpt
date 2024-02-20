@@ -116,8 +116,10 @@ class SettingsPreferenceFragment : BasePreferenceFragment<SettingsActivity>() {
         val globalOomScoreValuePreference =
             findPreference<EditTextPreference>(PreferenceKeyConstants.GLOBAL_OOM_SCORE_VALUE)?.apply {
                 setOnPreferenceChangeListener { _, newValue ->
+                    var customOomScore:Int = Int.MIN_VALUE
                     val isValid = try {
                         (newValue as? String)?.toInt()?.let { score ->
+                            customOomScore = score
                             GlobalOomScorePolicy.isCustomGlobalOomScoreIllegal(score)
                         } ?: false
                     } catch (t: Throwable) {
@@ -128,7 +130,7 @@ class SettingsPreferenceFragment : BasePreferenceFragment<SettingsActivity>() {
                             sendMessage(
                                 context = requireActivity(),
                                 key = MessageKeyConstants.globalOomScoreValue,
-                                value = newValue
+                                value = customOomScore
                             )
                         }
                     } else {
