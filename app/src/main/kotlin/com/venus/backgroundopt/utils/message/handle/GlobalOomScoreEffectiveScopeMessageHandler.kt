@@ -16,11 +16,12 @@ class GlobalOomScoreEffectiveScopeMessageHandler : MessageHandler {
         param: XC_MethodHook.MethodHookParam,
         value: String?
     ) {
-        createResponse<String>(
+        createResponse<Pair<String, String>>(
             param = param,
             value = value
-        ) { enumName ->
+        ) { pair ->
             try {
+                val enumName = pair.second
                 val scopeEnum = GlobalOomScoreEffectiveScopeEnum.valueOf(enumName)
                 CommonProperties.globalOomScorePolicy.value.globalOomScoreEffectiveScope = scopeEnum
                 logger.info("切换全局oom作用域为: ${scopeEnum.uiName}")
