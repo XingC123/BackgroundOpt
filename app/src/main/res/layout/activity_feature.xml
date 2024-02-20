@@ -18,17 +18,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <LinearLayout
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="wrap_content">
 
             <TextView
                 android:id="@+id/activityFeatureFeatureIntroductionText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="@dimen/padding_horizontal_if_use_border"
+                android:layout_marginHorizontal="@dimen/content_space"
+                android:layout_marginVertical="@dimen/content_space"
                 android:text="@string/activityFeatureFeatureIntroductionText" />
-        </LinearLayout>
+        </ScrollView>
+
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
