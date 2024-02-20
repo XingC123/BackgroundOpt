@@ -55,7 +55,7 @@
     <string name="settingsForegroundProcTrimMemEnablePrefText">启用前台进程内存回收</string>
     <string name="menu_main_activity_toolbar_feature">使用手册</string>
     <string name="configureAppProcessAppDoNothingSwitch">白名单</string>
-    <string name="configureAppProcAcitivityToolBarHelpMenuItem">帮助</string>
+    <string name="configureAppProcActivityToolBarHelpMenuItem">帮助</string>
     <string name="installerAppToolbarHelpMenuItem">帮助</string>
     <string name="settingsToolbarBackupMenuItem">备份</string>
     <string name="settingsToolbarRestoreMenuItem">恢复</string>

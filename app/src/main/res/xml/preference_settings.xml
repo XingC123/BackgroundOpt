@@ -84,7 +84,7 @@
         <ListPreference
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:defaultValue="@string/settingsGlobalOomScoreEffectiveScopeDefaulValue"
+            android:defaultValue="@string/settingsGlobalOomScoreEffectiveScopeDefaultValue"
             android:title="@string/settingsGlobalOomScoreEffectiveScopePrefText"
             app:dependency="@string/pref_key_global_oom_score"
             app:entries="@array/global_oom_score_effective_scope_entries"

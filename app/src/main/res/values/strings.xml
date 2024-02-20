@@ -98,11 +98,11 @@
     </string>
     <string name="settingsAutoStopCompactPrefSummaryText" translatable="false">无后台进程时自动停止检查任务</string>
     <string name="configureAppProcessAppDoNothingSwitch">White list</string>
-    <string name="configureAppProcessAppDoNothingSwitchSummar" translatable="false">启用后不再进行OOM之外的操作</string>
+    <string name="configureAppProcessAppDoNothingSwitchSummary" translatable="false">启用后不再进行OOM之外的操作</string>
     <string name="appItemBackgroundTrimMemText" translatable="false">后台内存回收</string>
     <string name="appItemBackgroundGcText" translatable="false">后台GC</string>
     <string name="appItemForegroundTrimMemText" translatable="false">前台内存回收</string>
-    <string name="configureAppProcAcitivityToolBarHelpMenuItem">Help</string>
+    <string name="configureAppProcActivityToolBarHelpMenuItem">Help</string>
     <string name="configureAppProcToolBarHelpTipText" translatable="false">
         1. 白名单：设置为白名单的app只会进行最基础的OOM调节，而不会有其他操作。
     </string>
@@ -116,7 +116,7 @@
     </string>
     <string name="settingsToolbarBackupMenuItem">Backup</string>
     <string name="settingsToolbarRestoreMenuItem">Restore</string>
-    <string name="settingsOomStrictMode">Strtic oom mode</string>
+    <string name="settingsOomStrictMode">Strict oom mode</string>
     <string name="settingsOomStrictModeSummary" translatable="false">开启以将主进程的最大adj限制到更低水平</string>
     <string name="settingsOomWorkModePrefText">OOM work mode</string>
     <string name="configureAppProcessCustomMainProcessOomScoreText">Custom main Process oom score</string>
@@ -142,5 +142,5 @@
     <string name="settingsGlobalOomScoreEffectiveScopePrefText" translatable="false">全局OOM生效范围</string>
     <string name="settingsCustomGlobalOomScorePrefText" translatable="false">自定义全局OOM值</string>
     <string name="settingsCustomGlobalOomScoreSummaryPrefText" translatable="false">未设置</string>
-    <string name="settingsGlobalOomScoreEffectiveScopeDefaulValue" translatable="false">MAIN_PROCESS</string>
+    <string name="settingsGlobalOomScoreEffectiveScopeDefaultValue" translatable="false">MAIN_PROCESS</string>
 </resources>
