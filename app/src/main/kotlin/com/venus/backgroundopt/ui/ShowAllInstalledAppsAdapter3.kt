@@ -29,6 +29,8 @@ class ShowAllInstalledAppsAdapter3(private val appItems: List<AppItem>) :
         var itemInstalledAppsCustomMainProcOomScoreFlagText: TextView
         var itemInstalledAppsOomPolicyFlagText: TextView
 
+        var hadSetClickedListener: Boolean = false
+
         init {
             appIcon = itemView.findViewById(R.id.installedAppItemAppIcon)
             appName = itemView.findViewById(R.id.installedAppItemAppNameText)
@@ -81,15 +83,17 @@ class ShowAllInstalledAppsAdapter3(private val appItems: List<AppItem>) :
             AppItem.AppConfiguredEnum.SubProcessOomPolicy
         )
 
-        holder.itemView.setOnClickListener { view ->
-            view.context.also { context ->
-                context.startActivity(
-                    Intent(
-                        context,
-                        ConfigureAppProcessActivity::class.java
-                    ).apply {
-                        setTmpData(appItem)
-                    })
+        if (!holder.hadSetClickedListener) {
+            holder.itemView.setOnClickListener { view ->
+                view.context.also { context ->
+                    context.startActivity(
+                        Intent(
+                            context,
+                            ConfigureAppProcessActivity::class.java
+                        ).apply {
+                            setTmpData(appItem)
+                        })
+                }
             }
         }
     }
