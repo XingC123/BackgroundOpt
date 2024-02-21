@@ -20,8 +20,10 @@ import com.venus.backgroundopt.utils.setTmpData
  * @author XingC
  * @date 2023/9/27
  */
-class ShowAllInstalledAppsAdapter3(private val appItems: List<AppItem>) :
-    RecyclerView.Adapter<ShowAllInstalledAppsAdapter3.ShowAllInstalledAppsViewHolder>(), Filterable {
+class ShowAllInstalledAppsAdapter3(
+    private val appItems: List<AppItem>
+) : RecyclerView.Adapter<ShowAllInstalledAppsAdapter3.ShowAllInstalledAppsViewHolder>(),
+    Filterable {
     class ShowAllInstalledAppsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var appIcon: ImageView
         var appName: TextView
@@ -99,12 +101,17 @@ class ShowAllInstalledAppsAdapter3(private val appItems: List<AppItem>) :
     }
 
     // 设置显示已配置的设置的标识
-    private fun setAppFlagTextVisible(component:View, appItem: AppItem, appConfiguredEnum: AppItem.AppConfiguredEnum) {
+    private fun setAppFlagTextVisible(
+        component: View,
+        appItem: AppItem,
+        appConfiguredEnum: AppItem.AppConfiguredEnum
+    ) {
         UiUtils.setComponentVisible(
             component,
             appItem.appConfiguredEnumSet.contains(appConfiguredEnum)
         )
     }
+
     /* *************************************************************************
      *                                                                         *
      * 根据搜索内容过滤当前列表                                                     *
@@ -113,24 +120,28 @@ class ShowAllInstalledAppsAdapter3(private val appItems: List<AppItem>) :
     // 过滤后的列表。用于搜索功能
     private var filterAppItems: List<AppItem> = appItems
 
-    // 是否搜索过(控制app展示区内容是否要还原)
-    var hasSearched = false
-    var lastSearchAppName = ""
-
     override fun getFilter(): Filter {
         return appItemFilter
     }
 
     private val appItemFilter by lazy {
         object : Filter() {
+            // 是否搜索过(控制app展示区内容是否要还原)
+            var hasSearched = false
+            var lastSearchAppName = ""
+            val filterResult by lazy {
+                FilterResults()
+            }
+
             override fun performFiltering(constraint: CharSequence?): FilterResults {
                 val searchAppName = constraint.toString()
 
                 if (StringUtils.isEmpty(searchAppName)) {
                     if (hasSearched) {
                         hasSearched = false
+                        lastSearchAppName = ""
                         filterAppItems = appItems
-                        return FilterResults().apply {
+                        return filterResult.apply {
                             values = filterAppItems
                         }
                     }
@@ -145,11 +156,11 @@ class ShowAllInstalledAppsAdapter3(private val appItems: List<AppItem>) :
                     hasSearched = true
                     lastSearchAppName = searchAppName
 
-                    return FilterResults().apply {
+                    return filterResult.apply {
                         values = filterAppItems
                     }
                 }
-                return FilterResults()
+                return filterResult.apply { values = null }
             }
 
             @SuppressLint("NotifyDataSetChanged")
