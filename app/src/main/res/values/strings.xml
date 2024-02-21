@@ -69,7 +69,11 @@
     <string name="menu_main_activity_toolbar_feature">User manual</string>
     <string name="activityFeatureFeatureIntroductionText" translatable="false">
         <b>1. 当前功能：</b>
-        \n\t\t1) 进程保活(基于LMK)。所有调整了adj的模块都与本模块冲突，除非它关于adj的设置可以关闭
+        \n\t\t1) 进程保活(基于LMK)。所有调整了adj的模块都与本模块冲突，除非它关于adj的设置可以关闭。
+        \n\t\t\t\t以下说明基于2024.2.21版本：
+        \n\t\t\t\ta. 严格模式：此模式下，进程oom_score_adj会始终处于0，且限制进程最大oom_score_adj为100
+        \n\t\t\t\tb. 平衡模式：此模式下，进程oom_score_adj会始终处于0，但不限制进程最大oom_score_adj
+        \n\t\t\t\tc. 宽容模式：此模式下，进程oom_score_adj交由系统调节，且限制进程最大oom_score_adj为400
 
         \n\t\t2) 内存回收：向应用发送虚假信息，假装可用内存已不足，促使其进行资源释放。
         \n\t\t\t\t设置页面的<u><i>“前台进程内存回收策略”</i></u><b>越往下代表当前可用内存越紧张</b>。
