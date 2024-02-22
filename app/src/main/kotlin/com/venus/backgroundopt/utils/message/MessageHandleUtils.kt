@@ -20,6 +20,7 @@ import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandle
 import com.venus.backgroundopt.utils.message.handle.EnableForegroundProcTrimMemPolicyHandler
 import com.venus.backgroundopt.utils.message.handle.ForegroundProcTrimMemPolicyHandler
 import com.venus.backgroundopt.utils.message.handle.GetInstalledPackagesMessageHandler
+import com.venus.backgroundopt.utils.message.handle.GetTrimMemoryOptThresholdMessageHandler
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeMessageHandler
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreMessageHandler
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreValueMessageHandler
@@ -63,7 +64,7 @@ val registeredMessageHandler = mapOf(
     MessageKeyConstants.enableGlobalOomScore to GlobalOomScoreMessageHandler(),
     MessageKeyConstants.globalOomScoreEffectiveScope to GlobalOomScoreEffectiveScopeMessageHandler(),
     MessageKeyConstants.globalOomScoreValue to GlobalOomScoreValueMessageHandler(),
-
+    MessageKeyConstants.getTrimMemoryOptThreshold to GetTrimMemoryOptThresholdMessageHandler(),
 )
 
 // json传输的载体

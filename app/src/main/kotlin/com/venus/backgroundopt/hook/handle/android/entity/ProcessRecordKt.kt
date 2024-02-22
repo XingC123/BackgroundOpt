@@ -50,6 +50,9 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         @JvmField
         var minOptimizeRssInBytes = 268435456.0
 
+        @JvmField
+        var minOptimizeRssInMBytesStr = ""
+
         // 触发内存优化的资源占用大小的封顶阈值
         // 由于当前算法是根据最大内存计算。因此需要一个限制, 防止因为内存过大而导致阈值过高
         // 419430400 = 400 * 1024 * 1024
@@ -74,7 +77,8 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
                     (memInfoReader.getTotalSize() * minOptimizeRssFactor).coerceAtMost(
                         maxOptimizeRssInBytes
                     )
-                logInfo(logStr = "ProcessRecord: 触发优化的最小进程资源占用 = ${minOptimizeRssInBytes / (1024 * 1024)}MB")
+                minOptimizeRssInMBytesStr = "${minOptimizeRssInBytes / (1024 * 1024)}MB"
+                logInfo(logStr = "ProcessRecord: 触发优化的最小进程资源占用 = $minOptimizeRssInMBytesStr")
             }
         }
 

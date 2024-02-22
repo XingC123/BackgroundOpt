@@ -14,6 +14,7 @@ import com.venus.backgroundopt.ui.widget.QueryInfoDialog
 import com.venus.backgroundopt.utils.findViewById
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
+import com.venus.backgroundopt.utils.message.sendMessage
 
 
 class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
@@ -61,6 +62,12 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
         val moduleActive = CommonProperties.isModuleActive()
         if (moduleActive) {
             findViewById<TextView>(R.id.mainActivityModuleActiveText)?.setText(R.string.moduleActive)
+            // 获取触发优化的内存阈值
+            val thresholdStr = sendMessage(
+                context = this,
+                key = MessageKeyConstants.getTrimMemoryOptThreshold,
+            )
+            findViewById<TextView>(R.id.trim_mem_opt_threshold)?.text = "$thresholdStr"
         }
 
         // 查询运行中app的信息
