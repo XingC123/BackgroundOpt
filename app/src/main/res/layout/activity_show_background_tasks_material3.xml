@@ -31,7 +31,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:divider="@drawable/item_space_horizontal"
+        android:divider="@drawable/item_space_vertical"
         android:orientation="vertical"
         android:paddingHorizontal="@dimen/content_space"
         android:paddingVertical="@dimen/content_space"

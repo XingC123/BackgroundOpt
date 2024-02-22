@@ -7,7 +7,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:divider="@drawable/item_space_vertical"
+        android:divider="@drawable/item_space_horizontal"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:showDividers="middle"
@@ -27,7 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:divider="@drawable/item_space_horizontal"
+            android:divider="@drawable/item_space_vertical"
             android:orientation="vertical"
             android:showDividers="middle">
 
@@ -133,7 +133,7 @@
                     android:id="@+id/appItemLastProcessingResultLayout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:divider="@drawable/item_space_vertical"
+                    android:divider="@drawable/item_space_horizontal"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:showDividers="middle">
@@ -158,7 +158,7 @@
                 android:id="@+id/appItemAppOptimizePolicyLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:divider="@drawable/item_space_vertical"
+                android:divider="@drawable/item_space_horizontal"
                 android:orientation="horizontal"
                 android:showDividers="middle">
 
