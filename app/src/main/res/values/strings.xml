@@ -30,8 +30,8 @@
     <string name="subProcessOomPolicyDialogDoNothingBtn">Do nothing</string>
     <string name="subProcessOomPolicyDialogCustomBtn">Custom</string>
     <string name="showAllInstalledAppsSearchBtn">Search</string>
-    <string name="moduleActive">Module is active</string>
-    <string name="moduleInActive">Module is not active</string>
+    <string name="moduleActive">Actived</string>
+    <string name="moduleInActive">Inactived</string>
     <string name="configureAppProcessToolBar">processes of Application</string>
     <string name="showAllInstalledAppToolBar">Installed applications</string>
     <string name="menu_main_activity_toolbar_about">About</string>
@@ -148,4 +148,6 @@
     <string name="settingsCustomGlobalOomScorePrefText" translatable="false">自定义全局OOM值</string>
     <string name="settingsCustomGlobalOomScoreSummaryPrefText" translatable="false">未设置</string>
     <string name="settingsGlobalOomScoreEffectiveScopeDefaultValue" translatable="false">MAIN_PROCESS</string>
+    <string name="main_activity_module_active_state_tip" translatable="false">模块激活状态:</string>
+    <string name="configure_app_process_toolbar_title" translatable="false">应用进程</string>
 </resources>

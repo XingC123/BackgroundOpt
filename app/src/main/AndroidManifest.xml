@@ -13,7 +13,7 @@
         android:icon="@mipmap/ic_launcher_new2"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppTheme">
+        android:theme="@style/Theme.AppTheme.Material3">
 
         <!-- 是否是xposed模块 -->
         <meta-data
@@ -39,6 +39,11 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true">
+        </activity>
+
+        <activity
+            android:name=".ui.MainActivityMaterial3"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -50,7 +55,15 @@
             android:exported="true" />
 
         <activity
+            android:name=".ui.SettingsActivityMaterial3"
+            android:exported="true" />
+
+        <activity
             android:name=".ui.AboutAppActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".ui.AboutAppActivityMaterial3"
             android:exported="true" />
 
         <activity
@@ -58,7 +71,15 @@
             android:exported="true" />
 
         <activity
+            android:name=".ui.FeatureActivityMaterial3"
+            android:exported="true" />
+
+        <activity
             android:name=".ui.ShowBackgroundTasksActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".ui.ShowBackgroundTasksActivityMaterial3"
             android:exported="true" />
 
         <activity
@@ -66,11 +87,23 @@
             android:exported="true" />
 
         <activity
+            android:name=".ui.ShowAppCompactListActivityMaterial3"
+            android:exported="true" />
+
+        <activity
             android:name=".ui.ShowAllInstalledAppsActivity"
             android:exported="true" />
 
         <activity
+            android:name=".ui.ShowAllInstalledAppsActivityMaterial3"
+            android:exported="true" />
+
+        <activity
             android:name=".ui.ConfigureAppProcessActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".ui.ConfigureAppProcessActivityMaterial3"
             android:exported="true" />
     </application>
 

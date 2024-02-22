@@ -21,4 +21,19 @@
     <color name="ruoZhu">#65c294</color>
     <!--青-->
     <color name="cyan">#009ad6</color>
+    <!--浅葱色-->
+    <color name="qianCong">#00a6ac</color>
+    <!--御纳戸色-->
+    <color name="yuNaHu">#008792</color>
+    <!--藤紫-->
+    <color name="tengZi">#9b95c9</color>
+    <!--露草色-->
+    <color name="luCao">#33a3dc</color>
+
+    <!--    <color name="background">#F4F1E4</color>-->
+    <!--    <color name="background">#FFFCF3</color>-->
+    <color name="background">#F3F6FC</color>
+<!--    <color name="backgroundVariant">#C2E7FF</color>-->
+    <color name="backgroundVariant">@color/yuNaHu</color>
+    <color name="colorPrimaryVariant">#E6E4BF</color>
 </resources>

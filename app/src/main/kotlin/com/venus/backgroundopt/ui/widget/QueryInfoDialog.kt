@@ -8,7 +8,10 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
 import com.venus.backgroundopt.R
+import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.message.sendMessage
 
 /**
@@ -48,39 +51,6 @@ class QueryInfoDialog {
          * 创建对话框                                                                *
          *                                                                         *
          **************************************************************************/
-        /**
-         * 创建对话框布局
-         *
-         * @param context 对话框发起者的上下文
-         * @param queryInfoTipText 提示文本
-         * @param queryInfoEditTextHint 输入框的提示文本
-         * @param queryAction 按钮点击事件
-         * @return
-         */
-        @SuppressLint("InflateParams")
-        inline fun createDialogView(
-            context: Context,
-            queryInfoTipText: String?,
-            queryInfoEditTextHint: String?,
-            crossinline queryAction: (rootView: View, View) -> Unit
-        ): View {
-            //将布局的xml文件转为View对象并设置点击事件
-            return LayoutInflater.from(context).inflate(R.layout.query_info, null).apply {
-                // 设置提示文本
-                queryInfoTipText?.let { str ->
-                    findViewById<TextView>(R.id.queryInfoTipText)?.text = str
-                }
-                // 设置输入框的提示文本
-                queryInfoEditTextHint?.let { str ->
-                    findViewById<TextView>(R.id.queryInfoEditText)?.text = str
-                }
-                // 设置按钮点击事件
-                findViewById<Button>(R.id.doQueryBtn)?.setOnClickListener { view ->
-                    queryAction(rootView, view)
-                }
-            }
-        }
-
         @JvmStatic
         inline fun createQueryInfoDialog(
             context: Context,
@@ -105,17 +75,20 @@ class QueryInfoDialog {
             queryInfoEditTextHint: String?,
             crossinline queryAction: (rootView: View, View) -> Unit
         ): AlertDialog {
-            return AlertDialog.Builder(context)
-                .setCancelable(true)
-                .setView(
-                    createDialogView(
-                        context,
-                        queryInfoTipText,
-                        queryInfoEditTextHint,
-                        queryAction
-                    )
-                )
-                .create()
+            return UiUtils.createDialog(
+                context = context,
+                viewResId = R.layout.query_info,
+                viewBlock = {
+                    // 设置输入框的提示文本
+                    queryInfoEditTextHint?.let { str ->
+                        findViewById<TextView>(R.id.queryInfoEditText)?.text = str
+                    }
+                    // 设置按钮点击事件
+                    findViewById<Button>(R.id.doQueryBtn)?.setOnClickListener { view ->
+                        queryAction(rootView, view)
+                    }
+                }
+            )
         }
 
         /* *************************************************************************
@@ -131,7 +104,7 @@ class QueryInfoDialog {
          */
         @JvmStatic
         fun getQueryData(rootView: View): String? {
-            return rootView.findViewById<EditText>(R.id.queryInfoEditText)?.text?.toString()?.trim()
+            return rootView.findViewById<TextInputEditText>(R.id.queryInfoEditText)?.text?.toString()?.trim()
         }
 
         /**

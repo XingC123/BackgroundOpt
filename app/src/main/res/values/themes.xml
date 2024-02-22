@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Theme.BackgroundOpt" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color. -->
@@ -14,7 +14,7 @@
         <!-- Customize your theme here. -->
     </style>
 
-    <style name="Theme.AppTheme" parent="Theme.Material3.Light.NoActionBar">
+    <style name="Theme.AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/duRuo</item>
         <item name="colorPrimaryVariant">@color/ganJieGeng</item>
         <item name="colorOnPrimary">@color/white</item>
@@ -22,7 +22,32 @@
         <!-- 加入toolbar溢出【弹出】菜单的风格 -->
         <item name="actionOverflowMenuStyle">@style/OverflowMenuStyle</item>
 
-        <item name="switchStyle">@style/SwitchStyle</item>
+        <item name="switchPreferenceStyle">@style/SwitchStyle</item>
+        <item name="alertDialogTheme">@style/DialogStyleM3</item>
+        <item name="dialogTheme">@style/DialogStyleM3</item>
+        <item name="dialogPreferenceStyle">@style/Preference.DialogPreference.Material</item>
+        <item name="alertDialogStyle">@style/DialogStyleM3</item>
+        <!--对preference有效果的-->
+        <item name="dialogCornerRadius" tools:ignore="PrivateResource">@dimen/mtrl_alert_dialog_background_inset_start</item>
+    </style>
+
+    <style name="Theme.AppTheme.Material3" parent="Theme.AppTheme">
+        <!--状态栏图标反色的识别-->
+        <item name="android:windowLightStatusBar">true</item>
+
+        <!--可影响控件背景色-->
+        <!--        <item name="android:windowBackground">@color/background</item>-->
+        <item name="android:colorBackground">@color/background</item>
+
+        <!--MaterialToolbar背景色-->
+        <item name="colorSurface">@color/background</item>
+
+        <!--状态栏背景色-->
+        <item name="android:statusBarColor">@color/background</item>
+
+        <item name="colorPrimary">@color/duRuo</item>
+        <item name="colorPrimaryVariant">@color/ganJieGeng</item>
+        <item name="colorOnPrimary">@color/white</item>
     </style>
 
     <!--溢出[弹出]菜单样式-->
@@ -41,10 +66,9 @@
         <item name="android:textColor">@color/black</item>
     </style>
 
-    <style name="SwitchStyle" parent="Base.Widget.AppCompat.CompoundButton.Switch">
-<!--        <item name="thumbTint">#ECECEC</item>-->
-<!--        <item name="trackTint">#BDBABC</item>-->
-    </style>
+    <style name="SwitchStyle" parent="Preference.SwitchPreference.Material"></style>
+
+    <style name="DialogStyleM3" parent="ThemeOverlay.Material3.MaterialAlertDialog"></style>
 
     <!-- toolbar的菜单栏三个点点的颜色 -->
     <style name="ToolbarMenu" parent="Theme.AppTheme">

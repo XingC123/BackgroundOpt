@@ -91,7 +91,7 @@ class ShowAllInstalledAppsAdapter3(
                     context.startActivity(
                         Intent(
                             context,
-                            ConfigureAppProcessActivity::class.java
+                            ConfigureAppProcessActivityMaterial3::class.java
                         ).apply {
                             setTmpData(appItem)
                         })

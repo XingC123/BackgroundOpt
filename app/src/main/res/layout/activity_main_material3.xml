@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.MainActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            style="?attr/collapsingToolbarLayoutLargeStyle"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/collapsingToolbarLayoutLargeSize"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:titleCollapseMode="scale">
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:elevation="0dp"
+                app:layout_collapseMode="pin"
+                app:menu="@menu/menu_main_activity_toolbar"
+                app:title="@string/app_name" />
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingHorizontal="@dimen/content_space"
+        android:paddingVertical="@dimen/content_space"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@drawable/item_space_horizontal_100dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:showDividers="middle">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp"
+                android:clickable="true"
+                app:cardBackgroundColor="?colorPrimary">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="40dp"
+                    android:paddingVertical="20dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/textView12"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="@dimen/item_space"
+                            android:text="@string/main_activity_module_active_state_tip"
+                            android:textColor="@color/white"
+                            android:textSize="20sp" />
+
+                        <TextView
+                            android:id="@+id/mainActivityModuleActiveText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/moduleInActive"
+                            android:textColor="@color/white"
+                            android:textSize="20sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:id="@+id/mainActivityFunctionLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/item_space_horizontal"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:showDividers="middle">
+
+                <!--                <com.google.android.material.card.MaterialCardView-->
+                <!--                    android:layout_width="wrap_content"-->
+                <!--                    android:layout_height="wrap_content"-->
+                <!--                    android:clickable="true"-->
+                <!--                    app:cardBackgroundColor="?colorPrimary">-->
+                <!--                    -->
+                <!--                    <com.google.android.material.textview.MaterialTextView-->
+                <!--                        android:layout_width="wrap_content"-->
+                <!--                        android:layout_height="wrap_content"-->
+                <!--                        android:paddingHorizontal="60dp"-->
+                <!--                        android:paddingVertical="20dp"-->
+                <!--                        android:text="@string/getRunningAppInfoBtn"-->
+                <!--                        android:textColor="@color/white">-->
+                <!--                        -->
+                <!--                    </com.google.android.material.textview.MaterialTextView>-->
+
+                <!--                </com.google.android.material.card.MaterialCardView>-->
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/getRunningAppInfoBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:enabled="true"
+                    android:text="@string/getRunningAppInfoBtn" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/getTargetAppGroupBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/getTargetAppGroupBtn" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/getBackgroundTasksBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/getBackgroundTasks" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/getAppCompactItemsBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/getAppCompactItemsBtn" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/gotoConfigureAppProcessActivityBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/gotoConfigureAppProcessActivityBtn" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
