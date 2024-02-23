@@ -92,8 +92,8 @@ fun sendMessage(context: Context, key: String, value: Any = ""): String? {
     })?.let {
         if (BuildConfig.DEBUG) {
             logDebugAndroid(
-                "${CUR_CLASS_PREFIX}sendMessage",
-                "客户端收到的原始信息: ${it.packageName}"
+                methodName = "${CUR_CLASS_PREFIX}sendMessage",
+                logStr = "客户端收到的原始信息: ${it.packageName}"
             )
         }
         // componentName.packageName被征用为存放返回数据
@@ -101,8 +101,8 @@ fun sendMessage(context: Context, key: String, value: Any = ""): String? {
     } ?: run {
         if (BuildConfig.DEBUG) {
             logWarnAndroid(
-                "${CUR_CLASS_PREFIX}sendMessage",
-                "模块主进程回复内容为null, 无法进行转换"
+                methodName = "${CUR_CLASS_PREFIX}sendMessage",
+                logStr = "模块主进程回复内容为null, 无法进行转换"
             )
         }
         return null
@@ -124,7 +124,11 @@ inline fun <reified E> sendMessage(context: Context, key: String, value: Any = "
             JSON.parseObject(it, E::class.java)
         }
     } catch (t: Throwable) {
-        logErrorAndroid("${CUR_CLASS_PREFIX}sendMessage<E>", "响应消息转换失败", t)
+        logErrorAndroid(
+            methodName = "${CUR_CLASS_PREFIX}sendMessage<E>",
+            logStr = "响应消息转换失败",
+            t = t
+        )
         null
     }
 }
@@ -139,7 +143,11 @@ inline fun <reified E> sendMessageAcceptList(
             JSON.parseArray(it, E::class.java)
         }
     } catch (t: Throwable) {
-        logErrorAndroid("${CUR_CLASS_PREFIX}sendMessage<E>", "响应消息转换失败", t)
+        logErrorAndroid(
+            methodName = "${CUR_CLASS_PREFIX}sendMessage<E>",
+            logStr = "响应消息转换失败",
+            t = t
+        )
         null
     }
 }
@@ -163,7 +171,10 @@ inline fun <reified E> createResponse(
     generateData: (value: E) -> Any?
 ) {
 //    if (BuildConfig.DEBUG) {
-    logDebug("${CUR_CLASS_PREFIX}createResponse", "模块进程接收的数据为: $value")
+    logDebug(
+        methodName = "${CUR_CLASS_PREFIX}createResponse",
+        logStr = "模块进程接收的数据为: $value"
+    )
 //    }
     var errorMsg: String? = null
     try {
@@ -190,7 +201,11 @@ inline fun <reified E> createResponse(
             } ?: nullComponentName
         } ?: nullComponentName
     } catch (t: Throwable) {
-        logError("${CUR_CLASS_PREFIX}createResponse", "响应对象创建错误。errorMsg: $errorMsg", t)
+        logError(
+            methodName = "${CUR_CLASS_PREFIX}createResponse",
+            logStr = "响应对象创建错误。errorMsg: $errorMsg",
+            t = t
+        )
         param.result = nullComponentName
     }
 }
