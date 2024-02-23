@@ -32,7 +32,11 @@ class ProcessListHookKt(
 ) : MethodHook(classLoader, hookInfo) {
     companion object {
         @JvmField
-        val processedAppGroup = arrayOf(AppGroupEnum.NONE, AppGroupEnum.IDLE)
+        val processedAppGroup = arrayOf(
+            AppGroupEnum.NONE,
+            AppGroupEnum.ACTIVE,
+            AppGroupEnum.IDLE
+        )
 
         const val MAX_ALLOWED_OOM_SCORE_ADJ = ProcessList.UNKNOWN_ADJ - 1
 
@@ -155,7 +159,10 @@ class ProcessListHookKt(
 
                         var possibleFinalAdj = appOptimizePolicy.getCustomMainProcessOomScore()
                         val finalAdj =
-                            if (globalOomScorePolicy.enabled) {
+                            // 前台的oom_score_adj默认为0
+                            if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
+                                ProcessList.FOREGROUND_APP_ADJ
+                            } else if (globalOomScorePolicy.enabled) {
                                 // 进程独立配置优先于全局oom
                                 possibleFinalAdj ?: customGlobalOomScore
                             } else
