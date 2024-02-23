@@ -20,10 +20,10 @@ import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandle
 import com.venus.backgroundopt.utils.message.handle.EnableForegroundProcTrimMemPolicyHandler
 import com.venus.backgroundopt.utils.message.handle.ForegroundProcTrimMemPolicyHandler
 import com.venus.backgroundopt.utils.message.handle.GetInstalledPackagesMessageHandler
-import com.venus.backgroundopt.utils.message.handle.GetTrimMemoryOptThresholdMessageHandler
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeMessageHandler
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreMessageHandler
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreValueMessageHandler
+import com.venus.backgroundopt.utils.message.handle.HomePageModuleInfoMessageHandler
 import com.venus.backgroundopt.utils.message.handle.RunningAppInfoMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SimpleLmkMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMessageHandler
@@ -64,7 +64,8 @@ val registeredMessageHandler = mapOf(
     MessageKeyConstants.enableGlobalOomScore to GlobalOomScoreMessageHandler(),
     MessageKeyConstants.globalOomScoreEffectiveScope to GlobalOomScoreEffectiveScopeMessageHandler(),
     MessageKeyConstants.globalOomScoreValue to GlobalOomScoreValueMessageHandler(),
-    MessageKeyConstants.getTrimMemoryOptThreshold to GetTrimMemoryOptThresholdMessageHandler(),
+//    MessageKeyConstants.getTrimMemoryOptThreshold to GetTrimMemoryOptThresholdMessageHandler(),
+    MessageKeyConstants.getHomePageModuleInfo to HomePageModuleInfoMessageHandler(),
 )
 
 // json传输的载体

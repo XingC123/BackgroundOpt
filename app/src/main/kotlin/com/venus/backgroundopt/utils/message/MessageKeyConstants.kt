@@ -24,5 +24,6 @@ interface MessageKeyConstants {
         const val globalOomScoreEffectiveScope = "globalOomScoreEffectiveScope"
         const val globalOomScoreValue = "globalOomScoreValue"
         const val getTrimMemoryOptThreshold = "getTrimMemoryOptThreshold"
+        const val getHomePageModuleInfo = "getHomePageModuleInfo"
     }
 }

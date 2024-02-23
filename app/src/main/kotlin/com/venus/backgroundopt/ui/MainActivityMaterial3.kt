@@ -8,12 +8,12 @@ import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.environment.CommonProperties
-import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
 import com.venus.backgroundopt.ui.widget.QueryInfoDialog
 import com.venus.backgroundopt.utils.findViewById
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
+import com.venus.backgroundopt.utils.message.handle.HomePageModuleInfoMessage
 import com.venus.backgroundopt.utils.message.sendMessage
 
 
@@ -62,12 +62,16 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
         val moduleActive = CommonProperties.isModuleActive()
         if (moduleActive) {
             findViewById<TextView>(R.id.mainActivityModuleActiveText)?.setText(R.string.moduleActive)
-            // 获取触发优化的内存阈值
-            val thresholdStr = sendMessage(
+            // 获取要展示的信息
+            sendMessage<HomePageModuleInfoMessage>(
                 context = this,
-                key = MessageKeyConstants.getTrimMemoryOptThreshold,
-            )
-            findViewById<TextView>(R.id.trim_mem_opt_threshold)?.text = "$thresholdStr"
+                key = MessageKeyConstants.getHomePageModuleInfo,
+            )?.let { homePageModuleInfoMessage ->
+                findViewById<TextView>(R.id.max_adj_score_text)?.text =
+                    homePageModuleInfoMessage.defaultMaxAdjStr
+                findViewById<TextView>(R.id.trim_mem_opt_threshold)?.text =
+                    homePageModuleInfoMessage.minOptimizeRssInMBytesStr
+            }
         }
 
         // 查询运行中app的信息
