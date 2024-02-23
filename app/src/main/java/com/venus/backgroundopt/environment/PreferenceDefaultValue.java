@@ -23,7 +23,7 @@ public interface PreferenceDefaultValue {
      **************************************************************************/
     boolean enableForegroundTrimMem = false;
     boolean enableBackgroundTrimMem = true;
-    boolean enableBackgroundGc = false;
+    boolean enableBackgroundGc = true;
 
     static boolean isEnableForegroundTrimMem(@NonNull Context context) {
         return PreferencesUtilKt.pref(
