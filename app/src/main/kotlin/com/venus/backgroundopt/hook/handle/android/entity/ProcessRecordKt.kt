@@ -21,6 +21,7 @@ import com.venus.backgroundopt.utils.getStringFieldValue
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.log.logInfo
 import com.venus.backgroundopt.utils.setIntFieldValue
+import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.util.Objects
 import java.util.concurrent.TimeUnit
@@ -85,7 +86,9 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
                         maxOptimizeRssInBytes
                     )
                 minOptimizeRssInMBytesStr = "${
-                    DecimalFormat(".##").format(minOptimizeRssInBytes / (1024 * 1024))
+                    DecimalFormat(".00").apply { 
+                        roundingMode = RoundingMode.DOWN
+                    }.format(minOptimizeRssInBytes / (1024 * 1024))
                 }MB"
                 logInfo(logStr = "触发优化的内存阈值 = $minOptimizeRssInMBytesStr")
             }
