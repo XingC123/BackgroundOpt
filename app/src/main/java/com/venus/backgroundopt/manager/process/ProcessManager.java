@@ -101,8 +101,8 @@ public class ProcessManager implements ILogger {
         appCompactManager.compactApp(pid);
     }
 
-    public void compactProcess(ProcessRecordKt processRecordKt, int lastOomScoreAdj, int curOomScoreAdj) {
-        appCompactManager2.compactProcess(processRecordKt, lastOomScoreAdj, curOomScoreAdj);
+    public void compactProcess(ProcessRecordKt processRecordKt, int lastOomScoreAdj, int curOomScoreAdj, int oomAdjustLevel) {
+        appCompactManager2.compactProcess(processRecordKt, lastOomScoreAdj, curOomScoreAdj, oomAdjustLevel);
     }
 
     /**

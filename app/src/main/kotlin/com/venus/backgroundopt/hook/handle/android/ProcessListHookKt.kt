@@ -137,6 +137,7 @@ class ProcessListHookKt(
         /*?: appInfo.addProcess(runningInfo.activityManagerService.getProcessRecord(pid))*/
         val mainProcess = process.mainProcess
         val lastOomScoreAdj = process.oomAdjScore
+        var oomAdjustLevel = OomAdjustLevel.NONE
 
         val globalOomScoreEffectiveScopeEnum = globalOomScorePolicy.globalOomScoreEffectiveScope
         val customGlobalOomScore = globalOomScorePolicy.customGlobalOomScore
@@ -150,6 +151,9 @@ class ProcessListHookKt(
                     || isUpgradeSubProcessLevel(process.processName)
                     || (CommonProperties.enableWebviewProcessProtect.value && process.webviewProcess)
                 ) {
+                    oomAdjustLevel = OomAdjustLevel.FIRST
+                }
+                if (oomAdjustLevel == OomAdjustLevel.FIRST) {
                     if (CommonProperties.oomWorkModePref.oomMode != OomWorkModePref.MODE_NEGATIVE
                         || globalOomScorePolicy.enabled
                     ) {
@@ -296,7 +300,7 @@ class ProcessListHookKt(
         }
 
         // 内存压缩
-        runningInfo.processManager.compactProcess(process, lastOomScoreAdj, oomAdjScore)
+        runningInfo.processManager.compactProcess(process, lastOomScoreAdj, oomAdjScore, oomAdjustLevel)
     }
 
     @Deprecated("ProcessRecordKt.getMDyingPid(proc)有时候为0")
@@ -329,5 +333,16 @@ class ProcessListHookKt(
         val userId = ProcessRecordKt.getUserId(proc)
         val packageName = ProcessRecordKt.getPkgName(proc)
         runningInfo.startProcess(proc, uid, userId, packageName, pid)
+    }
+}
+
+/**
+ * 进程OOM调整等级
+ */
+class OomAdjustLevel {
+    companion object {
+        const val NONE = 0
+        const val FIRST = 1
+        const val SECOND = 2
     }
 }
