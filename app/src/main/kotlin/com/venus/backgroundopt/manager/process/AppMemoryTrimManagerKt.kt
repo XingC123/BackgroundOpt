@@ -280,7 +280,7 @@ class AppMemoryTrimManagerKt(
         // 获取优化操作
         val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[processRecordKt.packageName]
 
-        if (processRecordKt.isNecessaryToOptimize()) {
+        if (isNecessaryToOptimizeProcess(processRecordKt)) {
             block(appOptimizePolicy)
         } else {
             if (BuildConfig.DEBUG) {

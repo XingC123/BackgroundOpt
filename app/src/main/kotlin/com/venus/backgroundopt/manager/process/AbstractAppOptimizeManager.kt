@@ -15,6 +15,10 @@ import java.util.concurrent.TimeUnit
 abstract class AbstractAppOptimizeManager(val appOptimizeEnum: AppOptimizeEnum) {
     abstract fun getExecutor(): Executor
 
+    open fun isNecessaryToOptimizeProcess(processRecordKt: ProcessRecordKt): Boolean {
+        return processRecordKt.oomAdjScore > 0 && processRecordKt.isNecessaryToOptimize()
+    }
+
     open fun getBackgroundFirstTaskDelay(): Long = 0
 
     open fun getBackgroundFirstTaskDelayTimeUnit(): TimeUnit = TimeUnit.SECONDS

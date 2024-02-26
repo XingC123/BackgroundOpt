@@ -85,7 +85,7 @@ class AppCompactManager2(
         }
 
         // 检查进程是否需要进行优化
-        if (!processRecord.isNecessaryToOptimize()) {
+        if (isNecessaryToOptimizeProcess(processRecord)) {
             updateProcessLastProcessingResult(processRecord) {
                 it.lastProcessingCode = ProcessCompactResultCode.unNecessary
             }
