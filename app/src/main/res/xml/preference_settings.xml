@@ -13,6 +13,7 @@
             android:layout_height="wrap_content"
             android:defaultValue="false"
             android:title="@string/settingsAutoStopCompactPrefText"
+            app:enabled="false"
             app:iconSpaceReserved="false"
             app:key="@string/pref_key_autoStopCompactTask"
             app:summary="@string/settingsAutoStopCompactPrefSummaryText" />

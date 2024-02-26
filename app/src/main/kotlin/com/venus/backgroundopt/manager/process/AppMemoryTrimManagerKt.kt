@@ -3,12 +3,15 @@ package com.venus.backgroundopt.manager.process
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
+import com.venus.backgroundopt.utils.runCatchThrowable
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executor
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -19,7 +22,9 @@ import java.util.concurrent.TimeUnit
  * @author XingC
  * @date 2023/8/3
  */
-class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
+class AppMemoryTrimManagerKt(
+    private val runningInfo: RunningInfo
+) : AbstractAppOptimizeManager(AppOptimizeEnum.PROCESS_MEM_TRIM), ILogger {
     companion object {
         // 前台
         const val foregroundInitialDelay = 1L
@@ -31,8 +36,12 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         const val backgroundInitialDelay = 2L  // 初始时间相比前台任务延后2个单位时间
         const val backgroundDelay = 10L
         val backgroundTimeUnit = TimeUnit.MINUTES
-        const val backgroundTrimLevel = ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN
+        const val backgroundTrimLevel = PreferenceDefaultValue.backgroundProcMemTrimLevel
         const val backgroundTrimManagerName = "BackgroundAppMemoryTrimManager"
+
+        // 初次进入后台
+        const val backgroundFirstTrimDelay = 30L
+        val backgroundFirstTrimTimeUnit = TimeUnit.SECONDS
     }
 
     var enableForegroundTrim = CommonProperties.isEnableForegroundProcTrimMem()
@@ -65,6 +74,8 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
     init {
         init()
     }
+
+    override fun getExecutor(): Executor = executor
 
     /**
      * 初始化
@@ -137,6 +148,7 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         ProcessRecordKt.correctProcessPid(processRecordKt)
 
         // 移除后台任务
+        removeBackgroundFirstTrimTask(processRecordKt)
         removeBackgroundTask(processRecordKt)
 
         val add = foregroundTasks.add(processRecordKt)
@@ -186,6 +198,8 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         // 移除前台任务
         removeForegroundTask(processRecordKt)
 
+        addBackgroundFirstTrimTask(processRecordKt)
+
         val add = backgroundTasks.add(processRecordKt)
 
         if (BuildConfig.DEBUG) {
@@ -213,6 +227,23 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         if (BuildConfig.DEBUG) {
             logger.debug("foregroundTasks元素个数: ${foregroundTasks.size}, backgroundTasks元素个数: ${backgroundTasks.size}")
         }
+    }
+
+    override fun getBackgroundFirstTaskDelay(): Long = backgroundFirstTrimDelay
+
+    override fun getBackgroundFirstTaskDelayTimeUnit(): TimeUnit = backgroundFirstTrimTimeUnit
+
+    private fun addBackgroundFirstTrimTask(processRecordKt: ProcessRecordKt) {
+        addBackgroundFirstTask(processRecordKt = processRecordKt) {
+            runCatchThrowable {
+                // UI资源的清理
+                processRecordKt.scheduleTrimMemory(ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN)
+            }
+        }
+    }
+
+    private fun removeBackgroundFirstTrimTask(processRecordKt: ProcessRecordKt) {
+        removeBackgroundFirstTask(processRecordKt = processRecordKt)
     }
 
     /**
@@ -363,9 +394,24 @@ class AppMemoryTrimManagerKt(private val runningInfo: RunningInfo) : ILogger {
         trimLevel: Int,
         list: MutableSet<ProcessRecordKt>
     ) {
-        val result = processRecordKt.scheduleTrimMemory(trimLevel)
+        val result = run {
+            if (backgroundFirstTaskMap.contains(processRecordKt)) {
+                null
+            } else {
+                processRecordKt.scheduleTrimMemory(trimLevel)
+            }
+        }
 
-        if (result) {
+        if (result == null) {
+            logger.info(
+                "${
+                    logStrPrefix(
+                        trimManagerName,
+                        processRecordKt
+                    )
+                }执行TrimMemoryTask(${trimLevel}): 已有任务正在等待执行(初次进入后台的回收)"
+            )
+        } else if (result) {
             if (BuildConfig.DEBUG) {
                 logger.debug(
                     "${

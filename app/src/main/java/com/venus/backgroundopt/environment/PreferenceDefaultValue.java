@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants;
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants;
+import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.utils.message.handle.ForegroundProcTrimMemLevelEnum;
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum;
@@ -64,4 +65,11 @@ public interface PreferenceDefaultValue {
      *                                                                         *
      **************************************************************************/
     String foregroundProcTrimMemLevelEnumName = ForegroundProcTrimMemLevelEnum.RUNNING_MODERATE.name();
+
+    /* *************************************************************************
+     *                                                                         *
+     * 后台内存回收                                                              *
+     *                                                                         *
+     **************************************************************************/
+    int backgroundProcMemTrimLevel = ComponentCallbacks2.TRIM_MEMORY_BACKGROUND;
 }

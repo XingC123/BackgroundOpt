@@ -1,27 +1,76 @@
 package com.venus.backgroundopt.manager.process
 
+import android.os.SystemClock
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executor
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 /**
  * @author XingC
  * @date 2023/10/14
  */
 abstract class AbstractAppOptimizeManager(val appOptimizeEnum: AppOptimizeEnum) {
+    abstract fun getExecutor(): Executor
+
+    open fun getBackgroundFirstTaskDelay(): Long = 0
+
+    open fun getBackgroundFirstTaskDelayTimeUnit(): TimeUnit = TimeUnit.SECONDS
+
+    val backgroundFirstTaskMap: MutableMap<ProcessRecordKt, ScheduledFuture<*>> =
+        ConcurrentHashMap(4)
+
+    open fun addBackgroundFirstTask(
+        processRecordKt: ProcessRecordKt,
+        block: (() -> Unit)? = null,
+    ) {
+        backgroundFirstTaskMap.computeIfAbsent(processRecordKt) { _ ->
+            (getExecutor() as ScheduledThreadPoolExecutor).schedule(
+                { block?.let { it() } },
+                getBackgroundFirstTaskDelay(),
+                getBackgroundFirstTaskDelayTimeUnit()
+            )
+        }
+    }
+
+    open fun removeBackgroundFirstTask(
+        processRecordKt: ProcessRecordKt,
+        block: ((ScheduledFuture<*>) -> Unit)? = null,
+    ) {
+        backgroundFirstTaskMap.remove(processRecordKt)?.let { scheduledFuture ->
+            scheduledFuture.cancel(true)
+            block?.let { it(scheduledFuture) }
+        }
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 上一次进程执行结果                                                          *
+     *                                                                         *
+     **************************************************************************/
+    open fun getProcessingResultIfAbsent(): ProcessingResult = ProcessingResult()
+
     inline fun updateProcessLastProcessingResult(
         processRecordKt: ProcessRecordKt,
+        appOptEnum: AppOptimizeEnum = appOptimizeEnum,
         block: (ProcessingResult) -> Unit
     ) {
-        val processingResult =
-            processRecordKt.lastProcessingResultMap.computeIfAbsent(appOptimizeEnum) { _ ->
-                ProcessingResult()
-            }
+        val processingResult = processRecordKt.initLastProcessingResultIfAbsent(
+            appOptimizeEnum = appOptEnum,
+            processingResultSupplier = ::getProcessingResultIfAbsent
+        )
 
-        processingResult.lastProcessingTime = System.currentTimeMillis()
+        processingResult.lastProcessingTime = SystemClock.uptimeMillis()
         block(processingResult)
     }
 
-    fun removeProcessLastProcessingResult(processRecordKt: ProcessRecordKt) {
-        processRecordKt.lastProcessingResultMap.remove(appOptimizeEnum)
+    fun removeProcessLastProcessingResult(
+        processRecordKt: ProcessRecordKt,
+        appOptEnum: AppOptimizeEnum = appOptimizeEnum,
+    ) {
+        processRecordKt.lastProcessingResultMap.remove(appOptEnum)
     }
 
     fun removeProcessLastProcessingResultFromSet(set: Set<ProcessRecordKt>) {
@@ -35,5 +84,6 @@ abstract class AbstractAppOptimizeManager(val appOptimizeEnum: AppOptimizeEnum) 
         BACKGROUND_TRIM_MEM,
         BACKGROUND_GC,
         PROCESS_COMPACT,
+        PROCESS_MEM_TRIM,
     }
 }

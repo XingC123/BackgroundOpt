@@ -101,7 +101,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             processRecord: Any
         ): ProcessRecordKt {
             val record = ProcessRecordKt(runningInfo.activityManagerService, processRecord)
-            addCompactProcess(runningInfo, appInfo, record)
+            // addCompactProcess(runningInfo, appInfo, record)
             return record
         }
 

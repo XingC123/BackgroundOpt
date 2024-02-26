@@ -186,6 +186,10 @@ public class RunningInfo implements ILogger {
         return getRunningAppInfo(appInfo.getUid());
     }
 
+    public Collection<AppInfo> getRunningAppInfos() {
+        return runningAppsInfo;
+    }
+
     /**
      * 根据uid获取正在运行的列表中的app信息
      *

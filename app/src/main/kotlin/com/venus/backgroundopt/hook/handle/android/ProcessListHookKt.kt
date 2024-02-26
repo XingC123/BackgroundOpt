@@ -136,6 +136,7 @@ class ProcessListHookKt(
             appInfo.getProcess(pid) ?: return
         /*?: appInfo.addProcess(runningInfo.activityManagerService.getProcessRecord(pid))*/
         val mainProcess = process.mainProcess
+        val lastOomScoreAdj = process.oomAdjScore
 
         val globalOomScoreEffectiveScopeEnum = globalOomScorePolicy.globalOomScoreEffectiveScope
         val customGlobalOomScore = globalOomScorePolicy.customGlobalOomScore
@@ -293,6 +294,9 @@ class ProcessListHookKt(
                 }
             }
         }
+
+        // 内存压缩
+        runningInfo.processManager.compactProcess(process, lastOomScoreAdj, oomAdjScore)
     }
 
     @Deprecated("ProcessRecordKt.getMDyingPid(proc)有时候为0")

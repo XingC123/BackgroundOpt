@@ -3,6 +3,9 @@ package com.venus.backgroundopt.hook.handle.android.entity;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
+import com.venus.backgroundopt.utils.ThrowableUtilsKt;
+import com.venus.backgroundopt.utils.XposedUtilsKt;
+import com.venus.backgroundopt.utils.log.ILogger;
 
 import de.robv.android.xposed.XposedHelpers;
 
@@ -13,7 +16,7 @@ import de.robv.android.xposed.XposedHelpers;
  * @version 1.0
  * @date 2023/6/1
  */
-public class CachedAppOptimizer {
+public class CachedAppOptimizer implements ILogger {
     public static final String KEY_USE_COMPACTION = "use_compaction";
 
     // Phenotype sends int configurations and we map them to the strings we'll use on device,
@@ -31,8 +34,23 @@ public class CachedAppOptimizer {
     public static final int COMPACT_PROCESS_MSG = 1;
     public static final int COMPACT_SYSTEM_MSG = 2;
 
-    public static long mCompactThrottleMinOomAdj;
-    public static long mCompactThrottleMaxOomAdj;
+    // Defaults for phenotype flags.
+    static final boolean DEFAULT_USE_COMPACTION = true;
+    static final boolean DEFAULT_USE_FREEZER = true;
+    static final long DEFAULT_COMPACT_THROTTLE_1 = 5_000;
+    static final long DEFAULT_COMPACT_THROTTLE_2 = 10_000;
+    static final long DEFAULT_COMPACT_THROTTLE_3 = 500;
+    static final long DEFAULT_COMPACT_THROTTLE_4 = 10_000;
+    static final long DEFAULT_COMPACT_THROTTLE_5 = 10 * 60 * 1000;
+    static final long DEFAULT_COMPACT_THROTTLE_6 = 10 * 60 * 1000;
+
+    // Configured by phenotype. Updates from the server take effect immediately.
+    public long mCompactThrottleSomeSome = DEFAULT_COMPACT_THROTTLE_1;
+    public long mCompactThrottleSomeFull = DEFAULT_COMPACT_THROTTLE_2;
+    public long mCompactThrottleFullSome = DEFAULT_COMPACT_THROTTLE_3;
+    public long mCompactThrottleFullFull = DEFAULT_COMPACT_THROTTLE_4;
+    public long mCompactThrottleMinOomAdj;
+    public long mCompactThrottleMaxOomAdj;
 
     private long mFullCompactRequest;
 
@@ -41,10 +59,19 @@ public class CachedAppOptimizer {
     public CachedAppOptimizer(Object cachedAppOptimizer, ClassLoader classLoader) {
         this.cachedAppOptimizer = cachedAppOptimizer;
 
-        CachedAppOptimizer.mCompactThrottleMinOomAdj =
+        mCompactThrottleMinOomAdj =
                 XposedHelpers.getLongField(cachedAppOptimizer, FieldConstants.mCompactThrottleMinOomAdj);
-        CachedAppOptimizer.mCompactThrottleMaxOomAdj =
+        mCompactThrottleMaxOomAdj =
                 XposedHelpers.getLongField(cachedAppOptimizer, FieldConstants.mCompactThrottleMaxOomAdj);
+
+        // 关闭系统的内存压缩
+        ThrowableUtilsKt.runCatchThrowable(null, throwable -> {
+            getLogger().warn("设置系统的默认压缩行为失败", throwable);
+            return null;
+        }, () -> {
+            XposedUtilsKt.setStaticObjectFieldValue(getCachedAppOptimizerClass(), FieldConstants.DEFAULT_USE_COMPACTION, false);
+            return null;
+        });
     }
 
     public Object getCachedAppOptimizer() {
@@ -92,7 +119,7 @@ public class CachedAppOptimizer {
     }
 
     public static boolean isOomAdjEnteredCached(int curAdj) {
-        return (curAdj >= mCompactThrottleMinOomAdj && curAdj <= mCompactThrottleMaxOomAdj);
+        return (curAdj >= ProcessList.CACHED_APP_MIN_ADJ && curAdj <= ProcessList.CACHED_APP_MAX_ADJ);
     }
 
     /**

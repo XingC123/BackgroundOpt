@@ -137,7 +137,7 @@ public class AppInfo implements ILogger, LockFlag {
     @NonNull
     public ProcessRecordKt addProcess(@NonNull ProcessRecordKt processRecord) {
         return processRecordMap.computeIfAbsent(processRecord.getPid(), k -> {
-            ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
+            // ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
             if (processRecord.getMainProcess()) {
                 setmProcessRecord(processRecord);
             }
@@ -155,7 +155,7 @@ public class AppInfo implements ILogger, LockFlag {
             );
 
             // 做一些额外操作
-            ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
+            // ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
             if (processRecord.getMainProcess()) {
                 setmProcessRecord(processRecord);
             }
