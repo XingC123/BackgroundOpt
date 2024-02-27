@@ -138,15 +138,14 @@ class ProcessListHookKt(
         val mainProcess = process.mainProcess
         val lastOomScoreAdj = process.oomAdjScore
         var oomAdjustLevel = OomAdjustLevel.NONE
+        // 最终要被系统设置的oom分数
+        var finalApplyOomScoreAdj = oomAdjScore
 
         val globalOomScoreEffectiveScopeEnum = globalOomScorePolicy.globalOomScoreEffectiveScope
         val customGlobalOomScore = globalOomScorePolicy.customGlobalOomScore
         // 对所有进程应用oom修改
         if (globalOomScorePolicy.enabled && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL) {
-            param.args[2] = customGlobalOomScore
-            appInfo.modifyProcessRecord(pid, customGlobalOomScore)
-            // 修改curAdj
-            process.processStateRecord.curAdj = param.args[2] as Int
+            finalApplyOomScoreAdj = customGlobalOomScore
         } else {
             if (oomAdjScore >= 0 || globalOomScorePolicy.enabled) {
                 if (mainProcess
@@ -227,25 +226,19 @@ class ProcessListHookKt(
                             }
                         }
 
-                        param.args[2] = finalAdj
+                        finalApplyOomScoreAdj = finalAdj
                     }
-
-                    // 存入系统设置的oom_score_adj
-                    appInfo.modifyProcessRecord(pid, oomAdjScore)
                 } else { // 子进程的处理
                     if (globalOomScorePolicy.enabled && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_AND_SUB_PROCESS) {
-                        param.args[2] = customGlobalOomScore
-                        appInfo.modifyProcessRecord(pid, oomAdjScore)
+                        finalApplyOomScoreAdj = customGlobalOomScore
                     } else if (process.fixedOomAdjScore != ProcessRecordKt.SUB_PROC_ADJ) { // 第一次记录子进程 或 进程调整策略置为默认
                         val expectedOomAdjScore = ProcessRecordKt.SUB_PROC_ADJ
-                        val finalOomAdjScore = if (oomAdjScore > expectedOomAdjScore) {
+                        finalApplyOomScoreAdj = if (oomAdjScore > expectedOomAdjScore) {
                             oomAdjScore
                         } else {
-                            param.args[2] = expectedOomAdjScore
                             expectedOomAdjScore
                         }
 
-                        process.oomAdjScore = finalOomAdjScore
                         process.fixedOomAdjScore = expectedOomAdjScore
 
                         // 如果修改过maxAdj则重置
@@ -257,22 +250,24 @@ class ProcessListHookKt(
                                 uid,
                                 pid,
                                 mainProcess,
-                                finalOomAdjScore
+                                finalApplyOomScoreAdj
                             )
                         }
                     } else {
-                        // 新的oomAdj小于修正过的adj 或 修正过的adj为不可能取值
+                        // 新的oomAdj小于修正过的adj
                         if (oomAdjScore < process.fixedOomAdjScore) {
-                            param.result = null
+                            finalApplyOomScoreAdj = process.fixedOomAdjScore
                         }
-                        appInfo.modifyProcessRecord(pid, oomAdjScore)
                     }
                 }
-
-                // 修改curAdj
-                process.processStateRecord.curAdj = param.args[2] as Int
             }
         }
+
+        param.args[2] = finalApplyOomScoreAdj
+        // 修改curAdj
+        process.processStateRecord.curAdj = finalApplyOomScoreAdj
+        // 记录本次系统计算的分数
+        process.oomAdjScore = oomAdjScore
 
         // ProcessListHookKt.handleHandleProcessStartedLocked 执行后, 生成进程所属的appInfo
         // 但并没有将其设置内存分组。若在进程创建时就设置appInfo的内存分组, 则在某些场景下会产生额外消耗。
@@ -302,7 +297,12 @@ class ProcessListHookKt(
         }
 
         // 内存压缩
-        runningInfo.processManager.compactProcess(process, lastOomScoreAdj, oomAdjScore, oomAdjustLevel)
+        runningInfo.processManager.compactProcess(
+            process,
+            lastOomScoreAdj,
+            oomAdjScore,
+            oomAdjustLevel
+        )
     }
 
     @Deprecated("ProcessRecordKt.getMDyingPid(proc)有时候为0")

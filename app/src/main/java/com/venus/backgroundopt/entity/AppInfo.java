@@ -170,9 +170,9 @@ public class AppInfo implements ILogger, LockFlag {
         return processRecordMap == null ? null : processRecordMap.get(pid);
     }
 
-    public void modifyProcessRecord(int pid, int oomAdjScore) {
+    public void modifyProcessOomScoreAdj(int pid, int oomAdjScore) {
         processRecordMap.computeIfPresent(pid, (key, processRecord) -> {
-            processRecord.setOomAdjScoreToAtomicInteger(oomAdjScore);
+            processRecord.setOomAdjScore(oomAdjScore);
             return processRecord;
         });
     }
