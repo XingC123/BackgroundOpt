@@ -349,8 +349,8 @@ public class RunningInfo implements ILogger {
             } else {
                 ConcurrentUtilsKt.lock(appInfo, () -> {
                     // 移除进程记录
-                    ProcessRecordKt process = appInfo.removeProcess(pid);
-                    processManager.cancelCompactProcess(process);
+                    appInfo.removeProcess(pid);
+                    // processManager.cancelCompactProcess(process);
                     if (BuildConfig.DEBUG) {
                         getLogger().debug("kill: " + packageName + ", uid: " + uid + ", pid: " + pid + " >>> 子进程被杀");
                     }
