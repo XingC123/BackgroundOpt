@@ -145,6 +145,8 @@ class ProcessListHookKt(
         if (globalOomScorePolicy.enabled && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL) {
             param.args[2] = customGlobalOomScore
             appInfo.modifyProcessRecord(pid, customGlobalOomScore)
+            // 修改curAdj
+            process.processStateRecord.curAdj = param.args[2] as Int
         } else {
             if (oomAdjScore >= 0 || globalOomScorePolicy.enabled) {
                 if (mainProcess
