@@ -326,22 +326,22 @@ public class RunningInfo implements ILogger {
      * @param pid     pid
      */
     public void removeProcess(@NonNull AppInfo appInfo, int uid, int pid) {
+        String packageName = appInfo.getPackageName();
+        boolean[] isMainProcess = {false};
         ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
             getLogger().error(
-                    "移除进程(uid: " + uid + ",pid: " + pid + ")出现错误: " + throwable.getMessage(),
+                    "移除进程(packageName: " + packageName + ", uid: " + uid + ",pid: " + pid + ", isMainProcess: " + isMainProcess[0] + ")出现错误: " + throwable.getMessage(),
                     throwable
             );
             return null;
         }, () -> {
-            boolean isMainProcess = false;
             ProcessRecordKt processRecord = appInfo.getProcess(pid);
             if (processRecord == null) {
                 return null;
             }
-            isMainProcess = processRecord.getMainProcess();
-            String packageName = appInfo.getPackageName();
+            isMainProcess[0] = processRecord.getMainProcess();
 
-            if (isMainProcess) {
+            if (isMainProcess[0]) {
                 removeRunningApp(appInfo);
                 if (BuildConfig.DEBUG) {
                     getLogger().debug("kill: " + packageName + ", uid: " + uid + " >>> 杀死App");
