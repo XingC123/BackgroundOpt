@@ -1,7 +1,6 @@
 package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
 import de.robv.android.xposed.XC_MethodHook
@@ -23,15 +22,15 @@ class AppCompactListMessageHandler : MessageHandler {
                 // 设置真实oom_adj_score
                 process.curAdj = process.getCurAdjNative()
             }*/
-            val processes = arrayListOf<ProcessRecordKt>()
-            runningInfo.runningAppInfos.forEach { appInfo ->
-                appInfo.processes.forEach { process->
+            runningInfo.runningAppInfos.asSequence()
+                .filterNotNull()
+                .filter { it.appGroupEnum == RunningInfo.AppGroupEnum.IDLE }
+                .flatMap { it.processes }
+                .onEach {
                     // 设置真实oom_adj_score
-                    process.curAdj = process.getCurAdjNative()
-                    processes.add(process)
+                    it.curAdj = it.getCurAdjNative()
                 }
-            }
-            processes
+                .toList()
         }
     }
 }
