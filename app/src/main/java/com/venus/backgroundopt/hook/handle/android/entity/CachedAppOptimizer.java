@@ -3,8 +3,6 @@ package com.venus.backgroundopt.hook.handle.android.entity;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
-import com.venus.backgroundopt.utils.ThrowableUtilsKt;
-import com.venus.backgroundopt.utils.XposedUtilsKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import de.robv.android.xposed.XposedHelpers;
@@ -63,15 +61,6 @@ public class CachedAppOptimizer implements ILogger {
                 XposedHelpers.getLongField(cachedAppOptimizer, FieldConstants.mCompactThrottleMinOomAdj);
         mCompactThrottleMaxOomAdj =
                 XposedHelpers.getLongField(cachedAppOptimizer, FieldConstants.mCompactThrottleMaxOomAdj);
-
-        // 关闭系统的内存压缩
-        ThrowableUtilsKt.runCatchThrowable(null, throwable -> {
-            getLogger().warn("设置系统的默认压缩行为失败", throwable);
-            return null;
-        }, () -> {
-            XposedUtilsKt.setStaticObjectFieldValue(getCachedAppOptimizerClass(), FieldConstants.DEFAULT_USE_COMPACTION, false);
-            return null;
-        });
     }
 
     public Object getCachedAppOptimizer() {

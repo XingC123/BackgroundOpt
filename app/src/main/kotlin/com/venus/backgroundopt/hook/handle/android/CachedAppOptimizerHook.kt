@@ -3,8 +3,12 @@ package com.venus.backgroundopt.hook.handle.android
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.base.IHook
 import com.venus.backgroundopt.hook.constants.ClassConstants
+import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.utils.beforeHook
+import com.venus.backgroundopt.utils.findClassIfExists
+import com.venus.backgroundopt.utils.runCatchThrowable
+import com.venus.backgroundopt.utils.setStaticObjectFieldValue
 
 /**
  * @author XingC
@@ -21,5 +25,16 @@ class CachedAppOptimizerHook(
             methodName = MethodConstants.onOomAdjustChanged,
             hookAllMethod = true
         ) { it.result = null }
+
+        // 关闭系统的内存压缩
+        runCatchThrowable(catchBlock = { logger.warn("设置系统的默认压缩行为失败", it) }) {
+            ClassConstants.CachedAppOptimizer
+                .findClassIfExists(classLoader)
+                ?.setStaticObjectFieldValue(
+                    fieldName = FieldConstants.DEFAULT_USE_COMPACTION,
+                    value = false
+                )
+            logger.info("[禁用]框架层内存压缩")
+        }
     }
 }
