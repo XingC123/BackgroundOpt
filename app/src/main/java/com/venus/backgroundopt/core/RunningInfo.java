@@ -328,9 +328,11 @@ public class RunningInfo implements ILogger {
     public void removeProcess(@NonNull AppInfo appInfo, int uid, int pid) {
         String packageName = appInfo.getPackageName();
         boolean[] isMainProcess = {false};
+        String[] processName = new String[1];
         ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
             getLogger().error(
-                    "移除进程(packageName: " + packageName + ", uid: " + uid + ",pid: " + pid + ", isMainProcess: " + isMainProcess[0] + ")出现错误: " + throwable.getMessage(),
+                    "移除进程(packageName: " + packageName + ", processName: " + processName[0] + ", uid: " + uid + ",pid: " + pid + ", isMainProcess: " + isMainProcess[0] + ")出现错误: " + throwable.getMessage(),
+
                     throwable
             );
             return null;
@@ -340,6 +342,7 @@ public class RunningInfo implements ILogger {
                 return null;
             }
             isMainProcess[0] = processRecord.getMainProcess();
+            processName[0] = processRecord.getFullProcessName();
 
             if (isMainProcess[0]) {
                 removeRunningApp(appInfo);

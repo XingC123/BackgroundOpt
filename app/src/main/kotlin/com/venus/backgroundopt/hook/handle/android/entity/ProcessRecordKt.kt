@@ -502,7 +502,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     }
 
     @JSONField(serialize = false)
-    fun getFullPackageName(): String {
+    fun getFullProcessName(): String {
         return PackageUtils.absoluteProcessName(packageName, processName)
     }
 
