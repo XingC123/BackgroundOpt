@@ -1,6 +1,7 @@
 package com.venus.backgroundopt.manager.process
 
 import android.os.SystemClock
+import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
@@ -16,7 +17,14 @@ abstract class AbstractAppOptimizeManager(val appOptimizeEnum: AppOptimizeEnum) 
     abstract fun getExecutor(): Executor
 
     open fun isNecessaryToOptimizeProcess(processRecordKt: ProcessRecordKt): Boolean {
-        return processRecordKt.oomAdjScore > 0 && processRecordKt.isNecessaryToOptimize()
+        val globalOomScorePolicy = CommonProperties.globalOomScorePolicy.value
+        val enabledGlobalOomScore = globalOomScorePolicy.enabled
+        val isUnsafeCustomOomScore = globalOomScorePolicy.customGlobalOomScore < 0
+        return if (enabledGlobalOomScore && isUnsafeCustomOomScore) {
+            processRecordKt.isNecessaryToOptimize()
+        } else {
+            processRecordKt.oomAdjScore > 0 && processRecordKt.isNecessaryToOptimize()
+        }
     }
 
     open fun getBackgroundFirstTaskDelay(): Long = 0
