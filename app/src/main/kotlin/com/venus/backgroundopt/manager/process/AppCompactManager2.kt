@@ -5,7 +5,6 @@ import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.environment.CommonProperties
-import com.venus.backgroundopt.hook.handle.android.OomAdjustLevel
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
@@ -99,13 +98,13 @@ class AppCompactManager2(
         // 是否进行了压缩
         var doCompact = false
         var processCompactResultCode = ProcessCompactResultCode.doNothing
-        var processCompatEnum = ProcessCompatEnum.NONE
+        var processCompactEnum = ProcessCompactEnum.NONE
         val processingResult = processRecord.initLastProcessingResultIfAbsent(
             appOptimizeEnum = appOptimizeEnum,
             processingResultSupplier = ::getProcessingResultIfAbsent
         ) as ProcessCompactProcessingResult
         val currentTimeMillis = SystemClock.uptimeMillis()
-        val lastProcessCompatEnum = processingResult.processCompatEnum
+        val lastProcessCompatEnum = processingResult.processCompactEnum
         var compactAction = Int.MIN_VALUE
         var compactReason = "OOM_SCORE"
         var compactBecauseProcAllow = false
@@ -113,19 +112,19 @@ class AppCompactManager2(
         if (isSpecialOomWorkMode) {
             if (processRecord.isAllowedCompact(currentTimeMillis)) {
                 doCompact = true
-                processCompatEnum = ProcessCompatEnum.FULL
+                processCompactEnum = ProcessCompactEnum.FULL
                 compactAction = CachedAppOptimizer.COMPACT_ACTION_FULL
             }
         } else {
             val timeDifference = currentTimeMillis - processingResult.lastProcessingTime
             if (ProcessList.PERCEPTIBLE_APP_ADJ in lastOomScoreAdj..curOomScoreAdj && curOomScoreAdj <= ProcessList.SERVICE_B_ADJ) {
-                if ((lastProcessCompatEnum == ProcessCompatEnum.SOME && timeDifference < cachedAppOptimizer.mCompactThrottleSomeSome)
-                    || (lastProcessCompatEnum == ProcessCompatEnum.FULL && timeDifference < cachedAppOptimizer.mCompactThrottleSomeFull)
+                if ((lastProcessCompatEnum == ProcessCompactEnum.SOME && timeDifference < cachedAppOptimizer.mCompactThrottleSomeSome)
+                    || (lastProcessCompatEnum == ProcessCompactEnum.FULL && timeDifference < cachedAppOptimizer.mCompactThrottleSomeFull)
                 ) {
                     // do nothing
                 } else {
                     doCompact = true
-                    processCompatEnum = ProcessCompatEnum.SOME
+                    processCompactEnum = ProcessCompactEnum.SOME
                     compactAction = CachedAppOptimizer.COMPACT_ACTION_FILE
                 }
             } else if (ProcessList.CACHED_APP_MIN_ADJ in lastOomScoreAdj..curOomScoreAdj
@@ -133,8 +132,8 @@ class AppCompactManager2(
                     time = currentTimeMillis
                 ).also { compactBecauseProcAllow = it }
             ) {
-                if ((lastProcessCompatEnum == ProcessCompatEnum.SOME && timeDifference < cachedAppOptimizer.mCompactThrottleFullSome)
-                    || (lastProcessCompatEnum == ProcessCompatEnum.FULL && timeDifference < cachedAppOptimizer.mCompactThrottleFullFull)
+                if ((lastProcessCompatEnum == ProcessCompactEnum.SOME && timeDifference < cachedAppOptimizer.mCompactThrottleFullSome)
+                    || (lastProcessCompatEnum == ProcessCompactEnum.FULL && timeDifference < cachedAppOptimizer.mCompactThrottleFullFull)
                 ) {
                     // do nothing
                 } else {
@@ -142,7 +141,7 @@ class AppCompactManager2(
                         compactReason = "从未压缩或超时"
                     }
                     doCompact = true
-                    processCompatEnum = ProcessCompatEnum.FULL
+                    processCompactEnum = ProcessCompactEnum.FULL
                     compactAction = CachedAppOptimizer.COMPACT_ACTION_FULL
                 }
             }
@@ -153,7 +152,7 @@ class AppCompactManager2(
                 compactProcess(pid = processRecord.pid, compactAction = compactAction)
             updateProcessLastProcessingResult(processRecordKt = processRecord) {
                 processingResult.lastProcessingCode = processCompactResultCode
-                processingResult.processCompatEnum = processCompatEnum
+                processingResult.processCompactEnum = processCompactEnum
             }
         }
 
@@ -196,10 +195,10 @@ class AppCompactManager2(
 }
 
 class ProcessCompactProcessingResult : ProcessingResult() {
-    var processCompatEnum = ProcessCompatEnum.NONE
+    var processCompactEnum = ProcessCompactEnum.NONE
 }
 
-enum class ProcessCompatEnum {
+enum class ProcessCompactEnum {
     NONE,
     SOME,
     FULL,
