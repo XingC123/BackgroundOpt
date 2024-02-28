@@ -65,4 +65,5 @@ public interface FieldConstants {
     String mMemFactorOverride = "mMemFactorOverride";
     String mPressureState = "mPressureState";
     String mAvailable = "mAvailable";
+    String DEFAULT_USE_COMPACTION = "DEFAULT_USE_COMPACTION";
 }

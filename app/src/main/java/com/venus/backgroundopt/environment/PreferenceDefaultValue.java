@@ -6,6 +6,10 @@ import androidx.annotation.NonNull;
 
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants;
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants;
+import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
+import com.venus.backgroundopt.utils.message.handle.ForegroundProcTrimMemLevelEnum;
+import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum;
 import com.venus.backgroundopt.utils.preference.PreferencesUtilKt;
 
 /**
@@ -20,7 +24,7 @@ public interface PreferenceDefaultValue {
      **************************************************************************/
     boolean enableForegroundTrimMem = false;
     boolean enableBackgroundTrimMem = true;
-    boolean enableBackgroundGc = false;
+    boolean enableBackgroundGc = true;
 
     static boolean isEnableForegroundTrimMem(@NonNull Context context) {
         return PreferencesUtilKt.pref(
@@ -38,4 +42,34 @@ public interface PreferenceDefaultValue {
      *                                                                         *
      **************************************************************************/
     boolean enableWebviewProcessProtect = true;
+
+    /* *************************************************************************
+     *                                                                         *
+     * Simple Lmk                                                              *
+     *                                                                         *
+     **************************************************************************/
+    boolean enableSimpleLmk = true;
+
+    /* *************************************************************************
+     *                                                                         *
+     * 全局OOM                                                                  *
+     *                                                                         *
+     **************************************************************************/
+    boolean enableGlobalOomScore = false;
+    String globalOomScoreEffectiveScopeName = GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS.name();
+    int customGlobalOomScoreValue = ProcessList.NATIVE_ADJ;
+
+    /* *************************************************************************
+     *                                                                         *
+     * 前台内存回收                                                              *
+     *                                                                         *
+     **************************************************************************/
+    String foregroundProcTrimMemLevelEnumName = ForegroundProcTrimMemLevelEnum.RUNNING_MODERATE.name();
+
+    /* *************************************************************************
+     *                                                                         *
+     * 后台内存回收                                                              *
+     *                                                                         *
+     **************************************************************************/
+    int backgroundProcMemTrimLevel = ComponentCallbacks2.TRIM_MEMORY_BACKGROUND;
 }

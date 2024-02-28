@@ -8,11 +8,17 @@ import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
+import com.venus.backgroundopt.environment.PreferenceDefaultValue
+import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
+import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.ui.style.RecycleViewItemSpaceDecoration
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.UiUtils
+import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
+import com.venus.backgroundopt.utils.preference.prefBoolean
+import com.venus.backgroundopt.utils.preference.prefString
 import com.venus.backgroundopt.utils.showProgressBarViewForAction
 
 /**
@@ -55,13 +61,42 @@ class ShowAllInstalledAppsActivity : BaseActivity() {
         val searchAppNameText = findViewById<EditText>(R.id.showAllInstalledAppsSearchText)
         findViewById<Button>(R.id.showAllInstalledAppsSearchBtn).setOnClickListener { _ ->
             searchAppNameText.text.toString().apply {
-                (recyclerView.adapter as ShowAllInstalledAppsAdapter2).filter.filter(this)
+                (recyclerView.adapter as ShowAllInstalledAppsAdapter3).filter.filter(this)
             }
         }
 
-        val appItems = PackageUtils.getInstalledPackages(this) { packageInfo ->
+        /*val appItems = PackageUtils.getInstalledPackages(this) { packageInfo ->
             !ActivityManagerService.isImportantSystemApp(packageInfo.applicationInfo)
+                    || PackageUtils.isHasActivity(packageInfo)
+        }*/
+        val isEnabledGlobalOomScore = prefBoolean(
+            name = PreferenceNameConstants.MAIN_SETTINGS,
+            key = PreferenceKeyConstants.GLOBAL_OOM_SCORE,
+        )
+        val globalOomScoreEffectiveScopeEnum = try {
+            GlobalOomScoreEffectiveScopeEnum.valueOf(
+                prefString(
+                    name = PreferenceNameConstants.MAIN_SETTINGS,
+                    key = PreferenceKeyConstants.GLOBAL_OOM_SCORE_EFFECTIVE_SCOPE,
+                    defaultValue = PreferenceDefaultValue.globalOomScoreEffectiveScopeName
+                )!!
+            )
+        } catch (t: Throwable) {
+            null
         }
+        val appItems = PackageUtils.getInstalledPackages(
+            context = this,
+            filter = if (isEnabledGlobalOomScore
+                && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL
+            ) {
+                null
+            } else {
+                { packageInfo ->
+                    !ActivityManagerService.isImportantSystemApp(packageInfo.applicationInfo)
+                            || PackageUtils.isHasActivity(packageInfo)
+                }
+            }
+        )
 //        sendMessageAcceptList<AppItem>(
 //            this,
 //            MessageKeyConstants.getInstalledApps
@@ -71,7 +106,7 @@ class ShowAllInstalledAppsActivity : BaseActivity() {
                 layoutManager = LinearLayoutManager(this@ShowAllInstalledAppsActivity).apply {
                     orientation = LinearLayoutManager.VERTICAL
                 }
-                adapter = ShowAllInstalledAppsAdapter2(appItems)
+                adapter = ShowAllInstalledAppsAdapter3(appItems)
                 addItemDecoration(RecycleViewItemSpaceDecoration(context))
 
                 // 设置搜索栏隐藏/显示行为

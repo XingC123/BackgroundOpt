@@ -43,4 +43,16 @@
         <item>2</item>
         <item>3</item>
     </string-array>
+
+    <!--全局OOM生效范围-->
+    <string-array name="global_oom_score_effective_scope_entries">
+        <item>主进程(有界面)</item>
+        <item>主+子进程(有界面)</item>
+        <item>所有进程(界面无关)</item>
+    </string-array>
+    <string-array name="global_oom_score_effective_scope_values">
+        <item>MAIN_PROCESS</item>
+        <item>MAIN_AND_SUB_PROCESS</item>
+        <item>ALL</item>
+    </string-array>
 </resources>

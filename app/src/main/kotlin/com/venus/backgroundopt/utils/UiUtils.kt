@@ -7,11 +7,13 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.res.ResourcesCompat
 import com.alibaba.fastjson2.JSON
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.utils.concurrent.newThreadTask
 import com.venus.backgroundopt.utils.log.logErrorAndroid
@@ -77,8 +79,11 @@ inline fun <reified E> getIntentDataToList(intent: Intent): List<E>? {
     }
 }
 
-fun Context.getView(layoutResId: Int): View =
-    LayoutInflater.from(this).inflate(layoutResId, null)
+fun Context.getView(
+    layoutResId: Int,
+    parent: ViewGroup? = null,
+    attachToRoot: Boolean = false
+): View = LayoutInflater.from(this).inflate(layoutResId, parent, attachToRoot)
 
 fun <E : View> Activity.findViewById(resId: Int, enable: Boolean = true): E? {
     return if (enable) {
@@ -128,16 +133,14 @@ object UiUtils {
         negativeBtnText: String = "放弃",
         negativeBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
             dialogInterface.dismiss()
-            (context as Activity).finish()
         },
         enablePositiveBtn: Boolean = false,
         positiveBtnText: String = "确认",
         positiveBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
             dialogInterface.dismiss()
-            (context as Activity).finish()
         },
     ): AlertDialog {
-        return AlertDialog.Builder(context)
+        return MaterialAlertDialogBuilder(context)
             .setCancelable(cancelable)
             .setView(context.getView(viewResId).apply { viewBlock(this) })
             .setNegativeBtn(context, enableNegativeBtn, negativeBtnText, negativeBlock)
@@ -154,13 +157,11 @@ object UiUtils {
         negativeBtnText: String = "放弃",
         negativeBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
             dialogInterface.dismiss()
-            (context as Activity).finish()
         },
         enablePositiveBtn: Boolean = false,
         positiveBtnText: String = "确认",
         positiveBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
             dialogInterface.dismiss()
-            (context as Activity).finish()
         },
     ): AlertDialog {
         return createDialog(
@@ -193,7 +194,7 @@ object UiUtils {
             it.text = text
         }
 
-        return AlertDialog.Builder(context)
+        return MaterialAlertDialogBuilder(context)
             .setCancelable(cancelable)
             .setView(view)
             .setNegativeBtn(

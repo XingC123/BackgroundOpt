@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
@@ -72,5 +73,22 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         // 自定义的主进程oom分数
         var enableCustomMainProcessOomScore = false
         var customMainProcessOomScore = Int.MIN_VALUE
+    }
+}
+
+/**
+ * 获取自定义的主进程oom分数
+ * @receiver AppOptimizePolicyMessageHandler.AppOptimizePolicy? app优化策略
+ * @return Int? 自定义主进程oom分数
+ */
+fun AppOptimizePolicyMessageHandler.AppOptimizePolicy?.getCustomMainProcessOomScore(): Int? {
+    return if (this?.enableCustomMainProcessOomScore == true &&
+        /* 对自定义的主进程adj进行合法性确认 */
+        this.customMainProcessOomScore >= ProcessList.NATIVE_ADJ &&
+        this.customMainProcessOomScore < ProcessList.UNKNOWN_ADJ
+    ) {
+        this.customMainProcessOomScore
+    } else {
+        null
     }
 }
