@@ -152,12 +152,13 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
         val userId = param.args[1] as Int
 
         // 获取缓存的app的信息
-        val normalAppResult = runningInfo.isNormalApp(userId, packageName)
-        if (!normalAppResult.isNormalApp) {
+        val findAppResult = runningInfo.getFindAppResult(userId, packageName)
+        if (findAppResult.importantSystemApp) {
             return
         }
 
-        val uid = normalAppResult.applicationInfo.uid
+        val applicationInfo = findAppResult.applicationInfo ?: return
+        val uid = applicationInfo.uid
         val appInfo = runningInfo.getRunningAppInfo(uid)
         appInfo?.let {
             runningInfo.removeRunningApp(appInfo)
@@ -201,7 +202,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
             return
         }
 
-        val key = dataIntent.type       // 此次请求的key
+        val key = dataIntent.type ?: return       // 此次请求的key
         val value = dataIntent.action   // 请求的值
 
         registeredMessageHandler[key]?.handle(runningInfo, param, value)

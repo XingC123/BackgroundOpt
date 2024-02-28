@@ -65,23 +65,19 @@ class ShowAllInstalledAppsAdapter2(private val appItems: List<AppItem>) :
         holder.appIcon.setImageDrawable(appItem.appIcon)
         holder.appName.text = appItem.appName
 
-        // 设置显示已配置的设置的标识
-        fun setAppFlagTextVisible(component:View, appConfiguredEnum: AppItem.AppConfiguredEnum) {
-            UiUtils.setComponentVisible(
-                component,
-                appItem.appConfiguredEnumSet.contains(appConfiguredEnum)
-            )
-        }
         setAppFlagTextVisible(
             holder.itemInstalledAppsMemTrimFlagText,
+            appItem,
             AppItem.AppConfiguredEnum.AppOptimizePolicy
         )
         setAppFlagTextVisible(
             holder.itemInstalledAppsCustomMainProcOomScoreFlagText,
+            appItem,
             AppItem.AppConfiguredEnum.CustomMainProcessOomScore
         )
         setAppFlagTextVisible(
             holder.itemInstalledAppsOomPolicyFlagText,
+            appItem,
             AppItem.AppConfiguredEnum.SubProcessOomPolicy
         )
 
@@ -98,6 +94,13 @@ class ShowAllInstalledAppsAdapter2(private val appItems: List<AppItem>) :
         }
     }
 
+    // 设置显示已配置的设置的标识
+    private fun setAppFlagTextVisible(component:View, appItem: AppItem, appConfiguredEnum: AppItem.AppConfiguredEnum) {
+        UiUtils.setComponentVisible(
+            component,
+            appItem.appConfiguredEnumSet.contains(appConfiguredEnum)
+        )
+    }
     /* *************************************************************************
      *                                                                         *
      * 根据搜索内容过滤当前列表                                                     *

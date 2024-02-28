@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.annotation.UsageComment;
 import com.venus.backgroundopt.entity.AppInfo;
+import com.venus.backgroundopt.entity.FindAppResult;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ApplicationInfo;
@@ -23,8 +24,6 @@ import com.venus.backgroundopt.utils.log.ILogger;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -34,7 +33,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import de.robv.android.xposed.XC_MethodHook;
 
@@ -94,33 +92,35 @@ public class RunningInfo implements ILogger {
 
     /* *************************************************************************
      *                                                                         *
-     * 非系统重要进程映射表                                                        *
+     * ApplicationInfo的结果集                                                   *
      *                                                                         *
      **************************************************************************/
     /**
-     * 非系统重要进程记录
-     * key: 主用户 -> packageName, 其他用户: userId:packageName
-     * value: NormalAppResult
+     * 每次打开app, 都会获取{@link android.content.pm.ApplicationInfo}。本集合用来缓存结果。<br>
+     * key: 主用户 -> packageName, 其他用户: userId:packageName<br>
+     * value: {@link FindAppResult}<br>
      * 例:
      * <pre>
      *     1) (userId = 0, packageName=com.venus.aaa) -> (key): com.venus.aaa
      *     2) (userId = 999, packageName=com.venus.aaa) -> (key): com.venus.aaa:999
      * </pre>
      */
-    private final Map<String, NormalAppResult> normalApps = new ConcurrentHashMap<>();
+    public final Map<String, FindAppResult> findAppResultMap = new ConcurrentHashMap<>();
 
-    public List<Integer> getNormalUIDs() {
-        return normalApps.values().stream()
-                .map(normalAppResult -> normalAppResult.getApplicationInfo().uid)
-                .collect(Collectors.toList());
+    public boolean isImportantSystemApp(int userId, String packageName) {
+        return getFindAppResult(userId, packageName).getImportantSystemApp();
     }
 
-    public Collection<NormalAppResult> getNormalAppResults() {
-        return normalApps.values();
+    @NonNull
+    public FindAppResult getFindAppResult(int userId, String packageName) {
+        return findAppResultMap.computeIfAbsent(
+                getNormalAppKey(userId, packageName),
+                key -> activityManagerService.getFindAppResult(userId, packageName)
+        );
     }
 
     /**
-     * 获取放进{@link #normalApps}的key
+     * 获取放进{@link #findAppResultMap}的key
      *
      * @param userId      用户id
      * @param packageName 包名
@@ -134,90 +134,26 @@ public class RunningInfo implements ILogger {
     }
 
     /**
-     * 是否是普通app
-     *
-     * @param appInfo app信息
-     * @return 是 -> true
-     */
-    public boolean isNormalApp(AppInfo appInfo) {
-        return isNormalApp(appInfo.getUserId(), appInfo.getPackageName()).isNormalApp();
-    }
-
-    public NormalAppResult isNormalApp(int userId, String packageName) {
-        return normalApps.computeIfAbsent(getNormalAppKey(userId, packageName), key -> isImportantSystemApp(userId, packageName));
-    }
-
-    /**
-     * 移除给定key匹配的{@link NormalAppResult}
+     * 移除给定key匹配的{@link FindAppResult}
      *
      * @param userId      用户id
      * @param packageName 包名
      */
-    public void removeRecordedNormalApp(int userId, String packageName) {
+    public void removeRecordedFindAppResult(int userId, String packageName) {
         String key = getNormalAppKey(userId, packageName);
-        NormalAppResult remove = normalApps.remove(key);
-        if (remove != null) {
-            NormalAppResult.normalAppUidMap.remove(remove.applicationInfo.uid);
-        }
+        findAppResultMap.remove(key);
 
         if (BuildConfig.DEBUG) {
-            getLogger().debug("移除\"普通app记录\": " + key);
+            getLogger().debug("移除匹配的app记录: userId: " + userId + ", 包名: " + packageName);
         }
     }
 
-    public void removeAllRecordedNormalApp(String packageName) {
-        normalApps.keySet().stream()
+    public void removeAllRecordedFindAppResult(String packageName) {
+        findAppResultMap.keySet().stream()
                 .filter(key -> key.contains(packageName))
-                .forEach(key -> {
-                    NormalAppResult remove = normalApps.remove(key);
-                    if (remove != null) {
-                        NormalAppResult.normalAppUidMap.remove(remove.applicationInfo.uid);
-                    }
-                });
+                .forEach(findAppResultMap::remove);
         if (BuildConfig.DEBUG) {
-            getLogger().debug("移除\"普通app记录\": " + packageName);
-        }
-    }
-
-    /**
-     * 根据包名判断是否是系统重要app
-     *
-     * @param packageName 包名
-     * @return 是 => true
-     */
-    public NormalAppResult isImportantSystemApp(int userId, String packageName) {
-        return getActivityManagerService().isImportantSystemApp(userId, packageName);
-    }
-
-    /**
-     * 普通app查找结果
-     */
-    public static class NormalAppResult {
-        /**
-         * (uid, {@link NormalAppResult}) 映射
-         * 只有能获取到 {@link ApplicationInfo} 的前提下(即可以获取到uid), 才会进行写入。因此使用 {@link #normalAppUidMap}.get(int)时无需判空
-         */
-        public static final Map<Integer, NormalAppResult> normalAppUidMap = new HashMap<>();
-
-        private boolean isNormalApp = false;
-        private ApplicationInfo applicationInfo;
-
-        public boolean isNormalApp() {
-            return isNormalApp;
-        }
-
-        public NormalAppResult setNormalApp(boolean normalApp) {
-            isNormalApp = normalApp;
-
-            return this;
-        }
-
-        public ApplicationInfo getApplicationInfo() {
-            return applicationInfo;
-        }
-
-        public void setApplicationInfo(ApplicationInfo applicationInfo) {
-            this.applicationInfo = applicationInfo;
+            getLogger().debug("移除所有匹配的app记录: 包名: " + packageName);
         }
     }
 
@@ -227,7 +163,7 @@ public class RunningInfo implements ILogger {
      *                                                                         *
      **************************************************************************/
     /**
-     * 只有非重要系统进程通过key取值才是非null(即, 需要做空检查)
+     * 运行中的app
      * uid, AppInfo
      */
     private final Map<Integer, AppInfo> runningApps = new ConcurrentHashMap<>();
@@ -250,12 +186,19 @@ public class RunningInfo implements ILogger {
         return getRunningAppInfo(appInfo.getUid());
     }
 
+    public Collection<AppInfo> getRunningAppInfos() {
+        return runningAppsInfo;
+    }
+
     /**
      * 根据uid获取正在运行的列表中的app信息
      *
      * @param uid 要查询的uid(userId+uid)
      * @return 查询到的app信息
      */
+    // 在2024.2.18的commit, 即"ApplicationInfo的结果集"初次进版时, runningApps的value不会再有null
+    // 但为了保证后续兼容性, 仍然注解为Nullable
+    // @NonNull
     @Nullable
     public AppInfo getRunningAppInfo(int uid) {
         return runningApps.get(uid);
@@ -299,51 +242,6 @@ public class RunningInfo implements ILogger {
 
     /**
      * 若 {@link #runningApps} 中没有此uid记录, 将进行计算创建
-     * 注意: 创建后, 会以(uid, {@link AppInfo}[nullable])的形式放入 {@link #runningApps}
-     *
-     * @param uid 目标app的uid
-     * @return 生成的目标app信息(可能为空)
-     */
-    @UsageComment("仅供OOM调节方法使用")
-    @Nullable
-    public AppInfo computeRunningAppIfAbsent(int uid) {
-        return runningApps.computeIfAbsent(uid, key -> {
-            AppInfo[] apps = new AppInfo[]{null};
-            /*
-                从normalAppResults中查询而不是添加。这个Function只负责当app进入后台并被清理后台之后[自启动]时进行appInfo信息补全。
-                对于[开机自启动]的app, 模块暂时不做处理, 一切交由系统。
-             */
-            Map<Integer, NormalAppResult> normalAppUidMap = NormalAppResult.normalAppUidMap;
-            if (normalAppUidMap.containsKey(uid)) {
-                NormalAppResult normalAppResult = normalAppUidMap.get(uid);
-                ApplicationInfo applicationInfo = normalAppResult.getApplicationInfo();
-                if (applicationInfo != null) {
-                    String packageName = normalAppResult.getApplicationInfo().getPackageName();
-                    ProcessRecordKt mProcessRecord = activityManagerService.findMProcessRecord(packageName, uid);
-                    if (mProcessRecord != null) {
-                        int userId = mProcessRecord.getUserId();
-
-                        apps[0] = new AppInfo(userId, packageName, this).setUid(uid);
-                        setAddedRunningApp(mProcessRecord, apps[0]);
-                        handleActivityEventChange(
-                                ActivityManagerServiceHookKt.ACTIVITY_STOPPED,
-                                null,
-                                apps[0]
-                        );
-
-                        if (BuildConfig.DEBUG) {
-                            getLogger().debug("AppInfo(包名: " + packageName + ", uid: " + uid + ")补充完毕");
-                        }
-                    }
-                }
-            }
-
-            return apps[0];
-        });
-    }
-
-    /**
-     * 若 {@link #runningApps} 中没有此uid记录, 将进行计算创建
      *
      * @param userId      目标app对应用户id
      * @param packageName 目标app包名
@@ -373,20 +271,12 @@ public class RunningInfo implements ILogger {
     @Nullable
     public AppInfo computeRunningAppIfAbsent(int userId, String packageName, int uid, Object proc, int pid) {
         return runningApps.computeIfAbsent(uid, key -> {
-            // boolean isWebviewProc = false;
-            if (!(isNormalApp(userId, packageName).isNormalApp /*||
-                    (CommonProperties.INSTANCE.getEnableWebviewProcessProtect().getValue() &&
-                            (isWebviewProc = ProcessRecordKt.isWebviewProc(proc)))*/
-            )) {
-                return null;
-            }
             if (BuildConfig.DEBUG) {
-                // if (!isWebviewProc) {
-                getLogger().debug("打开新App: " + packageName + ", uid: " + uid);
-                // }
+                getLogger().debug("创建新App记录: " + packageName + ", uid: " + uid);
             }
             AppInfo appInfo = new AppInfo(userId, packageName, this).setUid(uid);
             appInfo.addProcess(proc, pid);
+            appInfo.setFindAppResult(getFindAppResult(userId, packageName));
             return appInfo;
         });
     }
@@ -428,7 +318,7 @@ public class RunningInfo implements ILogger {
     }
 
     /**
-     * 移除进程。
+     * 移除进程。<br>
      * 额外处理与进程相关的任务。
      *
      * @param appInfo 应用信息
@@ -436,22 +326,25 @@ public class RunningInfo implements ILogger {
      * @param pid     pid
      */
     public void removeProcess(@NonNull AppInfo appInfo, int uid, int pid) {
+        String packageName = appInfo.getPackageName();
+        boolean[] isMainProcess = {false};
+        String[] processName = new String[1];
         ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
             getLogger().error(
-                    "移除进程(uid: " + uid + ",pid: " + pid + ")出现错误: " + throwable.getMessage(),
+                    "移除进程(packageName: " + packageName + ", processName: " + processName[0] + ", uid: " + uid + ",pid: " + pid + ", isMainProcess: " + isMainProcess[0] + ")出现错误: " + throwable.getMessage(),
+
                     throwable
             );
             return null;
         }, () -> {
-            boolean isMainProcess = false;
             ProcessRecordKt processRecord = appInfo.getProcess(pid);
             if (processRecord == null) {
                 return null;
             }
-            isMainProcess = processRecord.getMainProcess();
-            String packageName = appInfo.getPackageName();
+            isMainProcess[0] = processRecord.getMainProcess();
+            processName[0] = processRecord.getFullProcessName();
 
-            if (isMainProcess) {
+            if (isMainProcess[0]) {
                 removeRunningApp(appInfo);
                 if (BuildConfig.DEBUG) {
                     getLogger().debug("kill: " + packageName + ", uid: " + uid + " >>> 杀死App");
@@ -459,8 +352,8 @@ public class RunningInfo implements ILogger {
             } else {
                 ConcurrentUtilsKt.lock(appInfo, () -> {
                     // 移除进程记录
-                    ProcessRecordKt process = appInfo.removeProcess(pid);
-                    processManager.cancelCompactProcess(process);
+                    appInfo.removeProcess(pid);
+                    // processManager.cancelCompactProcess(process);
                     if (BuildConfig.DEBUG) {
                         getLogger().debug("kill: " + packageName + ", uid: " + uid + ", pid: " + pid + " >>> 子进程被杀");
                     }
@@ -530,7 +423,7 @@ public class RunningInfo implements ILogger {
 
     private final Consumer<AppInfo> putIntoActiveAction = this::putIntoActiveAppGroup;
 
-    private ExecutorService activityEventChangeExecutor = Executors.newFixedThreadPool(4);
+    private final ExecutorService activityEventChangeExecutor = Executors.newFixedThreadPool(4);
 
     public ExecutorService getActivityEventChangeExecutor() {
         return activityEventChangeExecutor;
@@ -555,10 +448,11 @@ public class RunningInfo implements ILogger {
             );
             return null;
         }, () -> {
-            // 检查是否是系统重要进程
-            NormalAppResult normalAppResult = isNormalApp(userId, packageName);
+            FindAppResult findAppResult = getFindAppResult(userId, packageName);
             AppInfo appInfo;
-            if (!normalAppResult.isNormalApp || (appInfo = getRunningAppInfo(normalAppResult.applicationInfo.uid)) == null) {
+            ApplicationInfo applicationInfo;
+            if ((applicationInfo = findAppResult.getApplicationInfo()) == null
+                    || (appInfo = getRunningAppInfo(applicationInfo.uid)) == null) {
                 return null;
             }
 
@@ -568,8 +462,7 @@ public class RunningInfo implements ILogger {
     }
 
     /**
-     * 处理Activity改变事件
-     * <br>
+     * 处理Activity改变事件<br>
      * 本方法处理的共有6大种情况, 本质就是从中找出切换app的方法:
      * <pre>
      *     a为第一个打开的Activity, b为第二个。

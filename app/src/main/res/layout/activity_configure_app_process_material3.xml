@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            style="?attr/collapsingToolbarLayoutLargeStyle"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/collapsingToolbarLayoutLargeSize"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:titleCollapseMode="scale">
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:elevation="0dp"
+                app:layout_collapseMode="pin"
+                app:navigationIcon="@drawable/baseline_arrow_back_24_black"
+                app:title="@string/configure_app_process_toolbar_title" />
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@drawable/item_space_vertical"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/content_space"
+            android:paddingVertical="@dimen/content_space"
+            android:showDividers="middle">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/item_space_horizontal"
+                android:orientation="horizontal"
+                android:showDividers="middle">
+
+                <ImageView
+                    android:id="@+id/configureAppProcessAppIcon"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="0"
+                    android:src="@mipmap/ic_launcher" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:divider="@drawable/item_space_vertical"
+                    android:orientation="vertical"
+                    android:showDividers="middle">
+
+                    <TextView
+                        android:id="@+id/configureAppProcessAppNameText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/configureAppProcessAppNameText"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/configureAppProcessUidTipText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/appItemTipUid" />
+
+                            <TextView
+                                android:id="@+id/configureAppProcessUidText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/configureAppProcessVersionNameTipText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0"
+                            android:text="@string/configureAppProcessVersionNameTipText" />
+
+                        <TextView
+                            android:id="@+id/configureAppProcessVersionNameText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/configureAppProcessVersionCodeTipText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0"
+                            android:text="@string/configureAppProcessVersionCodeTipText" />
+
+                        <TextView
+                            android:id="@+id/configureAppProcessVersionCodeText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/configureAppProcessAppDoNothingSwitch"
+                    style="@style/Theme.AppTheme"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/configureAppProcessAppDoNothingSwitch"
+                    android:textSize="16sp"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/border"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="@dimen/padding_horizontal_if_use_border"
+                    android:paddingVertical="@dimen/padding_vertical_if_use_border">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/textView8"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/configureAppProcessForegroundMemoryTrim"
+                            android:textSize="16sp" />
+
+                        <RadioGroup
+                            android:id="@+id/configAppProcessFgMemTrimGroup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkedButton="@id/configAppProcessFgMemTrimDefaultRadio"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessFgMemTrimDefaultRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimDefaultRadio" />
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessFgMemTrimEnableRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimEnableRadio" />
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessFgMemTrimDisableRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimDisableRadio" />
+                        </RadioGroup>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/textView10"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/configureAppProcessBackgroundMemoryTrim"
+                            android:textSize="16sp" />
+
+                        <RadioGroup
+                            android:id="@+id/configAppProcessBgMemTrimGroup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkedButton="@id/configAppProcessBgMemTrimDefaultRadio"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessBgMemTrimDefaultRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimDefaultRadio" />
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessBgMemTrimEnableRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimEnableRadio" />
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessBgMemTrimDisableRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimDisableRadio" />
+                        </RadioGroup>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/textView11"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/configureAppProcessBackgroundGc"
+                            android:textSize="16sp" />
+
+                        <RadioGroup
+                            android:id="@+id/configAppProcessBgGcGroup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkedButton="@id/configAppProcessBgGcDefaultRadio"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessBgGcDefaultRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimDefaultRadio" />
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessBgGcEnableRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimEnableRadio" />
+
+                            <RadioButton
+                                android:id="@+id/configAppProcessBgGcDisableRadio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/configAppProcessFgMemTrimDisableRadio" />
+                        </RadioGroup>
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/configureAppProcessCustomMainProcessOomScoreSwitch"
+                        style="@style/Theme.AppTheme"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/configureAppProcessCustomMainProcessOomScoreText"
+                        android:textSize="16sp" />
+
+                    <LinearLayout
+                        android:id="@+id/customMainProcessOomScoreLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:divider="@drawable/item_space_horizontal"
+                        android:orientation="horizontal"
+                        android:showDividers="middle">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/configureAppProcessCustomMainProcessOomScoreEditText"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ems="10"
+                                android:hint="@string/configureAppProcessCustomMainProcessOomScoreTipText"
+                                android:inputType="number|numberSigned" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <Button
+                            android:id="@+id/configureAppProcessCustomMainProcessOomScoreApplyBtn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0"
+                            android:text="@string/configureAppProcessCustomMainProcessOomScoreApplyBtn" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/configureAppProcessRecycleView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

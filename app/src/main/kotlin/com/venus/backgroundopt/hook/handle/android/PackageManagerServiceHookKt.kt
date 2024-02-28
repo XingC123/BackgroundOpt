@@ -98,7 +98,7 @@ class PackageManagerServiceHookKt(
         val userIds = args[3] as IntArray
 
         userIds.forEach { userId ->
-            runningInfo.removeRecordedNormalApp(userId, packageName)
+            runningInfo.removeRecordedFindAppResult(userId, packageName)
         }
     }
 }

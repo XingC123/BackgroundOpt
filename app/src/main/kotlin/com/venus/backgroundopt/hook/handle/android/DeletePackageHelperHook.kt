@@ -56,7 +56,7 @@ class DeletePackageHelperHook(
     private fun handleDeletePackageX(param: MethodHookParam) {
         val packageName = param.args[0] as String
 
-        runningInfo.removeAllRecordedNormalApp(packageName)
+        runningInfo.removeAllRecordedFindAppResult(packageName)
 
         if (BuildConfig.DEBUG) {
             logger.debug("卸载: $packageName")
@@ -69,7 +69,7 @@ class DeletePackageHelperHook(
         val userIds = args[3] as IntArray
 
         userIds.forEach { userId ->
-            runningInfo.removeRecordedNormalApp(userId, packageName)
+            runningInfo.removeRecordedFindAppResult(userId, packageName)
         }
     }
 }

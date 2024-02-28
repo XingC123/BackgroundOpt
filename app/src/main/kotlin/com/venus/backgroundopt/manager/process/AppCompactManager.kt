@@ -11,6 +11,7 @@ import com.venus.backgroundopt.utils.concurrent.lock
 import com.venus.backgroundopt.utils.log.ILogger
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executor
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -32,6 +33,10 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         const val initialDelay = 5L
         const val delay = 10L
         val timeUnit = TimeUnit.MINUTES
+
+        // 后台第一次任务的执行参数
+        const val backgroundFirstTaskDelay = 30L
+        val backgroundFirstTaskDelayTimeUnit = TimeUnit.SECONDS
     }
 
     // 是否启用"压缩成功则移除进程" + "无内存压缩任务则关闭轮循"
@@ -68,11 +73,17 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         }
     }
 
+    override fun getExecutor(): Executor = executor
+
+    override fun getBackgroundFirstTaskDelay(): Long = backgroundFirstTaskDelay
+
+    override fun getBackgroundFirstTaskDelayTimeUnit(): TimeUnit = backgroundFirstTaskDelayTimeUnit
+
     /* *************************************************************************
-     *                                                                         *
-     * 压缩任务处理                                                               *
-     *                                                                         *
-     **************************************************************************/
+         *                                                                         *
+         * 压缩任务处理                                                               *
+         *                                                                         *
+         **************************************************************************/
     @Volatile
     private var compactScheduledFuture: ScheduledFuture<*>? = null
     private fun startCompactTask() {
@@ -215,6 +226,11 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         processRecordKt: ProcessRecordKt,
         lastCompactTime: Long = System.currentTimeMillis()
     ) {
+        // 先执行一次压缩
+        addBackgroundFirstTask(processRecordKt = processRecordKt) {
+            compactAppSome(processRecordKt.pid)
+        }
+
         compactProcesses.add(processRecordKt.also {
             it.setLastCompactTime(lastCompactTime)
         })
@@ -344,25 +360,5 @@ class AppCompactManager(// 封装的CachedAppOptimizer
 
     fun compactAppFullNoCheck(processRecordKt: ProcessRecordKt): Int {
         return compactAppFullNoCheck(processRecordKt.pid)
-    }
-
-    /**
-     * 进程压缩结果码
-     *
-     */
-    class ProcessCompactResultCode {
-        companion object {
-            // 异常
-            const val problem = -1
-
-            // 正常执行
-            const val success = 1
-
-            // 未执行
-            const val doNothing = 2
-
-            // 无需执行(没有执行的必要)
-            const val unNecessary = 3
-        }
     }
 }

@@ -15,10 +15,22 @@ class OomAdjusterHookNew(
     runningInfo: RunningInfo?
 ) : IHook(classLoader, runningInfo) {
     override fun hook() {
+        /**
+         * @see [OomAdjusterHook.handleUpdateAndTrimProcessLSP]
+         */
         ClassConstants.OomAdjuster.beforeHook(
             classLoader = classLoader,
             methodName = MethodConstants.updateAndTrimProcessLSP,
             hookAllMethod = true,
         ) { it.args[2] = 0 }
+
+        /**
+         * @see [OomAdjusterHook.handleShouldKillExcessiveProcesses]
+         */
+        ClassConstants.OomAdjuster.beforeHook(
+            classLoader = classLoader,
+            methodName = MethodConstants.shouldKillExcessiveProcesses,
+            hookAllMethod = true
+        ) { it.result = false }
     }
 }

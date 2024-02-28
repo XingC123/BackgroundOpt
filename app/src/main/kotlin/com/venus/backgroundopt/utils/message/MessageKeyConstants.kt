@@ -19,5 +19,11 @@ interface MessageKeyConstants {
         const val foregroundProcTrimMemPolicy = "foregroundProcTrimMemPolicy"
         const val appOptimizePolicy = "appOptimizePolicy"
         const val appWebviewProcessProtect = "appWebviewProcessProtect"
+        const val enableSimpleLmk = "enableSimpleLmk"
+        const val enableGlobalOomScore = "enableGlobalOomScore"
+        const val globalOomScoreEffectiveScope = "globalOomScoreEffectiveScope"
+        const val globalOomScoreValue = "globalOomScoreValue"
+        const val getTrimMemoryOptThreshold = "getTrimMemoryOptThreshold"
+        const val getHomePageModuleInfo = "getHomePageModuleInfo"
     }
 }

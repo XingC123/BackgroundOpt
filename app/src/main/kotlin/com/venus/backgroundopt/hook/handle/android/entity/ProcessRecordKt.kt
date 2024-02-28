@@ -21,6 +21,8 @@ import com.venus.backgroundopt.utils.getStringFieldValue
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.log.logInfo
 import com.venus.backgroundopt.utils.setIntFieldValue
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import java.util.Objects
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -45,10 +47,16 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         // 默认的最大adj
         var defaultMaxAdj = ProcessList.UNKNOWN_ADJ
 
+        @JvmField
+        var defaultMaxAdjStr = "null"
+
         // 当前资源占用大于此值则进行优化
         // 268435456 = 256MB *1024 * 1024
         @JvmField
         var minOptimizeRssInBytes = 268435456.0
+
+        @JvmField
+        var minOptimizeRssInMBytesStr = "null"
 
         // 触发内存优化的资源占用大小的封顶阈值
         // 由于当前算法是根据最大内存计算。因此需要一个限制, 防止因为内存过大而导致阈值过高
@@ -66,7 +74,10 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
                 OomWorkModePref.MODE_NEGATIVE -> ProcessList.HEAVY_WEIGHT_APP_ADJ
                 else -> ProcessList.UNKNOWN_ADJ
             }
-            logInfo(logStr = "最大adj: $defaultMaxAdj")
+            defaultMaxAdjStr = "${
+                if (defaultMaxAdj == ProcessList.UNKNOWN_ADJ) "系统默认" else defaultMaxAdj
+            }"
+            logInfo(logStr = "最大oom_score_adj: $defaultMaxAdjStr")
 
             // 计算最小的、要进行优化的资源占用的值
             RunningInfo.getInstance().memInfoReader?.let { memInfoReader ->
@@ -74,7 +85,12 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
                     (memInfoReader.getTotalSize() * minOptimizeRssFactor).coerceAtMost(
                         maxOptimizeRssInBytes
                     )
-                logInfo(logStr = "ProcessRecord: 触发优化的最小进程资源占用 = ${minOptimizeRssInBytes / (1024 * 1024)}MB")
+                minOptimizeRssInMBytesStr = "${
+                    DecimalFormat(".00").apply { 
+                        roundingMode = RoundingMode.DOWN
+                    }.format(minOptimizeRssInBytes / (1024 * 1024))
+                }MB"
+                logInfo(logStr = "触发优化的内存阈值 = $minOptimizeRssInMBytesStr")
             }
         }
 
@@ -85,7 +101,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             processRecord: Any
         ): ProcessRecordKt {
             val record = ProcessRecordKt(runningInfo.activityManagerService, processRecord)
-            addCompactProcess(runningInfo, appInfo, record)
+            // addCompactProcess(runningInfo, appInfo, record)
             return record
         }
 
@@ -414,6 +430,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         if (hasSetMaxAdj()) {
             try {
                 processStateRecord.maxAdj = ProcessList.UNKNOWN_ADJ
+                recordMaxAdj = 0
                 if (BuildConfig.DEBUG) {
                     logger.debug("pid: [${pid}] >>> maxAdj重置成功")
                 }
@@ -485,7 +502,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     }
 
     @JSONField(serialize = false)
-    fun getFullPackageName(): String {
+    fun getFullProcessName(): String {
         return PackageUtils.absoluteProcessName(packageName, processName)
     }
 

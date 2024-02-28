@@ -18,10 +18,19 @@ class AppCompactListMessageHandler : MessageHandler {
         value: String?
     ) {
         createResponse<Any>(param, value, setJsonData = true) {
-            runningInfo.processManager.compactProcessInfos.onEach { process ->
+            /*runningInfo.processManager.compactProcessInfos.onEach { process ->
                 // 设置真实oom_adj_score
                 process.curAdj = process.getCurAdjNative()
-            }
+            }*/
+            runningInfo.runningAppInfos.asSequence()
+                .filterNotNull()
+                .filter { it.appGroupEnum == RunningInfo.AppGroupEnum.IDLE }
+                .flatMap { it.processes }
+                .onEach {
+                    // 设置真实oom_adj_score
+                    it.curAdj = it.getCurAdjNative()
+                }
+                .toList()
         }
     }
 }

@@ -38,10 +38,19 @@ open class BaseProcessInfoKt(
     lateinit var processName: String
 
     val lastProcessingResultMap =
-        ConcurrentHashMap<AppOptimizeEnum, ProcessingResult>(AppOptimizeEnum.values().size)
+        ConcurrentHashMap<AppOptimizeEnum, ProcessingResult>(AppOptimizeEnum.entries.size)
 
     // 是否是webview进程
     var webviewProcess = false
+
+    fun initLastProcessingResultIfAbsent(
+        appOptimizeEnum: AppOptimizeEnum,
+        processingResultSupplier: () -> ProcessingResult
+    ):ProcessingResult {
+        return lastProcessingResultMap.computeIfAbsent(appOptimizeEnum) { _ ->
+            processingResultSupplier()
+        }
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

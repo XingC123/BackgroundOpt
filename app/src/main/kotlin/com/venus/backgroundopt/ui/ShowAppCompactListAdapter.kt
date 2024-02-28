@@ -7,7 +7,7 @@ import android.widget.TextView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.manager.process.AbstractAppOptimizeManager.AppOptimizeEnum
-import com.venus.backgroundopt.manager.process.AppCompactManager.ProcessCompactResultCode
+import com.venus.backgroundopt.manager.process.ProcessCompactResultCode
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
 
 /**

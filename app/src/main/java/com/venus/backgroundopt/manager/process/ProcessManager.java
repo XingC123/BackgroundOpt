@@ -44,10 +44,12 @@ public class ProcessManager implements ILogger {
 
     public ProcessManager(RunningInfo runningInfo) {
         ActivityManagerService activityManagerService = runningInfo.getActivityManagerService();
-        appCompactManager = new AppCompactManager(
+        /*appCompactManager = new AppCompactManager(
                 activityManagerService.getOomAdjuster().getCachedAppOptimizer(),
                 runningInfo
-        );
+        );*/
+        appCompactManager2 = new AppCompactManager2(activityManagerService.getOomAdjuster().getCachedAppOptimizer(),
+                runningInfo);
         appMemoryTrimManager = new AppMemoryTrimManagerKt(runningInfo);
     }
 
@@ -56,7 +58,8 @@ public class ProcessManager implements ILogger {
      * app压缩                                                                  *
      *                                                                         *
      **************************************************************************/
-    private final AppCompactManager appCompactManager;
+    private AppCompactManager appCompactManager;
+    private AppCompactManager2 appCompactManager2;
 
     public Set<ProcessRecordKt> getCompactProcessInfos() {
         return appCompactManager.getCompactProcesses();
@@ -96,6 +99,10 @@ public class ProcessManager implements ILogger {
 
     public void compactApp(int pid) {
         appCompactManager.compactApp(pid);
+    }
+
+    public void compactProcess(ProcessRecordKt processRecordKt, int lastOomScoreAdj, int curOomScoreAdj, int oomAdjustLevel) {
+        appCompactManager2.compactProcess(processRecordKt, lastOomScoreAdj, curOomScoreAdj, oomAdjustLevel);
     }
 
     /**
@@ -155,10 +162,6 @@ public class ProcessManager implements ILogger {
 
     public void configureForegroundTrimCheckTask(boolean isEnable) {
         appMemoryTrimManager.setEnableForegroundTrim(isEnable);
-    }
-
-    public void setForegroundTrimLevel(int level) {
-        appMemoryTrimManager.setForegroundTrimLevel(level);
     }
 
     public Set<ProcessRecordKt> getForegroundTasks() {
@@ -234,7 +237,7 @@ public class ProcessManager implements ILogger {
     public void appActive(AppInfo appInfo) {
         ConcurrentUtilsKt.lock(appInfo, () -> {
             // 移除压缩任务
-            cancelCompactProcess(appInfo);
+            // cancelCompactProcess(appInfo);
             // 添加前台任务
             startForegroundAppTrimTask(appInfo.getmProcessRecord());
             return null;
@@ -246,7 +249,7 @@ public class ProcessManager implements ILogger {
             // 添加后台任务
             startBackgroundAppTrimTask(appInfo.getmProcessRecord());
             // 添加压缩任务
-            addCompactProcess(appInfo);
+            // addCompactProcess(appInfo);
             return null;
         });
     }
@@ -255,7 +258,7 @@ public class ProcessManager implements ILogger {
         // 移除前后台任务
         removeAllAppMemoryTrimTask(appInfo);
         // 取消内存压缩任务
-        cancelCompactProcess(appInfo);
+        // cancelCompactProcess(appInfo);
     }
 
     /**

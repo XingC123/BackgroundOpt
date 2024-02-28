@@ -71,6 +71,17 @@ public class AppInfo implements ILogger, LockFlag {
 
     private final AtomicReference<ComponentName> componentNameAtomicReference = new AtomicReference<>(null);
 
+    private FindAppResult findAppResult;
+
+    @Nullable
+    public FindAppResult getFindAppResult() {
+        return findAppResult;
+    }
+
+    public void setFindAppResult(@Nullable FindAppResult findAppResult) {
+        this.findAppResult = findAppResult;
+    }
+
     public boolean isSwitchEventHandled() {
         return switchEventHandled.get();
     }
@@ -126,7 +137,7 @@ public class AppInfo implements ILogger, LockFlag {
     @NonNull
     public ProcessRecordKt addProcess(@NonNull ProcessRecordKt processRecord) {
         return processRecordMap.computeIfAbsent(processRecord.getPid(), k -> {
-            ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
+            // ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
             if (processRecord.getMainProcess()) {
                 setmProcessRecord(processRecord);
             }
@@ -144,7 +155,7 @@ public class AppInfo implements ILogger, LockFlag {
             );
 
             // 做一些额外操作
-            ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
+            // ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
             if (processRecord.getMainProcess()) {
                 setmProcessRecord(processRecord);
             }
@@ -159,9 +170,9 @@ public class AppInfo implements ILogger, LockFlag {
         return processRecordMap == null ? null : processRecordMap.get(pid);
     }
 
-    public void modifyProcessRecord(int pid, int oomAdjScore) {
+    public void modifyProcessOomScoreAdj(int pid, int oomAdjScore) {
         processRecordMap.computeIfPresent(pid, (key, processRecord) -> {
-            processRecord.setOomAdjScoreToAtomicInteger(oomAdjScore);
+            processRecord.setOomAdjScore(oomAdjScore);
             return processRecord;
         });
     }
