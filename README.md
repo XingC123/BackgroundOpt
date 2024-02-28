@@ -1,10 +1,11 @@
 <div align="center" style="display: flex; justify-content: center; align-items: center;">
     <img src="app/src/main/ic_launcher_new2-playstore.png" width="216dp" style="border-radius: 50%;">
-    <div style="display: inline-block; width: wrap-content; height: wrap-content; border-width: 0 0 0 1px; border-color: #a1a3a6; border-style: solid; margin: 0 0 0 10px; padding: 0 0 0 10px">
-        <h2>BackgroundOpt</h2>
-        <h5>XingC123</h5>
-    </div>
+    <ul style="display: inline-block; border-width: 0 0 0 1px; border-color: #a1a3a6; border-style: solid; margin: 0 0 0 10px; padding: 0 0 0 10px">
+        <li style="list-style: none;"><h2 style="display: inline-block;">BackgroundOpt</h2></li>
+        <li style="list-style: none;"><h5 style="display: inline-block;">XingC123</h5></li>
+    </ul>
 </div>
+
 
 
 <div align="center">
