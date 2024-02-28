@@ -1,30 +1,54 @@
-![BackgroundOpt](https://socialify.git.ci/XingC123/BackgroundOpt/image?language=1&name=1&owner=1&theme=Light)
+<div align="center" style="display: flex; justify-content: center; align-items: center;">
+    <img src="app/src/main/ic_launcher_new2-playstore.png" width="216dp" style="border-radius: 50%;">
+    <div style="display: inline-block; width: wrap-content; height: wrap-content; border-width: 0 0 0 1px; border-color: #a1a3a6; border-style: solid; margin: 0 0 0 10px; padding: 0 0 0 10px">
+        <h2>BackgroundOpt</h2>
+        <h5>XingC123</h5>
+    </div>
+</div>
 
 
-
-![LICENSE](https://img.shields.io/github/license/XingC123/BackgroundOpt)
-![GitHub repo size](https://img.shields.io/github/repo-size/XingC123/BackgroundOpt)
-![GitHub release (with filter)](https://img.shields.io/github/v/release/XingC123/BackgroundOpt)
-![GitHub language count](https://img.shields.io/github/languages/count/XingC123/BackgroundOpt)
-![GitHub top language](https://img.shields.io/github/languages/top/XingC123/BackgroundOpt)
+<div align="center">
+    <img src="https://img.shields.io/github/license/XingC123/BackgroundOpt" alt="LICENSE"/>
+    <img src="https://img.shields.io/github/repo-size/XingC123/BackgroundOpt" alt="GitHub repo size"/>
+    <img src="https://img.shields.io/github/v/release/XingC123/BackgroundOpt" alt="GitHub release (with filter)"/>
+    <img src="https://img.shields.io/github/languages/count/XingC123/BackgroundOpt" alt="GitHub language count"/>
+    <img src="https://img.shields.io/github/languages/top/XingC123/BackgroundOpt" alt="GitHub top language"/>
+</div>
 
 
 
 ## 🔮 本模块
 
-**模块名称：** 后台优化
+**模块名称：** 后台优化(BackgroundOpt)
 
-**模块介绍：** 这是一个通过调整进程oom_score来骗过lmk从而实现保后台的模块。(一定程度上，帮助了国内毒瘤完成曾费尽心思想要实现的保持前台运行的效果。因此，在使用此模块的同时，强烈推荐使用可以控制后台进程cpu使用的另一些模块或是软件)
+**模块介绍：** 这是一个通过调整进程oom_score_adj来骗过lmk从而实现保后台的模块。(一定程度上，帮助了国内毒瘤完成曾费尽心思想要实现的保持前台运行的效果。因此，在使用此模块的同时，强烈推荐使用可以控制后台进程cpu使用的另一些模块或是软件，例如墓碑)
 
 
 
 ## ✨ 特性
 
 1. **oom管理**：通过framework层的hook，来利用LMK机制完成保活。
-2. **内存紧张:** app进入前/后台后，被加入内存紧张列表。该列表以10min为间隔进行轮循，每次运行，会向列表中的app发送特定内存紧张级别。
+
+2. **内存回收:** app进入前/后台后，被加入内存回收列表。该列表以10min为间隔进行轮循，每次运行，会向列表中的app发送特定内存紧张级别。
 
    **Tip：** 这个功能如果当初研究过qq/微信优化的同学，应该接触过一个叫"QQ/微信负优化"的模块。本模块这个功能便是来自于此。
-3. **内存压缩：** app进入后台以后，当进程实际oom_score达到指定规则后，进行内存full压缩。
+
+3. **内存压缩：** app进入后台以后，当进程实际oom_score达到指定规则后，进行内存some/full压缩。
+
+4. **Simple Lmk：** 与内核的slmk不同，本模块的Simple Lmk(以下简称slmk)是基于系统给予的oom_score_adj进行相应处理得来。
+
+   在2.0_vc194中：
+
+   - 所有app的主进程oom分数在[0, 50]，子进程设置了“主进程”以及webview进程保护所使用的为[51, 100]。其余子进程在101+。由此，实现了三级分类。
+   - 如果你对某app启用了自定义主进程oom，那么仍将会使用设置的参数，而不会进行处理。
+   - 如果你使用了宽松模式，那么模块也不会进行处理。
+   - 仅当OOM工作模式为"**平衡模式**"时才生效。
+
+5. **全局OOM：** 开启后会使用给定的oom分数来设置生效范围内的进程。**不推荐开启此功能。**
+
+   - 生效范围: xxx(有界面) -> 只有有界面的app的进程才会被管理。**该值会影响看到的已安装app的数量。**
+   - 自定义全局OOM值: 取值范围[-1000, 1000]。**取值-800及以下，可能会导致划卡无法杀后台！！！**
+   - 如果app配置了“**自定义主进程OOM**”, 那么会使用此值而不是全局OOM。
 
 
 
@@ -90,9 +114,9 @@
 
     - 模块(1.6.6_vc189_stable)共有三种模式。分别为：严格模式、宽松模式、平衡模式。三种模式的具体区别如下：
 
-      - 严格模式：模块会设置主进程的最大adj，以及hook系统的oom设置方法。在此模式下，主进程的adj位于[0, 100]。
+      - 严格模式：模块会设置主进程的最大adj，以及hook系统的oom设置方法。在此模式下，主进程的adj为0。
       - 宽松模式：模块仅设置主进程的最大adj。在此模式下，主进程的adj位于[0, 400]。
-      - 平衡模式：仅hook系统的oom设置方法。在此模式下，主进程的adj始终为0。
+      - 平衡模式：仅hook系统的oom设置方法。在此模式下，主进程的adj始终为0(开启Simple Lmk则是另外的)。
 
     - 子进程adj >= 101
 
@@ -115,7 +139,9 @@
 1. 本模块目前(截至2023/10/16), 仅对安卓12/13(初步适配安卓14)做了适配。
 2. 模块在 **"红米Note5 pro(whyred)，安卓13，nusantara"、"红米K30 pro(lmi)，安卓12，MIUI 13 22.7.8"、"Android studio自带虚拟机, 安卓14"** 测试无问题。
 3. 任何有关对 **oom_score_adj** 进行调整的模块均与此模块 **冲突**。
-4. 任何时刻，搞机都要做好砖的准备。如果本模块造成砖机，概不负责(不会真的能砖吧？)，请卸载模块，自行救砖。(如果能提供LSP日志就更好了)
+4. 可能与去日志版LSP冲突，导致后台任务/压缩列表为空。
+5. 本模块主要是对LMK进行处理来进行保活。如果你需要hook厂商的杀后台逻辑，请寻找其他模块。可以只启用本模块对“系统”的作用域，仅开启其他模块对厂商杀后台逻辑所在的位置的作用域。
+6. 任何时刻，搞机都要做好砖的准备。如果本模块造成砖机，概不负责(不会真的能砖吧？)，请卸载模块，自行救砖。(如果能提供LSP日志就更好了)
 
 
 
