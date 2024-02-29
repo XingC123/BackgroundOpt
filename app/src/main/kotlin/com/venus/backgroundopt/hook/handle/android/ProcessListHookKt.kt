@@ -49,7 +49,7 @@ class ProcessListHookKt(
         const val visibleAppAdjUseSimpleLmk = ProcessList.VISIBLE_APP_ADJ / simpleLmkConvertDivisor
 
         // 第一等级的app的adj的起始值
-        const val firstLevelAppAdjStartUseSimpleLmk = visibleAppAdjUseSimpleLmk + 1
+        const val firstLevelAppAdjStartUseSimpleLmk = minSimpleLmkOomScore + 1
     }
 
     override fun getHookPoint(): Array<HookPoint> {
@@ -112,16 +112,9 @@ class ProcessListHookKt(
     val simpleLmkOomScoreMap = ConcurrentHashMap<Int, Int>(8)
 
     private fun computeOomScoreAdjValueUseSimpleLmk(
-        oomScoreAdj: Int,
-        useAtLeast: Boolean = false
-    ): Int {
-        var possibleValue = simpleLmkOomScoreMap.computeIfAbsent(oomScoreAdj) {
-            oomScoreAdj / simpleLmkConvertDivisor
-        }
-        if (useAtLeast && oomScoreAdj < ProcessList.VISIBLE_APP_ADJ) {
-            possibleValue = possibleValue.coerceAtLeast(firstLevelAppAdjStartUseSimpleLmk)
-        }
-        return possibleValue
+        oomScoreAdj: Int
+    ): Int = simpleLmkOomScoreMap.computeIfAbsent(oomScoreAdj) {
+        (oomScoreAdj / simpleLmkConvertDivisor).coerceAtLeast(firstLevelAppAdjStartUseSimpleLmk)
     }
 
     private fun handleSetOomAdj(param: MethodHookParam) {
@@ -191,11 +184,12 @@ class ProcessListHookKt(
                             } else
                             // simple lmk 只在平衡模式生效
                                 if (useSimpleLmk && CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_BALANCE) {
-                                    if (mainProcess) {
+                                    possibleFinalAdj =
                                         possibleFinalAdj ?: computeOomScoreAdjValueUseSimpleLmk(
-                                            oomScoreAdj = oomAdjScore,
-                                            useAtLeast = true
+                                            oomScoreAdj = oomAdjScore
                                         )
+                                    if (mainProcess) {
+                                        possibleFinalAdj
                                     } else {
                                         // 检查范围
                                         /*val adj = possibleFinalAdj + simpleLmkMaxAndMinOffset
@@ -209,13 +203,10 @@ class ProcessListHookKt(
                                         // 在当前minSimpleLmkOomScore = 0, maxSimpleLmkOomScore = 50,
                                         // simpleLmkConvertDivisor = (ProcessList.UNKNOWN_ADJ - 1) / maxSimpleLmkOomScore
                                         // 的情况下possibleFinalAdj + simpleLmkMaxAndMinOffset永远小于ProcessList.VISIBLE_APP_ADJ
-                                        possibleFinalAdj =
-                                            possibleFinalAdj ?: computeOomScoreAdjValueUseSimpleLmk(
-                                                oomScoreAdj = oomAdjScore
-                                            )
-                                        (possibleFinalAdj + simpleLmkMaxAndMinOffset).coerceAtLeast(
+                                        // 2024.3.1: 此处最小为1 + 50 = 51.不用再比较判断了
+                                        (possibleFinalAdj + simpleLmkMaxAndMinOffset)/*.coerceAtLeast(
                                             minSimpleLmkOtherProcessOomScore
-                                        )
+                                        )*/
                                     }
                                 } else {
                                     possibleFinalAdj =
