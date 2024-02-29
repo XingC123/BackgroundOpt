@@ -89,9 +89,9 @@ class AppCompactManager2(
                 it.lastProcessingCode = ProcessCompactResultCode.unNecessary
             }
 
-            if (BuildConfig.DEBUG) {
+            /*if (BuildConfig.DEBUG) {
                 logger.debug("uid: ${processRecord.uid}, pid: ${processRecord.pid}, 主进程: ${processRecord.mainProcess}, 包名: ${processRecord.packageName}不需要压缩")
-            }
+            }*/
             return
         }
 
@@ -106,8 +106,8 @@ class AppCompactManager2(
         val currentTimeMillis = SystemClock.uptimeMillis()
         val lastProcessCompatEnum = processingResult.processCompactEnum
         var compactAction = Int.MIN_VALUE
-        var compactReason = "OOM_SCORE"
-        var compactBecauseProcAllow = false
+        /*var compactReason = "OOM_SCORE"
+        var compactBecauseProcAllow = false*/
 
         if (isSpecialOomWorkMode) {
             if (processRecord.isAllowedCompact(currentTimeMillis)) {
@@ -130,16 +130,16 @@ class AppCompactManager2(
             } else if (ProcessList.CACHED_APP_MIN_ADJ in lastOomScoreAdj..curOomScoreAdj
                 || processRecord.isAllowedCompact(
                     time = currentTimeMillis
-                ).also { compactBecauseProcAllow = it }
+                )/*.also { compactBecauseProcAllow = it }*/
             ) {
                 if ((lastProcessCompatEnum == ProcessCompactEnum.SOME && timeDifference < cachedAppOptimizer.mCompactThrottleFullSome)
                     || (lastProcessCompatEnum == ProcessCompactEnum.FULL && timeDifference < cachedAppOptimizer.mCompactThrottleFullFull)
                 ) {
                     // do nothing
                 } else {
-                    if (compactBecauseProcAllow) {
+                    /*if (compactBecauseProcAllow) {
                         compactReason = "从未压缩或超时"
-                    }
+                    }*/
                     doCompact = true
                     processCompactEnum = ProcessCompactEnum.FULL
                     compactAction = CachedAppOptimizer.COMPACT_ACTION_FULL
@@ -156,7 +156,7 @@ class AppCompactManager2(
             }
         }
 
-        if (BuildConfig.DEBUG) {
+        /*if (BuildConfig.DEBUG) {
             when (processCompactResultCode) {
                 ProcessCompactResultCode.success -> {
                     logger.debug(
@@ -179,7 +179,7 @@ class AppCompactManager2(
                     )
                 }
             }
-        }
+        }*/
     }
 
     private fun compactProcess(
