@@ -14,6 +14,7 @@ import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ApplicationInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
+import com.venus.backgroundopt.hook.handle.android.entity.PackageManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.service.ProcessDaemonService;
@@ -623,12 +624,25 @@ public class RunningInfo implements ILogger {
      **************************************************************************/
     private volatile String activeLaunchPackageName = null;
 
+    @Nullable
     public String getActiveLaunchPackageName() {
         return activeLaunchPackageName;
     }
 
     public void setActiveLaunchPackageName(String activeLaunchPackageName) {
         this.activeLaunchPackageName = activeLaunchPackageName;
+    }
+
+    public void initActiveLaunchPackageName() {
+        if (packageManagerService != null && activeLaunchPackageName == null) {
+            String defaultHomeName = packageManagerService.getDefaultHome();
+            if (defaultHomeName != null) {
+                setActiveLaunchPackageName(defaultHomeName);
+                getLogger().info("默认启动器为: " + defaultHomeName);
+            } else {
+                getLogger().warn("初始化当前桌面失败");
+            }
+        }
     }
 
     /* *************************************************************************
@@ -679,5 +693,20 @@ public class RunningInfo implements ILogger {
         }
 
         return powerManager;
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * PackageManagerService                                                   *
+     *                                                                         *
+     **************************************************************************/
+    private PackageManagerService packageManagerService;
+
+    public PackageManagerService getPackageManagerService() {
+        return packageManagerService;
+    }
+
+    public void setPackageManagerService(PackageManagerService packageManagerService) {
+        this.packageManagerService = packageManagerService;
     }
 }
