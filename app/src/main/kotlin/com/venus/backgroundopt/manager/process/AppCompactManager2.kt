@@ -27,7 +27,7 @@ class AppCompactManager2(
     private val runningInfo: RunningInfo
 ) : AbstractAppOptimizeManager(AppOptimizeEnum.PROCESS_COMPACT), ILogger {
     // App压缩处理线程池
-    private val executor = ScheduledThreadPoolExecutor(1).apply {
+    private val executor = ScheduledThreadPoolExecutor(2).apply {
         removeOnCancelPolicy = true
     }
 
