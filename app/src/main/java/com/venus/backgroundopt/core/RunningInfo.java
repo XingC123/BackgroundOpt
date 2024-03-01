@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
+import com.venus.backgroundopt.annotation.AndroidObject;
 import com.venus.backgroundopt.annotation.UsageComment;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.FindAppResult;
@@ -270,7 +271,13 @@ public class RunningInfo implements ILogger {
      * @return nonNull if it is a normal app
      */
     @Nullable
-    public AppInfo computeRunningAppIfAbsent(int userId, String packageName, int uid, Object proc, int pid) {
+    public AppInfo computeRunningAppIfAbsent(
+            int userId,
+            String packageName,
+            int uid,
+            @AndroidObject Object proc,
+            int pid
+    ) {
         return runningApps.computeIfAbsent(uid, key -> {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("创建新App记录: " + packageName + ", uid: " + uid);
@@ -380,7 +387,7 @@ public class RunningInfo implements ILogger {
      * @param packageName 包名
      * @param pid         pid
      */
-    public void startProcess(Object proc, int uid, int userId, String packageName, int pid) {
+    public void startProcess(@AndroidObject Object proc, int uid, int userId, String packageName, int pid) {
         ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
             getLogger().error(
                     "创建进程(userId: " + userId + ", 包名: " + packageName + "uid: " + uid + ", pid: " + pid + ")出现错误: " + throwable.getMessage(),
@@ -685,6 +692,7 @@ public class RunningInfo implements ILogger {
      * 电源管理                                                                  *
      *                                                                         *
      **************************************************************************/
+    @AndroidObject(clazz = PowerManager.class)
     private PowerManager powerManager;
 
     public PowerManager getPowerManager() {

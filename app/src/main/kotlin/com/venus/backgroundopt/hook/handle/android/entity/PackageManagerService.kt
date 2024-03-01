@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.hook.handle.android.entity
 
+import com.venus.backgroundopt.annotation.AndroidObject
+import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.utils.callMethod
@@ -10,7 +12,10 @@ import com.venus.backgroundopt.utils.runCatchThrowable
  * @author XingC
  * @date 2024/2/29
  */
-class PackageManagerService(private val pmsInstance: Any) : IAndroidEntity {
+class PackageManagerService(
+    @AndroidObject(classPath = ClassConstants.PackageManagerService)
+    private val pmsInstance: Any
+) : IAndroidEntity {
     override fun getInstance(): Any = pmsInstance
 
     fun getDefaultHome(): String? {
