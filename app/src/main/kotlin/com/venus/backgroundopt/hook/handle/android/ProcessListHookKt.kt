@@ -340,7 +340,7 @@ class ProcessListHookKt(
 
         val proc = param.args[0]
         val uid = ProcessRecordKt.getUID(proc)
-        if (uid < ActivityManagerService.USER_APP_UID_START_NUM) {
+        if (ActivityManagerService.isUnsafeUid(uid)) {
             return
         }
 

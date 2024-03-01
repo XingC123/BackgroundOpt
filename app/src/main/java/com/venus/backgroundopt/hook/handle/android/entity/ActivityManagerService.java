@@ -181,6 +181,14 @@ public class ActivityManagerService implements ILogger {
         }
     }
 
+    public static boolean isUnsafeUid(int uid) {
+        return uid < USER_APP_UID_START_NUM;
+    }
+
+    public static boolean isUnsafeProcess(@AndroidObject Object proc) {
+        return isUnsafeUid(ProcessRecordKt.getUID(proc));
+    }
+
     /**
      * 获取app的uid
      * 注意: 如果是多开app, 通过此方法获取得到的uid仍然为主用户下的uid
