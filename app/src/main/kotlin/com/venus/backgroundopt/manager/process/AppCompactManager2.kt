@@ -135,19 +135,19 @@ class AppCompactManager2(
             }
         }
 
-        // 检查进程是否需要进行优化
-        if (isNecessaryToOptimizeProcess(processRecord)) {
-            updateProcessLastProcessingResult(processRecord) {
-                it.lastProcessingCode = ProcessCompactResultCode.unNecessary
+        if (doCompact) {
+            // 检查进程是否需要进行优化
+            if (isNecessaryToOptimizeProcess(processRecord)) {
+                updateProcessLastProcessingResult(processRecord) {
+                    it.lastProcessingCode = ProcessCompactResultCode.unNecessary
+                }
+
+                /*if (BuildConfig.DEBUG) {
+                    logger.debug("uid: ${processRecord.uid}, pid: ${processRecord.pid}, 主进程: ${processRecord.mainProcess}, 包名: ${processRecord.packageName}不需要压缩")
+                }*/
+                return
             }
 
-            /*if (BuildConfig.DEBUG) {
-                logger.debug("uid: ${processRecord.uid}, pid: ${processRecord.pid}, 主进程: ${processRecord.mainProcess}, 包名: ${processRecord.packageName}不需要压缩")
-            }*/
-            return
-        }
-
-        if (doCompact) {
             processCompactResultCode =
                 compactProcess(pid = processRecord.pid, compactAction = compactAction)
             updateProcessLastProcessingResult(processRecordKt = processRecord) {
