@@ -185,7 +185,7 @@ public class ActivityManagerService implements ILogger {
         return uid < USER_APP_UID_START_NUM;
     }
 
-    public static boolean isUnsafeProcess(@AndroidObject Object proc) {
+    public static boolean isUnsafeUid(@AndroidObject Object proc) {
         return isUnsafeUid(ProcessRecordKt.getUID(proc));
     }
 
