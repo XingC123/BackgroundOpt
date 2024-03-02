@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
+import com.venus.backgroundopt.annotation.AndroidObject;
+
 /**
  * 封装了{@link android.content.pm.ApplicationInfo}
  *
@@ -8,8 +10,10 @@ package com.venus.backgroundopt.hook.handle.android.entity;
  * @date 2023/6/14
  */
 public class ApplicationInfo {
+    @AndroidObject(clazz = android.content.pm.ApplicationInfo.class)
     private final android.content.pm.ApplicationInfo applicationInfo;
 
+    @AndroidObject
     public android.content.pm.ApplicationInfo getApplicationInfo() {
         return applicationInfo;
     }

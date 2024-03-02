@@ -115,7 +115,10 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
             } else {
                 { packageInfo ->
                     !ActivityManagerService.isImportantSystemApp(packageInfo.applicationInfo)
-                            || PackageUtils.isHasActivity(packageInfo)
+                            || (
+                            !ActivityManagerService.isUnsafeUid(packageInfo.applicationInfo.uid)
+                                    && PackageUtils.isHasActivity(packageInfo)
+                            )
                 }
             }
         )

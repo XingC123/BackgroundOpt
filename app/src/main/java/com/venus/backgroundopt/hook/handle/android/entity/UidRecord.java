@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
+import com.venus.backgroundopt.annotation.AndroidObject;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 
 import de.robv.android.xposed.XposedHelpers;
@@ -18,5 +19,6 @@ public class UidRecord {
         }
         return uidRecordClass;
     }
+    @AndroidObject(classPath = ClassConstants.UidRecord)
     private Object uidRecord;
 }

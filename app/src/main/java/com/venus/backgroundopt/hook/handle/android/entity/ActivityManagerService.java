@@ -1,11 +1,12 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
 import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 
+import com.venus.backgroundopt.annotation.AndroidObject;
+import com.venus.backgroundopt.annotation.AndroidObjectField;
 import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.FindAppResult;
@@ -33,13 +34,19 @@ public class ActivityManagerService implements ILogger {
      * 系统activityManagerService                                               *
      *                                                                         *
      **************************************************************************/
+    @AndroidObject(classPath = ClassConstants.ActivityManagerService)
     private final Object activityManagerService;
 
+    @AndroidObject
     public Object getActivityManagerService() {
         return activityManagerService;
     }
 
-    public ActivityManagerService(Object activityManagerService, ClassLoader classLoader, RunningInfo runningInfo) {
+    public ActivityManagerService(
+            @AndroidObject Object activityManagerService,
+            ClassLoader classLoader,
+            RunningInfo runningInfo
+    ) {
         this.activityManagerService = activityManagerService;
         this.processList = new ProcessList(
                 XposedHelpers.getObjectField(activityManagerService, FieldConstants.mProcessList),
@@ -73,6 +80,10 @@ public class ActivityManagerService implements ILogger {
         return context;
     }
 
+    @AndroidObjectField(
+            objectClassPath = ClassConstants.ActivityManagerService,
+            fieldName = FieldConstants.mPidsSelfLocked
+    )
     private final Object mPidsSelfLocked; // PidMap
 
     @NonNull
@@ -83,8 +94,13 @@ public class ActivityManagerService implements ILogger {
         );
     }
 
+    @AndroidObjectField(
+            objectClassPath = ClassConstants.ActivityManagerService,
+            fieldName = FieldConstants.mProcLock
+    )
     private final Object mProcLock;
 
+    @AndroidObjectField
     public Object getmProcLock() {
         return mProcLock;
     }
@@ -163,6 +179,14 @@ public class ActivityManagerService implements ILogger {
             findAppResult.setHasActivity(isHasActivity(packageName));
             return findAppResult;
         }
+    }
+
+    public static boolean isUnsafeUid(int uid) {
+        return uid < USER_APP_UID_START_NUM;
+    }
+
+    public static boolean isUnsafeUid(@AndroidObject Object proc) {
+        return isUnsafeUid(ProcessRecordKt.getUID(proc));
     }
 
     /**

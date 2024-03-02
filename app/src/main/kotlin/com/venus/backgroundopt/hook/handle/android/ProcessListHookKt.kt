@@ -46,6 +46,10 @@ class ProcessListHookKt(
         const val minSimpleLmkOtherProcessOomScore = maxSimpleLmkOomScore + 1
 
         const val simpleLmkMaxAndMinOffset = maxSimpleLmkOomScore - minSimpleLmkOomScore
+        const val visibleAppAdjUseSimpleLmk = ProcessList.VISIBLE_APP_ADJ / simpleLmkConvertDivisor
+
+        // 第一等级的app的adj的起始值
+        const val firstLevelAppAdjStartUseSimpleLmk = minSimpleLmkOomScore + 1
     }
 
     override fun getHookPoint(): Array<HookPoint> {
@@ -106,6 +110,12 @@ class ProcessListHookKt(
     )
 
     val simpleLmkOomScoreMap = ConcurrentHashMap<Int, Int>(8)
+
+    private fun computeOomScoreAdjValueUseSimpleLmk(
+        oomScoreAdj: Int
+    ): Int = simpleLmkOomScoreMap.computeIfAbsent(oomScoreAdj) {
+        (oomScoreAdj / simpleLmkConvertDivisor).coerceAtLeast(firstLevelAppAdjStartUseSimpleLmk)
+    }
 
     private fun handleSetOomAdj(param: MethodHookParam) {
         val uid = param.args[1] as Int
@@ -174,8 +184,10 @@ class ProcessListHookKt(
                             } else
                             // simple lmk 只在平衡模式生效
                                 if (useSimpleLmk && CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_BALANCE) {
-                                    possibleFinalAdj = possibleFinalAdj
-                                        ?: simpleLmkOomScoreMap.computeIfAbsent(oomAdjScore) { oomAdjScore / simpleLmkConvertDivisor }
+                                    possibleFinalAdj =
+                                        possibleFinalAdj ?: computeOomScoreAdjValueUseSimpleLmk(
+                                            oomScoreAdj = oomAdjScore
+                                        )
                                     if (mainProcess) {
                                         possibleFinalAdj
                                     } else {
@@ -191,9 +203,10 @@ class ProcessListHookKt(
                                         // 在当前minSimpleLmkOomScore = 0, maxSimpleLmkOomScore = 50,
                                         // simpleLmkConvertDivisor = (ProcessList.UNKNOWN_ADJ - 1) / maxSimpleLmkOomScore
                                         // 的情况下possibleFinalAdj + simpleLmkMaxAndMinOffset永远小于ProcessList.VISIBLE_APP_ADJ
-                                        (possibleFinalAdj + simpleLmkMaxAndMinOffset).coerceAtLeast(
+                                        // 2024.3.1: 此处最小为1 + 50 = 51.不用再比较判断了
+                                        (possibleFinalAdj + simpleLmkMaxAndMinOffset)/*.coerceAtLeast(
                                             minSimpleLmkOtherProcessOomScore
-                                        )
+                                        )*/
                                     }
                                 } else {
                                     possibleFinalAdj =
@@ -327,7 +340,7 @@ class ProcessListHookKt(
 
         val proc = param.args[0]
         val uid = ProcessRecordKt.getUID(proc)
-        if (uid < ActivityManagerService.USER_APP_UID_START_NUM) {
+        if (ActivityManagerService.isUnsafeUid(uid)) {
             return
         }
 

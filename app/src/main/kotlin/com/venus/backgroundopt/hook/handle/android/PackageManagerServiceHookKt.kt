@@ -25,7 +25,7 @@ class PackageManagerServiceHookKt(
 ) : MethodHook(classLoader, hookInfo) {
     override fun getHookPoint(): Array<HookPoint> {
         return arrayOf(
-            generateHookPoint(
+            /*generateHookPoint(
                 effectiveHookFlagMaker {
                     true
                 },
@@ -36,7 +36,7 @@ class PackageManagerServiceHookKt(
                         getActiveLaunchPackageName(it)
                     }
                 ),
-            ),
+            ),*/
             /**
              * 安卓12才进行hook
              * 安卓13已经更换实现。模块其实现位于 [DeletePackageHelperHook.handleDeletePackageLIF]

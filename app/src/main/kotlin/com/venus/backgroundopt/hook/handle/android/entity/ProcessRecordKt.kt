@@ -3,12 +3,14 @@ package com.venus.backgroundopt.hook.handle.android.entity
 import android.content.pm.ApplicationInfo
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.BuildConfig
+import com.venus.backgroundopt.annotation.AndroidObject
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_NEWLINE_TERM
@@ -86,7 +88,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
                         maxOptimizeRssInBytes
                     )
                 minOptimizeRssInMBytesStr = "${
-                    DecimalFormat(".00").apply { 
+                    DecimalFormat(".00").apply {
                         roundingMode = RoundingMode.DOWN
                     }.format(minOptimizeRssInBytes / (1024 * 1024))
                 }MB"
@@ -98,7 +100,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         fun newInstance(
             runningInfo: RunningInfo,
             appInfo: AppInfo,
-            processRecord: Any
+            @AndroidObject processRecord: Any
         ): ProcessRecordKt {
             val record = ProcessRecordKt(runningInfo.activityManagerService, processRecord)
             // addCompactProcess(runningInfo, appInfo, record)
@@ -150,7 +152,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @param processRecord 安卓的进程记录
          */
         @JvmStatic
-        fun getUserId(processRecord: Any): Int {
+        fun getUserId(@AndroidObject processRecord: Any): Int {
             return processRecord.getIntFieldValue(FieldConstants.userId)
         }
 
@@ -161,7 +163,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @return 包名
          */
         @JvmStatic
-        fun getPkgName(processRecord: Any): String {
+        fun getPkgName(@AndroidObject processRecord: Any): String {
             return (processRecord.getObjectFieldValue(FieldConstants.info) as ApplicationInfo).packageName
         }
 
@@ -172,17 +174,17 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @return 进程名
          */
         @JvmStatic
-        fun getProcessName(processRecord: Any): String {
+        fun getProcessName(@AndroidObject processRecord: Any): String {
             return processRecord.getStringFieldValue(FieldConstants.processName, "")!!
         }
 
         @JvmStatic
-        fun isProcessNameSame(expectProcName: String, processRecord: Any): Boolean {
+        fun isProcessNameSame(expectProcName: String, @AndroidObject processRecord: Any): Boolean {
             return expectProcName == getProcessName(processRecord)
         }
 
         @JvmStatic
-        fun getUID(processRecord: Any): Int {
+        fun getUID(@AndroidObject processRecord: Any): Int {
             return processRecord.getIntFieldValue(FieldConstants.uid)
         }
 
@@ -192,7 +194,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @param processRecord 安卓ProcessRecord
          */
         @JvmStatic
-        fun getPid(processRecord: Any): Int {
+        fun getPid(@AndroidObject processRecord: Any): Int {
             return processRecord.getIntFieldValue(FieldConstants.mPid)
         }
 
@@ -202,7 +204,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @param processRecord Any
          */
         @JvmStatic
-        fun getApplicationInfo(processRecord: Any): ApplicationInfo {
+        fun getApplicationInfo(@AndroidObject processRecord: Any): ApplicationInfo {
             return processRecord.getObjectFieldValue(FieldConstants.info) as ApplicationInfo
         }
 
@@ -213,7 +215,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @return Int mDyingPid
          */
         @JvmStatic
-        fun getMDyingPid(processRecord: Any): Int {
+        fun getMDyingPid(@AndroidObject processRecord: Any): Int {
             return processRecord.getIntFieldValue(FieldConstants.mDyingPid)
         }
 
@@ -255,7 +257,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @return 包名:进程名
          */
         @JvmStatic
-        fun getFullProcessName(processRecord: Any): String {
+        fun getFullProcessName(@AndroidObject processRecord: Any): String {
             return PackageUtils.absoluteProcessName(
                 getPkgName(processRecord),
                 getProcessName(processRecord)
@@ -309,16 +311,18 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
          * @return Boolean 是 -> true
          */
         @JvmStatic
-        fun isWebviewProc(processRecord: Any): Boolean {
+        fun isWebviewProc(@AndroidObject processRecord: Any): Boolean {
             return getProcessName(processRecord).contains("SandboxedProcessService")
         }
     }
 
     // 反射拿到的安卓的processRecord对象
+    @AndroidObject(classPath = ClassConstants.ProcessRecord)
     @JSONField(serialize = false)
     lateinit var processRecord: Any
 
     // 反射拿到的安卓的processStateRecord对象
+    @AndroidObject(classPath = ClassConstants.ProcessStateRecord)
     @JSONField(serialize = false)
     lateinit var processStateRecord: ProcessStateRecord
 
@@ -348,7 +352,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
     constructor(
         activityManagerService: ActivityManagerService,
-        processRecord: Any,
+        @AndroidObject processRecord: Any,
         pid: Int,
         uid: Int,
         userId: Int,
@@ -368,7 +372,10 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             ProcessStateRecord(processRecord.getObjectFieldValue(FieldConstants.mState))
     }
 
-    constructor(activityManagerService: ActivityManagerService, processRecord: Any) : this(
+    constructor(
+        activityManagerService: ActivityManagerService,
+        @AndroidObject processRecord: Any
+    ) : this(
         activityManagerService,
         processRecord,
         getPid(processRecord),

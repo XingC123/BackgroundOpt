@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
+import com.venus.backgroundopt.annotation.AndroidObject;
+import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 
 import de.robv.android.xposed.XposedHelpers;
@@ -84,13 +86,14 @@ public class Process {
     public static final int PROC_OUT_LONG = 0x2000;
     public static final int PROC_OUT_FLOAT = 0x4000;
 
+    @AndroidObject(classPath = ClassConstants.Process)
     private Object process;
 
     public static Class<?> getProcess() {
         return android.os.Process.class;
     }
 
-    public Process(Object process) {
+    public Process(@AndroidObject Object process) {
         this.process = process;
     }
 

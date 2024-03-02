@@ -51,6 +51,7 @@ public interface ClassConstants {
     String IApplicationThread = "android.app.IApplicationThread";
     String ActivityId = "android.app.assist.ActivityId";
     String Resources = "android.content.res.Resources";
+    String ServiceManager = "android.os.ServiceManager";
 
     /**
      * miui
