@@ -157,7 +157,11 @@ class ProcessListHookKt(
         if (globalOomScorePolicy.enabled && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL) {
             finalApplyOomScoreAdj = customGlobalOomScore
         } else {
-            if (oomAdjScore >= 0 || globalOomScorePolicy.enabled) {
+            val appOptimizePolicy =
+                CommonProperties.appOptimizePolicyMap[process.packageName]
+            var possibleFinalAdj = appOptimizePolicy.getCustomMainProcessOomScore()
+
+            if (oomAdjScore >= 0 || possibleFinalAdj != null || globalOomScorePolicy.enabled) {
                 if (mainProcess
                     || isUpgradeSubProcessLevel(process.processName)
                     || (CommonProperties.enableWebviewProcessProtect.value && process.webviewProcess)
@@ -170,10 +174,7 @@ class ProcessListHookKt(
                     ) {
                         val useSimpleLmk =
                             CommonProperties.enableSimpleLmk.value /*&& (oomAdjScore in minSimpleLmkOomScore..maxSimpleLmkOomScore)*/
-                        val appOptimizePolicy =
-                            CommonProperties.appOptimizePolicyMap[process.packageName]
 
-                        var possibleFinalAdj = appOptimizePolicy.getCustomMainProcessOomScore()
                         val finalAdj =
                             // 前台的oom_score_adj默认为0
                             if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
@@ -340,9 +341,9 @@ class ProcessListHookKt(
 
         val proc = param.args[0]
         val uid = ProcessRecordKt.getUID(proc)
-        if (ActivityManagerService.isUnsafeUid(uid)) {
+        /*if (ActivityManagerService.isUnsafeUid(uid)) {
             return
-        }
+        }*/
 
         val pid = param.args[1] as Int
         val userId = ProcessRecordKt.getUserId(proc)
