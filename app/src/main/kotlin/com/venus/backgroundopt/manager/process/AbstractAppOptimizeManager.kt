@@ -23,7 +23,7 @@ abstract class AbstractAppOptimizeManager(val appOptimizeEnum: AppOptimizeEnum) 
         return if (enabledGlobalOomScore && isUnsafeCustomOomScore) {
             processRecordKt.isNecessaryToOptimize()
         } else {
-            processRecordKt.oomAdjScore > 0 && processRecordKt.isNecessaryToOptimize()
+            processRecordKt.oomAdjScore >= 0 && processRecordKt.isNecessaryToOptimize()
         }
     }
 
