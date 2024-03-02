@@ -3,25 +3,22 @@ package com.venus.backgroundopt.hook.handler;
 import android.os.Build;
 
 import com.venus.backgroundopt.core.RunningInfo;
-import com.venus.backgroundopt.entity.preference.OomWorkModePref;
-import com.venus.backgroundopt.environment.CommonProperties;
 import com.venus.backgroundopt.environment.SystemProperties;
 import com.venus.backgroundopt.hook.base.PackageHook;
-import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookNew;
-import com.venus.backgroundopt.hook.handle.android.CachedAppOptimizerHook;
-import com.venus.backgroundopt.hook.handle.android.OomAdjusterHookNew;
-import com.venus.backgroundopt.hook.handle.android.PackageManagerServiceHookNew;
-import com.venus.backgroundopt.hook.handle.android.ProcessListHookNew;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerConstantsHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
+import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookNew;
 import com.venus.backgroundopt.hook.handle.android.AppProfilerHook;
+import com.venus.backgroundopt.hook.handle.android.CachedAppOptimizerHook;
 import com.venus.backgroundopt.hook.handle.android.DeletePackageHelperHook;
 import com.venus.backgroundopt.hook.handle.android.LowMemDetectorHook;
+import com.venus.backgroundopt.hook.handle.android.OomAdjusterHookNew;
 import com.venus.backgroundopt.hook.handle.android.PackageManagerServiceHookKt;
+import com.venus.backgroundopt.hook.handle.android.PackageManagerServiceHookNew;
 import com.venus.backgroundopt.hook.handle.android.PhantomProcessListHook;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt;
-import com.venus.backgroundopt.hook.handle.android.ProcessStateRecordHook;
+import com.venus.backgroundopt.hook.handle.android.ProcessListHookNew;
 import com.venus.backgroundopt.hook.handle.android.RecentTasksHook;
 import com.venus.backgroundopt.hook.handle.android.RoleControllerManagerHook;
 import com.venus.backgroundopt.hook.handle.android.ServiceManagerHook;
@@ -67,9 +64,10 @@ public class AndroidHookHandler extends PackageHook {
 //        new ProcessHookKt(classLoader, runningInfo);
 
         // oom_adj更新hook
-        if (CommonProperties.INSTANCE.getOomWorkModePref().getOomMode() == OomWorkModePref.MODE_STRICT) {
+        // 2024.3.2: 禁用以通过ProcessList.setOomAdj知晓系统给予当前进程的oom_score_adj
+        /*if (CommonProperties.INSTANCE.getOomWorkModePref().getOomMode() == OomWorkModePref.MODE_STRICT) {
             new ProcessStateRecordHook(classLoader, runningInfo);
-        }
+        }*/
         new ProcessListHookKt(classLoader, runningInfo);
 
         // 安卓虚进程处理hook
