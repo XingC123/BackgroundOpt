@@ -195,15 +195,14 @@ class AppCompactManager(// 封装的CachedAppOptimizer
      * 添加压缩进程
      */
     fun addCompactProcess(appInfo: AppInfo) {
-        val processRecordKts = appInfo.processes
-        if (processRecordKts.isNotEmpty()) {
-            val currentTimeMillis = System.currentTimeMillis()
-            processRecordKts.forEach { addCompactProcessImpl(it, currentTimeMillis) }
-            checkCompactTask()
+        val currentTimeMillis = System.currentTimeMillis()
+        runningInfo.runningProcesses.asSequence()
+            .filter { it.appInfo == appInfo }
+            .forEach { addCompactProcessImpl(it, currentTimeMillis) }
+        checkCompactTask()
 
-            if (BuildConfig.DEBUG) {
-                logger.debug("uid: ${processRecordKts.first().uid} >>> [批量]加入待压缩列表")
-            }
+        if (BuildConfig.DEBUG) {
+            logger.debug("uid: ${appInfo.uid} >>> [批量]加入待压缩列表")
         }
     }
 
@@ -313,9 +312,9 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     }
 
     fun compactAppSome(appInfo: AppInfo) {
-        appInfo.processPids.forEach { pid: Int ->
-            this.compactAppSome(pid)
-        }
+        runningInfo.runningProcesses.asSequence()
+            .filter { it.appInfo == appInfo }
+            .forEach { this.compactAppSome(it.pid) }
     }
 
     /**

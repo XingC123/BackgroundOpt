@@ -50,13 +50,12 @@ class OomAdjusterHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
 
     private fun handleComputeOomAdjLSP(param: MethodHookParam) {
         val app = param.args[0]
-
+        val pid = ProcessRecordKt.getPid(app)
         val runningInfo = runningInfo
-        val appInfo = runningInfo.getRunningAppInfo(ProcessRecordKt.getUID(app))
-        appInfo ?: return
+        val processRecord = runningInfo.getRunningProcess(pid) ?: return
+        val appInfo = processRecord.appInfo
 
         // 如果此次调节的不是主进程, 则返回
-        val pid = ProcessRecordKt.getPid(app)
         val mPid = try {
             appInfo.getmPid()
         } catch (t: Throwable) {

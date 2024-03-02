@@ -108,6 +108,31 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         }
 
         @JvmStatic
+        @JvmOverloads
+        fun newInstance(
+            activityManagerService: ActivityManagerService,
+            appInfo: AppInfo,
+            @AndroidObject processRecord: Any,
+            pid: Int = getPid(processRecord),
+            uid: Int = getUID(processRecord),
+            userId: Int = getUserId(processRecord),
+            packageName: String = getPkgName(processRecord)
+        ): ProcessRecordKt = ProcessRecordKt(
+            activityManagerService = activityManagerService,
+            processRecord = processRecord,
+            pid = pid,
+            uid = uid,
+            userId = userId,
+            packageName = packageName,
+        ).apply {
+            this.appInfo = appInfo
+
+            if (mainProcess) {
+                this.appInfo.setmProcessRecord(this)
+            }
+        }
+
+        @JvmStatic
         fun setMainProcess(processRecord: ProcessRecordKt): ProcessRecordKt {
             try {
                 processRecord.mainProcess = isMainProcess(processRecord)
@@ -280,8 +305,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
                 return processRecord.appInfo.appGroupEnum != AppGroupEnum.DEAD
             }
             // 子进程在当前运行的app列表中来判断
-            return runningInfo.getRunningAppInfo(processRecord.uid)
-                ?.getProcess(processRecord.pid) != null
+            return runningInfo.getRunningProcess(processRecord.pid) != null
         }
 
         /**

@@ -23,10 +23,12 @@ class AppCompactListMessageHandler : MessageHandler {
                 // 设置真实oom_adj_score
                 process.curAdj = process.getCurAdjNative()
             }*/
-            runningInfo.runningAppInfos.asSequence()
+            runningInfo.runningProcesses.asSequence()
                 .filterNotNull()
-                .filter { it.appGroupEnum == AppGroupEnum.IDLE || it.appGroupEnum == AppGroupEnum.NONE }
-                .flatMap { it.processes }
+                .filter { processRecord ->
+                    val appInfo = processRecord.appInfo
+                    appInfo.appGroupEnum == AppGroupEnum.IDLE || appInfo.appGroupEnum == AppGroupEnum.NONE
+                }
                 .onEach {
                     // 设置真实oom_adj_score
                     it.curAdj = it.getCurAdjNative()

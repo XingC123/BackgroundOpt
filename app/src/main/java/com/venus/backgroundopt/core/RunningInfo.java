@@ -13,7 +13,6 @@ import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.FindAppResult;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
-import com.venus.backgroundopt.hook.handle.android.entity.ApplicationInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
 import com.venus.backgroundopt.hook.handle.android.entity.PackageManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
@@ -161,16 +160,17 @@ public class RunningInfo implements ILogger {
 
     /* *************************************************************************
      *                                                                         *
-     * 运行的进程                                                                *
+     * 运行的应用                                                                *
      *                                                                         *
      **************************************************************************/
     /**
      * 运行中的app
-     * uid, AppInfo
+     * <userId+packageName, AppInfo>
      */
-    private final Map<Integer, AppInfo> runningApps = new ConcurrentHashMap<>();
+    private final Map<String, AppInfo> runningApps = new ConcurrentHashMap<>();
     private final Collection<AppInfo> runningAppsInfo = runningApps.values();
 
+    @Deprecated
     public AppInfo getAppInfoFromRunningApps(int userId, String packageName) {
         AtomicReference<AppInfo> result = new AtomicReference<>();
 
@@ -184,16 +184,26 @@ public class RunningInfo implements ILogger {
         return result.get();
     }
 
-    public AppInfo getAppInfoFromRunningApps(AppInfo appInfo) {
-        return getRunningAppInfo(appInfo.getUid());
-    }
-
     public Collection<AppInfo> getRunningAppInfos() {
         return runningAppsInfo;
     }
 
     /**
-     * 根据uid获取正在运行的列表中的app信息
+     * 获取运行中的app的标识符
+     *
+     * @param userId      目标{@link AppInfo}所属的用户id
+     * @param packageName 目标{@link AppInfo}所属的包名
+     * @return 从 {@link #runningApps}中获取{@link AppInfo}所需的标识符
+     */
+    @NonNull
+    public String getRunningAppIdentifier(int userId, String packageName) {
+        return userId + ":" + packageName;
+    }
+
+    /**
+     * 根据uid获取正在运行的列表中的app信息<br>
+     * 计算运行中app的map的key需要userId + packageName。<br>
+     * 请使用: getRunningAppInfo(userId,packageName)
      *
      * @param uid 要查询的uid(userId+uid)
      * @return 查询到的app信息
@@ -201,45 +211,15 @@ public class RunningInfo implements ILogger {
     // 在2024.2.18的commit, 即"ApplicationInfo的结果集"初次进版时, runningApps的value不会再有null
     // 但为了保证后续兼容性, 仍然注解为Nullable
     // @NonNull
+    @Deprecated
     @Nullable
     public AppInfo getRunningAppInfo(int uid) {
         return runningApps.get(uid);
     }
 
-    /**
-     * 根据传入的{@link AppInfo}判断是否在运行列表
-     *
-     * @param appInfo app信息
-     * @return 运行 => true
-     */
-    public boolean isAppRunning(AppInfo appInfo) {
-        return runningAppsInfo.contains(appInfo);
-    }
-
-    /**
-     * 设置添加到 {@link #runningApps} 中的 {@link AppInfo}的基本属性
-     *
-     * @param mProcessRecord app的主进程
-     * @param appInfo        要处理的应用信息
-     */
-    public void setAddedRunningApp(ProcessRecordKt mProcessRecord, AppInfo appInfo) {
-        if (mProcessRecord != null) {
-            appInfo.addProcess(mProcessRecord);
-        } else {
-            if (BuildConfig.DEBUG) {
-                getLogger().warn(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的mProcessRecord为空");
-            }
-        }
-    }
-
-    /**
-     * 设置添加到 {@link #runningApps} 中的 {@link AppInfo}的基本属性
-     *
-     * @param appInfo 要处理的应用信息
-     */
-    public void setAddedRunningApp(AppInfo appInfo) {
-        // 找到主进程进行必要设置
-        setAddedRunningApp(activityManagerService.findMProcessRecord(appInfo), appInfo);
+    @Nullable
+    public AppInfo getRunningAppInfo(int userId, String packageName) {
+        return runningApps.get(getRunningAppIdentifier(userId, packageName));
     }
 
     /**
@@ -252,38 +232,11 @@ public class RunningInfo implements ILogger {
      */
     @NonNull
     public AppInfo computeRunningAppIfAbsent(int userId, String packageName, int uid) {
-        return runningApps.computeIfAbsent(uid, key -> {
-            if (BuildConfig.DEBUG) {
-                getLogger().debug("打开新App: " + packageName + ", uid: " + uid);
-            }
-            return new AppInfo(userId, packageName, this).setUid(uid);
-        });
-    }
-
-    /**
-     * 若 {@link #runningApps} 中没有此uid记录, 将进行计算创建
-     *
-     * @param userId      目标app对应用户id
-     * @param packageName 目标app包名
-     * @param uid         目标app的uid
-     * @param proc        安卓的进程记录{@link com.venus.backgroundopt.hook.constants.ClassConstants#ProcessRecord}
-     * @param pid         进程的pid
-     * @return nonNull if it is a normal app
-     */
-    @Nullable
-    public AppInfo computeRunningAppIfAbsent(
-            int userId,
-            String packageName,
-            int uid,
-            @AndroidObject Object proc,
-            int pid
-    ) {
-        return runningApps.computeIfAbsent(uid, key -> {
+        return runningApps.computeIfAbsent(getRunningAppIdentifier(userId, packageName), key -> {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("创建新App记录: " + packageName + ", uid: " + uid);
             }
             AppInfo appInfo = new AppInfo(userId, packageName, this).setUid(uid);
-            appInfo.addProcess(proc, pid);
             appInfo.setFindAppResult(getFindAppResult(userId, packageName));
             return appInfo;
         });
@@ -294,10 +247,10 @@ public class RunningInfo implements ILogger {
      *
      * @param appInfo app信息
      */
-    public void removeRunningApp(AppInfo appInfo) {
+    public void removeRunningApp(@NonNull AppInfo appInfo) {
         ConcurrentUtilsKt.lock(appInfo, () -> {
             // 从运行列表移除
-            AppInfo remove = runningApps.remove(appInfo.getUid());
+            AppInfo remove = runningApps.remove(getRunningAppIdentifier(appInfo.getUserId(), appInfo.getPackageName()));
 
             if (remove != null) {
                 String packageName = remove.getPackageName();
@@ -325,6 +278,62 @@ public class RunningInfo implements ILogger {
         });
     }
 
+    /* *************************************************************************
+     *                                                                         *
+     * 运行的进程                                                                *
+     *                                                                         *
+     **************************************************************************/
+    private final Map<Integer, ProcessRecordKt> runningProcesses = new ConcurrentHashMap<>();
+
+    @Nullable
+    public ProcessRecordKt getRunningProcess(int pid) {
+        return runningProcesses.get(pid);
+    }
+
+    @NonNull
+    public Collection<ProcessRecordKt> getRunningProcesses() {
+        return runningProcesses.values();
+    }
+
+    private void putIntoRunningProcesses(int pid, @NonNull ProcessRecordKt processRecord) {
+        runningProcesses.put(pid, processRecord);
+    }
+
+    @NonNull
+    private ProcessRecordKt computeProcessIfAbsent(int pid, @AndroidObject Object process, int userId, int uid, String packageName) {
+        return runningProcesses.computeIfAbsent(pid, key -> {
+            AppInfo appInfo = computeRunningAppIfAbsent(userId, packageName, uid);
+            return ProcessRecordKt.newInstance(activityManagerService, appInfo, process, pid, uid, userId, packageName);
+        });
+    }
+
+    @Nullable
+    public ProcessRecordKt removeRunningProcess(int pid) {
+        return runningProcesses.remove(pid);
+    }
+
+    /**
+     * 进程创建时的行为
+     *
+     * @param proc        安卓的{@link com.venus.backgroundopt.hook.constants.ClassConstants#ProcessRecord}
+     * @param uid         uid
+     * @param userId      userId
+     * @param packageName 包名
+     * @param pid         pid
+     */
+    public void startProcess(@AndroidObject Object proc, int uid, int userId, String packageName, int pid) {
+        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
+            getLogger().error(
+                    "创建进程(userId: " + userId + ", 包名: " + packageName + "uid: " + uid + ", pid: " + pid + ")出现错误: " + throwable.getMessage(),
+                    throwable
+            );
+            return null;
+        }, () -> {
+            computeProcessIfAbsent(pid, proc, userId, uid, packageName);
+            return null;
+        });
+    }
+
     /**
      * 移除进程。<br>
      * 额外处理与进程相关的任务。
@@ -345,63 +354,31 @@ public class RunningInfo implements ILogger {
             );
             return null;
         }, () -> {
-            ProcessRecordKt processRecord = appInfo.getProcess(pid);
+            ProcessRecordKt processRecord = getRunningProcess(pid);
             if (processRecord == null) {
                 return null;
             }
             isMainProcess[0] = processRecord.getMainProcess();
             processName[0] = processRecord.getFullProcessName();
 
-            if (isMainProcess[0]) {
-                removeRunningApp(appInfo);
-                if (BuildConfig.DEBUG) {
-                    getLogger().debug("kill: " + packageName + ", uid: " + uid + " >>> 杀死App");
-                }
-            } else {
-                ConcurrentUtilsKt.lock(appInfo, () -> {
-                    // 移除进程记录
-                    appInfo.removeProcess(pid);
-                    // processManager.cancelCompactProcess(process);
+            ConcurrentUtilsKt.lock(appInfo, () -> {
+                // 移除进程记录
+                removeRunningProcess(pid);
+                // processManager.cancelCompactProcess(process);
+
+                if (isMainProcess[0]) {
+                    removeRunningApp(appInfo);
+                    if (BuildConfig.DEBUG) {
+                        getLogger().debug("kill: " + packageName + ", uid: " + uid + " >>> 杀死App");
+                    }
+                } else {
                     if (BuildConfig.DEBUG) {
                         getLogger().debug("kill: " + packageName + ", uid: " + uid + ", pid: " + pid + " >>> 子进程被杀");
                     }
-                    return null;
-                });
-            }
-            return null;
-        });
-    }
-
-    /* *************************************************************************
-     *                                                                         *
-     * 进程创建                                                                  *
-     *                                                                         *
-     **************************************************************************/
-
-    /**
-     * 进程创建时的行为
-     *
-     * @param proc        安卓的{@link com.venus.backgroundopt.hook.constants.ClassConstants#ProcessRecord}
-     * @param uid         uid
-     * @param userId      userId
-     * @param packageName 包名
-     * @param pid         pid
-     */
-    public void startProcess(@AndroidObject Object proc, int uid, int userId, String packageName, int pid) {
-        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
-            getLogger().error(
-                    "创建进程(userId: " + userId + ", 包名: " + packageName + "uid: " + uid + ", pid: " + pid + ")出现错误: " + throwable.getMessage(),
-                    throwable
-            );
-            return null;
-        }, () -> {
-            AppInfo appInfo = computeRunningAppIfAbsent(userId, packageName, uid, proc, pid);
-            if (appInfo == null) {
+                }
                 return null;
-            }
+            });
 
-            // 若为主进程, 在创建AppInfo时已经添加过, 再次appInfo.addProcess不会进行添加
-            appInfo.addProcess(proc, pid);
             return null;
         });
     }
@@ -458,9 +435,8 @@ public class RunningInfo implements ILogger {
         }, () -> {
             FindAppResult findAppResult = getFindAppResult(userId, packageName);
             AppInfo appInfo;
-            ApplicationInfo applicationInfo;
-            if ((applicationInfo = findAppResult.getApplicationInfo()) == null
-                    || (appInfo = getRunningAppInfo(applicationInfo.uid)) == null) {
+            if (findAppResult.getApplicationInfo() == null
+                    || (appInfo = getRunningAppInfo(userId, packageName)) == null) {
                 return null;
             }
 

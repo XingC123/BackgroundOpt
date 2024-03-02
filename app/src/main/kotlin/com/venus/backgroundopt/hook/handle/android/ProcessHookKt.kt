@@ -52,8 +52,8 @@ class ProcessHookKt(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
     @Deprecated("执行完毕后有可能会进入ProcessListHook.handleSetOomAdj导致再次新建")
     private fun handleKillApp(param: MethodHookParam) {
         val uid = param.args[0] as Int
-        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
         val pid = param.args[1] as Int
+        val appInfo = runningInfo.getRunningProcess(pid)?.appInfo ?: return
 
         runningInfo.removeProcess(appInfo, uid, pid)
     }
@@ -70,11 +70,12 @@ class ProcessHookKt(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
                 logger.debug("pid: ${pid}设置ProcessGroup >>> ${param.args[1]}")
             }
         } else {
-            val uid = Process.getUidForPid(pid)
-            val appInfo = runningInfo.getRunningAppInfo(uid)
+            val processRecord = runningInfo.getRunningProcess(pid) ?: return
+            val uid = processRecord.uid
+            val appInfo = processRecord.appInfo
 
             // 模块接管此处行为
-            if (appInfo != null && appInfo.appGroupEnum in ignoreSetProcessGroupAppGroups) {
+            if (appInfo.appGroupEnum in ignoreSetProcessGroupAppGroups) {
                 param.result = null
             }
         }

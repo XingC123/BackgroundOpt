@@ -5,6 +5,7 @@ import static com.venus.backgroundopt.core.RunningInfo.AppGroupEnum;
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.entity.AppInfo;
+import com.venus.backgroundopt.entity.base.BaseProcessInfoKt;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
@@ -15,6 +16,7 @@ import com.venus.backgroundopt.utils.log.ILogger;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author XingC
@@ -26,6 +28,8 @@ public class ProcessManager implements ILogger {
      * {@link android.os.Process#SIGNAL_USR1}
      */
     public static final int SIGNAL_10 = 10;
+
+    private final RunningInfo runningInfo;
 
     /* *************************************************************************
      *                                                                         *
@@ -43,6 +47,7 @@ public class ProcessManager implements ILogger {
     public static final int THREAD_GROUP_BACKGROUND = Process.THREAD_GROUP_BACKGROUND + THREAD_GROUP_LEVEL_OFFSET;
 
     public ProcessManager(RunningInfo runningInfo) {
+        this.runningInfo = runningInfo;
         ActivityManagerService activityManagerService = runningInfo.getActivityManagerService();
         /*appCompactManager = new AppCompactManager(
                 activityManagerService.getOomAdjuster().getCachedAppOptimizer(),
@@ -267,8 +272,15 @@ public class ProcessManager implements ILogger {
      * @param appInfo app信息
      */
     public void setAppToBackgroundProcessGroup(AppInfo appInfo) {
-        Set<Integer> processInfoPids;
-        if (appInfo == null || (processInfoPids = appInfo.getProcessPids()) == null) {
+        if (appInfo == null) {
+            return;
+        }
+        Set<Integer> processInfoPids = runningInfo.getRunningProcesses().stream()
+                .filter(processRecordKt -> processRecordKt.getAppInfo() == appInfo)
+                .map(BaseProcessInfoKt::getPid)
+                .collect(Collectors.toSet());
+
+        if (processInfoPids.isEmpty()) {
             return;
         }
 

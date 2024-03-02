@@ -12,7 +12,6 @@ import com.venus.backgroundopt.hook.base.action.afterHookAction
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
-import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils
@@ -118,10 +117,11 @@ class ProcessListHookKt(
     }
 
     private fun handleSetOomAdj(param: MethodHookParam) {
-        val uid = param.args[1] as Int
+        val pid = param.args[0] as Int
         val runningInfo = runningInfo
-//        val appInfo = runningInfo.computeRunningAppIfAbsent(uid) ?: return
-        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
+        // 获取当前进程对象
+        val process = runningInfo.getRunningProcess(pid) ?: return
+        val appInfo = process.appInfo
 
         val globalOomScorePolicy = CommonProperties.globalOomScorePolicy.value
         if (!globalOomScorePolicy.enabled) {
@@ -137,13 +137,9 @@ class ProcessListHookKt(
                 return
             }
         }
-
-        val pid = param.args[0] as Int
+        val uid = param.args[1] as Int
         val oomAdjScore = param.args[2] as Int
 
-        // 获取当前进程对象
-        val process =
-            appInfo.getProcess(pid) ?: return
         /*?: appInfo.addProcess(runningInfo.activityManagerService.getProcessRecord(pid))*/
         val mainProcess = process.mainProcess
         val lastOomScoreAdj = process.oomAdjScore
@@ -162,12 +158,12 @@ class ProcessListHookKt(
             var possibleFinalAdj = appOptimizePolicy.getCustomMainProcessOomScore()
 
             if (oomAdjScore >= 0 || possibleFinalAdj != null || globalOomScorePolicy.enabled) {
-                if (mainProcess
-                    || isUpgradeSubProcessLevel(process.processName)
+                if (mainProcess || isUpgradeSubProcessLevel(process.processName)
                     || (CommonProperties.enableWebviewProcessProtect.value && process.webviewProcess)
                 ) {
                     oomAdjustLevel = OomAdjustLevel.FIRST
                 }
+
                 if (oomAdjustLevel == OomAdjustLevel.FIRST) {
                     if (CommonProperties.oomWorkModePref.oomMode != OomWorkModePref.MODE_NEGATIVE
                         || globalOomScorePolicy.enabled
@@ -323,8 +319,8 @@ class ProcessListHookKt(
     fun handleRemoveLruProcessLocked(param: MethodHookParam) {
         val proc = param.args[0]
         val uid = ProcessRecordKt.getUID(proc)
-        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
         val pid = ProcessRecordKt.getMDyingPid(proc)
+        val appInfo = runningInfo.getRunningProcess(pid)?.appInfo ?: return
 
         runningInfo.removeProcess(appInfo, uid, pid)
     }
