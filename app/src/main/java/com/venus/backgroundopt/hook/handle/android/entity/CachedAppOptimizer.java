@@ -1,5 +1,7 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
+import com.venus.backgroundopt.annotation.AndroidObject;
+import com.venus.backgroundopt.annotation.AndroidObjectField;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
@@ -47,14 +49,17 @@ public class CachedAppOptimizer implements ILogger {
     public long mCompactThrottleSomeFull = DEFAULT_COMPACT_THROTTLE_2;
     public long mCompactThrottleFullSome = DEFAULT_COMPACT_THROTTLE_3;
     public long mCompactThrottleFullFull = DEFAULT_COMPACT_THROTTLE_4;
+    @AndroidObjectField
     public long mCompactThrottleMinOomAdj;
+    @AndroidObjectField
     public long mCompactThrottleMaxOomAdj;
 
     private long mFullCompactRequest;
 
+    @AndroidObject(classPath = ClassConstants.CachedAppOptimizer)
     private final Object cachedAppOptimizer;
 
-    public CachedAppOptimizer(Object cachedAppOptimizer, ClassLoader classLoader) {
+    public CachedAppOptimizer(@AndroidObject Object cachedAppOptimizer, ClassLoader classLoader) {
         this.cachedAppOptimizer = cachedAppOptimizer;
 
         mCompactThrottleMinOomAdj =
@@ -63,6 +68,7 @@ public class CachedAppOptimizer implements ILogger {
                 XposedHelpers.getLongField(cachedAppOptimizer, FieldConstants.mCompactThrottleMaxOomAdj);
     }
 
+    @AndroidObject
     public Object getCachedAppOptimizer() {
         return cachedAppOptimizer;
     }

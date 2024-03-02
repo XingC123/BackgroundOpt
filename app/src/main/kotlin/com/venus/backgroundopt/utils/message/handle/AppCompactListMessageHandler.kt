@@ -1,6 +1,7 @@
 package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
+import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
 import de.robv.android.xposed.XC_MethodHook
@@ -24,7 +25,7 @@ class AppCompactListMessageHandler : MessageHandler {
             }*/
             runningInfo.runningAppInfos.asSequence()
                 .filterNotNull()
-                .filter { it.appGroupEnum == RunningInfo.AppGroupEnum.IDLE }
+                .filter { it.appGroupEnum == AppGroupEnum.IDLE || it.appGroupEnum == AppGroupEnum.NONE }
                 .flatMap { it.processes }
                 .onEach {
                     // 设置真实oom_adj_score

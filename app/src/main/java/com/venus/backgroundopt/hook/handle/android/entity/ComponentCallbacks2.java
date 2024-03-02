@@ -1,6 +1,9 @@
 package com.venus.backgroundopt.hook.handle.android.entity;
 
+import com.venus.backgroundopt.annotation.AndroidMethod;
+import com.venus.backgroundopt.annotation.AndroidObjectField;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
+import com.venus.backgroundopt.hook.constants.MethodConstants;
 
 /**
  * 封装自安卓{@link ClassConstants#ComponentCallbacks2}
@@ -22,6 +25,7 @@ public interface ComponentCallbacks2 {
      * of the background LRU list, and if more memory isn't found soon it will
      * be killed.
      */
+    @AndroidObjectField(objectClassPath = ClassConstants.ComponentCallbacks2, fieldName = "TRIM_MEMORY_COMPLETE")
     public static final int TRIM_MEMORY_COMPLETE = 80;
 
     /**
@@ -31,6 +35,7 @@ public interface ComponentCallbacks2 {
      * of the background LRU list; freeing memory can help the system keep
      * other processes running later in the list for better overall performance.
      */
+    @AndroidObjectField(objectClassPath = ClassConstants.ComponentCallbacks2, fieldName = "TRIM_MEMORY_MODERATE")
     public static final int TRIM_MEMORY_MODERATE = 60;
 
     /**
@@ -40,6 +45,7 @@ public interface ComponentCallbacks2 {
      * LRU list.  This is a good opportunity to clean up resources that can
      * efficiently and quickly be re-built if the user returns to the app.
      */
+    @AndroidObjectField(objectClassPath = ClassConstants.ComponentCallbacks2, fieldName = "TRIM_MEMORY_BACKGROUND")
     public static final int TRIM_MEMORY_BACKGROUND = 40;
 
     /* *************************************************************************
@@ -55,6 +61,7 @@ public interface ComponentCallbacks2 {
      * the UI should be released at this point to allow memory to be better
      * managed.
      */
+    @AndroidObjectField(objectClassPath = ClassConstants.ComponentCallbacks2, fieldName = "TRIM_MEMORY_UI_HIDDEN")
     public static final int TRIM_MEMORY_UI_HIDDEN = 20;
 
     /* *************************************************************************
@@ -74,6 +81,7 @@ public interface ComponentCallbacks2 {
      * nothing at all can be kept in the background, a situation that can start
      * to notably impact the user.
      */
+    @AndroidObjectField(objectClassPath = ClassConstants.ComponentCallbacks2, fieldName = "TRIM_MEMORY_RUNNING_CRITICAL")
     public static final int TRIM_MEMORY_RUNNING_CRITICAL = 15;
 
     /**
@@ -84,6 +92,7 @@ public interface ComponentCallbacks2 {
      * Your running process should free up unneeded resources to allow that
      * memory to be used elsewhere.
      */
+    @AndroidObjectField(objectClassPath = ClassConstants.ComponentCallbacks2, fieldName = "TRIM_MEMORY_RUNNING_LOW")
     public static final int TRIM_MEMORY_RUNNING_LOW = 10;
 
     /**
@@ -94,6 +103,7 @@ public interface ComponentCallbacks2 {
      * Your running process may want to release some unneeded resources for
      * use elsewhere.
      */
+    @AndroidObjectField(objectClassPath = ClassConstants.ComponentCallbacks2, fieldName = "TRIM_MEMORY_RUNNING_MODERATE")
     public static final int TRIM_MEMORY_RUNNING_MODERATE = 5;
 
     /**
@@ -113,5 +123,6 @@ public interface ComponentCallbacks2 {
      *              trimming the application may like to perform.
      */
 //    void onTrimMemory(@TrimMemoryLevel int level);
+    @AndroidMethod(classPath = ClassConstants.ComponentCallbacks2, methodName = "onTrimMemory")
     void onTrimMemory(int level);   // 注释部分为原方法, 此处避免报错
 }

@@ -33,7 +33,7 @@ object PreferencesUtil {
     }
 
     fun getString(path: String, key: String, defaultValue: String? = null): String? =
-        getPref(path)?.getString(key, defaultValue)
+        getPref(path)?.getString(key, defaultValue) ?: defaultValue
 
     fun getBoolean(path: String, key: String, defaultValue: Boolean = false): Boolean =
         getPref(path)?.getBoolean(key, defaultValue) ?: defaultValue
@@ -52,7 +52,7 @@ object PreferencesUtil {
         key: String,
         defaultValue: MutableSet<String>? = null
     ): MutableSet<String>? =
-        getPref(path)?.getStringSet(key, defaultValue)
+        getPref(path)?.getStringSet(key, defaultValue) ?: defaultValue
 
     fun <E> getObject(path: String, key: String, clazz: Class<E>, defaultValue: E?): E? {
         return getString(path, key)?.let { v ->

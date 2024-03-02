@@ -100,6 +100,7 @@ public interface MethodConstants {
     String onOomAdjustChanged = "onOomAdjustChanged";
     String setSetAdj = "setSetAdj";
     String getSetAdj = "getSetAdj";
+    String addService = "addService";
 
     /**
      * miui

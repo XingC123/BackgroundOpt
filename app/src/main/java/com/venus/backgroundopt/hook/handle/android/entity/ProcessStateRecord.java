@@ -2,6 +2,7 @@ package com.venus.backgroundopt.hook.handle.android.entity;
 
 import androidx.annotation.NonNull;
 
+import com.venus.backgroundopt.annotation.AndroidObject;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
@@ -16,17 +17,20 @@ import de.robv.android.xposed.XposedHelpers;
  * @date 2023/7/11
  */
 public class ProcessStateRecord {
+    @AndroidObject(classPath = ClassConstants.ProcessStateRecord)
     private final Object processStateRecord;
 
+    @AndroidObject
     public Object getProcessStateRecord() {
         return processStateRecord;
     }
 
-    public ProcessStateRecord(Object processStateRecord) {
+    public ProcessStateRecord(@AndroidObject Object processStateRecord) {
         this.processStateRecord = processStateRecord;
     }
 
-    public static Object getProcessRecord(Object processStateRecord) {
+    @AndroidObject
+    public static Object getProcessRecord(@AndroidObject Object processStateRecord) {
         return XposedHelpers.getObjectField(processStateRecord, FieldConstants.mApp);
     }
 
@@ -74,11 +78,11 @@ public class ProcessStateRecord {
         return (boolean) XposedHelpers.callMethod(this.processStateRecord, MethodConstants.hasForegroundActivities);
     }
 
-    public static void setCurAdj(@NonNull Object instance, int curAdj) {
+    public static void setCurAdj(@NonNull @AndroidObject Object instance, int curAdj) {
         XposedUtilsKt.callMethod(instance, MethodConstants.setCurAdj, curAdj);
     }
 
-    public static void setSetAdj(@NonNull Object instance, int setAdj) {
+    public static void setSetAdj(@NonNull @AndroidObject Object instance, int setAdj) {
         XposedUtilsKt.callMethod(instance, MethodConstants.setSetAdj, setAdj);
     }
 }
