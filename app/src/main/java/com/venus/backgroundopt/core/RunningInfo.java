@@ -197,7 +197,7 @@ public class RunningInfo implements ILogger {
      */
     @NonNull
     public String getRunningAppIdentifier(int userId, String packageName) {
-        return userId + ":" + packageName;
+        return getNormalAppKey(userId, packageName);
     }
 
     /**
