@@ -14,7 +14,13 @@ import kotlin.reflect.KClass
 )
 @Retention(AnnotationRetention.SOURCE)
 annotation class AndroidObjectField(
+    // 所属对象的类型的完整路径
     val objectClassPath: String = "",
+    // 所属对象的类型
     val objectClazz: KClass<*> = Any::class,
     val fieldName: String = "",
+    // 字段的类型的完整类路径
+    val fieldTypeClassPath: String = "",
+    // 字段的类型
+    val fieldTypeClazz: KClass<*> = Any::class,
 )
