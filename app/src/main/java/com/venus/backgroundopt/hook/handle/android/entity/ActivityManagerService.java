@@ -132,12 +132,11 @@ public class ActivityManagerService implements ILogger {
      * @return 是重要系统app -> true
      */
     public static boolean isImportantSystemApp(android.content.pm.ApplicationInfo applicationInfo) {
-        return applicationInfo == null ||
-                (applicationInfo.flags &
-                        /*(android.content.pm.ApplicationInfo.FLAG_SYSTEM | android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP
-                        )*/
-                        android.content.pm.ApplicationInfo.FLAG_SYSTEM
-                ) != 0;
+        return applicationInfo == null || (
+                applicationInfo.flags & (
+                        android.content.pm.ApplicationInfo.FLAG_SYSTEM | android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP
+                )
+        ) != 0;
     }
 
     public ApplicationInfo getApplicationInfo(AppInfo appInfo) {

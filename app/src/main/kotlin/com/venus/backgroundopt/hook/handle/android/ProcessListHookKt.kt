@@ -47,8 +47,16 @@ class ProcessListHookKt(
         const val simpleLmkMaxAndMinOffset = maxSimpleLmkOomScore - minSimpleLmkOomScore
         const val visibleAppAdjUseSimpleLmk = ProcessList.VISIBLE_APP_ADJ / simpleLmkConvertDivisor
 
+        const val importSystemAppAdjStartUseSimpleLmk = 1
+        const val importSystemAppAdjEndUseSimpleLmk = 3
+
+        @JvmField
+        val importSystemAppAdjNormalUseSimpleLmk = "%.0f".format(
+            (importSystemAppAdjStartUseSimpleLmk + importSystemAppAdjEndUseSimpleLmk) / 2.0
+        ).toInt()
+
         // 第一等级的app的adj的起始值
-        const val firstLevelAppAdjStartUseSimpleLmk = minSimpleLmkOomScore + 1
+        const val normalAppAdjStartUseSimpleLmk = importSystemAppAdjEndUseSimpleLmk + 1
     }
 
     override fun getHookPoint(): Array<HookPoint> {
@@ -109,11 +117,24 @@ class ProcessListHookKt(
     )
 
     val simpleLmkOomScoreMap = ConcurrentHashMap<Int, Int>(8)
+    val simpleLmkImportSystemAppOomScoreMap = ConcurrentHashMap<Int, Int>(8)
 
     private fun computeOomScoreAdjValueUseSimpleLmk(
         oomScoreAdj: Int
     ): Int = simpleLmkOomScoreMap.computeIfAbsent(oomScoreAdj) {
-        (oomScoreAdj / simpleLmkConvertDivisor).coerceAtLeast(firstLevelAppAdjStartUseSimpleLmk)
+        (oomScoreAdj / simpleLmkConvertDivisor).coerceAtLeast(normalAppAdjStartUseSimpleLmk)
+    }
+
+    private fun getImportSystemAppOomScoreUseSimpleLmk(
+        oomScoreAdj: Int
+    ): Int = simpleLmkImportSystemAppOomScoreMap.computeIfAbsent(oomScoreAdj) { _ ->
+        if (oomScoreAdj < ProcessList.VISIBLE_APP_ADJ) {
+            importSystemAppAdjStartUseSimpleLmk
+        } else if (oomScoreAdj < ProcessList.CACHED_APP_MIN_ADJ) {
+            importSystemAppAdjNormalUseSimpleLmk
+        } else {
+            importSystemAppAdjEndUseSimpleLmk
+        }
     }
 
     private fun handleSetOomAdj(param: MethodHookParam) {
@@ -122,13 +143,16 @@ class ProcessListHookKt(
         // 获取当前进程对象
         val process = runningInfo.getRunningProcess(pid) ?: return
         val appInfo = process.appInfo
+        var isImportantSystemApp = false
 
         val globalOomScorePolicy = CommonProperties.globalOomScorePolicy.value
         if (!globalOomScorePolicy.enabled) {
+            isImportantSystemApp = runningInfo.isImportantSystemApp(
+                appInfo.userId,
+                appInfo.packageName
+            )
             // 若当前为重要系统app, 则检查是否有界面
-            if (runningInfo.isImportantSystemApp(appInfo.userId, appInfo.packageName)
-                && appInfo.findAppResult?.hasActivity != true
-            ) {
+            if (isImportantSystemApp && appInfo.findAppResult?.hasActivity != true) {
                 return
             }
 
@@ -182,9 +206,11 @@ class ProcessListHookKt(
                             // simple lmk 只在平衡模式生效
                                 if (useSimpleLmk && CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_BALANCE) {
                                     possibleFinalAdj =
-                                        possibleFinalAdj ?: computeOomScoreAdjValueUseSimpleLmk(
-                                            oomScoreAdj = oomAdjScore
-                                        )
+                                        possibleFinalAdj ?: if (isImportantSystemApp) {
+                                            getImportSystemAppOomScoreUseSimpleLmk(oomScoreAdj = oomAdjScore)
+                                        } else {
+                                            computeOomScoreAdjValueUseSimpleLmk(oomScoreAdj = oomAdjScore)
+                                        }
                                     if (mainProcess) {
                                         possibleFinalAdj
                                     } else {
