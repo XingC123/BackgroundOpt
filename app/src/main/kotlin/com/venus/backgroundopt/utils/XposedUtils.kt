@@ -152,12 +152,30 @@ fun Any.callMethod(methodName: String, vararg args: Any?): Any? {
     return XposedHelpers.callMethod(this, methodName, *args)
 }
 
+@JvmName("callMethodWithType")
+@Suppress("UNCHECKED_CAST")
+fun <R> Any.callMethod(methodName: String, vararg args: Any?): R {
+    return callMethod(methodName = methodName, args = args) as R
+}
+
 fun Any.callMethod(methodName: String, paramTypes: Array<out Class<*>>, vararg args: Any?): Any? {
     return XposedHelpers.callMethod(this, methodName, paramTypes, *args)
 }
 
+@JvmName("callMethodWithType")
+@Suppress("UNCHECKED_CAST")
+fun <R> Any.callMethod(methodName: String, paramTypes: Array<out Class<*>>, vararg args: Any?): R {
+    return callMethod(methodName, paramTypes, args) as R
+}
+
 fun Class<*>.callStaticMethod(methodName: String, vararg args: Any?): Any? {
     return XposedHelpers.callStaticMethod(this, methodName, args)
+}
+
+@JvmName("callStaticMethodWithType")
+@Suppress("UNCHECKED_CAST")
+fun <R> Class<*>.callStaticMethod(methodName: String, vararg args: Any?): R {
+    return callStaticMethod(methodName, args) as R
 }
 
 fun Class<*>.callStaticMethod(
@@ -166,6 +184,16 @@ fun Class<*>.callStaticMethod(
     vararg args: Any?
 ): Any? {
     return XposedHelpers.callStaticMethod(this, methodName, paramTypes, args)
+}
+
+@JvmName("callStaticMethodWithType")
+@Suppress("UNCHECKED_CAST")
+fun <R> Class<*>.callStaticMethod(
+    methodName: String,
+    paramTypes: Array<out Class<*>>,
+    vararg args: Any?
+): R {
+    return callStaticMethod(methodName, paramTypes, args) as R
 }
 
 /* *************************************************************************
