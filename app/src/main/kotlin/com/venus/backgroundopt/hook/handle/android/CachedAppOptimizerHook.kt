@@ -5,8 +5,10 @@ import com.venus.backgroundopt.hook.base.IHook
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
+import com.venus.backgroundopt.utils.afterHook
 import com.venus.backgroundopt.utils.beforeHook
 import com.venus.backgroundopt.utils.findClassIfExists
+import com.venus.backgroundopt.utils.getLongFieldValue
 import com.venus.backgroundopt.utils.replaceHook
 import com.venus.backgroundopt.utils.runCatchThrowable
 import com.venus.backgroundopt.utils.setStaticObjectFieldValue
@@ -42,5 +44,20 @@ class CachedAppOptimizerHook(
             classLoader = classLoader,
             methodName = MethodConstants.useCompaction,
         ) { false }
+
+        // hook系统freeze进程的延迟时间
+        ClassConstants.CachedAppOptimizer.afterHook(
+            classLoader = classLoader,
+            methodName = MethodConstants.updateFreezerDebounceTimeout,
+        ) {
+            val cachedAppOptimizerInstance =
+                runningInfo.activityManagerService.oomAdjuster.cachedAppOptimizer.getInstance()
+            val fieldValue =
+                cachedAppOptimizerInstance.getLongFieldValue(FieldConstants.mFreezerDebounceTimeout)
+            runningInfo.activityManagerService.oomAdjuster.cachedAppOptimizer.mFreezerDebounceTimeout =
+                fieldValue
+
+            logger.info("系统freeze进程的延迟时间: ${fieldValue}")
+        }
     }
 }

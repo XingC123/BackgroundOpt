@@ -35,6 +35,7 @@ public interface MethodConstants {
 
     String get = "get";
     String getBoolean = "getBoolean";
+    String getLong = "getLong";
     String setOverrideMaxCachedProcesses = "setOverrideMaxCachedProcesses";
     String updateMaxCachedProcesses = "updateMaxCachedProcesses";
     String getProperty = "getProperty";
@@ -101,6 +102,8 @@ public interface MethodConstants {
     String setSetAdj = "setSetAdj";
     String getSetAdj = "getSetAdj";
     String addService = "addService";
+    String useCompaction = "useCompaction";
+    String updateFreezerDebounceTimeout = "updateFreezerDebounceTimeout";
 
     /**
      * miui

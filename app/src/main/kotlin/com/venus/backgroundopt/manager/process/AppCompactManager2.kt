@@ -57,19 +57,22 @@ class AppCompactManager2(
             return
         }
 
-        compactProcessMap.remove(processRecord)?.cancel(true)
-        compactProcessMap[processRecord] = executor.schedule({
-            runCatchThrowable(catchBlock = {
-                logger.error("压缩进程任务出错", it)
-            }) {
-                compactProcessImpl(
-                    processRecord = processRecord,
-                    lastOomScoreAdj = lastOomScoreAdj,
-                    curOomScoreAdj = curOomScoreAdj,
-                    oomAdjustLevel = oomAdjustLevel,
-                )
-            }
-        }, 0, TimeUnit.SECONDS)
+        compactProcessMap.compute(processRecord) {_, lastScheduledFuture->
+            lastScheduledFuture?.cancel(true)
+
+            executor.schedule({
+                runCatchThrowable(catchBlock = {
+                    logger.error("压缩进程任务出错", it)
+                }) {
+                    compactProcessImpl(
+                        processRecord = processRecord,
+                        lastOomScoreAdj = lastOomScoreAdj,
+                        curOomScoreAdj = curOomScoreAdj,
+                        oomAdjustLevel = oomAdjustLevel,
+                    )
+                }
+            }, /*cachedAppOptimizer.mFreezerDebounceTimeout*/ 10 * 1000, TimeUnit.MILLISECONDS)
+        }
     }
 
     private fun compactProcessImpl(
