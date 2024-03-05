@@ -7,6 +7,7 @@ import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.utils.beforeHook
 import com.venus.backgroundopt.utils.findClassIfExists
+import com.venus.backgroundopt.utils.replaceHook
 import com.venus.backgroundopt.utils.runCatchThrowable
 import com.venus.backgroundopt.utils.setStaticObjectFieldValue
 
@@ -36,5 +37,10 @@ class CachedAppOptimizerHook(
                 )
             logger.info("[禁用]框架层内存压缩")
         }
+
+        ClassConstants.CachedAppOptimizer.replaceHook(
+            classLoader = classLoader,
+            methodName = MethodConstants.useCompaction,
+        ) { false }
     }
 }
