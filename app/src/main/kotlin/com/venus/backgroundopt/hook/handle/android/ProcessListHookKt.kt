@@ -137,6 +137,16 @@ class ProcessListHookKt(
         }
     }
 
+    private fun getMainProcessOomScoreAdjNonNull(oomScoreAdj: Int?): Int =
+        oomScoreAdj ?: ProcessRecordKt.DEFAULT_MAIN_ADJ
+
+    /**
+     * simple lmk 只在平衡模式生效
+     * @return Boolean 启用 -> true
+     */
+    private fun useSimpleLmk(): Boolean =
+        CommonProperties.enableSimpleLmk.value && CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_BALANCE
+
     private fun handleSetOomAdj(param: MethodHookParam) {
         val pid = param.args[0] as Int
         val runningInfo = runningInfo
@@ -164,7 +174,6 @@ class ProcessListHookKt(
         val uid = param.args[1] as Int
         val oomAdjScore = param.args[2] as Int
 
-        /*?: appInfo.addProcess(runningInfo.activityManagerService.getProcessRecord(pid))*/
         val mainProcess = process.mainProcess
         val lastOomScoreAdj = process.oomAdjScore
         var oomAdjustLevel = OomAdjustLevel.NONE
@@ -189,80 +198,76 @@ class ProcessListHookKt(
                 }
 
                 if (oomAdjustLevel == OomAdjustLevel.FIRST) {
-                    if (CommonProperties.oomWorkModePref.oomMode != OomWorkModePref.MODE_NEGATIVE
-                        || globalOomScorePolicy.enabled
-                    ) {
-                        val useSimpleLmk =
-                            CommonProperties.enableSimpleLmk.value /*&& (oomAdjScore in minSimpleLmkOomScore..maxSimpleLmkOomScore)*/
+                    val useSimpleLmk = useSimpleLmk()
+                    val finalAdj =
+                        // 前台的oom_score_adj默认为0
+                        if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
+                            ProcessList.FOREGROUND_APP_ADJ
+                        } else if (CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE) {
+                            possibleFinalAdj ?: oomAdjScore
+                        } else if (globalOomScorePolicy.enabled) {
+                            // 进程独立配置优先于全局oom
+                            possibleFinalAdj ?: customGlobalOomScore
+                        } else if (useSimpleLmk) {
+                            possibleFinalAdj = possibleFinalAdj ?: if (isImportantSystemApp) {
+                                getImportSystemAppOomScoreUseSimpleLmk(oomScoreAdj = oomAdjScore)
+                            } else {
+                                computeOomScoreAdjValueUseSimpleLmk(oomScoreAdj = oomAdjScore)
+                            }
 
-                        val finalAdj =
-                            // 前台的oom_score_adj默认为0
-                            if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
-                                ProcessList.FOREGROUND_APP_ADJ
-                            } else if (globalOomScorePolicy.enabled) {
-                                // 进程独立配置优先于全局oom
-                                possibleFinalAdj ?: customGlobalOomScore
-                            } else
-                            // simple lmk 只在平衡模式生效
-                                if (useSimpleLmk && CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_BALANCE) {
-                                    possibleFinalAdj =
-                                        possibleFinalAdj ?: if (isImportantSystemApp) {
-                                            getImportSystemAppOomScoreUseSimpleLmk(oomScoreAdj = oomAdjScore)
-                                        } else {
-                                            computeOomScoreAdjValueUseSimpleLmk(oomScoreAdj = oomAdjScore)
-                                        }
-                                    if (mainProcess) {
-                                        possibleFinalAdj
-                                    } else {
-                                        // 检查范围
-                                        /*val adj = possibleFinalAdj + simpleLmkMaxAndMinOffset
-                                        if (adj <= maxSimpleLmkOomScore) {
-                                            minSimpleLmkOtherProcessOomScore
-                                        } else if (adj > ProcessList.VISIBLE_APP_ADJ) {
-                                            ProcessList.VISIBLE_APP_ADJ
-                                        } else {
-                                            adj
-                                        }*/
-                                        // 在当前minSimpleLmkOomScore = 0, maxSimpleLmkOomScore = 50,
-                                        // simpleLmkConvertDivisor = (ProcessList.UNKNOWN_ADJ - 1) / maxSimpleLmkOomScore
-                                        // 的情况下possibleFinalAdj + simpleLmkMaxAndMinOffset永远小于ProcessList.VISIBLE_APP_ADJ
-                                        // 2024.3.1: 此处最小为1 + 50 = 51.不用再比较判断了
-                                        (possibleFinalAdj + simpleLmkMaxAndMinOffset)/*.coerceAtLeast(
+                            if (mainProcess) {
+                                possibleFinalAdj
+                            } else {
+                                // 检查范围
+                                /*val adj = possibleFinalAdj + simpleLmkMaxAndMinOffset
+                                if (adj <= maxSimpleLmkOomScore) {
+                                    minSimpleLmkOtherProcessOomScore
+                                } else if (adj > ProcessList.VISIBLE_APP_ADJ) {
+                                    ProcessList.VISIBLE_APP_ADJ
+                                } else {
+                                    adj
+                                }*/
+                                // 在当前minSimpleLmkOomScore = 0, maxSimpleLmkOomScore = 50,
+                                // simpleLmkConvertDivisor = (ProcessList.UNKNOWN_ADJ - 1) / maxSimpleLmkOomScore
+                                // 的情况下possibleFinalAdj + simpleLmkMaxAndMinOffset永远小于ProcessList.VISIBLE_APP_ADJ
+                                // 2024.3.1: 此处最小为1 + 50 = 51.不用再比较判断了
+                                (possibleFinalAdj + simpleLmkMaxAndMinOffset)/*.coerceAtLeast(
                                             minSimpleLmkOtherProcessOomScore
                                         )*/
-                                    }
-                                } else {
-                                    possibleFinalAdj =
-                                        possibleFinalAdj ?: ProcessRecordKt.DEFAULT_MAIN_ADJ
-                                    if (mainProcess) {
-                                        possibleFinalAdj
-                                    } else {
-                                        // 子进程升级、webview进程都默认比主进程adj大
-                                        (possibleFinalAdj + 1).coerceAtMost(ProcessList.VISIBLE_APP_ADJ)
-                                    }
-                                }
+                            }
+                        } else {
+                            possibleFinalAdj = getMainProcessOomScoreAdjNonNull(possibleFinalAdj)
 
-                        if (!useSimpleLmk && process.fixedOomAdjScore != finalAdj) {
-                            process.fixedOomAdjScore = finalAdj
-
-                            if (CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_STRICT ||
-                                CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE
-                            ) {
-                                process.setDefaultMaxAdj()
+                            if (mainProcess) {
+                                possibleFinalAdj
+                            } else {
+                                // 子进程升级、webview进程都默认比主进程adj大
+                                (possibleFinalAdj + 1).coerceAtMost(ProcessList.VISIBLE_APP_ADJ)
                             }
 
-                            if (BuildConfig.DEBUG) {
-                                logProcessOomChanged(
-                                    appInfo.packageName,
-                                    uid,
-                                    pid,
-                                    mainProcess,
-                                    finalAdj
-                                )
-                            }
                         }
 
-                        finalApplyOomScoreAdj = finalAdj
+                    finalApplyOomScoreAdj = finalAdj
+                    if (!useSimpleLmk && process.fixedOomAdjScore == Int.MIN_VALUE) {
+                        val adj = getMainProcessOomScoreAdjNonNull(possibleFinalAdj)
+                        process.fixedOomAdjScore = adj
+                        finalApplyOomScoreAdj = adj
+
+                        if (CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_STRICT ||
+                            CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE
+                        ) {
+                            process.setDefaultMaxAdj()
+                        }
+
+                        if (BuildConfig.DEBUG) {
+                            logProcessOomChanged(
+                                appInfo.packageName,
+                                uid,
+                                pid,
+                                mainProcess,
+                                finalAdj
+                            )
+                        }
                     }
                 } else { // 子进程的处理
                     if (globalOomScorePolicy.enabled && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_AND_SUB_PROCESS) {
