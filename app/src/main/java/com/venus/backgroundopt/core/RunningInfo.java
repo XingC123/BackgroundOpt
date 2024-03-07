@@ -253,12 +253,16 @@ public class RunningInfo implements ILogger {
      * @param appInfo app信息
      */
     public void removeRunningApp(@NonNull AppInfo appInfo) {
+        String packageName = appInfo.getPackageName();
+        if (packageName == null) {
+            getLogger().warn("kill: 包名为空");
+            return;
+        }
         ConcurrentUtilsKt.lock(appInfo, () -> {
             // 从运行列表移除
-            AppInfo remove = runningApps.remove(getRunningAppIdentifier(appInfo.getUserId(), appInfo.getPackageName()));
+            AppInfo remove = runningApps.remove(getRunningAppIdentifier(appInfo.getUserId(), packageName));
 
             if (remove != null) {
-                String packageName = remove.getPackageName();
                 // 设置内存分组到死亡分组
                 remove.setAppGroupEnum(AppGroupEnum.DEAD);
                 // 从待处理列表中移除
@@ -271,12 +275,10 @@ public class RunningInfo implements ILogger {
                 // 清理AppInfo。也许有助于gc
                 appInfo.clearAppInfo();
 
-                if (BuildConfig.DEBUG) {
-                    getLogger().debug("移除: " + packageName + ", uid: " + remove.getUid());
-                }
+                getLogger().debug("kill: userId: " + appInfo.getUserId() + ", packageName: " + packageName + " >>> 杀死App");
             } else {
                 if (BuildConfig.DEBUG) {
-                    getLogger().warn("移除: 未找到移除项 -> " + appInfo.getPackageName() + ", uid: " + appInfo.getUid());
+                    getLogger().warn("kill: 未找到移除项 -> userId: " + appInfo.getUserId() + ", packageName: " + packageName);
                 }
             }
             return null;
@@ -350,16 +352,13 @@ public class RunningInfo implements ILogger {
         if (processRecord == null) {
             return;
         }
-        int uid = processRecord.getUid();
         AppInfo appInfo = processRecord.appInfo;
-
         String packageName = appInfo.getPackageName();
         boolean[] isMainProcess = {false};
         String[] processName = new String[1];
         ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
             getLogger().error(
-                    "移除进程(packageName: " + packageName + ", processName: " + processName[0] + ", uid: " + uid + ",pid: " + pid + ", isMainProcess: " + isMainProcess[0] + ")出现错误: " + throwable.getMessage(),
-
+                    "移除进程(packageName: " + packageName + ", fullProcessName: " + processName[0] + ", userId: " + appInfo.getUserId() + ",pid: " + pid + ", isMainProcess: " + isMainProcess[0] + ")出现错误",
                     throwable
             );
             return null;
@@ -372,14 +371,11 @@ public class RunningInfo implements ILogger {
             if (isMainProcess[0]) {
                 ConcurrentUtilsKt.lock(appInfo, () -> {
                     removeRunningApp(appInfo);
-                    if (BuildConfig.DEBUG) {
-                        getLogger().debug("kill: " + packageName + ", uid: " + uid + " >>> 杀死App");
-                    }
                     return null;
                 });
             } else {
                 if (BuildConfig.DEBUG) {
-                    getLogger().debug("kill: " + packageName + ", uid: " + uid + ", pid: " + pid + " >>> 子进程被杀");
+                    getLogger().debug("kill: userId: " + appInfo.getUserId() + ", packageName: " + packageName + ", pid: " + pid + " >>> 子进程被杀");
                 }
             }
 
