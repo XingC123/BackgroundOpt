@@ -53,7 +53,7 @@
         <ListPreference
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:defaultValue="3"
+            android:defaultValue="@string/settingsOomWorkModeDefaultValue"
             android:title="@string/settingsOomWorkModePrefText"
             app:entries="@array/oom_work_mode_entries"
             app:entryValues="@array/oom_work_mode_values"

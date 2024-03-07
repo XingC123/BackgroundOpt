@@ -4,6 +4,7 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
+import com.venus.backgroundopt.entity.preference.OomWorkModePref;
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants;
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants;
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2;
@@ -35,6 +36,13 @@ public interface PreferenceDefaultValue {
                 enableForegroundTrimMem
         );
     }
+
+    /* *************************************************************************
+     *                                                                         *
+     * OOM工作模式                                                               *
+     *                                                                         *
+     **************************************************************************/
+    int oomWorkMode = OomWorkModePref.MODE_STRICT;
 
     /* *************************************************************************
      *                                                                         *

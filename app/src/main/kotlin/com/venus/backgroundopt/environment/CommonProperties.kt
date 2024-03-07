@@ -67,7 +67,7 @@ object CommonProperties : ILogger {
         val oomWorkMode = PreferencesUtil.getString(
             PreferenceNameConstants.MAIN_SETTINGS,
             PreferenceKeyConstants.OOM_WORK_MODE,
-            OomWorkModePref.MODE_BALANCE.toString()
+            PreferenceDefaultValue.oomWorkMode.toString()
         )!!
         logInfo(logStr = "Oom工作模式: $oomWorkMode")
         OomWorkModePref(oomWorkMode.toInt())
