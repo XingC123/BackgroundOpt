@@ -57,7 +57,7 @@ public interface PreferenceDefaultValue {
      **************************************************************************/
     boolean enableGlobalOomScore = false;
     String globalOomScoreEffectiveScopeName = GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS.name();
-    int customGlobalOomScoreValue = ProcessList.NATIVE_ADJ;
+    int customGlobalOomScoreValue = ProcessList.FOREGROUND_APP_ADJ;
 
     /* *************************************************************************
      *                                                                         *
