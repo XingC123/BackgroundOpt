@@ -287,6 +287,14 @@ public class RunningInfo implements ILogger {
         });
     }
 
+    public void forceStopRunningApp(@NonNull AppInfo appInfo) {
+        String packageName = appInfo.getPackageName();
+        if (packageName == null) {
+            return;
+        }
+        activityManagerService.forceStopPackage(packageName, appInfo.getUserId());
+    }
+
     /* *************************************************************************
      *                                                                         *
      * 运行的进程                                                                *

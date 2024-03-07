@@ -104,6 +104,10 @@ public interface MethodConstants {
     String addService = "addService";
     String useCompaction = "useCompaction";
     String updateFreezerDebounceTimeout = "updateFreezerDebounceTimeout";
+    String removeRecentTasksByPackageName = "removeRecentTasksByPackageName";
+    String cleanupRecentTasksForUser = "cleanupRecentTasksForUser";
+    String cleanUpRemovedTask = "cleanUpRemovedTask";
+    String cleanUpRemovedTaskLocked = "cleanUpRemovedTaskLocked";
 
     /**
      * miui

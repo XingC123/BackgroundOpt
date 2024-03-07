@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 
+import com.venus.backgroundopt.annotation.AndroidMethod;
 import com.venus.backgroundopt.annotation.AndroidObject;
 import com.venus.backgroundopt.annotation.AndroidObjectField;
 import com.venus.backgroundopt.core.RunningInfo;
@@ -14,6 +15,7 @@ import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.utils.PackageUtils;
+import com.venus.backgroundopt.utils.XposedUtilsKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.lang.reflect.InvocationTargetException;
@@ -243,6 +245,11 @@ public class ActivityManagerService implements ILogger {
                 MethodConstants.isAppForeground,
                 uid
         );
+    }
+
+    @AndroidMethod(classPath = ClassConstants.ActivityManagerService, methodName = MethodConstants.forceStopPackage)
+    public void forceStopPackage(String packageName, int userId) {
+        XposedUtilsKt.callMethod(activityManagerService, MethodConstants.forceStopPackage, packageName, userId);
     }
 
     public ProcessRecordKt getTopApp() {

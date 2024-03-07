@@ -151,22 +151,8 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
         val packageName = param.args[0] as String
         val userId = param.args[1] as Int
 
-        // 获取缓存的app的信息
-        val findAppResult = runningInfo.getFindAppResult(userId, packageName)
-        if (findAppResult.importantSystemApp) {
-            return
-        }
-
-        val applicationInfo = findAppResult.applicationInfo ?: return
-        val uid = applicationInfo.uid
-        val appInfo = runningInfo.getRunningAppInfo(userId, packageName)
-        appInfo?.let {
-            runningInfo.removeRunningApp(appInfo)
-
-            if (BuildConfig.DEBUG) {
-                logger.debug("kill: ${appInfo.packageName}, uid: $uid")
-            }
-        }
+        val appInfo = runningInfo.getRunningAppInfo(userId, packageName) ?: return
+        runningInfo.removeRunningApp(appInfo)
     }
 
     @Deprecated("有时候不执行。比如在王者荣耀里面两次返回从游戏内退出")

@@ -67,4 +67,6 @@ public interface FieldConstants {
     String mAvailable = "mAvailable";
     String DEFAULT_USE_COMPACTION = "DEFAULT_USE_COMPACTION";
     String mFreezerDebounceTimeout = "mFreezerDebounceTimeout";
+    String intent = "intent";
+    String mUserId = "mUserId";
 }

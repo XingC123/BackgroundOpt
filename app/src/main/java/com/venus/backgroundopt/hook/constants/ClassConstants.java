@@ -22,6 +22,7 @@ public interface ClassConstants {
     String AppProfiler = "com.android.server.am.AppProfiler";
     String RecentTasks = "com.android.server.wm.RecentTasks";
     String Task = "com.android.server.wm.Task";
+    String ActivityTaskSupervisor = "com.android.server.wm.ActivityTaskSupervisor";
     String ComponentName = "android.content.ComponentName";
     String IBinder = "android.os.IBinder";
     String Process = "android.os.Process";
