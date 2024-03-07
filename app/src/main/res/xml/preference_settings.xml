@@ -99,6 +99,7 @@
             android:selectAllOnFocus="true"
             android:singleLine="true"
             android:title="@string/settingsCustomGlobalOomScorePrefText"
+            app:defaultValue="@string/settingsGlobalOomScoreCustomValueDefaultValue"
             app:dependency="@string/pref_key_global_oom_score"
             app:iconSpaceReserved="false"
             app:key="@string/pref_key_global_oom_score_value"
