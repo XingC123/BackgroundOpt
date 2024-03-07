@@ -109,7 +109,12 @@ public class RunningInfo implements ILogger {
     public final Map<String, FindAppResult> findAppResultMap = new ConcurrentHashMap<>();
 
     public boolean isImportantSystemApp(int userId, String packageName) {
-        return getFindAppResult(userId, packageName).getImportantSystemApp();
+        try {
+            return getFindAppResult(userId, packageName).getImportantSystemApp();
+        } catch (Throwable throwable) {
+            getLogger().error("判断是否是重要app出错: userId: " + userId + ", packageName: " + packageName, throwable);
+            return false;
+        }
     }
 
     @NonNull
@@ -338,11 +343,16 @@ public class RunningInfo implements ILogger {
      * 移除进程。<br>
      * 额外处理与进程相关的任务。
      *
-     * @param appInfo 应用信息
-     * @param uid     uid
-     * @param pid     pid
+     * @param pid pid
      */
-    public void removeProcess(@NonNull AppInfo appInfo, int uid, int pid) {
+    public void removeProcess(int pid) {
+        ProcessRecordKt processRecord = getRunningProcess(pid);
+        if (processRecord == null) {
+            return;
+        }
+        int uid = processRecord.getUid();
+        AppInfo appInfo = processRecord.appInfo;
+
         String packageName = appInfo.getPackageName();
         boolean[] isMainProcess = {false};
         String[] processName = new String[1];
@@ -354,30 +364,24 @@ public class RunningInfo implements ILogger {
             );
             return null;
         }, () -> {
-            ProcessRecordKt processRecord = getRunningProcess(pid);
-            if (processRecord == null) {
-                return null;
-            }
             isMainProcess[0] = processRecord.getMainProcess();
             processName[0] = processRecord.getFullProcessName();
 
-            ConcurrentUtilsKt.lock(appInfo, () -> {
-                // 移除进程记录
-                removeRunningProcess(pid);
-                // processManager.cancelCompactProcess(process);
-
-                if (isMainProcess[0]) {
+            // 移除进程记录
+            removeRunningProcess(pid);
+            if (isMainProcess[0]) {
+                ConcurrentUtilsKt.lock(appInfo, () -> {
                     removeRunningApp(appInfo);
                     if (BuildConfig.DEBUG) {
                         getLogger().debug("kill: " + packageName + ", uid: " + uid + " >>> 杀死App");
                     }
-                } else {
-                    if (BuildConfig.DEBUG) {
-                        getLogger().debug("kill: " + packageName + ", uid: " + uid + ", pid: " + pid + " >>> 子进程被杀");
-                    }
+                    return null;
+                });
+            } else {
+                if (BuildConfig.DEBUG) {
+                    getLogger().debug("kill: " + packageName + ", uid: " + uid + ", pid: " + pid + " >>> 子进程被杀");
                 }
-                return null;
-            });
+            }
 
             return null;
         });

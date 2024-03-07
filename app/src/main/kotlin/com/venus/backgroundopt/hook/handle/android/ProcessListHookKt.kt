@@ -157,10 +157,7 @@ class ProcessListHookKt(
 
         val globalOomScorePolicy = CommonProperties.globalOomScorePolicy.value
         if (!globalOomScorePolicy.enabled) {
-            isImportantSystemApp = runningInfo.isImportantSystemApp(
-                appInfo.userId,
-                appInfo.packageName
-            )
+            isImportantSystemApp = appInfo.isImportSystemApp
             // 若当前为重要系统app, 则检查是否有界面
             if (isImportantSystemApp && appInfo.findAppResult?.hasActivity != true) {
                 return
@@ -182,12 +179,17 @@ class ProcessListHookKt(
 
         val globalOomScoreEffectiveScopeEnum = globalOomScorePolicy.globalOomScoreEffectiveScope
         val customGlobalOomScore = globalOomScorePolicy.customGlobalOomScore
-        // 对所有进程应用oom修改
-        if (globalOomScorePolicy.enabled && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL) {
+        if (appInfo.appGroupEnum == AppGroupEnum.DEAD) {
+            // app已经死亡
+            // 24.3.7的逻辑是: 主进程被移除, 则会移除AppInfo。但是这个移除行为是在线程池完成的。
+            // 因此, 与当前的逻辑是有一个线程安全问题的。
+            // 所以我们在这里再确认下是否AppInfo已经被标记为死亡
+            return
+        } else if (globalOomScorePolicy.enabled && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL) {
+            // 对所有进程应用oom修改
             finalApplyOomScoreAdj = customGlobalOomScore
         } else {
-            val appOptimizePolicy =
-                CommonProperties.appOptimizePolicyMap[process.packageName]
+            val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[process.packageName]
             var possibleFinalAdj = appOptimizePolicy.getCustomMainProcessOomScore()
 
             if (oomAdjScore >= 0 || possibleFinalAdj != null || globalOomScorePolicy.enabled) {
@@ -244,7 +246,6 @@ class ProcessListHookKt(
                                 // 子进程升级、webview进程都默认比主进程adj大
                                 (possibleFinalAdj + 1).coerceAtMost(ProcessList.VISIBLE_APP_ADJ)
                             }
-
                         }
 
                     finalApplyOomScoreAdj = finalAdj
@@ -349,11 +350,9 @@ class ProcessListHookKt(
     @Deprecated("ProcessRecordKt.getMDyingPid(proc)有时候为0")
     fun handleRemoveLruProcessLocked(param: MethodHookParam) {
         val proc = param.args[0]
-        val uid = ProcessRecordKt.getUID(proc)
         val pid = ProcessRecordKt.getMDyingPid(proc)
-        val appInfo = runningInfo.getRunningProcess(pid)?.appInfo ?: return
 
-        runningInfo.removeProcess(appInfo, uid, pid)
+        runningInfo.removeProcess(pid)
     }
 
     /* *************************************************************************

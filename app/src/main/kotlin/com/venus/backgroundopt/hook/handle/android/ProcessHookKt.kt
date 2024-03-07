@@ -51,11 +51,9 @@ class ProcessHookKt(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
 
     @Deprecated("执行完毕后有可能会进入ProcessListHook.handleSetOomAdj导致再次新建")
     private fun handleKillApp(param: MethodHookParam) {
-        val uid = param.args[0] as Int
         val pid = param.args[1] as Int
-        val appInfo = runningInfo.getRunningProcess(pid)?.appInfo ?: return
 
-        runningInfo.removeProcess(appInfo, uid, pid)
+        runningInfo.removeProcess(pid)
     }
 
     @Deprecated("实际实施起来非常复杂")

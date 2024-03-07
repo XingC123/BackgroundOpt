@@ -79,6 +79,10 @@ public class AppInfo implements ILogger, LockFlag {
         this.findAppResult = findAppResult;
     }
 
+    public boolean isImportSystemApp() {
+        return findAppResult.getImportantSystemApp();
+    }
+
     public boolean isSwitchEventHandled() {
         return switchEventHandled.get();
     }

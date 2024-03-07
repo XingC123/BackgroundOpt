@@ -172,20 +172,14 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
     @Deprecated("有时候不执行。比如在王者荣耀里面两次返回从游戏内退出")
     private fun handleCleanUpApplicationRecordLocked(param: MethodHookParam) {
         val pid = param.args[1] as Int
-        val processRecord = runningInfo.getRunningProcess(pid) ?: return
-        val uid = processRecord.uid
-        val appInfo = processRecord.appInfo
 
-        runningInfo.removeProcess(appInfo, uid, pid)
+        runningInfo.removeProcess(pid)
     }
 
     fun handleRemovePidLocked(param: MethodHookParam) {
         val pid = param.args[0] as Int
-        val processRecord = runningInfo.getRunningProcess(pid) ?: return
-        val uid = processRecord.uid
-        val appInfo = processRecord.appInfo
 
-        runningInfo.removeProcess(appInfo, uid, pid)
+        runningInfo.removeProcess(pid)
     }
 
     private fun handleKillProcessesBelowAdj(param: MethodHookParam) {
