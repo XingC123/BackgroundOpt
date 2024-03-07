@@ -275,7 +275,11 @@ fun String.beforeHook(
     hookMethod(classLoader, methodName, object : XC_MethodHook() {
         override fun beforeHookedMethod(param: MethodHookParam) {
             super.beforeHookedMethod(param)
-            block(param)
+            runCatchThrowable(catchBlock = {
+                logError(logStr = "beforeHook执行出错.class: ${this@beforeHook}, methodName: ${methodName}", t = it)
+            }) {
+                block(param)
+            }
         }
     }, hookAllMethod, methodType, *paramTypes)
 }
@@ -295,7 +299,11 @@ fun String.afterHook(
     hookMethod(classLoader, methodName, object : XC_MethodHook() {
         override fun afterHookedMethod(param: MethodHookParam) {
             super.afterHookedMethod(param)
-            block(param)
+            runCatchThrowable(catchBlock = {
+                logError(logStr = "beforeHook执行出错.class: ${this@afterHook}, methodName: ${methodName}", t = it)
+            }) {
+                block(param)
+            }
         }
     }, hookAllMethod, methodType, *paramTypes)
 }
