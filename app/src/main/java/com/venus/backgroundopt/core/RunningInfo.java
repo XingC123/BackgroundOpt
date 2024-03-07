@@ -275,7 +275,9 @@ public class RunningInfo implements ILogger {
                 // 清理AppInfo。也许有助于gc
                 appInfo.clearAppInfo();
 
-                getLogger().debug("kill: userId: " + appInfo.getUserId() + ", packageName: " + packageName + " >>> 杀死App");
+                if (BuildConfig.DEBUG) {
+                    getLogger().debug("kill: userId: " + appInfo.getUserId() + ", packageName: " + packageName + " >>> 杀死App");
+                }
             } else {
                 if (BuildConfig.DEBUG) {
                     getLogger().warn("kill: 未找到移除项 -> userId: " + appInfo.getUserId() + ", packageName: " + packageName);
