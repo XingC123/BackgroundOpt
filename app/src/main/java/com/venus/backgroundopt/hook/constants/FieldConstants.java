@@ -69,4 +69,6 @@ public interface FieldConstants {
     String mFreezerDebounceTimeout = "mFreezerDebounceTimeout";
     String intent = "intent";
     String mUserId = "mUserId";
+    String mWindowProcessController = "mWindowProcessController";
+    String mHasClientActivities = "mHasClientActivities";
 }

@@ -11,11 +11,14 @@ import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.afterHookAction
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
+import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.utils.concurrent.lock
+import com.venus.backgroundopt.utils.getBooleanFieldValue
+import com.venus.backgroundopt.utils.getObjectFieldValue
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
 import com.venus.backgroundopt.utils.message.handle.getCustomMainProcessOomScore
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -141,6 +144,18 @@ class ProcessListHookKt(
         oomScoreAdj ?: ProcessRecordKt.DEFAULT_MAIN_ADJ
 
     /**
+     * 是否需要处理webview进程
+     * @param processRecord ProcessRecordKt
+     * @return Boolean 需要处理 -> true
+     */
+    private fun isNeedHandleWebviewProcess(processRecord: ProcessRecordKt): Boolean =
+        CommonProperties.enableWebviewProcessProtect.value
+                && processRecord.webviewProcess
+                && processRecord.processRecord.getObjectFieldValue(
+            fieldName = FieldConstants.mWindowProcessController
+        )?.getBooleanFieldValue(fieldName = FieldConstants.mHasClientActivities) == true
+
+    /**
      * simple lmk 只在平衡模式生效
      * @return Boolean 启用 -> true
      */
@@ -194,7 +209,7 @@ class ProcessListHookKt(
 
             if (oomAdjScore >= 0 || possibleFinalAdj != null || globalOomScorePolicy.enabled) {
                 if (mainProcess || isUpgradeSubProcessLevel(process.processName)
-                    || (CommonProperties.enableWebviewProcessProtect.value && process.webviewProcess)
+                    || isNeedHandleWebviewProcess(process)
                 ) {
                     oomAdjustLevel = OomAdjustLevel.FIRST
                 }
