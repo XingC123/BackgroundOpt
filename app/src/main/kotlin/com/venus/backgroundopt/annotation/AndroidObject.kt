@@ -12,6 +12,8 @@ import kotlin.reflect.KClass
     AnnotationTarget.FIELD,
     AnnotationTarget.PROPERTY_GETTER,
     AnnotationTarget.VALUE_PARAMETER,
+    AnnotationTarget.PROPERTY,
+    AnnotationTarget.FUNCTION,
 )
 @Retention(AnnotationRetention.SOURCE)
 annotation class AndroidObject(val classPath: String = "", val clazz: KClass<*> = Any::class,)
