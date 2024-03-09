@@ -2,8 +2,8 @@ package com.venus.backgroundopt.hook.handle.miui;
 
 import com.venus.backgroundopt.hook.base.HookPoint;
 import com.venus.backgroundopt.hook.base.MethodHook;
-import com.venus.backgroundopt.hook.base.action.DoNotingHookAction;
 import com.venus.backgroundopt.hook.base.action.HookAction;
+import com.venus.backgroundopt.hook.base.action.ReplacementHookAction;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 
@@ -26,7 +26,7 @@ public class ProcessManagerHook extends MethodHook {
                         ClassConstants.ProcessManager,
                         MethodConstants.kill,
                         new HookAction[]{
-                                new DoNotingHookAction()
+                                (ReplacementHookAction) this::handleKill
                         },
                         ClassConstants.ProcessConfig
                 )
@@ -34,6 +34,6 @@ public class ProcessManagerHook extends MethodHook {
     }
 
     private Object handleKill(XC_MethodHook.MethodHookParam param) {
-        return null;
+        return false;
     }
 }
