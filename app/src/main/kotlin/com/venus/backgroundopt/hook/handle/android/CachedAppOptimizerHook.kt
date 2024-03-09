@@ -51,7 +51,7 @@ class CachedAppOptimizerHook(
             methodName = MethodConstants.updateFreezerDebounceTimeout,
         ) {
             val cachedAppOptimizerInstance =
-                runningInfo.activityManagerService.oomAdjuster.cachedAppOptimizer.getInstance()
+                runningInfo.activityManagerService.oomAdjuster.cachedAppOptimizer.instance
             val fieldValue =
                 cachedAppOptimizerInstance.getLongFieldValue(FieldConstants.mFreezerDebounceTimeout)
             runningInfo.activityManagerService.oomAdjuster.cachedAppOptimizer.mFreezerDebounceTimeout =

@@ -36,7 +36,11 @@ import java.util.concurrent.atomic.AtomicLong
  * @author XingC
  * @date 2023/9/26
  */
-class ProcessRecordKt() : BaseProcessInfoKt(), ILogger, IAndroidEntity {
+class ProcessRecordKt(
+    @AndroidObject(classPath = ClassConstants.ProcessRecord)
+    @JSONField(serialize = false)
+    override val instance: Any,
+) : BaseProcessInfoKt(), ILogger, IAndroidEntity {
     companion object {
         val LONG_FORMAT by lazy {
             intArrayOf(PROC_NEWLINE_TERM or PROC_OUT_LONG)
@@ -323,7 +327,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger, IAndroidEntity {
 
             var curCorrectTimes = 1
             while (curCorrectTimes <= 10) {
-                processRecord.pid = getPid(processRecord.processRecord)
+                processRecord.pid = getPid(processRecord.instance)
                 curCorrectTimes++
                 if (processRecord.pid <= 0) {
                     TimeUnit.MILLISECONDS.sleep(20)
@@ -361,14 +365,6 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger, IAndroidEntity {
         }
     }
 
-    // 反射拿到的安卓的processRecord对象
-    @AndroidObject(classPath = ClassConstants.ProcessRecord)
-    @UsageComment("尽量使用instance而不是这个属性")
-    @JSONField(serialize = false)
-    lateinit var processRecord: Any
-
-    override val instance: Any = processRecord
-
     // 反射拿到的安卓的processStateRecord对象
     @AndroidObject(classPath = ClassConstants.ProcessStateRecord)
     @JSONField(serialize = false)
@@ -386,7 +382,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger, IAndroidEntity {
         get() {
             if (field == null) {
                 processCachedOptimizerRecord = ProcessCachedOptimizerRecord(
-                    processRecord.getObjectFieldValue(FieldConstants.mOptRecord)
+                    instance.getObjectFieldValue(FieldConstants.mOptRecord)
                 )
             }
             return field
@@ -405,9 +401,8 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger, IAndroidEntity {
         uid: Int,
         userId: Int,
         packageName: String
-    ) : this() {
+    ) : this(processRecord) {
         this.activityManagerService = activityManagerService
-        this.processRecord = processRecord
         this.pid = pid
         this.uid = uid
         this.userId = userId
@@ -523,7 +518,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger, IAndroidEntity {
     fun scheduleTrimMemory(level: Int): Boolean {
 //        XposedHelpers.callMethod(mThread, MethodConstants.scheduleTrimMemory, level);
         val thread: Any? = try {
-            processRecord.callMethod(MethodConstants.getThread)
+            instance.callMethod(MethodConstants.getThread)
         } catch (ignore: Throwable) {
             null
         }

@@ -155,7 +155,7 @@ public class CachedAppOptimizer implements ILogger, IAndroidEntity {
         return (boolean) XposedHelpers.callMethod(
                 this.cachedAppOptimizer,
                 MethodConstants.compactApp,
-                app.getProcessRecord(),
+                app.getInstance(),
                 force,
                 compactRequestType
         );
