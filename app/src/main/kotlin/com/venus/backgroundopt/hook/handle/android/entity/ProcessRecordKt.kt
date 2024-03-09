@@ -4,6 +4,7 @@ import android.content.pm.ApplicationInfo
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.annotation.AndroidObject
+import com.venus.backgroundopt.annotation.UsageComment
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.AppInfo
@@ -35,7 +36,7 @@ import java.util.concurrent.atomic.AtomicLong
  * @author XingC
  * @date 2023/9/26
  */
-class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
+class ProcessRecordKt() : BaseProcessInfoKt(), ILogger, IAndroidEntity {
     companion object {
         val LONG_FORMAT by lazy {
             intArrayOf(PROC_NEWLINE_TERM or PROC_OUT_LONG)
@@ -362,8 +363,11 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
     // 反射拿到的安卓的processRecord对象
     @AndroidObject(classPath = ClassConstants.ProcessRecord)
+    @UsageComment("尽量使用instance而不是这个属性")
     @JSONField(serialize = false)
     lateinit var processRecord: Any
+
+    override val instance: Any = processRecord
 
     // 反射拿到的安卓的processStateRecord对象
     @AndroidObject(classPath = ClassConstants.ProcessStateRecord)

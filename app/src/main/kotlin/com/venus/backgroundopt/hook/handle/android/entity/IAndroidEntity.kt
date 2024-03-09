@@ -10,9 +10,8 @@ import com.venus.backgroundopt.annotation.AndroidObject
  */
 interface IAndroidEntity {
     /**
-     * 获取被包装的对象
-     * @return Any 被包装的对象
+     * 被包装的原生对象
      */
     @AndroidObject
-    fun getInstance(): Any
+    val instance: Any
 }
