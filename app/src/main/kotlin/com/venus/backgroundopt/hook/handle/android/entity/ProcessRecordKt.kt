@@ -355,7 +355,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             return webviewProcessNameMap.computeIfAbsent(getProcessName(processRecord)) { processName ->
                 val index = processName.lastIndexOf("sandbox", ignoreCase = true)
                 val index2 = processName.lastIndexOf("process", ignoreCase = true)
-                index >= 0 && index2 >= 0 && index2 > index
+                index in 0..<index2
             }
         }
     }
