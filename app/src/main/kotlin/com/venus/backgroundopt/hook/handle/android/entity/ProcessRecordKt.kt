@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicLong
  */
 class ProcessRecordKt(
     @AndroidObject(classPath = ClassConstants.ProcessRecord)
-    @JSONField(serialize = false)
+    @get:JSONField(serialize = false)
     override val originalInstance: Any,
 ) : BaseProcessInfoKt(), ILogger, IAndroidEntity {
     companion object {
