@@ -44,7 +44,7 @@ public class LoggerFactoryBaseXposedLog {
         }
 
         private String getLogMessage(String msg) {
-            return getMethodName() + ": " + msg;
+            return /*getMethodName() + ": " + */msg;
         }
 
         private void log(String flag, String msg) {
