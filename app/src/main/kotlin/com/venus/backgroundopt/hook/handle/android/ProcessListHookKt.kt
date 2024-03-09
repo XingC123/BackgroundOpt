@@ -60,6 +60,9 @@ class ProcessListHookKt(
 
         // 第一等级的app的adj的起始值
         const val normalAppAdjStartUseSimpleLmk = importSystemAppAdjEndUseSimpleLmk + 1
+
+        // 高水平的子进程的adj分数相对于主进程的偏移量
+        const val highLevelSubProcessAdjOffset = 1
     }
 
     override fun getHookPoint(): Array<HookPoint> {
@@ -154,6 +157,17 @@ class ProcessListHookKt(
                 && processRecord.processRecord.getObjectFieldValue(
             fieldName = FieldConstants.mWindowProcessController
         )?.getBooleanFieldValue(fieldName = FieldConstants.mHasClientActivities) == true
+
+    /**
+     * 是否是子进程oom高调节水平
+     * @param processRecord ProcessRecordKt 进程记录器
+     * @return Boolean 高水平 -> true
+     */
+    private fun isHighLevelSubProcess(
+        processRecord: ProcessRecordKt
+    ): Boolean = isUpgradeSubProcessLevel(processRecord.processName)
+            || isNeedHandleWebviewProcess(processRecord)
+            || processRecord.hasWakeLock()
 
     /**
      * simple lmk 只在平衡模式生效
@@ -259,7 +273,9 @@ class ProcessListHookKt(
                                 possibleFinalAdj
                             } else {
                                 // 子进程升级、webview进程都默认比主进程adj大
-                                (possibleFinalAdj + 1).coerceAtMost(ProcessList.VISIBLE_APP_ADJ)
+                                (possibleFinalAdj + highLevelSubProcessAdjOffset).coerceAtMost(
+                                    ProcessList.VISIBLE_APP_ADJ
+                                )
                             }
                         }
 
@@ -288,6 +304,9 @@ class ProcessListHookKt(
                 } else { // 子进程的处理
                     if (globalOomScorePolicy.enabled && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_AND_SUB_PROCESS) {
                         finalApplyOomScoreAdj = customGlobalOomScore
+                    } else if (process.hasWakeLock()) { // 拥有唤醒锁
+                        finalApplyOomScoreAdj =
+                            getMainProcessOomScoreAdjNonNull(possibleFinalAdj) + highLevelSubProcessAdjOffset
                     } else if (process.fixedOomAdjScore != ProcessRecordKt.SUB_PROC_ADJ) { // 第一次记录子进程 或 进程调整策略置为默认
                         val expectedOomAdjScore = ProcessRecordKt.SUB_PROC_ADJ
                         finalApplyOomScoreAdj = if (oomAdjScore > expectedOomAdjScore) {

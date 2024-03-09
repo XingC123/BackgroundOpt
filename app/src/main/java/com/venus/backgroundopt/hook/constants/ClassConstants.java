@@ -53,6 +53,8 @@ public interface ClassConstants {
     String ActivityId = "android.app.assist.ActivityId";
     String Resources = "android.content.res.Resources";
     String ServiceManager = "android.os.ServiceManager";
+    String PowerManagerService = "com.android.server.power.PowerManagerService";
+    String IWakeLockCallback = "android.os.IWakeLockCallback";
 
     /**
      * miui

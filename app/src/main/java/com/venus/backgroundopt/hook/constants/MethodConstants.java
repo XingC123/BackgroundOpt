@@ -108,6 +108,8 @@ public interface MethodConstants {
     String cleanupRecentTasksForUser = "cleanupRecentTasksForUser";
     String cleanUpRemovedTask = "cleanUpRemovedTask";
     String cleanUpRemovedTaskLocked = "cleanUpRemovedTaskLocked";
+    String acquireWakeLockInternal = "acquireWakeLockInternal";
+    String releaseWakeLockInternal = "releaseWakeLockInternal";
 
     /**
      * miui

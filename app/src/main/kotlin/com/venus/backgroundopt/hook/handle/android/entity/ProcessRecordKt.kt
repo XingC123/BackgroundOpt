@@ -609,6 +609,30 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         lastCompactTimeAtomicLong.set(time)
     }
 
+    /* *************************************************************************
+     *                                                                         *
+     * 进程拥有的唤醒锁的数量                                                       *
+     *                                                                         *
+     **************************************************************************/
+    @JSONField(serialize = false)
+    private var _wakeLockCount = AtomicInteger(0)
+    @get:JSONField(serialize = false)
+    val wakeLockCount: Int
+        get() {
+            return _wakeLockCount.get()
+        }
+
+    fun incrementWakeLockCount() {
+        _wakeLockCount.incrementAndGet()
+    }
+
+    fun decrementWakeLockCount() {
+        _wakeLockCount.decrementAndGet()
+    }
+
+    @JSONField(serialize = false)
+    fun hasWakeLock(): Boolean = wakeLockCount > 0
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false

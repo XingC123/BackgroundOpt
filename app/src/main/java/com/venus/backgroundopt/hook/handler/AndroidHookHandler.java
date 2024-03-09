@@ -19,6 +19,7 @@ import com.venus.backgroundopt.hook.handle.android.OomAdjusterHookNew;
 import com.venus.backgroundopt.hook.handle.android.PackageManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.PackageManagerServiceHookNew;
 import com.venus.backgroundopt.hook.handle.android.PhantomProcessListHook;
+import com.venus.backgroundopt.hook.handle.android.PowerManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookNew;
 import com.venus.backgroundopt.hook.handle.android.RecentTasksHook;
@@ -108,6 +109,8 @@ public class AndroidHookHandler extends PackageHook {
         new ServiceManagerHook(classLoader, runningInfo);
 
         new ActivityTaskSupervisorHook(classLoader, runningInfo);
+
+        new PowerManagerServiceHook(classLoader, runningInfo);
     }
 
     private void initSystemProp() {
