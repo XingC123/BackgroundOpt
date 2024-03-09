@@ -3,6 +3,7 @@ package com.venus.backgroundopt.manager.process
 import android.os.SystemClock
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.utils.runCatchThrowable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 import java.util.concurrent.ScheduledFuture
@@ -40,7 +41,13 @@ abstract class AbstractAppOptimizeManager(val appOptimizeEnum: AppOptimizeEnum) 
     ) {
         backgroundFirstTaskMap.computeIfAbsent(processRecordKt) { _ ->
             (getExecutor() as ScheduledThreadPoolExecutor).schedule(
-                { block?.let { it() } },
+                {
+                    runCatchThrowable(finallyBlock = {
+                        backgroundFirstTaskMap.remove(processRecordKt)
+                    }) {
+                        block?.let { it() }
+                    }
+                },
                 getBackgroundFirstTaskDelay(),
                 getBackgroundFirstTaskDelayTimeUnit()
             )

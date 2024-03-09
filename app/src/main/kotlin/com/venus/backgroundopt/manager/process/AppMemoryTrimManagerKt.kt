@@ -238,6 +238,10 @@ class AppMemoryTrimManagerKt(
             runCatchThrowable {
                 // UI资源的清理
                 processRecordKt.scheduleTrimMemory(ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN)
+
+                if (BuildConfig.DEBUG) {
+                    logger.info("packageName: ${processRecordKt.packageName}, processName: ${processRecordKt.processName}, userId: ${processRecordKt.userId}, 执行TrimMemoryTask(${ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN})成功")
+                }
             }
         }
     }
@@ -255,6 +259,7 @@ class AppMemoryTrimManagerKt(
         processRecordKt?.let {
             foregroundTasks.remove(processRecordKt)
             backgroundTasks.remove(processRecordKt)
+            backgroundFirstTaskMap.remove(processRecordKt)
             if (BuildConfig.DEBUG) {
                 logger.debug("foregroundTasks元素个数: ${foregroundTasks.size}, backgroundTasks元素个数: ${backgroundTasks.size}")
             }
