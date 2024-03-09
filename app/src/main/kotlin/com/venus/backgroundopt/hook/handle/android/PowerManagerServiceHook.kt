@@ -1,7 +1,6 @@
 package com.venus.backgroundopt.hook.handle.android
 
 import android.os.IBinder
-import android.os.WorkSource
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.base.IHook
@@ -25,7 +24,7 @@ class PowerManagerServiceHook(
         ClassConstants.PowerManagerService.afterHook(
             classLoader = classLoader,
             methodName = MethodConstants.acquireWakeLockInternal,
-            paramTypes = arrayOf(
+            /*paramTypes = arrayOf(
                 IBinder::class.java,    /* lock */
                 Int::class.java,        /* displayId */
                 Int::class.java,        /* flags */
@@ -36,7 +35,8 @@ class PowerManagerServiceHook(
                 Int::class.java,        /* uid */
                 Int::class.java,        /* pid */
                 ClassConstants.IWakeLockCallback,  /* callback */
-            ),
+            ),*/
+            hookAllMethod = true,
         ) { param ->
             val lock = param.args[0] as IBinder
             val flags = param.args[2] as Int
