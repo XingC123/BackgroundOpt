@@ -13,5 +13,5 @@ interface IAndroidEntity {
      * 被包装的原生对象
      */
     @AndroidObject
-    val instance: Any
+    val originalInstance: Any
 }

@@ -84,7 +84,7 @@ public class CachedAppOptimizer implements ILogger, IAndroidEntity {
     @NonNull
     @Override
     @AndroidObject
-    public Object getInstance() {
+    public Object getOriginalInstance() {
         return cachedAppOptimizer;
     }
 
@@ -155,7 +155,7 @@ public class CachedAppOptimizer implements ILogger, IAndroidEntity {
         return (boolean) XposedHelpers.callMethod(
                 this.cachedAppOptimizer,
                 MethodConstants.compactApp,
-                app.getInstance(),
+                app.getOriginalInstance(),
                 force,
                 compactRequestType
         );

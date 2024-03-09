@@ -154,7 +154,7 @@ class ProcessListHookKt(
     private fun isNeedHandleWebviewProcess(processRecord: ProcessRecordKt): Boolean =
         CommonProperties.enableWebviewProcessProtect.value
                 && processRecord.webviewProcessProbable
-                && processRecord.instance.getObjectFieldValue(
+                && processRecord.originalInstance.getObjectFieldValue(
             fieldName = FieldConstants.mWindowProcessController
         )?.getBooleanFieldValue(fieldName = FieldConstants.mHasClientActivities) == true
 

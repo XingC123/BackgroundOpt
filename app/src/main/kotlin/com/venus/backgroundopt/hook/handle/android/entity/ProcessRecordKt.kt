@@ -4,7 +4,6 @@ import android.content.pm.ApplicationInfo
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.annotation.AndroidObject
-import com.venus.backgroundopt.annotation.UsageComment
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.AppInfo
@@ -39,7 +38,7 @@ import java.util.concurrent.atomic.AtomicLong
 class ProcessRecordKt(
     @AndroidObject(classPath = ClassConstants.ProcessRecord)
     @JSONField(serialize = false)
-    override val instance: Any,
+    override val originalInstance: Any,
 ) : BaseProcessInfoKt(), ILogger, IAndroidEntity {
     companion object {
         val LONG_FORMAT by lazy {
@@ -327,7 +326,7 @@ class ProcessRecordKt(
 
             var curCorrectTimes = 1
             while (curCorrectTimes <= 10) {
-                processRecord.pid = getPid(processRecord.instance)
+                processRecord.pid = getPid(processRecord.originalInstance)
                 curCorrectTimes++
                 if (processRecord.pid <= 0) {
                     TimeUnit.MILLISECONDS.sleep(20)
@@ -382,7 +381,7 @@ class ProcessRecordKt(
         get() {
             if (field == null) {
                 processCachedOptimizerRecord = ProcessCachedOptimizerRecord(
-                    instance.getObjectFieldValue(FieldConstants.mOptRecord)
+                    originalInstance.getObjectFieldValue(FieldConstants.mOptRecord)
                 )
             }
             return field
@@ -518,7 +517,7 @@ class ProcessRecordKt(
     fun scheduleTrimMemory(level: Int): Boolean {
 //        XposedHelpers.callMethod(mThread, MethodConstants.scheduleTrimMemory, level);
         val thread: Any? = try {
-            instance.callMethod(MethodConstants.getThread)
+            originalInstance.callMethod(MethodConstants.getThread)
         } catch (ignore: Throwable) {
             null
         }

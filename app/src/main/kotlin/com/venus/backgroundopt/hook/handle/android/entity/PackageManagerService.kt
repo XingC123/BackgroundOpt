@@ -14,11 +14,11 @@ import com.venus.backgroundopt.utils.runCatchThrowable
  */
 class PackageManagerService(
     @AndroidObject(classPath = ClassConstants.PackageManagerService)
-    override val instance: Any
+    override val originalInstance: Any
 ) : IAndroidEntity {
     fun getDefaultHome(): String? {
         return runCatchThrowable(defaultValue = null) {
-            instance.getObjectFieldValue(fieldName = FieldConstants.mInjector)?.let { mInjector->
+            originalInstance.getObjectFieldValue(fieldName = FieldConstants.mInjector)?.let { mInjector->
                 mInjector.callMethod(methodName = MethodConstants.getDefaultAppProvider)?.let { mDefaultAppProvider->
                     mDefaultAppProvider.callMethod(methodName = MethodConstants.getDefaultHome, 0) as String?
                 }
