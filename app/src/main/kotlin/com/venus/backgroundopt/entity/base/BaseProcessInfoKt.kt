@@ -42,6 +42,7 @@ open class BaseProcessInfoKt(
 
     // 是否是webview进程
     var webviewProcess = false
+    var webviewProcessProbable = webviewProcess   /* 更宽泛的匹配条件 */
 
     fun initLastProcessingResultIfAbsent(
         appOptimizeEnum: AppOptimizeEnum,

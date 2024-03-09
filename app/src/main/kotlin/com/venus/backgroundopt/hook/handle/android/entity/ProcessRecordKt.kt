@@ -26,6 +26,7 @@ import com.venus.backgroundopt.utils.setIntFieldValue
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.util.Objects
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
@@ -329,6 +330,16 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             }
         }
 
+        /* *************************************************************************
+         *                                                                         *
+         * webview进程                                                              *
+         *                                                                         *
+         **************************************************************************/
+        /**
+         * 是否是webview进程的判断结果<进程名, 结果(是->true)>
+         */
+        private val webviewProcessNameMap = ConcurrentHashMap<String, Boolean>(8)
+
         /**
          * 是否是webview进程
          * @param processRecord Any 安卓的ProcessRecord对象
@@ -337,6 +348,15 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         @JvmStatic
         fun isWebviewProc(@AndroidObject processRecord: Any): Boolean {
             return getProcessName(processRecord).contains("SandboxedProcessService")
+        }
+
+        @JvmStatic
+        fun isWebviewProcProbable(@AndroidObject processRecord: Any): Boolean {
+            return webviewProcessNameMap.computeIfAbsent(getProcessName(processRecord)) { processName ->
+                val index = processName.lastIndexOf("sandbox", ignoreCase = true)
+                val index2 = processName.lastIndexOf("process", ignoreCase = true)
+                index >= 0 && index2 >= 0 && index2 > index
+            }
         }
     }
 
@@ -391,7 +411,8 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
         processName = getProcessName(processRecord)
         mainProcess = isMainProcess(packageName, processName)
-        webviewProcess = Companion.isWebviewProc(processRecord)
+        webviewProcess = isWebviewProc(processRecord)
+        webviewProcessProbable = isWebviewProcProbable(processRecord)
         processStateRecord =
             ProcessStateRecord(processRecord.getObjectFieldValue(FieldConstants.mState))
     }
@@ -616,6 +637,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
      **************************************************************************/
     @JSONField(serialize = false)
     private var _wakeLockCount = AtomicInteger(0)
+
     @get:JSONField(serialize = false)
     val wakeLockCount: Int
         get() {
