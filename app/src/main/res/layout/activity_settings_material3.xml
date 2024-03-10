@@ -23,7 +23,7 @@
                 android:elevation="0dp"
                 app:layout_collapseMode="pin"
                 app:menu="@menu/menu_settings_activity_toolbar"
-                app:navigationIcon="@drawable/baseline_arrow_back_24_black"
+                app:navigationIcon="@drawable/baseline_arrow_back_24_dynamic"
                 app:title="@string/menu_main_activity_toolbar_settings" />
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>

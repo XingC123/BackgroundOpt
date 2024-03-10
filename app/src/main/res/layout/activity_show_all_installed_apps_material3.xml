@@ -20,7 +20,7 @@
                 android:layout_height="?attr/actionBarSize"
                 android:elevation="0dp"
                 app:menu="@menu/menu_installed_app_toolbar"
-                app:navigationIcon="@drawable/baseline_arrow_back_24_black"
+                app:navigationIcon="@drawable/baseline_arrow_back_24_dynamic"
                 app:title="@string/showAllInstalledAppToolBar" />
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
