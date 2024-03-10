@@ -43,7 +43,7 @@
         <item name="colorSurface">@color/background</item>
 
         <!--状态栏背景色-->
-        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:statusBarColor">@color/transparent</item>
 
         <item name="colorPrimary">@color/duRuo</item>
         <item name="colorPrimaryVariant">@color/ganJieGeng</item>
