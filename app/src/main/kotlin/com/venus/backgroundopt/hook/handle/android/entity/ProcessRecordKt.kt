@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.handle.android.entity
+
+package com.venus.backgroundopt.hook.handle.android.entity
 
 import android.content.pm.ApplicationInfo
 import com.alibaba.fastjson2.annotation.JSONField
@@ -379,6 +379,31 @@ class ProcessRecordKt(
                 index in 0..<index2
             }
         }
+
+        /**
+         * 进程的int值消费者
+         */
+        private val processIntValueConsumer =
+            { process: ProcessRecordKt, int: Int, boolwan: Boolean ->
+
+            }
+
+        /**
+         * 默认的用来设置[ProcessRecordKt.fixedOomAdjScore]的设置器
+         */
+        private val defaultFixedOomScoreAdjSetter =
+            { process: ProcessRecordKt, oomScoreAdj: Int, isAdjustMaxAdj: Boolean ->
+                process.fixedOomAdjScore = oomScoreAdj
+                if (isAdjustMaxAdj) {
+                    if (CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_STRICT ||
+                        CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE
+                    ) {
+                        process.setDefaultMaxAdj()
+                    }
+                }
+                // 执行完本次之后就清除掉设置器
+                process.clearFixedOomScoreAdjSetter()
+            }
     }
 
     // 反射拿到的安卓的processStateRecord对象
@@ -498,6 +523,8 @@ class ProcessRecordKt(
             try {
                 processStateRecord.maxAdj = ProcessList.UNKNOWN_ADJ
                 recordMaxAdj = 0
+                fixedOomAdjScore = Int.MIN_VALUE
+                resetFixedOomScoreAdjSetter()
                 if (BuildConfig.DEBUG) {
                     logger.debug("pid: [${pid}] >>> maxAdj重置成功")
                 }
@@ -643,6 +670,23 @@ class ProcessRecordKt(
     @JSONField(serialize = false)
     fun setLastCompactTime(time: Long) {
         lastCompactTimeAtomicLong.set(time)
+    }
+
+    /**
+     * [fixedOomAdjScore]设置器
+     *
+     * 在设置一次之后就废弃掉。在[resetMaxAdj]中重置
+     */
+    @Volatile
+    @JSONField(serialize = false)
+    var fixedOomScoreAdjSetter = defaultFixedOomScoreAdjSetter
+
+    private fun clearFixedOomScoreAdjSetter() {
+        fixedOomScoreAdjSetter = processIntValueConsumer
+    }
+
+    private fun resetFixedOomScoreAdjSetter() {
+        fixedOomScoreAdjSetter = defaultFixedOomScoreAdjSetter
     }
 
     /* *************************************************************************

@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.utils.message.handle
+
+package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.environment.CommonProperties
@@ -77,8 +77,9 @@ class GlobalOomScorePolicy : MessageFlag {
     }
 }
 
-enum class GlobalOomScoreEffectiveScopeEnum(val uiName:String) : MessageFlag {
-    MAIN_PROCESS("主进程(有界面)"),
-    MAIN_AND_SUB_PROCESS("主+子进程(有界面)"),
+enum class GlobalOomScoreEffectiveScopeEnum(val uiName: String) : MessageFlag {
+    MAIN_PROCESS("主进程(adj>0)"),
+    MAIN_AND_SUB_PROCESS("主+子进程(adj>0)"),
+    MAIN_PROCESS_ANY("主进程(所有)"),
     ALL("所有进程"),
 }

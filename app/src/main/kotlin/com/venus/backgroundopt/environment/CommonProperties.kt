@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.environment
+
+package com.venus.backgroundopt.environment
 
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
@@ -182,6 +182,14 @@ object CommonProperties : ILogger {
         logger.info("[${if (objectReference.value) "启用" else "禁用"}]Simple Lmk")
         objectReference
     }
+
+    /**
+     * simple lmk 只在平衡模式生效
+     * @return Boolean 启用 -> true
+     */
+    @JvmStatic
+    fun useSimpleLmk(): Boolean =
+        enableSimpleLmk.value && oomWorkModePref.oomMode == OomWorkModePref.MODE_BALANCE
 
     /* *************************************************************************
      *                                                                         *

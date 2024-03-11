@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.ui
+
+package com.venus.backgroundopt.ui
 
 import android.os.Bundle
 import android.view.KeyEvent
@@ -30,13 +30,10 @@ import com.venus.backgroundopt.R
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
-import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
-import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
 import com.venus.backgroundopt.ui.style.RecycleViewItemSpaceDecoration
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.UiUtils
-import com.venus.backgroundopt.utils.log.logInfoAndroid
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
 import com.venus.backgroundopt.utils.preference.prefBoolean
 import com.venus.backgroundopt.utils.preference.prefString
@@ -125,33 +122,23 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
         }
         val appItems = PackageUtils.getInstalledPackages(
             context = this,
-            filter = if (isEnabledGlobalOomScore
-                && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL
-            ) {
-                null
-            } else {
-                { packageInfo ->
-                    !ActivityManagerService.isImportantSystemApp(packageInfo.applicationInfo)
-                            || (
-                            /*!ActivityManagerService.isUnsafeUid(packageInfo.applicationInfo.uid)
-                                    && */PackageUtils.isHasActivity(packageInfo)
-                            )
-                }
-            }
+            filter = null,
         )
         runOnUiThread {
             recyclerView.apply {
-                layoutManager = LinearLayoutManager(this@ShowAllInstalledAppsActivityMaterial3).apply {
-                    orientation = LinearLayoutManager.VERTICAL
-                }
+                layoutManager =
+                    LinearLayoutManager(this@ShowAllInstalledAppsActivityMaterial3).apply {
+                        orientation = LinearLayoutManager.VERTICAL
+                    }
                 adapter = ShowAllInstalledAppsAdapter3(appItems)
                 addItemDecoration(RecycleViewItemSpaceDecoration(context))
             }
 
             searchHistoryContainer.apply {
-                layoutManager = LinearLayoutManager(this@ShowAllInstalledAppsActivityMaterial3).apply {
-                    orientation = LinearLayoutManager.VERTICAL
-                }
+                layoutManager =
+                    LinearLayoutManager(this@ShowAllInstalledAppsActivityMaterial3).apply {
+                        orientation = LinearLayoutManager.VERTICAL
+                    }
                 adapter = ShowAllInstalledAppsSearchHistoryRecycleViewAdapter(
                     items = appItems,
                     applySearchBlock = { text ->
