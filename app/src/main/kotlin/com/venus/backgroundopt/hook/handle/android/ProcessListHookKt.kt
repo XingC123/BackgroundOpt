@@ -59,6 +59,9 @@ class ProcessListHookKt(
 
         const val MAX_ALLOWED_OOM_SCORE_ADJ = ProcessList.UNKNOWN_ADJ - 1
 
+        /**
+         * Simple Lmk
+         */
         const val minSimpleLmkOomScore = 0
         const val maxSimpleLmkOomScore = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
         const val simpleLmkConvertDivisor = MAX_ALLOWED_OOM_SCORE_ADJ / maxSimpleLmkOomScore
@@ -77,6 +80,15 @@ class ProcessListHookKt(
 
         // 第一等级的app的adj的起始值
         const val normalAppAdjStartUseSimpleLmk = importSystemAppAdjEndUseSimpleLmk + 1
+
+        /**
+         * 严格模式
+         */
+        const val minOomScoreAdj = -100
+        const val maxOomScoreAdj = ProcessList.FOREGROUND_APP_ADJ
+        const val maxAndMinOomScoreAdjDifference = maxOomScoreAdj - minOomScoreAdj
+        const val oomScoreAdjConvertDivisor =
+            MAX_ALLOWED_OOM_SCORE_ADJ / maxAndMinOomScoreAdjDifference
 
         // 高水平的子进程的adj分数相对于主进程的偏移量
         const val highLevelSubProcessAdjOffset = 1
@@ -139,18 +151,18 @@ class ProcessListHookKt(
                 "pid: ${pid}, adj: $curAdj"
     )
 
-    val simpleLmkOomScoreMap = ConcurrentHashMap<Int, Int>(8)
-    val simpleLmkImportSystemAppOomScoreMap = ConcurrentHashMap<Int, Int>(8)
+    val oomScoreAdjMap = ConcurrentHashMap<Int, Int>(8)
+    val importSystemAppOomScoreAdjMap = ConcurrentHashMap<Int, Int>(8)
 
     private fun computeOomScoreAdjValueUseSimpleLmk(
         oomScoreAdj: Int
-    ): Int = simpleLmkOomScoreMap.computeIfAbsent(oomScoreAdj) {
+    ): Int = oomScoreAdjMap.computeIfAbsent(oomScoreAdj) {
         (oomScoreAdj / simpleLmkConvertDivisor).coerceAtLeast(normalAppAdjStartUseSimpleLmk)
     }
 
     private fun getImportSystemAppOomScoreUseSimpleLmk(
         oomScoreAdj: Int
-    ): Int = simpleLmkImportSystemAppOomScoreMap.computeIfAbsent(oomScoreAdj) { _ ->
+    ): Int = importSystemAppOomScoreAdjMap.computeIfAbsent(oomScoreAdj) { _ ->
         if (oomScoreAdj < ProcessList.VISIBLE_APP_ADJ) {
             importSystemAppAdjStartUseSimpleLmk
         } else if (oomScoreAdj < ProcessList.CACHED_APP_MIN_ADJ) {
@@ -250,16 +262,17 @@ class ProcessListHookKt(
                             mainProcess = mainProcess
                         )
                     } else {
-                        finalApplyOomScoreAdj =
-                            if (CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE) {
-                                oomScoreAdj
-                            } else {    // 24.3.11: 此处对应严格模式
-                                if (mainProcess) {
-                                    ProcessRecordKt.DEFAULT_MAIN_ADJ
+                        if (CommonProperties.oomWorkModePref.oomMode != OomWorkModePref.MODE_NEGATIVE) {
+                            finalApplyOomScoreAdj = if (mainProcess) {
+                                if (appInfo.isImportSystemApp) {
+                                    computeImportSystemAppOomAdj(oomScoreAdj = oomScoreAdj)
                                 } else {
-                                    ProcessRecordKt.DEFAULT_MAIN_ADJ + highLevelSubProcessAdjOffset
+                                    ProcessRecordKt.DEFAULT_MAIN_ADJ
                                 }
+                            } else {
+                                ProcessRecordKt.DEFAULT_MAIN_ADJ + highLevelSubProcessAdjOffset
                             }
+                        }
                         process.fixedOomScoreAdjSetter(
                             process,
                             ProcessRecordKt.defaultMaxAdj,
@@ -330,7 +343,8 @@ class ProcessListHookKt(
         mainProcess: Boolean
     ): Int {
         val possibleFinalAdj = if (appInfo.isImportSystemApp) {
-            getImportSystemAppOomScoreUseSimpleLmk(oomScoreAdj = oomScoreAdj)
+            // getImportSystemAppOomScoreUseSimpleLmk(oomScoreAdj = oomScoreAdj)
+            computeImportSystemAppOomAdj(oomScoreAdj = oomScoreAdj)
         } else {
             computeOomScoreAdjValueUseSimpleLmk(oomScoreAdj = oomScoreAdj)
         }
@@ -369,6 +383,17 @@ class ProcessListHookKt(
         }
 
         return possibleFinalAdj
+    }
+
+    /**
+     * 计算系统app的adj分数
+     * @param oomScoreAdj Int 当前系统计算的oom_score_adj
+     * @return Int
+     */
+    private fun computeImportSystemAppOomAdj(oomScoreAdj: Int): Int {
+        return importSystemAppOomScoreAdjMap.computeIfAbsent(oomScoreAdj) { _ ->
+            (oomScoreAdj / oomScoreAdjConvertDivisor) + minOomScoreAdj
+        }
     }
 
     @Deprecated("ProcessRecordKt.getMDyingPid(proc)有时候为0")
