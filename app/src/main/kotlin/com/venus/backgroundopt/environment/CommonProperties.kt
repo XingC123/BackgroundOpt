@@ -179,7 +179,7 @@ object CommonProperties : ILogger {
                 defaultValue = PreferenceDefaultValue.enableSimpleLmk
             )
         )
-        logger.info("[${if (objectReference.value) "启用" else "禁用"}]Simple Lmk")
+        logger.info("[${if (useSimpleLmk(isEnabled = objectReference.value)) "启用" else "禁用"}]Simple Lmk")
         objectReference
     }
 
@@ -188,8 +188,11 @@ object CommonProperties : ILogger {
      * @return Boolean 启用 -> true
      */
     @JvmStatic
-    fun useSimpleLmk(): Boolean =
-        enableSimpleLmk.value && oomWorkModePref.oomMode == OomWorkModePref.MODE_BALANCE
+    fun useSimpleLmk(): Boolean = useSimpleLmk(isEnabled = enableSimpleLmk.value)
+
+    @JvmStatic
+    private fun useSimpleLmk(isEnabled: Boolean): Boolean =
+        isEnabled && oomWorkModePref.oomMode == OomWorkModePref.MODE_BALANCE
 
     /* *************************************************************************
      *                                                                         *
