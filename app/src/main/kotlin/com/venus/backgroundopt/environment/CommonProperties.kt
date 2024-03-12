@@ -21,7 +21,7 @@ import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
-import com.venus.backgroundopt.reference.ObjectReference
+import com.venus.backgroundopt.reference.PropertyValueWrapper
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.log.logInfo
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
@@ -125,7 +125,7 @@ object CommonProperties : ILogger {
             this.foregroundProcTrimMemLevelEnum = levelEnum
         }
 
-        ObjectReference(policy)
+        PropertyValueWrapper(policy)
     }
 
     fun isEnableForegroundProcTrimMem() = foregroundProcTrimMemPolicy.value.isEnabled
@@ -155,15 +155,16 @@ object CommonProperties : ILogger {
      *                                                                         *
      **************************************************************************/
     val enableWebviewProcessProtect by lazy {
-        val objectReference = ObjectReference(
-            PreferencesUtil.getBoolean(
-                path = PreferenceNameConstants.MAIN_SETTINGS,
-                key = PreferenceKeyConstants.APP_WEBVIEW_PROCESS_PROTECT,
-                defaultValue = PreferenceDefaultValue.enableWebviewProcessProtect
+        val propertyValueWrapper =
+            PropertyValueWrapper(
+                PreferencesUtil.getBoolean(
+                    path = PreferenceNameConstants.MAIN_SETTINGS,
+                    key = PreferenceKeyConstants.APP_WEBVIEW_PROCESS_PROTECT,
+                    defaultValue = PreferenceDefaultValue.enableWebviewProcessProtect
+                )
             )
-        )
-        logger.info("[${if (objectReference.value) "启用" else "禁用"}]Webview进程保护")
-        objectReference
+        logger.info("[${if (propertyValueWrapper.value) "启用" else "禁用"}]Webview进程保护")
+        propertyValueWrapper
     }
 
     /* *************************************************************************
@@ -172,15 +173,16 @@ object CommonProperties : ILogger {
      *                                                                         *
      **************************************************************************/
     val enableSimpleLmk by lazy {
-        val objectReference = ObjectReference(
-            PreferencesUtil.getBoolean(
-                path = PreferenceNameConstants.MAIN_SETTINGS,
-                key = PreferenceKeyConstants.SIMPLE_LMK,
-                defaultValue = PreferenceDefaultValue.enableSimpleLmk
+        val propertyValueWrapper =
+            PropertyValueWrapper(
+                PreferencesUtil.getBoolean(
+                    path = PreferenceNameConstants.MAIN_SETTINGS,
+                    key = PreferenceKeyConstants.SIMPLE_LMK,
+                    defaultValue = PreferenceDefaultValue.enableSimpleLmk
+                )
             )
-        )
-        logger.info("[${if (useSimpleLmk(isEnabled = objectReference.value)) "启用" else "禁用"}]Simple Lmk")
-        objectReference
+        logger.info("[${if (useSimpleLmk(isEnabled = propertyValueWrapper.value)) "启用" else "禁用"}]Simple Lmk")
+        propertyValueWrapper
     }
 
     /**
@@ -239,6 +241,6 @@ object CommonProperties : ILogger {
             )
         }
         logger.info(policy.toString())
-        ObjectReference(policy)
+        PropertyValueWrapper(policy)
     }
 }
