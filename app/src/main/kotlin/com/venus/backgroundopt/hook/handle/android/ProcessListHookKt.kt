@@ -262,7 +262,7 @@ class ProcessListHookKt(
                             }
                         process.fixedOomScoreAdjSetter(
                             process,
-                            ProcessRecordKt.DEFAULT_MAIN_ADJ,
+                            ProcessRecordKt.defaultMaxAdj,
                             true
                         )
                     }
