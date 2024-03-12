@@ -79,7 +79,8 @@ class ProcessListHookKt(
         ).toInt()
 
         // 第一等级的app的adj的起始值
-        const val normalAppAdjStartUseSimpleLmk = importSystemAppAdjEndUseSimpleLmk + 1
+//        const val normalAppAdjStartUseSimpleLmk = importSystemAppAdjEndUseSimpleLmk + 1
+        const val normalAppAdjStartUseSimpleLmk = minSimpleLmkOomScore + 1
 
         /**
          * 严格模式
