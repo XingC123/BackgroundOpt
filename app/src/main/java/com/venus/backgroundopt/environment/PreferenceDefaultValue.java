@@ -40,7 +40,7 @@ public interface PreferenceDefaultValue {
      * app内存优化策略                                                           *
      *                                                                         *
      **************************************************************************/
-    boolean enableForegroundTrimMem = false;
+    boolean enableForegroundTrimMem = true;
     boolean enableBackgroundTrimMem = true;
     boolean enableBackgroundGc = true;
 
