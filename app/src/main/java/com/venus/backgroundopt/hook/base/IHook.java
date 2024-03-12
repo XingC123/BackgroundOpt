@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.base;
+
+package com.venus.backgroundopt.hook.base;
 
 import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.utils.log.ILogger;
@@ -37,7 +37,11 @@ public abstract class IHook implements ILogger {
         this.classLoader = classLoader;
         this.runningInfo = runningInfo;
 
-        hook();
+        try {
+            hook();
+        } catch (Throwable throwable) {
+            getLogger().error("hook失败", throwable);
+        }
     }
 
     public ClassLoader getClassLoader() {
