@@ -294,8 +294,7 @@ public class RunningInfo implements ILogger {
                 // 清理AppInfo。也许有助于gc
                 appInfo.clearAppInfo();
 
-//                if (BuildConfig.DEBUG) {
-                if (packageName.equals("tv.danmaku.bili")) {
+                if (BuildConfig.DEBUG) {
                     getLogger().debug("kill: userId: " + appInfo.getUserId() + ", packageName: " + packageName + " >>> 杀死App");
                 }
             } else {
