@@ -25,5 +25,5 @@ package com.venus.backgroundopt.reference;
  * @param <V> {@link PropertyValueWrapper}的值的类型
  */
 interface PropertyChangeListener<V> {
-    void change(V newValue);
+    void change(V oldValue, V newValue);
 }

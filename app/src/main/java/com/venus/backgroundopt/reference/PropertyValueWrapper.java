@@ -46,10 +46,9 @@ public class PropertyValueWrapper<V> {
     }
 
     public void setValue(V value) {
+        V oldValue = this.value;
         this.value = value;
-        valueChangeListener.values().forEach(vPropertyChangeListener -> {
-            vPropertyChangeListener.change(value);
-        });
+        valueChangeListener.values().forEach(vPropertyChangeListener -> vPropertyChangeListener.change(oldValue, value));
     }
 
     /**
@@ -59,7 +58,7 @@ public class PropertyValueWrapper<V> {
      * @param listener 监听器{@link PropertyChangeListener}
      */
     public void addListener(@NonNull String key, @NonNull PropertyChangeListener<V> listener) {
-        valueChangeListener.computeIfAbsent(key, k -> listener);
+        valueChangeListener.putIfAbsent(key, listener);
     }
 
     /**
