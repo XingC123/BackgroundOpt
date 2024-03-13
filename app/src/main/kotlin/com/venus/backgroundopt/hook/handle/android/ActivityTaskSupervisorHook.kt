@@ -48,14 +48,18 @@ class ActivityTaskSupervisorHook(
             },
             hookAllMethod = true,
         ) { param ->
-            val taskInstance = param.args[0] as Any
+            var killProcess = param.args[1] as Boolean
+            // 如果原本就是true, 我们就不需要管他
+            if (killProcess) {
+                return@beforeHook
+            }
 
+            val taskInstance = param.args[0] as Any
             val packageName =
                 (taskInstance.getObjectFieldValue(fieldName = FieldConstants.intent) as? Intent)?.let { intent ->
                     intent.`package` ?: intent.component?.packageName
                 } ?: return@beforeHook
             val userId = taskInstance.getIntFieldValue(fieldName = FieldConstants.mUserId)
-
             val appInfo = runningInfo.getRunningAppInfo(userId, packageName) ?: return@beforeHook
             val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[appInfo.packageName]
             val globalOomScorePolicy = CommonProperties.globalOomScorePolicy.value
@@ -65,16 +69,20 @@ class ActivityTaskSupervisorHook(
                 // 因此此处只要不需要处理, 那会由系统解决
                 if (appOptimizePolicy.customMainProcessOomScore <= ProcessList.PERSISTENT_PROC_ADJ) {
                     removeRecentTaskLog(userId = userId, packageName = packageName)
-                    runningInfo.forceStopRunningApp(appInfo)
+                    // runningInfo.forceStopRunningApp(appInfo)
+                    killProcess = true
                 }
             } else if (globalOomScorePolicy.enabled && globalOomScorePolicy.customGlobalOomScore <= ProcessList.PERSISTENT_PROC_ADJ) {
                 removeRecentTaskLog(userId = userId, packageName = packageName)
-                runningInfo.forceStopRunningApp(appInfo)
+                // runningInfo.forceStopRunningApp(appInfo)
+                killProcess = true
             }
+
+            param.args[1] = killProcess
         }
     }
 
     private fun removeRecentTaskLog(userId: Int, packageName: String) {
-        logger.info("移除最近任务: userId: ${userId}, packageName: ${packageName}")
+        logger.info("移除最近任务, 来自: userId: ${userId}, packageName: ${packageName}")
     }
 }
