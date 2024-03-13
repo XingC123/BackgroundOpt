@@ -55,13 +55,17 @@ class PowerManagerServiceHook(
             ),*/
             hookAllMethod = true,
         ) { param ->
-            val lock = param.args[0] as IBinder
-            val flags = param.args[2] as Int
             val pid = param.args[8] as Int
             val processRecord = runningInfo.getRunningProcess(pid) ?: return@afterHook
+            // 主进程暂无需关注唤醒锁
+            if (processRecord.mainProcess) {
+                return@afterHook
+            }
+            val lock = param.args[0] as IBinder
             wakeLockMap.computeIfAbsent(lock) { processRecord.also { it.incrementWakeLockCount() } }
 
             if (BuildConfig.DEBUG) {
+                val flags = param.args[2] as Int
                 logger.debug("pid: ${pid}, packageName: [${processRecord.packageName}], processName: [${processRecord.processName}] 正在请求唤醒锁, tag: ${param.args[3]}, flags: ${flags}")
             }
         }
