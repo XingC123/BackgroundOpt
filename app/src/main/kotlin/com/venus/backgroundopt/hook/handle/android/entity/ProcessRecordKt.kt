@@ -383,15 +383,15 @@ class ProcessRecordKt(
         /**
          * 进程的int值消费者
          */
-        private val processIntValueConsumer =
+        /*private val processIntValueConsumer =
             { process: ProcessRecordKt, int: Int, boolwan: Boolean ->
 
-            }
+            }*/
 
         /**
          * 默认的用来设置[ProcessRecordKt.fixedOomAdjScore]的设置器
          */
-        private val defaultFixedOomScoreAdjSetter =
+        /*private val defaultFixedOomScoreAdjSetter =
             { process: ProcessRecordKt, oomScoreAdj: Int, isAdjustMaxAdj: Boolean ->
                 process.fixedOomAdjScore = oomScoreAdj
                 if (isAdjustMaxAdj) {
@@ -403,7 +403,7 @@ class ProcessRecordKt(
                 }
                 // 执行完本次之后就清除掉设置器
                 process.clearFixedOomScoreAdjSetter()
-            }
+            }*/
     }
 
     // 反射拿到的安卓的processStateRecord对象
@@ -523,8 +523,6 @@ class ProcessRecordKt(
             try {
                 processStateRecord.maxAdj = ProcessList.UNKNOWN_ADJ
                 recordMaxAdj = 0
-                fixedOomAdjScore = Int.MIN_VALUE
-                resetFixedOomScoreAdjSetter()
                 if (BuildConfig.DEBUG) {
                     logger.debug("pid: [${pid}] >>> maxAdj重置成功")
                 }
@@ -677,7 +675,7 @@ class ProcessRecordKt(
      *
      * 在设置一次之后就废弃掉。在[resetMaxAdj]中重置
      */
-    @Volatile
+    /*@Volatile
     @JSONField(serialize = false)
     var fixedOomScoreAdjSetter = defaultFixedOomScoreAdjSetter
 
@@ -687,7 +685,7 @@ class ProcessRecordKt(
 
     private fun resetFixedOomScoreAdjSetter() {
         fixedOomScoreAdjSetter = defaultFixedOomScoreAdjSetter
-    }
+    }*/
 
     /* *************************************************************************
      *                                                                         *

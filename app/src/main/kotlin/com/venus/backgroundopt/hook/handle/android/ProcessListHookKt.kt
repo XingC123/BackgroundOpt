@@ -274,11 +274,9 @@ class ProcessListHookKt(
                                 ProcessRecordKt.DEFAULT_MAIN_ADJ + highLevelSubProcessAdjOffset
                             }
                         }
-                        process.fixedOomScoreAdjSetter(
-                            process,
-                            ProcessRecordKt.defaultMaxAdj,
-                            true
-                        )
+                        if (process.fixedOomAdjScore != ProcessRecordKt.defaultMaxAdj) {
+                            process.fixedOomAdjScore = ProcessRecordKt.defaultMaxAdj
+                        }
                     }
                 } else {    // 普通子进程
                     finalApplyOomScoreAdj = computeSubprocessFinalOomScore(
@@ -368,7 +366,7 @@ class ProcessListHookKt(
         oomScoreAdj: Int
     ): Int {
         var possibleFinalAdj = oomScoreAdj
-        if (processRecord.fixedOomAdjScore == Int.MIN_VALUE) { // 第一次记录子进程 或 进程调整策略置为默认
+        if (processRecord.fixedOomAdjScore != ProcessRecordKt.SUB_PROC_ADJ) { // 第一次记录子进程 或 进程调整策略置为默认
             val expectedOomAdjScore = ProcessRecordKt.SUB_PROC_ADJ
             possibleFinalAdj = if (oomScoreAdj > expectedOomAdjScore) {
                 oomScoreAdj
@@ -376,7 +374,7 @@ class ProcessListHookKt(
                 expectedOomAdjScore
             }
 
-            processRecord.fixedOomScoreAdjSetter(processRecord, expectedOomAdjScore, false)
+            processRecord.fixedOomAdjScore = ProcessRecordKt.SUB_PROC_ADJ
             // 如果修改过maxAdj则重置
             processRecord.resetMaxAdj()
         } else if (oomScoreAdj < processRecord.fixedOomAdjScore) {    // 新的oomAdj小于已记录的子进程最小adj
