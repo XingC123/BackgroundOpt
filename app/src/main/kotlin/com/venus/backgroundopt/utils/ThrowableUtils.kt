@@ -21,7 +21,7 @@
  * @author XingC
  * @date 2024/2/26
  */
-
+@JvmOverloads
 fun <R> runCatchThrowable(
     defaultValue: R? = null,
     catchBlock: ((Throwable) -> R)? = null,
