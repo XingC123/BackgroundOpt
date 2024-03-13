@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.handle.android
+
+package com.venus.backgroundopt.hook.handle.android
 
 import android.content.Intent
 import android.os.Build
@@ -60,14 +60,16 @@ class ActivityTaskSupervisorHook(
             val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[appInfo.packageName]
             val globalOomScorePolicy = CommonProperties.globalOomScorePolicy.value
 
-            if (appOptimizePolicy != null) {
-                if (appOptimizePolicy.enableCustomMainProcessOomScore && appOptimizePolicy.customMainProcessOomScore <= ProcessList.PERSISTENT_PROC_ADJ) {
-                    runningInfo.forceStopRunningApp(appInfo)
+            if (appOptimizePolicy != null && appOptimizePolicy.enableCustomMainProcessOomScore) {
+                // 自定义主进程会优先于全局oom。
+                // 因此此处只要不需要处理, 那会由系统解决
+                if (appOptimizePolicy.customMainProcessOomScore <= ProcessList.PERSISTENT_PROC_ADJ) {
                     removeRecentTaskLog(userId = userId, packageName = packageName)
+                    runningInfo.forceStopRunningApp(appInfo)
                 }
             } else if (globalOomScorePolicy.enabled && globalOomScorePolicy.customGlobalOomScore <= ProcessList.PERSISTENT_PROC_ADJ) {
-                runningInfo.forceStopRunningApp(appInfo)
                 removeRecentTaskLog(userId = userId, packageName = packageName)
+                runningInfo.forceStopRunningApp(appInfo)
             }
         }
     }

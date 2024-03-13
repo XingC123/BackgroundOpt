@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.core;
+
+package com.venus.backgroundopt.core;
 
 import android.content.ComponentName;
 import android.os.PowerManager;
@@ -30,11 +30,13 @@ import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.FindAppResult;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
+import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerShellCommand;
 import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
 import com.venus.backgroundopt.hook.handle.android.entity.PackageManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.service.ProcessDaemonService;
+import com.venus.backgroundopt.utils.ThrowableUtilsKt;
 import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils;
 import com.venus.backgroundopt.utils.concurrent.ConcurrentUtilsKt;
 import com.venus.backgroundopt.utils.log.ILogger;
@@ -292,7 +294,8 @@ public class RunningInfo implements ILogger {
                 // 清理AppInfo。也许有助于gc
                 appInfo.clearAppInfo();
 
-                if (BuildConfig.DEBUG) {
+//                if (BuildConfig.DEBUG) {
+                if (packageName.equals("tv.danmaku.bili")) {
                     getLogger().debug("kill: userId: " + appInfo.getUserId() + ", packageName: " + packageName + " >>> 杀死App");
                 }
             } else {
@@ -309,7 +312,19 @@ public class RunningInfo implements ILogger {
         if (packageName == null) {
             return;
         }
-        activityManagerService.forceStopPackage(packageName, appInfo.getUserId());
+        ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
+            ConcurrentUtilsKt.lock(appInfo, () -> {
+                ThrowableUtilsKt.runCatchThrowable(null, throwable -> {
+                    getLogger().error("强制停止app出错(uid: " + appInfo.getUid() + ", packageName: " + packageName + ")", throwable);
+                    return null;
+                }, null, () -> {
+                    activityManagerService.forceStopPackage(packageName, appInfo.getUserId());
+                    return null;
+                });
+                return null;
+            });
+            return null;
+        });
     }
 
     /* *************************************************************************
@@ -719,5 +734,20 @@ public class RunningInfo implements ILogger {
 
     public void setPackageManagerService(PackageManagerService packageManagerService) {
         this.packageManagerService = packageManagerService;
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * ActivityManagerShellCommand                                             *
+     *                                                                         *
+     **************************************************************************/
+    private ActivityManagerShellCommand activityManagerShellCommand;
+
+    public ActivityManagerShellCommand getActivityManagerShellCommand() {
+        return activityManagerShellCommand;
+    }
+
+    public void setActivityManagerShellCommand(ActivityManagerShellCommand activityManagerShellCommand) {
+        this.activityManagerShellCommand = activityManagerShellCommand;
     }
 }
