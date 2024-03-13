@@ -55,6 +55,7 @@ public interface MethodConstants {
     String getLong = "getLong";
     String setOverrideMaxCachedProcesses = "setOverrideMaxCachedProcesses";
     String updateMaxCachedProcesses = "updateMaxCachedProcesses";
+    String updateMaxPhantomProcesses = "updateMaxPhantomProcesses";
     String getProperty = "getProperty";
     String sendSignal = "sendSignal";
     String getActiveLauncherPackageName = "getActiveLauncherPackageName";

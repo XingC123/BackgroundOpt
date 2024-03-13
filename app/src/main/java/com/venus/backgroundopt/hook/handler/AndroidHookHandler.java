@@ -15,14 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
                     
- package com.venus.backgroundopt.hook.handler;
+package com.venus.backgroundopt.hook.handler;
 
 import android.os.Build;
 
 import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.environment.SystemProperties;
 import com.venus.backgroundopt.hook.base.PackageHook;
-import com.venus.backgroundopt.hook.handle.android.ActivityManagerConstantsHook;
+import com.venus.backgroundopt.hook.handle.android.ActivityManagerConstantsHookNew;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookNew;
@@ -94,7 +94,7 @@ public class AndroidHookHandler extends PackageHook {
         // 安卓虚进程处理hook
         new PhantomProcessListHook(classLoader, runningInfo);
 
-        new ActivityManagerConstantsHook(classLoader, runningInfo);
+//        new ActivityManagerConstantsHook(classLoader, runningInfo);
 
         // 最近任务可见性hook
         new RecentTasksHook(classLoader, runningInfo);
@@ -128,6 +128,8 @@ public class AndroidHookHandler extends PackageHook {
         new ActivityTaskSupervisorHook(classLoader, runningInfo);
 
         new PowerManagerServiceHook(classLoader, runningInfo);
+
+        new ActivityManagerConstantsHookNew(classLoader, runningInfo);
     }
 
     private void initSystemProp() {
