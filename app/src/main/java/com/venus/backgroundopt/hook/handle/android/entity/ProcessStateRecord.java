@@ -95,6 +95,22 @@ public class ProcessStateRecord {
         return (boolean) XposedHelpers.callMethod(this.processStateRecord, MethodConstants.hasForegroundActivities);
     }
 
+    public void setCached(boolean cached) {
+        XposedUtilsKt.callMethod(processStateRecord, MethodConstants.setCached, cached);
+    }
+
+    public boolean getCached() {
+        return (boolean) XposedUtilsKt.callMethod(processStateRecord, MethodConstants.getCached);
+    }
+
+    public void setEmpty(boolean empty) {
+        XposedUtilsKt.callMethod(processStateRecord, MethodConstants.setEmpty, empty);
+    }
+
+    public boolean getEmpty() {
+        return (boolean) XposedUtilsKt.callMethod(processStateRecord, MethodConstants.getEmpty);
+    }
+
     public static void setCurAdj(@NonNull @AndroidObject Object instance, int curAdj) {
         XposedUtilsKt.callMethod(instance, MethodConstants.setCurAdj, curAdj);
     }

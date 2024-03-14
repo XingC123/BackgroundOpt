@@ -243,6 +243,7 @@ class ProcessListHookKt(
 
             if (possibleAdj != null && isHighLevelProcess) {    // 进程独立配置优先于任何情况
                 finalApplyOomScoreAdj = possibleAdj
+                clearProcessUnexpectedState(processRecord = process)
             } else if (globalOomScorePolicy.enabled
                 && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL
                         || isHighLevelProcess && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS_ANY || isUserSpaceAdj)
@@ -252,6 +253,7 @@ class ProcessListHookKt(
                 // 逻辑概要:
                 // 开启全局oom && (作用域 == ALL || isHighLevelProcess && (作用域 == MAIN_PROC_ANY || isUserSpaceAdj) || /* 普通子进程 或 !isUserSpaceAdj */ isUserSpaceAdj && 作用域 == MAIN_AND_SUB_PROC)
                 finalApplyOomScoreAdj = globalOomScorePolicy.customGlobalOomScore
+                clearProcessUnexpectedState(processRecord = process)
             } else if (isUserSpaceAdj) {
                 if (isHighLevelProcess) {
                     if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
@@ -260,6 +262,7 @@ class ProcessListHookKt(
                         finalApplyOomScoreAdj = computeFinalOomScoreUseSimpleLmk(
                             appInfo = appInfo,
                             oomScoreAdj = oomScoreAdj,
+                            processRecord = process,
                             mainProcess = mainProcess
                         )
                     } else {
@@ -273,6 +276,7 @@ class ProcessListHookKt(
                             } else {
                                 ProcessRecordKt.DEFAULT_MAIN_ADJ + highLevelSubProcessAdjOffset
                             }
+                            clearProcessUnexpectedState(processRecord = process)
                         }
                         if (process.fixedOomAdjScore != ProcessRecordKt.defaultMaxAdj) {
                             process.fixedOomAdjScore = ProcessRecordKt.defaultMaxAdj
@@ -288,10 +292,13 @@ class ProcessListHookKt(
         }
 
         param.args[2] = finalApplyOomScoreAdj
-        // 修改curAdj
-        process.processStateRecord.curAdj = finalApplyOomScoreAdj
         // 记录本次系统计算的分数
         process.oomAdjScore = oomScoreAdj
+
+        if (finalApplyOomScoreAdj != oomScoreAdj) {
+            // 修改curAdj
+            process.processStateRecord.curAdj = finalApplyOomScoreAdj
+        }
 
         // ProcessListHookKt.handleHandleProcessStartedLocked 执行后, 生成进程所属的appInfo
         // 但并没有将其设置内存分组。若在进程创建时就设置appInfo的内存分组, 则在某些场景下会产生额外消耗。
@@ -330,15 +337,28 @@ class ProcessListHookKt(
     }
 
     /**
+     * 清除进程非预期的状态记录
+     * @param processRecord ProcessRecordKt
+     */
+    private fun clearProcessUnexpectedState(processRecord: ProcessRecordKt) {
+        processRecord.processStateRecord.apply {
+            cached = false
+            empty = false
+        }
+    }
+
+    /**
      * 在使用Simple Lmk的情况下, 计算最终adj
      * @param appInfo AppInfo
      * @param oomScoreAdj Int
+     * @param processRecord ProcessRecordKt
      * @param mainProcess Boolean
      * @return Int
      */
     private fun computeFinalOomScoreUseSimpleLmk(
         appInfo: AppInfo,
         oomScoreAdj: Int,
+        processRecord: ProcessRecordKt,
         mainProcess: Boolean
     ): Int {
         val possibleFinalAdj = if (appInfo.isImportSystemApp) {
@@ -349,6 +369,7 @@ class ProcessListHookKt(
         }
 
         return if (mainProcess) {
+            clearProcessUnexpectedState(processRecord = processRecord)
             possibleFinalAdj
         } else {
             possibleFinalAdj + simpleLmkMaxAndMinOffset

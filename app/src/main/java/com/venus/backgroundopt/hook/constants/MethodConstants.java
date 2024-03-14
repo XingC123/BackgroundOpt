@@ -128,6 +128,10 @@ public interface MethodConstants {
     String cleanUpRemovedTaskLocked = "cleanUpRemovedTaskLocked";
     String acquireWakeLockInternal = "acquireWakeLockInternal";
     String releaseWakeLockInternal = "releaseWakeLockInternal";
+    String setCached = "setCached";
+    String getCached = "getCached";
+    String setEmpty = "setEmpty";
+    String getEmpty = "getEmpty";
 
     /**
      * miui
