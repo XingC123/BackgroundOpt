@@ -374,9 +374,21 @@ class ProcessRecordKt(
         @JvmStatic
         fun isWebviewProcProbable(@AndroidObject processRecord: Any): Boolean {
             return webviewProcessNameMap.computeIfAbsent(getProcessName(processRecord)) { processName ->
-                val index = processName.lastIndexOf("sandbox", ignoreCase = true)
+                // 该方案会匹配到: sandboxed_privilege_process
+                /*val index = processName.lastIndexOf("sandbox", ignoreCase = true)
                 val index2 = processName.lastIndexOf("process", ignoreCase = true)
-                index in 0..<index2
+                index in 0..<index2*/
+                // 可以使用uid匹配。但总有写家伙喜欢自己带个webview
+                processName.contains(
+                    "SandboxedProcessService"/* 标准名字 */,
+                    ignoreCase = true
+                ) || processName.contains(
+                    "SandboxProcess"/* 百度地图(无语, 又不太无语) */,
+                    ignoreCase = true
+                ) || processName.contains(
+                    "SandboxedProcess"/* 万一真有这么起名的呢 */,
+                    ignoreCase = true
+                ) /* 其他情况去死吧, 不兼容了。搞得代码又臭又长, 写一堆匹配 */
             }
         }
 
