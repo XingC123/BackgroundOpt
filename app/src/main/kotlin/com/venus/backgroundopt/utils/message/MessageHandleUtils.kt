@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.utils.message
+
+package com.venus.backgroundopt.utils.message
 
 import android.content.ComponentName
 import android.content.Context
@@ -174,6 +174,23 @@ inline fun <reified E> sendMessageAcceptList(
  * 创建响应                                                                  *
  *                                                                         *
  **************************************************************************/
+inline fun <reified E> createResponseWithNullData(
+    param: MethodHookParam,
+    value: String?,
+    setJsonData: Boolean = false,
+    generateData: (value: E) -> Unit
+) {
+    createResponse<E>(
+        param = param,
+        value = value,
+        setJsonData = setJsonData,
+        generateData = {
+            generateData(it)
+            null
+        }
+    )
+}
+
 /**
  * 创建响应
  *
