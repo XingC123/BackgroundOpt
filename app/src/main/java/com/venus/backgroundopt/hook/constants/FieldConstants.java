@@ -47,6 +47,7 @@ public interface FieldConstants {
      * {@link ClassConstants#ActivityManagerConstants}
      */
     String CUR_MAX_CACHED_PROCESSES = "CUR_MAX_CACHED_PROCESSES";
+    String CUR_MAX_EMPTY_PROCESSES = "CUR_MAX_EMPTY_PROCESSES";
     String MAX_PHANTOM_PROCESSES = "MAX_PHANTOM_PROCESSES";
     String mOverrideMaxCachedProcesses = "mOverrideMaxCachedProcesses";
     String mCustomizedMaxCachedProcesses = "mCustomizedMaxCachedProcesses";
@@ -54,6 +55,7 @@ public interface FieldConstants {
     String DEFAULT_MAX_PHANTOM_PROCESSES = "DEFAULT_MAX_PHANTOM_PROCESSES";
     String MAX_CACHED_PROCESSES = "MAX_CACHED_PROCESSES";
     String CUR_TRIM_CACHED_PROCESSES = "CUR_TRIM_CACHED_PROCESSES";
+    String CUR_TRIM_EMPTY_PROCESSES = "CUR_TRIM_EMPTY_PROCESSES";
     String KEY_MAX_CACHED_PROCESSES = "KEY_MAX_CACHED_PROCESSES";
     /**
      * {@link ClassConstants#DeviceConfig}

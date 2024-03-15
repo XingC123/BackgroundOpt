@@ -37,11 +37,23 @@ class ActivityManagerConstantsHookNew(
                 value = Int.MAX_VALUE
             )
             activityManagerConstants.setIntFieldValue(
+                fieldName = FieldConstants.MAX_CACHED_PROCESSES,
+                value = Int.MAX_VALUE
+            )
+            activityManagerConstants.setIntFieldValue(
                 fieldName = FieldConstants.CUR_MAX_CACHED_PROCESSES,
                 value = Int.MAX_VALUE
             )
             activityManagerConstants.setIntFieldValue(
+                fieldName = FieldConstants.CUR_MAX_EMPTY_PROCESSES,
+                value = Int.MAX_VALUE
+            )
+            activityManagerConstants.setIntFieldValue(
                 fieldName = FieldConstants.CUR_TRIM_CACHED_PROCESSES,
+                value = Int.MAX_VALUE
+            )
+            activityManagerConstants.setIntFieldValue(
+                fieldName = FieldConstants.CUR_TRIM_EMPTY_PROCESSES,
                 value = Int.MAX_VALUE
             )
         }
