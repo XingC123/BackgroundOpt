@@ -164,4 +164,7 @@
     <string name="main_activity_max_adj_score" translatable="false">主进程最大oom分数:</string>
     <string name="settingsGlobalOomScoreCustomValueDefaultValue" translatable="false">0</string>
     <string name="settingsOomWorkModeDefaultValue" translatable="false">1</string>
+    <string name="settingsExtraItemTitle" translatable="false">附加设置</string>
+    <string name="settingsKillAfterRemoveTaskPrefText" translatable="false">划卡杀后台</string>
+    <string name="settingsKillAfterRemoveTaskSummary" translatable="false">针对本模块修改的adj&lt;=-800的app</string>
 </resources>

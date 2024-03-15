@@ -97,4 +97,11 @@ public interface PreferenceDefaultValue {
      *                                                                         *
      **************************************************************************/
     int backgroundProcMemTrimLevel = ComponentCallbacks2.TRIM_MEMORY_BACKGROUND;
+
+    /* *************************************************************************
+     *                                                                         *
+     * 划卡杀后台                                                                *
+     *                                                                         *
+     **************************************************************************/
+    boolean killAfterRemoveTask = true;
 }

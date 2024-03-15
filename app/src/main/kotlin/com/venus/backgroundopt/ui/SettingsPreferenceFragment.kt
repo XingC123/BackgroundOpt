@@ -157,6 +157,12 @@ class SettingsPreferenceFragment : BasePreferenceFragment<SettingsActivity>() {
                 globalOomScorePolicy
             }
         }
+
+        // 划卡杀后台
+        initSwitchPreferenceChangeListener(
+            preferenceKey = PreferenceKeyConstants.KILL_AFTER_REMOVE_TASK,
+            messageKey = MessageKeyConstants.killAfterRemoveTask
+        )
     }
 
     private fun initSwitchPreferenceChangeListener(

@@ -11,4 +11,6 @@
     <string name="pref_key_global_oom_score" translatable="false">pref_key_global_oom_score</string>
     <string name="pref_key_global_oom_score_effective_scope" translatable="false">pref_key_global_oom_score_effective_scope</string>
     <string name="pref_key_global_oom_score_value" translatable="false">pref_key_global_oom_score_value</string>
+    <!--划卡杀后台-->
+    <string name="pref_key_kill_after_remove_task" translatable="false">pref_key_kill_after_remove_task</string>
 </resources>

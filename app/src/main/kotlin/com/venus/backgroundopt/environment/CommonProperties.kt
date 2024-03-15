@@ -43,6 +43,10 @@ object CommonProperties : ILogger {
         return false
     }
 
+    private fun printPreferenceActiveState(isEnabled: Boolean, description: String) {
+        logger.info("[${if (isEnabled) "启用" else "禁用"}] ${description}")
+    }
+
     // 默认白名单
     val subProcessDefaultUpgradeSet: Set<String> by lazy {
         setOf(
@@ -242,5 +246,32 @@ object CommonProperties : ILogger {
         }
         logger.info(policy.toString())
         PropertyValueWrapper(policy)
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 划卡杀后台                                                                *
+     *                                                                         *
+     **************************************************************************/
+    val enableKillAfterRemoveTask by lazy {
+        val isEnabledValueWrapper = PropertyValueWrapper(
+            PreferencesUtil.getBoolean(
+                path = PreferenceNameConstants.MAIN_SETTINGS,
+                key = PreferenceKeyConstants.KILL_AFTER_REMOVE_TASK,
+                defaultValue = PreferenceDefaultValue.killAfterRemoveTask
+            )
+        ).apply {
+            addListener(PreferenceKeyConstants.KILL_AFTER_REMOVE_TASK) { _, newValue ->
+                printPreferenceActiveState(
+                    isEnabled = newValue,
+                    description = "划卡杀后台"
+                )
+            }
+        }
+        printPreferenceActiveState(
+            isEnabled = isEnabledValueWrapper.value,
+            description = "划卡杀后台"
+        )
+        isEnabledValueWrapper
     }
 }

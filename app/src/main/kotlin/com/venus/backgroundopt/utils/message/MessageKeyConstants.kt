@@ -42,5 +42,6 @@ interface MessageKeyConstants {
         const val globalOomScoreValue = "globalOomScoreValue"
         const val getTrimMemoryOptThreshold = "getTrimMemoryOptThreshold"
         const val getHomePageModuleInfo = "getHomePageModuleInfo"
+        const val killAfterRemoveTask = "killAfterRemoveTask"
     }
 }

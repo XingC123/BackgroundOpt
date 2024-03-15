@@ -48,6 +48,10 @@ class ActivityTaskSupervisorHook(
             },
             hookAllMethod = true,
         ) { param ->
+            if (!CommonProperties.enableKillAfterRemoveTask.value) {
+                return@beforeHook
+            }
+
             var killProcess = param.args[1] as Boolean
             // 如果原本就是true, 我们就不需要管他
             if (killProcess) {

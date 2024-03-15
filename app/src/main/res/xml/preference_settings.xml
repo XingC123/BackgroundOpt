@@ -72,6 +72,21 @@
     <PreferenceCategory
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:title="@string/settingsExtraItemTitle"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreference
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:defaultValue="true"
+            android:title="@string/settingsKillAfterRemoveTaskPrefText"
+            app:iconSpaceReserved="false"
+            app:key="@string/pref_key_kill_after_remove_task"
+            app:summary="@string/settingsKillAfterRemoveTaskSummary" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:title="@string/settingsOtherItemTitle"
         app:iconSpaceReserved="false">
 
