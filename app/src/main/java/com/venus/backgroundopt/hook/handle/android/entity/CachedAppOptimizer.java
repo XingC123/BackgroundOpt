@@ -1,4 +1,23 @@
-package com.venus.backgroundopt.hook.handle.android.entity;
+/*
+ * Copyright (C) 2023 BackgroundOpt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+                    
+ package com.venus.backgroundopt.hook.handle.android.entity;
+
+import androidx.annotation.NonNull;
 
 import com.venus.backgroundopt.annotation.AndroidObject;
 import com.venus.backgroundopt.annotation.AndroidObjectField;
@@ -16,8 +35,11 @@ import de.robv.android.xposed.XposedHelpers;
  * @version 1.0
  * @date 2023/6/1
  */
-public class CachedAppOptimizer implements ILogger {
+public class CachedAppOptimizer implements ILogger, IAndroidEntity {
+    // Flags stored in the DeviceConfig API.
     public static final String KEY_USE_COMPACTION = "use_compaction";
+
+    public static final String KEY_FREEZER_DEBOUNCE_TIMEOUT = "freeze_debounce_timeout";
 
     // Phenotype sends int configurations and we map them to the strings we'll use on device,
     // preventing a weird string value entering the kernel.
@@ -44,6 +66,8 @@ public class CachedAppOptimizer implements ILogger {
     static final long DEFAULT_COMPACT_THROTTLE_5 = 10 * 60 * 1000;
     static final long DEFAULT_COMPACT_THROTTLE_6 = 10 * 60 * 1000;
 
+    public static final long DEFAULT_FREEZER_DEBOUNCE_TIMEOUT = 10_000L;
+
     // Configured by phenotype. Updates from the server take effect immediately.
     public long mCompactThrottleSomeSome = DEFAULT_COMPACT_THROTTLE_1;
     public long mCompactThrottleSomeFull = DEFAULT_COMPACT_THROTTLE_2;
@@ -55,6 +79,12 @@ public class CachedAppOptimizer implements ILogger {
     public long mCompactThrottleMaxOomAdj;
 
     private long mFullCompactRequest;
+
+    @AndroidObjectField(
+            objectClassPath = ClassConstants.CachedAppOptimizer,
+            fieldName = FieldConstants.mFreezerDebounceTimeout
+    )
+    public volatile long mFreezerDebounceTimeout = DEFAULT_FREEZER_DEBOUNCE_TIMEOUT;
 
     @AndroidObject(classPath = ClassConstants.CachedAppOptimizer)
     private final Object cachedAppOptimizer;
@@ -68,8 +98,10 @@ public class CachedAppOptimizer implements ILogger {
                 XposedHelpers.getLongField(cachedAppOptimizer, FieldConstants.mCompactThrottleMaxOomAdj);
     }
 
+    @NonNull
+    @Override
     @AndroidObject
-    public Object getCachedAppOptimizer() {
+    public Object getOriginalInstance() {
         return cachedAppOptimizer;
     }
 
@@ -140,7 +172,7 @@ public class CachedAppOptimizer implements ILogger {
         return (boolean) XposedHelpers.callMethod(
                 this.cachedAppOptimizer,
                 MethodConstants.compactApp,
-                app.getProcessRecord(),
+                app.getOriginalInstance(),
                 force,
                 compactRequestType
         );

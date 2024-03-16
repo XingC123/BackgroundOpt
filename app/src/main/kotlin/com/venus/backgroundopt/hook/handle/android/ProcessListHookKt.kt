@@ -1,8 +1,25 @@
+/*
+ * Copyright (C) 2023 BackgroundOpt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.venus.backgroundopt.hook.handle.android
 
-import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
+import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.CommonProperties
@@ -11,12 +28,14 @@ import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.afterHookAction
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
+import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
-import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.utils.concurrent.lock
+import com.venus.backgroundopt.utils.getBooleanFieldValue
+import com.venus.backgroundopt.utils.getObjectFieldValue
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
 import com.venus.backgroundopt.utils.message.handle.getCustomMainProcessOomScore
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -40,6 +59,9 @@ class ProcessListHookKt(
 
         const val MAX_ALLOWED_OOM_SCORE_ADJ = ProcessList.UNKNOWN_ADJ - 1
 
+        /**
+         * Simple Lmk
+         */
         const val minSimpleLmkOomScore = 0
         const val maxSimpleLmkOomScore = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
         const val simpleLmkConvertDivisor = MAX_ALLOWED_OOM_SCORE_ADJ / maxSimpleLmkOomScore
@@ -48,8 +70,76 @@ class ProcessListHookKt(
         const val simpleLmkMaxAndMinOffset = maxSimpleLmkOomScore - minSimpleLmkOomScore
         const val visibleAppAdjUseSimpleLmk = ProcessList.VISIBLE_APP_ADJ / simpleLmkConvertDivisor
 
+        const val importSystemAppAdjStartUseSimpleLmk = 1
+        const val importSystemAppAdjEndUseSimpleLmk = 3
+
+        @JvmField
+        val importSystemAppAdjNormalUseSimpleLmk = "%.0f".format(
+            (importSystemAppAdjStartUseSimpleLmk + importSystemAppAdjEndUseSimpleLmk) / 2.0
+        ).toInt()
+
         // 第一等级的app的adj的起始值
-        const val firstLevelAppAdjStartUseSimpleLmk = minSimpleLmkOomScore + 1
+//        const val normalAppAdjStartUseSimpleLmk = importSystemAppAdjEndUseSimpleLmk + 1
+        const val normalAppAdjStartUseSimpleLmk = minSimpleLmkOomScore + 1
+
+        /**
+         * 严格模式
+         */
+        const val minOomScoreAdj = -100
+        const val maxOomScoreAdj = ProcessList.FOREGROUND_APP_ADJ
+        const val maxAndMinOomScoreAdjDifference = maxOomScoreAdj - minOomScoreAdj
+        const val oomScoreAdjConvertDivisor =
+            MAX_ALLOWED_OOM_SCORE_ADJ / maxAndMinOomScoreAdjDifference
+
+        // 高水平的子进程的adj分数相对于主进程的偏移量
+        const val highLevelSubProcessAdjOffset = 1
+
+        /**
+         * 是否升级子进程的等级
+         *
+         * @param processName 进程名
+         * @return 升级 -> true
+         */
+        @JvmStatic
+        private fun isUpgradeSubProcessLevel(processName: String): Boolean =
+            CommonProperties.subProcessOomPolicyMap[processName]?.let {
+                it.policyEnum == SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
+            } ?: false
+
+        /**
+         * 是否需要处理webview进程
+         * @param processRecord ProcessRecordKt
+         * @return Boolean 需要处理 -> true
+         */
+        @JvmStatic
+        fun isNeedHandleWebviewProcess(processRecord: ProcessRecordKt): Boolean =
+            CommonProperties.enableWebviewProcessProtect.value
+                    && processRecord.webviewProcessProbable
+                    && processRecord.originalInstance.getObjectFieldValue(
+                fieldName = FieldConstants.mWindowProcessController
+            )?.getBooleanFieldValue(fieldName = FieldConstants.mHasClientActivities) == true
+
+        /**
+         * 是否是高等级子进程
+         * @param processRecord ProcessRecordKt 进程记录器
+         * @return Boolean 高水平 -> true
+         */
+        @JvmStatic
+        fun isHighLevelSubProcess(
+            processRecord: ProcessRecordKt
+        ): Boolean = isUpgradeSubProcessLevel(processRecord.processName)
+                || isNeedHandleWebviewProcess(processRecord)
+                || processRecord.hasWakeLock()
+
+        /**
+         * 是否是高等级进程
+         * @param processRecord ProcessRecordKt
+         * @return Boolean 高水平 -> true
+         */
+        @JvmStatic
+        fun isHighLevelProcess(
+            processRecord: ProcessRecordKt
+        ): Boolean = processRecord.mainProcess || isHighLevelSubProcess(processRecord)
     }
 
     override fun getHookPoint(): Array<HookPoint> {
@@ -87,17 +177,6 @@ class ProcessListHookKt(
         )
     }
 
-    /**
-     * 是否升级子进程的等级
-     *
-     * @param processName 进程名
-     * @return 升级 -> true
-     */
-    private fun isUpgradeSubProcessLevel(processName: String): Boolean =
-        CommonProperties.subProcessOomPolicyMap[processName]?.let {
-            it.policyEnum == SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
-        } ?: false
-
     private fun logProcessOomChanged(
         packageName: String,
         uid: Int,
@@ -109,178 +188,130 @@ class ProcessListHookKt(
                 "pid: ${pid}, adj: $curAdj"
     )
 
-    val simpleLmkOomScoreMap = ConcurrentHashMap<Int, Int>(8)
+    val oomScoreAdjMap = ConcurrentHashMap<Int, Int>(8)
+    val importSystemAppOomScoreAdjMap = ConcurrentHashMap<Int, Int>(8)
 
     private fun computeOomScoreAdjValueUseSimpleLmk(
         oomScoreAdj: Int
-    ): Int = simpleLmkOomScoreMap.computeIfAbsent(oomScoreAdj) {
-        (oomScoreAdj / simpleLmkConvertDivisor).coerceAtLeast(firstLevelAppAdjStartUseSimpleLmk)
+    ): Int = oomScoreAdjMap.computeIfAbsent(oomScoreAdj) {
+        (oomScoreAdj / simpleLmkConvertDivisor).coerceAtLeast(normalAppAdjStartUseSimpleLmk)
     }
 
+    private fun getImportSystemAppOomScoreUseSimpleLmk(
+        oomScoreAdj: Int
+    ): Int = importSystemAppOomScoreAdjMap.computeIfAbsent(oomScoreAdj) { _ ->
+        if (oomScoreAdj < ProcessList.VISIBLE_APP_ADJ) {
+            importSystemAppAdjStartUseSimpleLmk
+        } else if (oomScoreAdj < ProcessList.CACHED_APP_MIN_ADJ) {
+            importSystemAppAdjNormalUseSimpleLmk
+        } else {
+            importSystemAppAdjEndUseSimpleLmk
+        }
+    }
+
+    private fun getMainProcessOomScoreAdjNonNull(oomScoreAdj: Int?): Int =
+        oomScoreAdj ?: ProcessRecordKt.DEFAULT_MAIN_ADJ
+
+    private fun useSimpleLmk(): Boolean = CommonProperties.useSimpleLmk()
+
     private fun handleSetOomAdj(param: MethodHookParam) {
-        val uid = param.args[1] as Int
-        val runningInfo = runningInfo
-//        val appInfo = runningInfo.computeRunningAppIfAbsent(uid) ?: return
-        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
+        val pid = param.args[0] as Int
+        // 获取当前进程对象
+        val process = runningInfo.getRunningProcess(pid) ?: return
+        val appInfo = process.appInfo
 
         val globalOomScorePolicy = CommonProperties.globalOomScorePolicy.value
         if (!globalOomScorePolicy.enabled) {
-            // 若当前为重要系统app, 则检查是否有界面
-            if (runningInfo.isImportantSystemApp(appInfo.userId, appInfo.packageName)
-                && appInfo.findAppResult?.hasActivity != true
-            ) {
-                return
-            }
-
             // 若app未进入后台, 则不进行设置
             if (appInfo.appGroupEnum !in processedAppGroup) {
                 return
             }
         }
+        val uid = param.args[1] as Int
+        val oomScoreAdj = param.args[2] as Int
 
-        val pid = param.args[0] as Int
-        val oomAdjScore = param.args[2] as Int
-
-        // 获取当前进程对象
-        val process =
-            appInfo.getProcess(pid) ?: return
-        /*?: appInfo.addProcess(runningInfo.activityManagerService.getProcessRecord(pid))*/
         val mainProcess = process.mainProcess
         val lastOomScoreAdj = process.oomAdjScore
         var oomAdjustLevel = OomAdjustLevel.NONE
         // 最终要被系统设置的oom分数
-        var finalApplyOomScoreAdj = oomAdjScore
+        var finalApplyOomScoreAdj = oomScoreAdj
 
-        val globalOomScoreEffectiveScopeEnum = globalOomScorePolicy.globalOomScoreEffectiveScope
-        val customGlobalOomScore = globalOomScorePolicy.customGlobalOomScore
-        // 对所有进程应用oom修改
-        if (globalOomScorePolicy.enabled && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL) {
-            finalApplyOomScoreAdj = customGlobalOomScore
+        if (appInfo.appGroupEnum == AppGroupEnum.DEAD) {
+            // app已经死亡
+            // 24.3.7的逻辑是: 主进程被移除, 则会移除AppInfo。但是这个移除行为是在线程池完成的。
+            // 因此, 与当前的逻辑是有一个线程安全问题的。
+            // 所以我们在这里再确认下是否AppInfo已经被标记为死亡
+            return
         } else {
-            if (oomAdjScore >= 0 || globalOomScorePolicy.enabled) {
-                if (mainProcess
-                    || isUpgradeSubProcessLevel(process.processName)
-                    || (CommonProperties.enableWebviewProcessProtect.value && process.webviewProcess)
-                ) {
+            val globalOomScoreEffectiveScopeEnum = globalOomScorePolicy.globalOomScoreEffectiveScope
+            val isHighLevelProcess = isHighLevelProcess(process).also {
+                if (it) {
                     oomAdjustLevel = OomAdjustLevel.FIRST
                 }
-                if (oomAdjustLevel == OomAdjustLevel.FIRST) {
-                    if (CommonProperties.oomWorkModePref.oomMode != OomWorkModePref.MODE_NEGATIVE
-                        || globalOomScorePolicy.enabled
-                    ) {
-                        val useSimpleLmk =
-                            CommonProperties.enableSimpleLmk.value /*&& (oomAdjScore in minSimpleLmkOomScore..maxSimpleLmkOomScore)*/
-                        val appOptimizePolicy =
-                            CommonProperties.appOptimizePolicyMap[process.packageName]
+            }
+            val isUserSpaceAdj = oomScoreAdj >= 0
 
-                        var possibleFinalAdj = appOptimizePolicy.getCustomMainProcessOomScore()
-                        val finalAdj =
-                            // 前台的oom_score_adj默认为0
-                            if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
-                                ProcessList.FOREGROUND_APP_ADJ
-                            } else if (globalOomScorePolicy.enabled) {
-                                // 进程独立配置优先于全局oom
-                                possibleFinalAdj ?: customGlobalOomScore
-                            } else
-                            // simple lmk 只在平衡模式生效
-                                if (useSimpleLmk && CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_BALANCE) {
-                                    possibleFinalAdj =
-                                        possibleFinalAdj ?: computeOomScoreAdjValueUseSimpleLmk(
-                                            oomScoreAdj = oomAdjScore
-                                        )
-                                    if (mainProcess) {
-                                        possibleFinalAdj
-                                    } else {
-                                        // 检查范围
-                                        /*val adj = possibleFinalAdj + simpleLmkMaxAndMinOffset
-                                        if (adj <= maxSimpleLmkOomScore) {
-                                            minSimpleLmkOtherProcessOomScore
-                                        } else if (adj > ProcessList.VISIBLE_APP_ADJ) {
-                                            ProcessList.VISIBLE_APP_ADJ
-                                        } else {
-                                            adj
-                                        }*/
-                                        // 在当前minSimpleLmkOomScore = 0, maxSimpleLmkOomScore = 50,
-                                        // simpleLmkConvertDivisor = (ProcessList.UNKNOWN_ADJ - 1) / maxSimpleLmkOomScore
-                                        // 的情况下possibleFinalAdj + simpleLmkMaxAndMinOffset永远小于ProcessList.VISIBLE_APP_ADJ
-                                        // 2024.3.1: 此处最小为1 + 50 = 51.不用再比较判断了
-                                        (possibleFinalAdj + simpleLmkMaxAndMinOffset)/*.coerceAtLeast(
-                                            minSimpleLmkOtherProcessOomScore
-                                        )*/
-                                    }
-                                } else {
-                                    possibleFinalAdj =
-                                        possibleFinalAdj ?: ProcessRecordKt.DEFAULT_MAIN_ADJ
-                                    if (mainProcess) {
-                                        possibleFinalAdj
-                                    } else {
-                                        // 子进程升级、webview进程都默认比主进程adj大
-                                        (possibleFinalAdj + 1).coerceAtMost(ProcessList.VISIBLE_APP_ADJ)
-                                    }
-                                }
+            val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[process.packageName]
+            val possibleAdj = appOptimizePolicy.getCustomMainProcessOomScore()
 
-                        if (!useSimpleLmk && process.fixedOomAdjScore != finalAdj) {
-                            process.fixedOomAdjScore = finalAdj
-
-                            if (CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_STRICT ||
-                                CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE
-                            ) {
-                                process.setDefaultMaxAdj()
-                            }
-
-                            if (BuildConfig.DEBUG) {
-                                logProcessOomChanged(
-                                    appInfo.packageName,
-                                    uid,
-                                    pid,
-                                    mainProcess,
-                                    finalAdj
-                                )
-                            }
-                        }
-
-                        finalApplyOomScoreAdj = finalAdj
-                    }
-                } else { // 子进程的处理
-                    if (globalOomScorePolicy.enabled && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_AND_SUB_PROCESS) {
-                        finalApplyOomScoreAdj = customGlobalOomScore
-                    } else if (process.fixedOomAdjScore != ProcessRecordKt.SUB_PROC_ADJ) { // 第一次记录子进程 或 进程调整策略置为默认
-                        val expectedOomAdjScore = ProcessRecordKt.SUB_PROC_ADJ
-                        finalApplyOomScoreAdj = if (oomAdjScore > expectedOomAdjScore) {
-                            oomAdjScore
-                        } else {
-                            expectedOomAdjScore
-                        }
-
-                        process.fixedOomAdjScore = expectedOomAdjScore
-
-                        // 如果修改过maxAdj则重置
-                        process.resetMaxAdj()
-
-                        if (BuildConfig.DEBUG) {
-                            logProcessOomChanged(
-                                appInfo.packageName,
-                                uid,
-                                pid,
-                                mainProcess,
-                                finalApplyOomScoreAdj
-                            )
-                        }
+            if (possibleAdj != null && isHighLevelProcess) {    // 进程独立配置优先于任何情况
+                finalApplyOomScoreAdj = possibleAdj
+                clearProcessUnexpectedState(processRecord = process)
+            } else if (globalOomScorePolicy.enabled
+                && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL
+                        || isHighLevelProcess && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS_ANY || isUserSpaceAdj)
+                        || isUserSpaceAdj && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_AND_SUB_PROCESS
+                        )
+            ) {
+                // 逻辑概要:
+                // 开启全局oom && (作用域 == ALL || isHighLevelProcess && (作用域 == MAIN_PROC_ANY || isUserSpaceAdj) || /* 普通子进程 或 !isUserSpaceAdj */ isUserSpaceAdj && 作用域 == MAIN_AND_SUB_PROC)
+                finalApplyOomScoreAdj = globalOomScorePolicy.customGlobalOomScore
+                clearProcessUnexpectedState(processRecord = process)
+            } else if (isUserSpaceAdj) {
+                if (isHighLevelProcess) {
+                    if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
+                        finalApplyOomScoreAdj = ProcessList.FOREGROUND_APP_ADJ
+                    } else if (useSimpleLmk()) {
+                        finalApplyOomScoreAdj = computeFinalOomScoreUseSimpleLmk(
+                            appInfo = appInfo,
+                            oomScoreAdj = oomScoreAdj,
+                            processRecord = process,
+                            mainProcess = mainProcess
+                        )
                     } else {
-                        // 新的oomAdj小于修正过的adj
-                        if (oomAdjScore < process.fixedOomAdjScore) {
-                            finalApplyOomScoreAdj = process.fixedOomAdjScore
+                        if (CommonProperties.oomWorkModePref.oomMode != OomWorkModePref.MODE_NEGATIVE) {
+                            finalApplyOomScoreAdj = if (mainProcess) {
+                                if (appInfo.isImportSystemApp) {
+                                    computeImportSystemAppOomAdj(oomScoreAdj = oomScoreAdj)
+                                } else {
+                                    ProcessRecordKt.DEFAULT_MAIN_ADJ
+                                }
+                            } else {
+                                ProcessRecordKt.DEFAULT_MAIN_ADJ + highLevelSubProcessAdjOffset
+                            }
+                            clearProcessUnexpectedState(processRecord = process)
+                        }
+                        if (process.fixedOomAdjScore != ProcessRecordKt.defaultMaxAdj) {
+                            process.fixedOomAdjScore = ProcessRecordKt.defaultMaxAdj
                         }
                     }
+                } else {    // 普通子进程
+                    finalApplyOomScoreAdj = computeSubprocessFinalOomScore(
+                        processRecord = process,
+                        oomScoreAdj = oomScoreAdj
+                    )
                 }
             }
         }
 
         param.args[2] = finalApplyOomScoreAdj
-        // 修改curAdj
-        process.processStateRecord.curAdj = finalApplyOomScoreAdj
         // 记录本次系统计算的分数
-        process.oomAdjScore = oomAdjScore
+        process.oomAdjScore = oomScoreAdj
+
+        if (finalApplyOomScoreAdj != oomScoreAdj) {
+            // 修改curAdj
+            process.processStateRecord.curAdj = finalApplyOomScoreAdj
+        }
 
         // ProcessListHookKt.handleHandleProcessStartedLocked 执行后, 生成进程所属的appInfo
         // 但并没有将其设置内存分组。若在进程创建时就设置appInfo的内存分组, 则在某些场景下会产生额外消耗。
@@ -313,19 +344,97 @@ class ProcessListHookKt(
         runningInfo.processManager.compactProcess(
             process,
             lastOomScoreAdj,
-            oomAdjScore,
+            oomScoreAdj,
             oomAdjustLevel
         )
+    }
+
+    /**
+     * 清除进程非预期的状态记录
+     * @param processRecord ProcessRecordKt
+     */
+    private fun clearProcessUnexpectedState(processRecord: ProcessRecordKt) {
+        processRecord.processStateRecord.apply {
+            cached = false
+            empty = false
+        }
+    }
+
+    /**
+     * 在使用Simple Lmk的情况下, 计算最终adj
+     * @param appInfo AppInfo
+     * @param oomScoreAdj Int
+     * @param processRecord ProcessRecordKt
+     * @param mainProcess Boolean
+     * @return Int
+     */
+    private fun computeFinalOomScoreUseSimpleLmk(
+        appInfo: AppInfo,
+        oomScoreAdj: Int,
+        processRecord: ProcessRecordKt,
+        mainProcess: Boolean
+    ): Int {
+        val possibleFinalAdj = if (appInfo.isImportSystemApp) {
+            // getImportSystemAppOomScoreUseSimpleLmk(oomScoreAdj = oomScoreAdj)
+            computeImportSystemAppOomAdj(oomScoreAdj = oomScoreAdj)
+        } else {
+            computeOomScoreAdjValueUseSimpleLmk(oomScoreAdj = oomScoreAdj)
+        }
+
+        return if (mainProcess) {
+            clearProcessUnexpectedState(processRecord = processRecord)
+            possibleFinalAdj
+        } else {
+            possibleFinalAdj + simpleLmkMaxAndMinOffset
+        }
+    }
+
+    /**
+     * 计算子进程的oom分数
+     * @param processRecord ProcessRecordKt
+     * @param oomScoreAdj Int
+     * @return Int
+     */
+    private fun computeSubprocessFinalOomScore(
+        processRecord: ProcessRecordKt,
+        oomScoreAdj: Int
+    ): Int {
+        var possibleFinalAdj = oomScoreAdj
+        if (processRecord.fixedOomAdjScore != ProcessRecordKt.SUB_PROC_ADJ) { // 第一次记录子进程 或 进程调整策略置为默认
+            val expectedOomAdjScore = ProcessRecordKt.SUB_PROC_ADJ
+            possibleFinalAdj = if (oomScoreAdj > expectedOomAdjScore) {
+                oomScoreAdj
+            } else {
+                expectedOomAdjScore
+            }
+
+            processRecord.fixedOomAdjScore = ProcessRecordKt.SUB_PROC_ADJ
+            // 如果修改过maxAdj则重置
+            processRecord.resetMaxAdj()
+        } else if (oomScoreAdj < processRecord.fixedOomAdjScore) {    // 新的oomAdj小于已记录的子进程最小adj
+            possibleFinalAdj = processRecord.fixedOomAdjScore
+        }
+
+        return possibleFinalAdj
+    }
+
+    /**
+     * 计算系统app的adj分数
+     * @param oomScoreAdj Int 当前系统计算的oom_score_adj
+     * @return Int
+     */
+    private fun computeImportSystemAppOomAdj(oomScoreAdj: Int): Int {
+        return importSystemAppOomScoreAdjMap.computeIfAbsent(oomScoreAdj) { _ ->
+            (oomScoreAdj / oomScoreAdjConvertDivisor) + minOomScoreAdj
+        }
     }
 
     @Deprecated("ProcessRecordKt.getMDyingPid(proc)有时候为0")
     fun handleRemoveLruProcessLocked(param: MethodHookParam) {
         val proc = param.args[0]
-        val uid = ProcessRecordKt.getUID(proc)
-        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
         val pid = ProcessRecordKt.getMDyingPid(proc)
 
-        runningInfo.removeProcess(appInfo, uid, pid)
+        runningInfo.removeProcess(pid)
     }
 
     /* *************************************************************************
@@ -340,9 +449,9 @@ class ProcessListHookKt(
 
         val proc = param.args[0]
         val uid = ProcessRecordKt.getUID(proc)
-        if (ActivityManagerService.isUnsafeUid(uid)) {
+        /*if (ActivityManagerService.isUnsafeUid(uid)) {
             return
-        }
+        }*/
 
         val pid = param.args[1] as Int
         val userId = ProcessRecordKt.getUserId(proc)

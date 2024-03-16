@@ -1,4 +1,21 @@
-package com.venus.backgroundopt.hook.constants;
+/*
+ * Copyright (C) 2023 BackgroundOpt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+                    
+ package com.venus.backgroundopt.hook.constants;
 
 /**
  * @author XingC
@@ -30,11 +47,15 @@ public interface FieldConstants {
      * {@link ClassConstants#ActivityManagerConstants}
      */
     String CUR_MAX_CACHED_PROCESSES = "CUR_MAX_CACHED_PROCESSES";
+    String CUR_MAX_EMPTY_PROCESSES = "CUR_MAX_EMPTY_PROCESSES";
+    String MAX_PHANTOM_PROCESSES = "MAX_PHANTOM_PROCESSES";
     String mOverrideMaxCachedProcesses = "mOverrideMaxCachedProcesses";
     String mCustomizedMaxCachedProcesses = "mCustomizedMaxCachedProcesses";
     String DEFAULT_MAX_CACHED_PROCESSES = "DEFAULT_MAX_CACHED_PROCESSES";
+    String DEFAULT_MAX_PHANTOM_PROCESSES = "DEFAULT_MAX_PHANTOM_PROCESSES";
     String MAX_CACHED_PROCESSES = "MAX_CACHED_PROCESSES";
     String CUR_TRIM_CACHED_PROCESSES = "CUR_TRIM_CACHED_PROCESSES";
+    String CUR_TRIM_EMPTY_PROCESSES = "CUR_TRIM_EMPTY_PROCESSES";
     String KEY_MAX_CACHED_PROCESSES = "KEY_MAX_CACHED_PROCESSES";
     /**
      * {@link ClassConstants#DeviceConfig}
@@ -66,4 +87,9 @@ public interface FieldConstants {
     String mPressureState = "mPressureState";
     String mAvailable = "mAvailable";
     String DEFAULT_USE_COMPACTION = "DEFAULT_USE_COMPACTION";
+    String mFreezerDebounceTimeout = "mFreezerDebounceTimeout";
+    String intent = "intent";
+    String mUserId = "mUserId";
+    String mWindowProcessController = "mWindowProcessController";
+    String mHasClientActivities = "mHasClientActivities";
 }

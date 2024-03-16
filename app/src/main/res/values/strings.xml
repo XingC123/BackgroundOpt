@@ -71,39 +71,48 @@
         <b>1. 当前功能：</b>
         \n\t\t1) 进程保活(基于LMK)。所有调整了adj的模块都与本模块冲突，除非它关于adj的设置可以关闭。
         \n\t\t\t\t以下说明基于2024.2.21版本：
-        \n\t\t\t\ta. 严格模式：此模式下，进程oom_score_adj会始终处于0，且限制进程最大oom_score_adj为100
-        \n\t\t\t\tb. 平衡模式：此模式下，进程oom_score_adj会始终处于0，但不限制进程最大oom_score_adj
-        \n\t\t\t\tc. 宽容模式：此模式下，进程oom_score_adj交由系统调节，且限制进程最大oom_score_adj为400
+        \n\t\t\t\ta. 严格模式：此模式下，主进程oom_score_adj会始终处于0，且限制其最大oom_score_adj为100
+        \n\t\t\t\tb. 平衡模式：此模式下，主进程oom_score_adj会始终处于0，但不限制其最大oom_score_adj
+        \n\t\t\t\tc. 宽容模式：此模式下，主进程oom_score_adj交由系统调节，且限制其最大oom_score_adj为400
+        \n\t\t\t\td. 除非在开启全局oom且作用范围选择"所有进程"，否则模块不会对oom_score_adj小于0的任何进程进行调整。也就是说，模块调整的oom分数是大于等于0的。
 
         \n\t\t2) 内存回收：向应用发送虚假信息，假装可用内存已不足，促使其进行资源释放。
-        \n\t\t\t\t设置页面的<u><i>“前台进程内存回收策略”</i></u><b>越往下代表当前可用内存越紧张</b>。
+        \n\t\t\t\ta. 设置页面的<u><i>“前台进程内存回收策略”</i></u><b>越往下代表当前可用内存越紧张</b>。
+        \n\t\t\t\tb. 截至2024.3.8(2.2_vc197)，内存回收(前/后台)均为10m一次。墓碑后内存回收可能失效。但无需在意，墓碑的收益还是很可观的。
 
         \n\t\t3) 内存压缩：对后台进程按照指定的规则进行压缩。
 
         \n\t\t4) Simple Lmk: 与内核的slmk不同，本模块的Simple Lmk(以下简称slmk)是基于系统给予的oom_score_adj进行相应处理得来。
-        \n\t\t\t\t在2024.2.4(1.6.9)的实现中，所有app的主进程oom分数在[0, 50]，子进程设置了“主进程”以及webview进程保护所使用的为[51, 100]。其余子进程在101+。由此，实现了三级分类。
+        \n\t\t\t\t在2024.3.7(2.2_vc197)的实现中，系统app主进程分数在[1, 3], 普通app的主进程oom分数在[4, 50]，子进程设置了“主进程”以及webview进程保护所使用的为[51, 100]。其余子进程在101+。共四级分类。
         \n\t\t\t\t如果你对某app启用了自定义主进程oom，那么仍将会使用设置的参数，而不会进行处理。
         \n\t\t\t\t如果你使用了宽松模式，那么模块也不会进行处理(只会在第一次触发oom设置时处理一次，后续不进行处理)。
         \n\t\t\t\t如果你觉得影响保后台，那么关闭此模式即可。
         \n\t\t\t\t<b>仅当OOM工作模式为"平衡模式"时才生效。</b>
 
         \n\t\t5) 全局OOM: 开启后会使用给定的oom分数来设置生效范围内的进程。<b>不推荐开启此功能。</b>
-        \n\t\t\t\ta. 生效范围: xxx(有界面) -> 只有有界面的app的进程才会被管理。该值会影响看到的已安装app的数量。
-        \n\t\t\t\tb. 自定义全局OOM值: 取值范围[-1000, 1000]。<b>取值-800及以下，可能会导致划卡无法杀后台！！！</b>
-        \n\t\t\t\tc. 如果app配置了“<b>自定义主进程OOM</b>”, 那么会<b>使用此值而不是全局OOM。</b>
+        \n\t\t\t\ta. 生效范围: xxx(adj&gt;0) -> 只有系统计算出的adj&gt;0的app的进程才会被管理。
+        \n\t\t\t\tb. 自定义全局OOM值: 取值范围[-1000, 1000]。<b>模块支持对-800及以下取值的app划卡杀后台</b>
 
         \n\n<b>2. 补充说明：</b>
         \n\t\t1) “内存回收”和“内存压缩”受进程策略影响。
         \n\t\t2) <b>自启<i>(开机自启/杀死后台后自启)</i>的app依然会被模块管理</b>。
         \n\t\t3) 截至2023.11.03，模块对QQ、微信的推送进程默认处于“主进程”级别，即享受与主进程相同的处理方式。
-        \n\t\t4) 截至2024.2.28(模块2.0_vc194)，对进程是否启用后台内存优化的判断条件为：① 如果全局OOM设置的值小于0，则判断进程的资源占用是否达到指定阈值。
+        \n\t\t4) 截至2024.2.28(模块2.0_vc194)，对进程是否启用后台内存优化的部分判断条件为：
+        ① 如果全局OOM设置的值小于0，则判断进程的资源占用是否达到指定阈值。
         ② 如果未启用全局OOM，则当前oom_score_adj不能小于0且进程的资源占用达到指定阈值。
-        \n\t\t5) 截至2024.2.28(模块2.0_vc194)，Active分组的进程的oom_score_adj始终设置为0。
-        \n\t\t6) 截至2024.2.28(模块2.0_vc194)，有界面的app均纳入后台管理(UID过小的除外)。
+        ③ 使用严格模式或宽容模式下，app进入后台时间达到10min。
+        \n\t\t5) 截至2024.2.28(模块2.0_vc194)，Active分组的进程的oom_score_adj始终设置为0, 除非你配置了"自定义主进程oom"或启用了"全局oom"。
+        \n\t\t6) 截至2024.3.11(模块2.2_vc197)，如果app配置了“<b>自定义主进程OOM</b>”, 那么此值优先于所有配置。
         \n\t\t7) 截至2024.2.28(模块2.0_vc194)，设置页“自动停止压缩任务”设置项已无实际意义。
         \n\t\t8) 可能与去日志版LSP冲突，导致后台任务/压缩列表为空。
         \n\t\t9) 截至2024.2.28(模块2.0_vc194)，本模块主要是对LMK进行处理，因此：① 所有调整了lmk的模块都与此模块冲突，除非你关闭冲突功能或确认其不会有影响。② 对miui的电量与性能的hook仅3处，其中2处为"手机设置"里面的息屏后杀后台。如果你担心冲突，可以仅使用其他模块的对电量与性能的hook，以及本模块的对系统的hook。③ 不要问xxx系统适配了没有，因为本模块只负责LMK的处理
         \n\t\t10) 内存压缩功能内核自己也有逻辑，模块不做内核也会去做。
+        \n\t\t11) 截至2024.2.28(模块2.0_vc194)可能与禁用logd冲突，导致设备软重启。
+        \n\t\t12) 截至2024.3.11(模块2.2_vc197)，模块会对以下情况做oom调整：
+        \n\t\t\t\ta. 系统oom_score_adj&gt;0
+        \n\t\t\t\tb. 以上条件不满足，但启用了“自定义主进程oom”。
+        \n\t\t\t\tc. 以上条件不满足，但开启了全局OOM(具体是否执行看作用域描述)
+
 
         \n\n<b>3. 其他问题</b>
         \n\t\t1) 截至2024.2.28，模块版本1.6.3，红米K30Pro(lmi，MIUI13 22.7.8，安卓12)，红米Note5P(whyred，Nusantara，安卓13)。并不会与millet与NoActive 3.0(303)/3.1/3.2冲突，如果出现无法冻结请自行查找原因。
@@ -152,5 +161,10 @@
     <string name="main_activity_module_active_state_tip" translatable="false">模块激活状态:</string>
     <string name="configure_app_process_toolbar_title" translatable="false">应用进程</string>
     <string name="main_activity_mem_opt_threshold" translatable="false">触发优化的内存阈值:</string>
-    <string name="main_activity_max_adj_score" translatable="false">最大oom分数:</string>
+    <string name="main_activity_max_adj_score" translatable="false">主进程最大oom分数:</string>
+    <string name="settingsGlobalOomScoreCustomValueDefaultValue" translatable="false">0</string>
+    <string name="settingsOomWorkModeDefaultValue" translatable="false">1</string>
+    <string name="settingsExtraItemTitle" translatable="false">附加设置</string>
+    <string name="settingsKillAfterRemoveTaskPrefText" translatable="false">划卡杀后台</string>
+    <string name="settingsKillAfterRemoveTaskSummary" translatable="false">针对本模块修改的adj&lt;=-800的app</string>
 </resources>

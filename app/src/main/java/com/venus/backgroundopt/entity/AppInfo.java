@@ -1,4 +1,21 @@
-package com.venus.backgroundopt.entity;
+/*
+ * Copyright (C) 2023 BackgroundOpt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+                    
+ package com.venus.backgroundopt.entity;
 
 import static com.venus.backgroundopt.core.RunningInfo.AppGroupEnum;
 
@@ -8,7 +25,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
-import com.venus.backgroundopt.annotation.UsageComment;
 import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
@@ -20,8 +36,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -82,6 +96,10 @@ public class AppInfo implements ILogger, LockFlag {
         this.findAppResult = findAppResult;
     }
 
+    public boolean isImportSystemApp() {
+        return findAppResult.getImportantSystemApp();
+    }
+
     public boolean isSwitchEventHandled() {
         return switchEventHandled.get();
     }
@@ -124,78 +142,6 @@ public class AppInfo implements ILogger, LockFlag {
 
     public AppGroupEnum getAppGroupEnum() {
         return appGroupEnum;
-    }
-
-    /**
-     * 进程信息映射<pid, ProcessInfo>
-     * 没有设置为 final, 因为在{@link AppInfo#clearAppInfo()}中需要反射来置空
-     * 初始容量为4。一般一个app的进程数在这个数字附近，即便不够而扩容的时候，容量也是8, 比默认的16小, 且很大程度上完全够用
-     */
-    @SuppressWarnings("all")    // 别显示未final啦, 烦死辣
-    private Map<Integer, ProcessRecordKt> processRecordMap = new ConcurrentHashMap<>(4);
-
-    @NonNull
-    public ProcessRecordKt addProcess(@NonNull ProcessRecordKt processRecord) {
-        return processRecordMap.computeIfAbsent(processRecord.getPid(), k -> {
-            // ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
-            if (processRecord.getMainProcess()) {
-                setmProcessRecord(processRecord);
-            }
-            processRecord.setAppInfo(this);
-            return processRecord;
-        });
-    }
-
-    @NonNull
-    public ProcessRecordKt addProcess(@NonNull Object proc, int pid) {
-        return processRecordMap.computeIfAbsent(pid, k -> {
-            ProcessRecordKt processRecord = new ProcessRecordKt(
-                    runningInfo.getActivityManagerService(),
-                    proc, pid, uid, userId, packageName
-            );
-
-            // 做一些额外操作
-            // ProcessRecordKt.addCompactProcess(runningInfo, this, processRecord);
-            if (processRecord.getMainProcess()) {
-                setmProcessRecord(processRecord);
-            }
-            processRecord.setAppInfo(this);
-
-            return processRecord;
-        });
-    }
-
-    @Nullable
-    public ProcessRecordKt getProcess(int pid) {
-        return processRecordMap == null ? null : processRecordMap.get(pid);
-    }
-
-    public void modifyProcessOomScoreAdj(int pid, int oomAdjScore) {
-        processRecordMap.computeIfPresent(pid, (key, processRecord) -> {
-            processRecord.setOomAdjScore(oomAdjScore);
-            return processRecord;
-        });
-    }
-
-    public boolean isRecordedProcess(int pid) {
-        return processRecordMap.containsKey(pid);
-    }
-
-    public ProcessRecordKt removeProcess(int pid) {
-        return processRecordMap.remove(pid);
-    }
-
-    public Set<Integer> getProcessPids() {
-        return processRecordMap.keySet();
-    }
-
-    public Collection<ProcessRecordKt> getProcesses() {
-        return processRecordMap.values();
-    }
-
-    @UsageComment("尽量避免直接操作map, 推荐用提供好的方法")
-    public Map<Integer, ProcessRecordKt> getProcessRecordMap() {
-        return processRecordMap;
     }
 
     public ApplicationIdentity getApplicationIdentity() {
@@ -266,7 +212,7 @@ public class AppInfo implements ILogger, LockFlag {
                     ap.set(null);
                 }
 
-                if (!(obj instanceof AppGroupEnum) && !(obj instanceof Lock)) {
+                if (!(obj instanceof AppGroupEnum || obj instanceof Lock || obj instanceof FindAppResult)) {
                     field.set(this, null);
                 }
             }

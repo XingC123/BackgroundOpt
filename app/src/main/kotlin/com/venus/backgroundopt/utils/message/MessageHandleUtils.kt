@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2023 BackgroundOpt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.venus.backgroundopt.utils.message
 
 import android.content.ComponentName
@@ -24,6 +41,7 @@ import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScope
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreMessageHandler
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreValueMessageHandler
 import com.venus.backgroundopt.utils.message.handle.HomePageModuleInfoMessageHandler
+import com.venus.backgroundopt.utils.message.handle.KillAfterRemoveTaskMessageHandler
 import com.venus.backgroundopt.utils.message.handle.RunningAppInfoMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SimpleLmkMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMessageHandler
@@ -66,6 +84,7 @@ val registeredMessageHandler = mapOf(
     MessageKeyConstants.globalOomScoreValue to GlobalOomScoreValueMessageHandler(),
 //    MessageKeyConstants.getTrimMemoryOptThreshold to GetTrimMemoryOptThresholdMessageHandler(),
     MessageKeyConstants.getHomePageModuleInfo to HomePageModuleInfoMessageHandler(),
+    MessageKeyConstants.killAfterRemoveTask to KillAfterRemoveTaskMessageHandler(),
 )
 
 // json传输的载体
@@ -157,6 +176,23 @@ inline fun <reified E> sendMessageAcceptList(
  * 创建响应                                                                  *
  *                                                                         *
  **************************************************************************/
+inline fun <reified E> createResponseWithNullData(
+    param: MethodHookParam,
+    value: String?,
+    setJsonData: Boolean = false,
+    generateData: (value: E) -> Unit
+) {
+    createResponse<E>(
+        param = param,
+        value = value,
+        setJsonData = setJsonData,
+        generateData = {
+            generateData(it)
+            null
+        }
+    )
+}
+
 /**
  * 创建响应
  *

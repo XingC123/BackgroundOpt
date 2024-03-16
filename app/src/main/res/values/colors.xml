@@ -36,4 +36,6 @@
 <!--    <color name="backgroundVariant">#C2E7FF</color>-->
     <color name="backgroundVariant">@color/yuNaHu</color>
     <color name="colorPrimaryVariant">#E6E4BF</color>
+
+    <color name="transparent">#00000000</color>
 </resources>

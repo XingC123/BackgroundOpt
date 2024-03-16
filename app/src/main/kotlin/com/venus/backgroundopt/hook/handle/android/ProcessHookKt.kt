@@ -1,4 +1,21 @@
-package com.venus.backgroundopt.hook.handle.android
+/*
+ * Copyright (C) 2023 BackgroundOpt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+                    
+ package com.venus.backgroundopt.hook.handle.android
 
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
@@ -51,11 +68,9 @@ class ProcessHookKt(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
 
     @Deprecated("执行完毕后有可能会进入ProcessListHook.handleSetOomAdj导致再次新建")
     private fun handleKillApp(param: MethodHookParam) {
-        val uid = param.args[0] as Int
-        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
         val pid = param.args[1] as Int
 
-        runningInfo.removeProcess(appInfo, uid, pid)
+        runningInfo.removeProcess(pid)
     }
 
     @Deprecated("实际实施起来非常复杂")
@@ -70,11 +85,12 @@ class ProcessHookKt(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
                 logger.debug("pid: ${pid}设置ProcessGroup >>> ${param.args[1]}")
             }
         } else {
-            val uid = Process.getUidForPid(pid)
-            val appInfo = runningInfo.getRunningAppInfo(uid)
+            val processRecord = runningInfo.getRunningProcess(pid) ?: return
+            val uid = processRecord.uid
+            val appInfo = processRecord.appInfo
 
             // 模块接管此处行为
-            if (appInfo != null && appInfo.appGroupEnum in ignoreSetProcessGroupAppGroups) {
+            if (appInfo.appGroupEnum in ignoreSetProcessGroupAppGroups) {
                 param.result = null
             }
         }

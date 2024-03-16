@@ -1,4 +1,21 @@
-package com.venus.backgroundopt.hook.handle.android
+/*
+ * Copyright (C) 2023 BackgroundOpt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+                    
+ package com.venus.backgroundopt.hook.handle.android
 
 import android.app.usage.UsageEvents
 import android.content.ComponentName
@@ -151,41 +168,21 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
         val packageName = param.args[0] as String
         val userId = param.args[1] as Int
 
-        // 获取缓存的app的信息
-        val findAppResult = runningInfo.getFindAppResult(userId, packageName)
-        if (findAppResult.importantSystemApp) {
-            return
-        }
-
-        val applicationInfo = findAppResult.applicationInfo ?: return
-        val uid = applicationInfo.uid
-        val appInfo = runningInfo.getRunningAppInfo(uid)
-        appInfo?.let {
-            runningInfo.removeRunningApp(appInfo)
-
-            if (BuildConfig.DEBUG) {
-                logger.debug("kill: ${appInfo.packageName}, uid: $uid")
-            }
-        }
+        val appInfo = runningInfo.getRunningAppInfo(userId, packageName) ?: return
+        runningInfo.removeRunningApp(appInfo)
     }
 
     @Deprecated("有时候不执行。比如在王者荣耀里面两次返回从游戏内退出")
     private fun handleCleanUpApplicationRecordLocked(param: MethodHookParam) {
-        val processRecord = param.args[0] as Any
-        val uid = ProcessRecordKt.getUID(processRecord)
-        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
         val pid = param.args[1] as Int
 
-        runningInfo.removeProcess(appInfo, uid, pid)
+        runningInfo.removeProcess(pid)
     }
 
     fun handleRemovePidLocked(param: MethodHookParam) {
-        val proc = param.args[1]
-        val uid = ProcessRecordKt.getUID(proc)
-        val appInfo = runningInfo.getRunningAppInfo(uid) ?: return
         val pid = param.args[0] as Int
 
-        runningInfo.removeProcess(appInfo, uid, pid)
+        runningInfo.removeProcess(pid)
     }
 
     private fun handleKillProcessesBelowAdj(param: MethodHookParam) {

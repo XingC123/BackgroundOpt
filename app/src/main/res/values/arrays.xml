@@ -46,13 +46,15 @@
 
     <!--全局OOM生效范围-->
     <string-array name="global_oom_score_effective_scope_entries">
-        <item>主进程(有界面)</item>
-        <item>主+子进程(有界面)</item>
-        <item>所有进程(界面无关)</item>
+        <item>主进程(adj&gt;0)</item>
+        <item>主+子进程(adj&gt;0)</item>
+        <item>主进程(所有)</item>
+        <item>所有进程</item>
     </string-array>
     <string-array name="global_oom_score_effective_scope_values">
         <item>MAIN_PROCESS</item>
         <item>MAIN_AND_SUB_PROCESS</item>
+        <item>MAIN_PROCESS_ANY</item>
         <item>ALL</item>
     </string-array>
 </resources>
