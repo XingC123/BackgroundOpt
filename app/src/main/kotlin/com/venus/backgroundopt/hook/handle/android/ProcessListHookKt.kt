@@ -93,6 +93,53 @@ class ProcessListHookKt(
 
         // 高水平的子进程的adj分数相对于主进程的偏移量
         const val highLevelSubProcessAdjOffset = 1
+
+        /**
+         * 是否升级子进程的等级
+         *
+         * @param processName 进程名
+         * @return 升级 -> true
+         */
+        @JvmStatic
+        private fun isUpgradeSubProcessLevel(processName: String): Boolean =
+            CommonProperties.subProcessOomPolicyMap[processName]?.let {
+                it.policyEnum == SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
+            } ?: false
+
+        /**
+         * 是否需要处理webview进程
+         * @param processRecord ProcessRecordKt
+         * @return Boolean 需要处理 -> true
+         */
+        @JvmStatic
+        fun isNeedHandleWebviewProcess(processRecord: ProcessRecordKt): Boolean =
+            CommonProperties.enableWebviewProcessProtect.value
+                    && processRecord.webviewProcessProbable
+                    && processRecord.originalInstance.getObjectFieldValue(
+                fieldName = FieldConstants.mWindowProcessController
+            )?.getBooleanFieldValue(fieldName = FieldConstants.mHasClientActivities) == true
+
+        /**
+         * 是否是高等级子进程
+         * @param processRecord ProcessRecordKt 进程记录器
+         * @return Boolean 高水平 -> true
+         */
+        @JvmStatic
+        fun isHighLevelSubProcess(
+            processRecord: ProcessRecordKt
+        ): Boolean = isUpgradeSubProcessLevel(processRecord.processName)
+                || isNeedHandleWebviewProcess(processRecord)
+                || processRecord.hasWakeLock()
+
+        /**
+         * 是否是高等级进程
+         * @param processRecord ProcessRecordKt
+         * @return Boolean 高水平 -> true
+         */
+        @JvmStatic
+        fun isHighLevelProcess(
+            processRecord: ProcessRecordKt
+        ): Boolean = processRecord.mainProcess || isHighLevelSubProcess(processRecord)
     }
 
     override fun getHookPoint(): Array<HookPoint> {
@@ -130,17 +177,6 @@ class ProcessListHookKt(
         )
     }
 
-    /**
-     * 是否升级子进程的等级
-     *
-     * @param processName 进程名
-     * @return 升级 -> true
-     */
-    private fun isUpgradeSubProcessLevel(processName: String): Boolean =
-        CommonProperties.subProcessOomPolicyMap[processName]?.let {
-            it.policyEnum == SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
-        } ?: false
-
     private fun logProcessOomChanged(
         packageName: String,
         uid: Int,
@@ -176,29 +212,6 @@ class ProcessListHookKt(
     private fun getMainProcessOomScoreAdjNonNull(oomScoreAdj: Int?): Int =
         oomScoreAdj ?: ProcessRecordKt.DEFAULT_MAIN_ADJ
 
-    /**
-     * 是否需要处理webview进程
-     * @param processRecord ProcessRecordKt
-     * @return Boolean 需要处理 -> true
-     */
-    private fun isNeedHandleWebviewProcess(processRecord: ProcessRecordKt): Boolean =
-        CommonProperties.enableWebviewProcessProtect.value
-                && processRecord.webviewProcessProbable
-                && processRecord.originalInstance.getObjectFieldValue(
-            fieldName = FieldConstants.mWindowProcessController
-        )?.getBooleanFieldValue(fieldName = FieldConstants.mHasClientActivities) == true
-
-    /**
-     * 是否是子进程oom高调节水平
-     * @param processRecord ProcessRecordKt 进程记录器
-     * @return Boolean 高水平 -> true
-     */
-    private fun isHighLevelSubProcess(
-        processRecord: ProcessRecordKt
-    ): Boolean = isUpgradeSubProcessLevel(processRecord.processName)
-            || isNeedHandleWebviewProcess(processRecord)
-            || processRecord.hasWakeLock()
-
     private fun useSimpleLmk(): Boolean = CommonProperties.useSimpleLmk()
 
     private fun handleSetOomAdj(param: MethodHookParam) {
@@ -231,7 +244,7 @@ class ProcessListHookKt(
             return
         } else {
             val globalOomScoreEffectiveScopeEnum = globalOomScorePolicy.globalOomScoreEffectiveScope
-            val isHighLevelProcess = (mainProcess || isHighLevelSubProcess(process)).also {
+            val isHighLevelProcess = isHighLevelProcess(process).also {
                 if (it) {
                     oomAdjustLevel = OomAdjustLevel.FIRST
                 }

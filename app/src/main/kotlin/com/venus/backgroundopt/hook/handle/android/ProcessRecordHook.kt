@@ -60,7 +60,7 @@ class ProcessRecordHook(
             val process = param.thisObject
             val pid = ProcessRecordKt.getPid(process)
             val processRecord = runningInfo.getRunningProcess(pid) ?: return@beforeHook
-            if (!processRecord.mainProcess) {
+            if (!ProcessListHookKt.isHighLevelProcess(processRecord)) {
                 return@beforeHook
             }
             val reason = param.args[0] as String
