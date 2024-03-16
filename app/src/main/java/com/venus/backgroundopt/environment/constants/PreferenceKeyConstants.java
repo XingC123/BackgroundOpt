@@ -1,4 +1,21 @@
-package com.venus.backgroundopt.environment.constants;
+/*
+ * Copyright (C) 2023 BackgroundOpt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+                    
+ package com.venus.backgroundopt.environment.constants;
 
 /**
  * @author XingC
@@ -15,4 +32,5 @@ public interface PreferenceKeyConstants {
     String GLOBAL_OOM_SCORE = "pref_key_global_oom_score";
     String GLOBAL_OOM_SCORE_EFFECTIVE_SCOPE = "pref_key_global_oom_score_effective_scope";
     String GLOBAL_OOM_SCORE_VALUE = "pref_key_global_oom_score_value";
+    String KILL_AFTER_REMOVE_TASK = "pref_key_kill_after_remove_task";
 }

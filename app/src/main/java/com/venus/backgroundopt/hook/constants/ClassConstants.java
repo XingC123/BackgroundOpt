@@ -1,4 +1,21 @@
-package com.venus.backgroundopt.hook.constants;
+/*
+ * Copyright (C) 2023 BackgroundOpt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+                    
+ package com.venus.backgroundopt.hook.constants;
 
 /**
  * author: XingC
@@ -22,6 +39,7 @@ public interface ClassConstants {
     String AppProfiler = "com.android.server.am.AppProfiler";
     String RecentTasks = "com.android.server.wm.RecentTasks";
     String Task = "com.android.server.wm.Task";
+    String ActivityTaskSupervisor = "com.android.server.wm.ActivityTaskSupervisor";
     String ComponentName = "android.content.ComponentName";
     String IBinder = "android.os.IBinder";
     String Process = "android.os.Process";
@@ -52,6 +70,8 @@ public interface ClassConstants {
     String ActivityId = "android.app.assist.ActivityId";
     String Resources = "android.content.res.Resources";
     String ServiceManager = "android.os.ServiceManager";
+    String PowerManagerService = "com.android.server.power.PowerManagerService";
+    String IWakeLockCallback = "android.os.IWakeLockCallback";
 
     /**
      * miui

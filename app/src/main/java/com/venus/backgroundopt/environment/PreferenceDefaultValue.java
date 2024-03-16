@@ -1,9 +1,27 @@
-package com.venus.backgroundopt.environment;
+/*
+ * Copyright (C) 2023 BackgroundOpt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+                    
+ package com.venus.backgroundopt.environment;
 
 import android.content.Context;
 
 import androidx.annotation.NonNull;
 
+import com.venus.backgroundopt.entity.preference.OomWorkModePref;
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants;
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants;
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2;
@@ -22,7 +40,7 @@ public interface PreferenceDefaultValue {
      * app内存优化策略                                                           *
      *                                                                         *
      **************************************************************************/
-    boolean enableForegroundTrimMem = false;
+    boolean enableForegroundTrimMem = true;
     boolean enableBackgroundTrimMem = true;
     boolean enableBackgroundGc = true;
 
@@ -35,6 +53,13 @@ public interface PreferenceDefaultValue {
                 enableForegroundTrimMem
         );
     }
+
+    /* *************************************************************************
+     *                                                                         *
+     * OOM工作模式                                                               *
+     *                                                                         *
+     **************************************************************************/
+    int oomWorkMode = OomWorkModePref.MODE_STRICT;
 
     /* *************************************************************************
      *                                                                         *
@@ -57,7 +82,7 @@ public interface PreferenceDefaultValue {
      **************************************************************************/
     boolean enableGlobalOomScore = false;
     String globalOomScoreEffectiveScopeName = GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS.name();
-    int customGlobalOomScoreValue = ProcessList.NATIVE_ADJ;
+    int customGlobalOomScoreValue = ProcessList.FOREGROUND_APP_ADJ;
 
     /* *************************************************************************
      *                                                                         *
@@ -72,4 +97,11 @@ public interface PreferenceDefaultValue {
      *                                                                         *
      **************************************************************************/
     int backgroundProcMemTrimLevel = ComponentCallbacks2.TRIM_MEMORY_BACKGROUND;
+
+    /* *************************************************************************
+     *                                                                         *
+     * 划卡杀后台                                                                *
+     *                                                                         *
+     **************************************************************************/
+    boolean killAfterRemoveTask = true;
 }

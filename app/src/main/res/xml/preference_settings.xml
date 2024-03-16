@@ -20,7 +20,7 @@
         <SwitchPreference
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:title="@string/settingsForegroundProcTrimMemEnablePrefText"
             app:iconSpaceReserved="false"
             app:key="@string/pref_key_enable_foreground_proc_trim_mem_policy" />
@@ -53,7 +53,7 @@
         <ListPreference
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:defaultValue="3"
+            android:defaultValue="@string/settingsOomWorkModeDefaultValue"
             android:title="@string/settingsOomWorkModePrefText"
             app:entries="@array/oom_work_mode_entries"
             app:entryValues="@array/oom_work_mode_values"
@@ -68,6 +68,21 @@
             app:iconSpaceReserved="false"
             app:key="@string/pref_key_simple_lmk"
             app:summary="@string/settingsSimpleLmkSummary" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/settingsExtraItemTitle"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreference
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:defaultValue="true"
+            android:title="@string/settingsKillAfterRemoveTaskPrefText"
+            app:iconSpaceReserved="false"
+            app:key="@string/pref_key_kill_after_remove_task"
+            app:summary="@string/settingsKillAfterRemoveTaskSummary" />
     </PreferenceCategory>
     <PreferenceCategory
         android:layout_width="wrap_content"
@@ -99,6 +114,7 @@
             android:selectAllOnFocus="true"
             android:singleLine="true"
             android:title="@string/settingsCustomGlobalOomScorePrefText"
+            app:defaultValue="@string/settingsGlobalOomScoreCustomValueDefaultValue"
             app:dependency="@string/pref_key_global_oom_score"
             app:iconSpaceReserved="false"
             app:key="@string/pref_key_global_oom_score_value"

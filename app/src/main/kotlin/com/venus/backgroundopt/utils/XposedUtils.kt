@@ -1,4 +1,21 @@
-package com.venus.backgroundopt.utils
+/*
+ * Copyright (C) 2023 BackgroundOpt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+                    
+ package com.venus.backgroundopt.utils
 
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.utils.log.logError
@@ -152,12 +169,30 @@ fun Any.callMethod(methodName: String, vararg args: Any?): Any? {
     return XposedHelpers.callMethod(this, methodName, *args)
 }
 
+@JvmName("callMethodWithType")
+@Suppress("UNCHECKED_CAST")
+fun <R> Any.callMethod(methodName: String, vararg args: Any?): R {
+    return callMethod(methodName = methodName, args = args) as R
+}
+
 fun Any.callMethod(methodName: String, paramTypes: Array<out Class<*>>, vararg args: Any?): Any? {
     return XposedHelpers.callMethod(this, methodName, paramTypes, *args)
 }
 
+@JvmName("callMethodWithType")
+@Suppress("UNCHECKED_CAST")
+fun <R> Any.callMethod(methodName: String, paramTypes: Array<out Class<*>>, vararg args: Any?): R {
+    return callMethod(methodName, paramTypes, args) as R
+}
+
 fun Class<*>.callStaticMethod(methodName: String, vararg args: Any?): Any? {
     return XposedHelpers.callStaticMethod(this, methodName, args)
+}
+
+@JvmName("callStaticMethodWithType")
+@Suppress("UNCHECKED_CAST")
+fun <R> Class<*>.callStaticMethod(methodName: String, vararg args: Any?): R {
+    return callStaticMethod(methodName, args) as R
 }
 
 fun Class<*>.callStaticMethod(
@@ -166,6 +201,16 @@ fun Class<*>.callStaticMethod(
     vararg args: Any?
 ): Any? {
     return XposedHelpers.callStaticMethod(this, methodName, paramTypes, args)
+}
+
+@JvmName("callStaticMethodWithType")
+@Suppress("UNCHECKED_CAST")
+fun <R> Class<*>.callStaticMethod(
+    methodName: String,
+    paramTypes: Array<out Class<*>>,
+    vararg args: Any?
+): R {
+    return callStaticMethod(methodName, paramTypes, args) as R
 }
 
 /* *************************************************************************
@@ -247,7 +292,11 @@ fun String.beforeHook(
     hookMethod(classLoader, methodName, object : XC_MethodHook() {
         override fun beforeHookedMethod(param: MethodHookParam) {
             super.beforeHookedMethod(param)
-            block(param)
+            runCatchThrowable(catchBlock = {
+                logError(logStr = "beforeHook执行出错.class: ${this@beforeHook}, methodName: ${methodName}", t = it)
+            }) {
+                block(param)
+            }
         }
     }, hookAllMethod, methodType, *paramTypes)
 }
@@ -267,7 +316,11 @@ fun String.afterHook(
     hookMethod(classLoader, methodName, object : XC_MethodHook() {
         override fun afterHookedMethod(param: MethodHookParam) {
             super.afterHookedMethod(param)
-            block(param)
+            runCatchThrowable(catchBlock = {
+                logError(logStr = "beforeHook执行出错.class: ${this@afterHook}, methodName: ${methodName}", t = it)
+            }) {
+                block(param)
+            }
         }
     }, hookAllMethod, methodType, *paramTypes)
 }

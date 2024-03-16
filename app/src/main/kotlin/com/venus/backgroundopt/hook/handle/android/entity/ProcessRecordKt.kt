@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2023 BackgroundOpt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.venus.backgroundopt.hook.handle.android.entity
 
 import android.content.pm.ApplicationInfo
@@ -26,6 +43,7 @@ import com.venus.backgroundopt.utils.setIntFieldValue
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.util.Objects
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
@@ -34,7 +52,11 @@ import java.util.concurrent.atomic.AtomicLong
  * @author XingC
  * @date 2023/9/26
  */
-class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
+class ProcessRecordKt(
+    @AndroidObject(classPath = ClassConstants.ProcessRecord)
+    @get:JSONField(serialize = false)
+    override val originalInstance: Any,
+) : BaseProcessInfoKt(), ILogger, IAndroidEntity {
     companion object {
         val LONG_FORMAT by lazy {
             intArrayOf(PROC_NEWLINE_TERM or PROC_OUT_LONG)
@@ -105,6 +127,31 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
             val record = ProcessRecordKt(runningInfo.activityManagerService, processRecord)
             // addCompactProcess(runningInfo, appInfo, record)
             return record
+        }
+
+        @JvmStatic
+        @JvmOverloads
+        fun newInstance(
+            activityManagerService: ActivityManagerService,
+            appInfo: AppInfo,
+            @AndroidObject processRecord: Any,
+            pid: Int = getPid(processRecord),
+            uid: Int = getUID(processRecord),
+            userId: Int = getUserId(processRecord),
+            packageName: String = getPkgName(processRecord)
+        ): ProcessRecordKt = ProcessRecordKt(
+            activityManagerService = activityManagerService,
+            processRecord = processRecord,
+            pid = pid,
+            uid = uid,
+            userId = userId,
+            packageName = packageName,
+        ).apply {
+            this.appInfo = appInfo
+
+            if (mainProcess) {
+                this.appInfo.setmProcessRecord(this)
+            }
         }
 
         @JvmStatic
@@ -280,8 +327,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
                 return processRecord.appInfo.appGroupEnum != AppGroupEnum.DEAD
             }
             // 子进程在当前运行的app列表中来判断
-            return runningInfo.getRunningAppInfo(processRecord.uid)
-                ?.getProcess(processRecord.pid) != null
+            return runningInfo.getRunningProcess(processRecord.pid) != null
         }
 
         /**
@@ -297,13 +343,23 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
             var curCorrectTimes = 1
             while (curCorrectTimes <= 10) {
-                processRecord.pid = getPid(processRecord.processRecord)
+                processRecord.pid = getPid(processRecord.originalInstance)
                 curCorrectTimes++
                 if (processRecord.pid <= 0) {
                     TimeUnit.MILLISECONDS.sleep(20)
                 }
             }
         }
+
+        /* *************************************************************************
+         *                                                                         *
+         * webview进程                                                              *
+         *                                                                         *
+         **************************************************************************/
+        /**
+         * 是否是webview进程的判断结果<进程名, 结果(是->true)>
+         */
+        private val webviewProcessNameMap = ConcurrentHashMap<String, Boolean>(8)
 
         /**
          * 是否是webview进程
@@ -314,12 +370,53 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         fun isWebviewProc(@AndroidObject processRecord: Any): Boolean {
             return getProcessName(processRecord).contains("SandboxedProcessService")
         }
-    }
 
-    // 反射拿到的安卓的processRecord对象
-    @AndroidObject(classPath = ClassConstants.ProcessRecord)
-    @JSONField(serialize = false)
-    lateinit var processRecord: Any
+        @JvmStatic
+        fun isWebviewProcProbable(@AndroidObject processRecord: Any): Boolean {
+            return webviewProcessNameMap.computeIfAbsent(getProcessName(processRecord)) { processName ->
+                // 该方案会匹配到: sandboxed_privilege_process
+                /*val index = processName.lastIndexOf("sandbox", ignoreCase = true)
+                val index2 = processName.lastIndexOf("process", ignoreCase = true)
+                index in 0..<index2*/
+                // 可以使用uid匹配。但总有写家伙喜欢自己带个webview
+                processName.contains(
+                    "SandboxedProcessService"/* 标准名字 */,
+                    ignoreCase = true
+                ) || processName.contains(
+                    "SandboxProcess"/* 百度地图(无语, 又不太无语) */,
+                    ignoreCase = true
+                ) || processName.contains(
+                    "SandboxedProcess"/* 万一真有这么起名的呢 */,
+                    ignoreCase = true
+                ) /* 其他情况去死吧, 不兼容了。搞得代码又臭又长, 写一堆匹配 */
+            }
+        }
+
+        /**
+         * 进程的int值消费者
+         */
+        /*private val processIntValueConsumer =
+            { process: ProcessRecordKt, int: Int, boolwan: Boolean ->
+
+            }*/
+
+        /**
+         * 默认的用来设置[ProcessRecordKt.fixedOomAdjScore]的设置器
+         */
+        /*private val defaultFixedOomScoreAdjSetter =
+            { process: ProcessRecordKt, oomScoreAdj: Int, isAdjustMaxAdj: Boolean ->
+                process.fixedOomAdjScore = oomScoreAdj
+                if (isAdjustMaxAdj) {
+                    if (CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_STRICT ||
+                        CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE
+                    ) {
+                        process.setDefaultMaxAdj()
+                    }
+                }
+                // 执行完本次之后就清除掉设置器
+                process.clearFixedOomScoreAdjSetter()
+            }*/
+    }
 
     // 反射拿到的安卓的processStateRecord对象
     @AndroidObject(classPath = ClassConstants.ProcessStateRecord)
@@ -338,7 +435,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         get() {
             if (field == null) {
                 processCachedOptimizerRecord = ProcessCachedOptimizerRecord(
-                    processRecord.getObjectFieldValue(FieldConstants.mOptRecord)
+                    originalInstance.getObjectFieldValue(FieldConstants.mOptRecord)
                 )
             }
             return field
@@ -357,9 +454,8 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
         uid: Int,
         userId: Int,
         packageName: String
-    ) : this() {
+    ) : this(processRecord) {
         this.activityManagerService = activityManagerService
-        this.processRecord = processRecord
         this.pid = pid
         this.uid = uid
         this.userId = userId
@@ -367,7 +463,8 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
 
         processName = getProcessName(processRecord)
         mainProcess = isMainProcess(packageName, processName)
-        webviewProcess = Companion.isWebviewProc(processRecord)
+        webviewProcess = isWebviewProc(processRecord)
+        webviewProcessProbable = isWebviewProcProbable(processRecord)
         processStateRecord =
             ProcessStateRecord(processRecord.getObjectFieldValue(FieldConstants.mState))
     }
@@ -474,7 +571,7 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     fun scheduleTrimMemory(level: Int): Boolean {
 //        XposedHelpers.callMethod(mThread, MethodConstants.scheduleTrimMemory, level);
         val thread: Any? = try {
-            processRecord.callMethod(MethodConstants.getThread)
+            originalInstance.callMethod(MethodConstants.getThread)
         } catch (ignore: Throwable) {
             null
         }
@@ -584,6 +681,48 @@ class ProcessRecordKt() : BaseProcessInfoKt(), ILogger {
     fun setLastCompactTime(time: Long) {
         lastCompactTimeAtomicLong.set(time)
     }
+
+    /**
+     * [fixedOomAdjScore]设置器
+     *
+     * 在设置一次之后就废弃掉。在[resetMaxAdj]中重置
+     */
+    /*@Volatile
+    @JSONField(serialize = false)
+    var fixedOomScoreAdjSetter = defaultFixedOomScoreAdjSetter
+
+    private fun clearFixedOomScoreAdjSetter() {
+        fixedOomScoreAdjSetter = processIntValueConsumer
+    }
+
+    private fun resetFixedOomScoreAdjSetter() {
+        fixedOomScoreAdjSetter = defaultFixedOomScoreAdjSetter
+    }*/
+
+    /* *************************************************************************
+     *                                                                         *
+     * 进程拥有的唤醒锁的数量                                                       *
+     *                                                                         *
+     **************************************************************************/
+    @JSONField(serialize = false)
+    private var _wakeLockCount = AtomicInteger(0)
+
+    @get:JSONField(serialize = false)
+    val wakeLockCount: Int
+        get() {
+            return _wakeLockCount.get()
+        }
+
+    fun incrementWakeLockCount() {
+        _wakeLockCount.incrementAndGet()
+    }
+
+    fun decrementWakeLockCount() {
+        _wakeLockCount.decrementAndGet()
+    }
+
+    @JSONField(serialize = false)
+    fun hasWakeLock(): Boolean = wakeLockCount > 0
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

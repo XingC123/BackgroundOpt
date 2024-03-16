@@ -1,4 +1,21 @@
-package com.venus.backgroundopt.hook.handle.android
+/*
+ * Copyright (C) 2023 BackgroundOpt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+                    
+ package com.venus.backgroundopt.hook.handle.android
 
 import com.venus.backgroundopt.annotation.UnusedReason
 import com.venus.backgroundopt.core.RunningInfo
@@ -50,13 +67,12 @@ class OomAdjusterHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) :
 
     private fun handleComputeOomAdjLSP(param: MethodHookParam) {
         val app = param.args[0]
-
+        val pid = ProcessRecordKt.getPid(app)
         val runningInfo = runningInfo
-        val appInfo = runningInfo.getRunningAppInfo(ProcessRecordKt.getUID(app))
-        appInfo ?: return
+        val processRecord = runningInfo.getRunningProcess(pid) ?: return
+        val appInfo = processRecord.appInfo
 
         // 如果此次调节的不是主进程, 则返回
-        val pid = ProcessRecordKt.getPid(app)
         val mPid = try {
             appInfo.getmPid()
         } catch (t: Throwable) {

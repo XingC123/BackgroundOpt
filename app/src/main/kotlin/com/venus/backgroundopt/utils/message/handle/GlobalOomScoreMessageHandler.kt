@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2023 BackgroundOpt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
@@ -60,8 +77,9 @@ class GlobalOomScorePolicy : MessageFlag {
     }
 }
 
-enum class GlobalOomScoreEffectiveScopeEnum(val uiName:String) : MessageFlag {
-    MAIN_PROCESS("主进程(有界面)"),
-    MAIN_AND_SUB_PROCESS("主+子进程(有界面)"),
+enum class GlobalOomScoreEffectiveScopeEnum(val uiName: String) : MessageFlag {
+    MAIN_PROCESS("主进程(adj>0)"),
+    MAIN_AND_SUB_PROCESS("主+子进程(adj>0)"),
+    MAIN_PROCESS_ANY("主进程(所有)"),
     ALL("所有进程"),
 }

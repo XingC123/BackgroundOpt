@@ -1,10 +1,27 @@
+/*
+ * Copyright (C) 2023 BackgroundOpt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.venus.backgroundopt.environment
 
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
-import com.venus.backgroundopt.reference.ObjectReference
+import com.venus.backgroundopt.reference.PropertyValueWrapper
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.log.logInfo
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
@@ -24,6 +41,10 @@ object CommonProperties : ILogger {
     // 模块是否激活
     fun isModuleActive(): Boolean {
         return false
+    }
+
+    private fun printPreferenceActiveState(isEnabled: Boolean, description: String) {
+        logger.info("[${if (isEnabled) "启用" else "禁用"}] ${description}")
     }
 
     // 默认白名单
@@ -67,7 +88,7 @@ object CommonProperties : ILogger {
         val oomWorkMode = PreferencesUtil.getString(
             PreferenceNameConstants.MAIN_SETTINGS,
             PreferenceKeyConstants.OOM_WORK_MODE,
-            OomWorkModePref.MODE_BALANCE.toString()
+            PreferenceDefaultValue.oomWorkMode.toString()
         )!!
         logInfo(logStr = "Oom工作模式: $oomWorkMode")
         OomWorkModePref(oomWorkMode.toInt())
@@ -108,7 +129,7 @@ object CommonProperties : ILogger {
             this.foregroundProcTrimMemLevelEnum = levelEnum
         }
 
-        ObjectReference(policy)
+        PropertyValueWrapper(policy)
     }
 
     fun isEnableForegroundProcTrimMem() = foregroundProcTrimMemPolicy.value.isEnabled
@@ -138,15 +159,16 @@ object CommonProperties : ILogger {
      *                                                                         *
      **************************************************************************/
     val enableWebviewProcessProtect by lazy {
-        val objectReference = ObjectReference(
-            PreferencesUtil.getBoolean(
-                path = PreferenceNameConstants.MAIN_SETTINGS,
-                key = PreferenceKeyConstants.APP_WEBVIEW_PROCESS_PROTECT,
-                defaultValue = PreferenceDefaultValue.enableWebviewProcessProtect
+        val propertyValueWrapper =
+            PropertyValueWrapper(
+                PreferencesUtil.getBoolean(
+                    path = PreferenceNameConstants.MAIN_SETTINGS,
+                    key = PreferenceKeyConstants.APP_WEBVIEW_PROCESS_PROTECT,
+                    defaultValue = PreferenceDefaultValue.enableWebviewProcessProtect
+                )
             )
-        )
-        logger.info("[${if (objectReference.value) "启用" else "禁用"}]Webview进程保护")
-        objectReference
+        logger.info("[${if (propertyValueWrapper.value) "启用" else "禁用"}]Webview进程保护")
+        propertyValueWrapper
     }
 
     /* *************************************************************************
@@ -155,16 +177,28 @@ object CommonProperties : ILogger {
      *                                                                         *
      **************************************************************************/
     val enableSimpleLmk by lazy {
-        val objectReference = ObjectReference(
-            PreferencesUtil.getBoolean(
-                path = PreferenceNameConstants.MAIN_SETTINGS,
-                key = PreferenceKeyConstants.SIMPLE_LMK,
-                defaultValue = PreferenceDefaultValue.enableSimpleLmk
+        val propertyValueWrapper =
+            PropertyValueWrapper(
+                PreferencesUtil.getBoolean(
+                    path = PreferenceNameConstants.MAIN_SETTINGS,
+                    key = PreferenceKeyConstants.SIMPLE_LMK,
+                    defaultValue = PreferenceDefaultValue.enableSimpleLmk
+                )
             )
-        )
-        logger.info("[${if (objectReference.value) "启用" else "禁用"}]Simple Lmk")
-        objectReference
+        logger.info("[${if (useSimpleLmk(isEnabled = propertyValueWrapper.value)) "启用" else "禁用"}]Simple Lmk")
+        propertyValueWrapper
     }
+
+    /**
+     * simple lmk 只在平衡模式生效
+     * @return Boolean 启用 -> true
+     */
+    @JvmStatic
+    fun useSimpleLmk(): Boolean = useSimpleLmk(isEnabled = enableSimpleLmk.value)
+
+    @JvmStatic
+    private fun useSimpleLmk(isEnabled: Boolean): Boolean =
+        isEnabled && oomWorkModePref.oomMode == OomWorkModePref.MODE_BALANCE
 
     /* *************************************************************************
      *                                                                         *
@@ -211,6 +245,33 @@ object CommonProperties : ILogger {
             )
         }
         logger.info(policy.toString())
-        ObjectReference(policy)
+        PropertyValueWrapper(policy)
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 划卡杀后台                                                                *
+     *                                                                         *
+     **************************************************************************/
+    val enableKillAfterRemoveTask by lazy {
+        val isEnabledValueWrapper = PropertyValueWrapper(
+            PreferencesUtil.getBoolean(
+                path = PreferenceNameConstants.MAIN_SETTINGS,
+                key = PreferenceKeyConstants.KILL_AFTER_REMOVE_TASK,
+                defaultValue = PreferenceDefaultValue.killAfterRemoveTask
+            )
+        ).apply {
+            addListener(PreferenceKeyConstants.KILL_AFTER_REMOVE_TASK) { _, newValue ->
+                printPreferenceActiveState(
+                    isEnabled = newValue,
+                    description = "划卡杀后台"
+                )
+            }
+        }
+        printPreferenceActiveState(
+            isEnabled = isEnabledValueWrapper.value,
+            description = "划卡杀后台"
+        )
+        isEnabledValueWrapper
     }
 }
