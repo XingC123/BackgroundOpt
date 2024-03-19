@@ -27,6 +27,7 @@ public interface ClassConstants {
      * 安卓
      */
     String ActivityManagerService = "com.android.server.am.ActivityManagerService";
+    String LocalService = "com.android.server.am.ActivityManagerService.LocalService";
     String ActivityManagerConstants = "com.android.server.am.ActivityManagerConstants";
 
     String MemoryStatUtil = "com.android.server.am.MemoryStatUtil";
