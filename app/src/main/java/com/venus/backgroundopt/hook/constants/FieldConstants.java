@@ -92,4 +92,6 @@ public interface FieldConstants {
     String mUserId = "mUserId";
     String mWindowProcessController = "mWindowProcessController";
     String mHasClientActivities = "mHasClientActivities";
+    String mReceivers = "mReceivers";
+    String mOwner = "mOwner";
 }

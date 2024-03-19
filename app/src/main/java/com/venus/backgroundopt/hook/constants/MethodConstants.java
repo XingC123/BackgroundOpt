@@ -132,6 +132,10 @@ public interface MethodConstants {
     String getCached = "getCached";
     String setEmpty = "setEmpty";
     String getEmpty = "getEmpty";
+    String shouldKillProcessForRemovedTask = "shouldKillProcessForRemovedTask";
+    String setHasForegroundServices = "setHasForegroundServices";
+    String numberOfCurReceivers = "numberOfCurReceivers";
+    String killProcessesForRemovedTask = "killProcessesForRemovedTask";
 
     /**
      * miui

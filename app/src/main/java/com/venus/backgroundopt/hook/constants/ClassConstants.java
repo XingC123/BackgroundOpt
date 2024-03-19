@@ -38,6 +38,7 @@ public interface ClassConstants {
     String LowMemThread = "com.android.server.am.LowMemDetector.LowMemThread";
     String AppProfiler = "com.android.server.am.AppProfiler";
     String RecentTasks = "com.android.server.wm.RecentTasks";
+    String WindowProcessController = "com.android.server.wm.WindowProcessController";
     String Task = "com.android.server.wm.Task";
     String ActivityTaskSupervisor = "com.android.server.wm.ActivityTaskSupervisor";
     String ComponentName = "android.content.ComponentName";
