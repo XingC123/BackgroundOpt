@@ -134,8 +134,11 @@ public interface MethodConstants {
     String getEmpty = "getEmpty";
     String shouldKillProcessForRemovedTask = "shouldKillProcessForRemovedTask";
     String setHasForegroundServices = "setHasForegroundServices";
+    String hasForegroundServices = "hasForegroundServices";
     String numberOfCurReceivers = "numberOfCurReceivers";
     String killProcessesForRemovedTask = "killProcessesForRemovedTask";
+    String killLocked = "killLocked";
+    String setWaitingToKill = "setWaitingToKill";
 
     /**
      * miui

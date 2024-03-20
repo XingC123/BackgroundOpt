@@ -61,6 +61,8 @@ public class ActivityManagerService implements ILogger {
         return activityManagerService;
     }
 
+    public static Class<?> activityManagerServiceClazz;
+
     public ActivityManagerService(
             @AndroidObject Object activityManagerService,
             ClassLoader classLoader,
@@ -77,6 +79,8 @@ public class ActivityManagerService implements ILogger {
         this.mProcLock = XposedHelpers.getObjectField(activityManagerService, FieldConstants.mProcLock);
 
         this.runningInfo = runningInfo;
+
+        activityManagerServiceClazz = activityManagerService.getClass();
     }
 
     private final RunningInfo runningInfo;

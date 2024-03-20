@@ -28,13 +28,14 @@ class WindowProcessControllerHook(
                 return@afterHook
             }
 
-            runCatchThrowable(catchBlock = {
-                logger.error("shouldKillProcessForRemovedTask afterHook", it)
-            }) {
-                val windowProcessController = param.thisObject
-                windowProcessController.callMethod(
-                    methodName = MethodConstants.setHasForegroundServices,
-                    false
+            val windowProcessController = param.thisObject
+            val hasForegroundServices = windowProcessController.callMethod(
+                methodName = MethodConstants.hasForegroundServices
+            ) as Boolean
+            if (hasForegroundServices) {
+                // 加入待移除列表
+                ActivityTaskSupervisorHook.removedTaskWindowProcessControllerSet.add(
+                    windowProcessController
                 )
             }
         }

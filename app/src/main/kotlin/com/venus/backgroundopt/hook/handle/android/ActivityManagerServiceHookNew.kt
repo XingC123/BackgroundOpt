@@ -24,6 +24,8 @@ import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManager
+import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
+import com.venus.backgroundopt.hook.handle.android.entity.ApplicationExitInfo
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.utils.beforeHook
 import com.venus.backgroundopt.utils.callMethod
@@ -64,6 +66,7 @@ class ActivityManagerServiceHookNew(
         ) { it.result = null }
 
         ClassConstants.LocalService.beforeHook(
+            enable = false,
             classLoader = classLoader,
             methodName = MethodConstants.killProcessesForRemovedTask,
             hookAllMethod = true
@@ -91,6 +94,44 @@ class ActivityManagerServiceHookNew(
                         }
                     }
                 }
+            }
+        }
+    }
+
+    companion object {
+        @JvmStatic
+        fun killProcessesForRemovedTask() {
+            val set = ActivityTaskSupervisorHook.removedTaskWindowProcessControllerSet
+            if (set.isNotEmpty()) {
+                synchronized(ActivityManagerService.activityManagerServiceClazz) {
+                    set.forEach { windowProcessController ->
+                        windowProcessController.getObjectFieldValue(
+                            fieldName = FieldConstants.mOwner
+                        )?.let inner@{ processRecord ->
+                            val mReceivers = processRecord.getObjectFieldValue(
+                                fieldName = FieldConstants.mReceivers
+                            ) ?: return@inner
+                            val numberOfCurReceivers =
+                                mReceivers.callMethod(methodName = MethodConstants.numberOfCurReceivers)
+                            // 这里舍弃了安卓对windowProcessController的另一个判断
+                            if (numberOfCurReceivers == 0) {
+                                processRecord.callMethod(
+                                    methodName = MethodConstants.killLocked,
+                                    "remove task",
+                                    ApplicationExitInfo.REASON_USER_REQUESTED,
+                                    ApplicationExitInfo.SUBREASON_REMOVE_TASK,
+                                    true
+                                )
+                            } else {
+                                processRecord.callMethod(
+                                    methodName = MethodConstants.setWaitingToKill,
+                                    "remove task"
+                                )
+                            }
+                        }
+                    }
+                }
+                set.clear()
             }
         }
     }
