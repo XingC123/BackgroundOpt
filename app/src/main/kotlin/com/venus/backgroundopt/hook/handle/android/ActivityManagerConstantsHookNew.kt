@@ -32,7 +32,7 @@ class ActivityManagerConstantsHookNew(
                 fieldName = FieldConstants.mCustomizedMaxCachedProcesses,
                 value = Int.MAX_VALUE
             )
-            activityManagerConstants.setIntFieldValue(
+            /*activityManagerConstants.setIntFieldValue(
                 fieldName = FieldConstants.MAX_PHANTOM_PROCESSES,
                 value = Int.MAX_VALUE
             )
@@ -55,7 +55,7 @@ class ActivityManagerConstantsHookNew(
             activityManagerConstants.setIntFieldValue(
                 fieldName = FieldConstants.CUR_TRIM_EMPTY_PROCESSES,
                 value = Int.MAX_VALUE
-            )
+            )*/
         }
 
         ClassConstants.ActivityManagerConstants.beforeHook(
@@ -66,7 +66,7 @@ class ActivityManagerConstantsHookNew(
             param.args[0] = Int.MAX_VALUE
         }
 
-        ClassConstants.ActivityManagerConstants.beforeHook(
+        /*ClassConstants.ActivityManagerConstants.beforeHook(
             classLoader = classLoader,
             methodName = MethodConstants.updateMaxCachedProcesses,
         ) { param ->
@@ -78,6 +78,6 @@ class ActivityManagerConstantsHookNew(
             methodName = MethodConstants.updateMaxPhantomProcesses,
         ) { param ->
             param.result = null
-        }
+        }*/
     }
 }
