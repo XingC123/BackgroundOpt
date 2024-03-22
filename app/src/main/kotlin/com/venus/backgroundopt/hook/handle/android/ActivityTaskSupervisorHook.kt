@@ -26,9 +26,12 @@ import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
+import com.venus.backgroundopt.utils.afterHook
 import com.venus.backgroundopt.utils.beforeHook
 import com.venus.backgroundopt.utils.getIntFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * @author XingC
@@ -41,11 +44,7 @@ class ActivityTaskSupervisorHook(
     override fun hook() {
         ClassConstants.ActivityTaskSupervisor.beforeHook(
             classLoader = classLoader,
-            methodName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                MethodConstants.cleanUpRemovedTask
-            } else {
-                MethodConstants.cleanUpRemovedTaskLocked
-            },
+            methodName = getMethodNameForCleanUpRemovedTask(),
             hookAllMethod = true,
         ) { param ->
             if (!CommonProperties.enableKillAfterRemoveTask.value) {
@@ -83,10 +82,38 @@ class ActivityTaskSupervisorHook(
             }
 
             param.args[1] = killProcess
+        }.afterHook(
+            classLoader = classLoader,
+            methodName = getMethodNameForCleanUpRemovedTask(),
+            hookAllMethod = true,
+        ) {
+            ActivityManagerServiceHookNew.killProcessesForRemovedTask()
+        }
+    }
+
+    /**
+     * 获取hook移除最近任务卡片需要的方法的名字
+     * @return String
+     */
+    private fun getMethodNameForCleanUpRemovedTask(): String {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            MethodConstants.cleanUpRemovedTask
+        } else {
+            MethodConstants.cleanUpRemovedTaskLocked
         }
     }
 
     private fun removeRecentTaskLog(userId: Int, packageName: String) {
         logger.info("移除最近任务, 来自: userId: ${userId}, packageName: ${packageName}")
+    }
+
+    companion object {
+        /**
+         * 要被移除的[ClassConstants.WindowProcessController]
+         */
+        @JvmField
+        val removedTaskWindowProcessControllerSet: MutableSet<Any> = Collections.newSetFromMap(
+            ConcurrentHashMap()
+        )
     }
 }

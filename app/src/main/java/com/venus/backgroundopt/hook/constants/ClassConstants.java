@@ -27,6 +27,7 @@ public interface ClassConstants {
      * 安卓
      */
     String ActivityManagerService = "com.android.server.am.ActivityManagerService";
+    String LocalService = "com.android.server.am.ActivityManagerService.LocalService";
     String ActivityManagerConstants = "com.android.server.am.ActivityManagerConstants";
 
     String MemoryStatUtil = "com.android.server.am.MemoryStatUtil";
@@ -38,6 +39,7 @@ public interface ClassConstants {
     String LowMemThread = "com.android.server.am.LowMemDetector.LowMemThread";
     String AppProfiler = "com.android.server.am.AppProfiler";
     String RecentTasks = "com.android.server.wm.RecentTasks";
+    String WindowProcessController = "com.android.server.wm.WindowProcessController";
     String Task = "com.android.server.wm.Task";
     String ActivityTaskSupervisor = "com.android.server.wm.ActivityTaskSupervisor";
     String ComponentName = "android.content.ComponentName";
