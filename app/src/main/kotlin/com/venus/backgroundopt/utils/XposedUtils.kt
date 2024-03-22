@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.utils
+
+package com.venus.backgroundopt.utils
 
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.utils.log.logError
@@ -285,20 +285,23 @@ fun String.beforeHook(
     methodType: HookPoint.MethodType = HookPoint.MethodType.Member,
     vararg paramTypes: Any?,
     block: (MethodHookParam) -> Unit
-) {
-    if (!enable) {
-        return
-    }
-    hookMethod(classLoader, methodName, object : XC_MethodHook() {
-        override fun beforeHookedMethod(param: MethodHookParam) {
-            super.beforeHookedMethod(param)
-            runCatchThrowable(catchBlock = {
-                logError(logStr = "beforeHook执行出错.class: ${this@beforeHook}, methodName: ${methodName}", t = it)
-            }) {
-                block(param)
+): String {
+    if (enable) {
+        hookMethod(classLoader, methodName, object : XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam) {
+                super.beforeHookedMethod(param)
+                runCatchThrowable(catchBlock = {
+                    logError(
+                        logStr = "beforeHook执行出错.class: ${this@beforeHook}, methodName: ${methodName}",
+                        t = it
+                    )
+                }) {
+                    block(param)
+                }
             }
-        }
-    }, hookAllMethod, methodType, *paramTypes)
+        }, hookAllMethod, methodType, *paramTypes)
+    }
+    return this
 }
 
 fun String.afterHook(
@@ -309,20 +312,23 @@ fun String.afterHook(
     methodType: HookPoint.MethodType = HookPoint.MethodType.Member,
     vararg paramTypes: Any?,
     block: (MethodHookParam) -> Unit
-) {
-    if (!enable) {
-        return
-    }
-    hookMethod(classLoader, methodName, object : XC_MethodHook() {
-        override fun afterHookedMethod(param: MethodHookParam) {
-            super.afterHookedMethod(param)
-            runCatchThrowable(catchBlock = {
-                logError(logStr = "beforeHook执行出错.class: ${this@afterHook}, methodName: ${methodName}", t = it)
-            }) {
-                block(param)
+): String {
+    if (enable) {
+        hookMethod(classLoader, methodName, object : XC_MethodHook() {
+            override fun afterHookedMethod(param: MethodHookParam) {
+                super.afterHookedMethod(param)
+                runCatchThrowable(catchBlock = {
+                    logError(
+                        logStr = "beforeHook执行出错.class: ${this@afterHook}, methodName: ${methodName}",
+                        t = it
+                    )
+                }) {
+                    block(param)
+                }
             }
-        }
-    }, hookAllMethod, methodType, *paramTypes)
+        }, hookAllMethod, methodType, *paramTypes)
+    }
+    return this
 }
 
 fun String.replaceHook(
@@ -333,15 +339,15 @@ fun String.replaceHook(
     methodType: HookPoint.MethodType = HookPoint.MethodType.Member,
     vararg paramTypes: Any?,
     block: (MethodHookParam) -> Any?
-) {
-    if (!enable) {
-        return
+): String {
+    if (enable) {
+        hookMethod(classLoader, methodName, object : XC_MethodReplacement() {
+            override fun replaceHookedMethod(param: MethodHookParam): Any? {
+                return block(param)
+            }
+        }, hookAllMethod, methodType, *paramTypes)
     }
-    hookMethod(classLoader, methodName, object : XC_MethodReplacement() {
-        override fun replaceHookedMethod(param: MethodHookParam): Any? {
-            return block(param)
-        }
-    }, hookAllMethod, methodType, *paramTypes)
+    return this
 }
 
 fun String.beforeConstructorHook(
@@ -350,7 +356,7 @@ fun String.beforeConstructorHook(
     hookAllMethod: Boolean = false,
     vararg paramTypes: Any?,
     block: (MethodHookParam) -> Unit
-) {
+): String {
     beforeHook(
         classLoader,
         this.substring(this.lastIndexOf(".") + 1),
@@ -360,6 +366,7 @@ fun String.beforeConstructorHook(
         *paramTypes,
         block = block
     )
+    return this
 }
 
 fun String.afterConstructorHook(
@@ -368,7 +375,7 @@ fun String.afterConstructorHook(
     hookAllMethod: Boolean = false,
     vararg paramTypes: Any?,
     block: (MethodHookParam) -> Unit
-) {
+): String {
     afterHook(
         classLoader,
         this.substring(this.lastIndexOf(".") + 1),
@@ -378,6 +385,7 @@ fun String.afterConstructorHook(
         *paramTypes,
         block = block
     )
+    return this
 }
 
 fun String.findClass(classLoader: ClassLoader): Class<*> {

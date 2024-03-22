@@ -293,6 +293,7 @@ class ProcessListHookKt(
                         }
                         if (process.fixedOomAdjScore != ProcessRecordKt.defaultMaxAdj) {
                             process.fixedOomAdjScore = ProcessRecordKt.defaultMaxAdj
+                            process.setDefaultMaxAdj()
                         }
                     }
                 } else {    // 普通子进程
