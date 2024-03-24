@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.manager.process;
+
+package com.venus.backgroundopt.manager.process;
 
 import static com.venus.backgroundopt.core.RunningInfo.AppGroupEnum;
 
@@ -27,7 +27,6 @@ import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer;
 import com.venus.backgroundopt.hook.handle.android.entity.Process;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
-import com.venus.backgroundopt.utils.concurrent.ConcurrentUtilsKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import org.jetbrains.annotations.Nullable;
@@ -257,23 +256,23 @@ public class ProcessManager implements ILogger {
      *                                                                         *
      **************************************************************************/
     public void appActive(AppInfo appInfo) {
-        ConcurrentUtilsKt.lock(appInfo, () -> {
-            // 移除压缩任务
-            // cancelCompactProcess(appInfo);
-            // 添加前台任务
-            startForegroundAppTrimTask(appInfo.getmProcessRecord());
-            return null;
-        });
+        /*ConcurrentUtilsKt.lock(appInfo, () -> {*/
+        // 移除压缩任务
+        // cancelCompactProcess(appInfo);
+        // 添加前台任务
+        startForegroundAppTrimTask(appInfo.getmProcessRecord());
+            /*return null;
+        });*/
     }
 
     public void appIdle(AppInfo appInfo) {
-        ConcurrentUtilsKt.lock(appInfo, () -> {
-            // 添加后台任务
-            startBackgroundAppTrimTask(appInfo.getmProcessRecord());
-            // 添加压缩任务
-            // addCompactProcess(appInfo);
-            return null;
-        });
+        /*ConcurrentUtilsKt.lock(appInfo, () -> {*/
+        // 添加后台任务
+        startBackgroundAppTrimTask(appInfo.getmProcessRecord());
+        // 添加压缩任务
+        // addCompactProcess(appInfo);
+            /*return null;
+        });*/
     }
 
     public void appDie(AppInfo appInfo) {

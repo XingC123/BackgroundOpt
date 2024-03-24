@@ -38,7 +38,6 @@ import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.service.ProcessDaemonService;
 import com.venus.backgroundopt.utils.ThrowableUtilsKt;
 import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils;
-import com.venus.backgroundopt.utils.concurrent.ConcurrentUtilsKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.io.IOException;
@@ -51,7 +50,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -272,18 +270,27 @@ public class RunningInfo implements ILogger {
      * @param appInfo app信息
      */
     public void removeRunningApp(@NonNull AppInfo appInfo) {
+        // 设置内存分组到死亡分组
+        appInfo.setAppGroupEnum(AppGroupEnum.DEAD);
+
         String packageName = appInfo.getPackageName();
         if (packageName == null) {
             getLogger().warn("kill: 包名为空");
             return;
         }
-        ConcurrentUtilsKt.lock(appInfo, () -> {
+
+        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
+            getLogger().error(
+                    "杀死app(packageName: " + packageName + ", userId: " + appInfo.getUserId() + ")出现错误",
+                    throwable
+            );
+            return null;
+        }, () -> {
+            /*ConcurrentUtilsKt.lock(appInfo, () -> {*/
             // 从运行列表移除
             AppInfo remove = runningApps.remove(getRunningAppIdentifier(appInfo.getUserId(), packageName));
 
             if (remove != null) {
-                // 设置内存分组到死亡分组
-                remove.setAppGroupEnum(AppGroupEnum.DEAD);
                 // 从待处理列表中移除
                 activeAppGroup.remove(appInfo);
                 idleAppGroup.remove(appInfo);
@@ -302,6 +309,8 @@ public class RunningInfo implements ILogger {
                     getLogger().warn("kill: 未找到移除项 -> userId: " + appInfo.getUserId() + ", packageName: " + packageName);
                 }
             }
+                /*return null;
+            });*/
             return null;
         });
     }
@@ -312,16 +321,16 @@ public class RunningInfo implements ILogger {
             return;
         }
         ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
-            ConcurrentUtilsKt.lock(appInfo, () -> {
-                ThrowableUtilsKt.runCatchThrowable(null, throwable -> {
-                    getLogger().error("强制停止app出错(uid: " + appInfo.getUid() + ", packageName: " + packageName + ")", throwable);
-                    return null;
-                }, null, () -> {
-                    activityManagerService.forceStopPackage(packageName, appInfo.getUserId());
-                    return null;
-                });
+            /*ConcurrentUtilsKt.lock(appInfo, () -> {*/
+            ThrowableUtilsKt.runCatchThrowable(null, throwable -> {
+                getLogger().error("强制停止app出错(uid: " + appInfo.getUid() + ", packageName: " + packageName + ")", throwable);
+                return null;
+            }, null, () -> {
+                activityManagerService.forceStopPackage(packageName, appInfo.getUserId());
                 return null;
             });
+                /*return null;
+            });*/
             return null;
         });
     }
@@ -395,33 +404,17 @@ public class RunningInfo implements ILogger {
         }
         AppInfo appInfo = processRecord.appInfo;
         String packageName = appInfo.getPackageName();
-        boolean[] isMainProcess = {false};
-        String[] processName = new String[1];
-        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
-            getLogger().error(
-                    "移除进程(packageName: " + packageName + ", fullProcessName: " + processName[0] + ", userId: " + appInfo.getUserId() + ",pid: " + pid + ", isMainProcess: " + isMainProcess[0] + ")出现错误",
-                    throwable
-            );
-            return null;
-        }, () -> {
-            isMainProcess[0] = processRecord.getMainProcess();
-            processName[0] = processRecord.getFullProcessName();
+        boolean isMainProcess = processRecord.getMainProcess();
 
-            // 移除进程记录
-            removeRunningProcess(pid);
-            if (isMainProcess[0]) {
-                ConcurrentUtilsKt.lock(appInfo, () -> {
-                    removeRunningApp(appInfo);
-                    return null;
-                });
-            } else {
-                if (BuildConfig.DEBUG) {
-                    getLogger().debug("kill: userId: " + appInfo.getUserId() + ", packageName: " + packageName + ", pid: " + pid + " >>> 子进程被杀");
-                }
+        // 移除进程记录
+        removeRunningProcess(pid);
+        if (isMainProcess) {
+            removeRunningApp(appInfo);
+        } else {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("kill: userId: " + appInfo.getUserId() + ", packageName: " + packageName + ", pid: " + pid + " >>> 子进程被杀");
             }
-
-            return null;
-        });
+        }
     }
 
     /* *************************************************************************
@@ -556,17 +549,17 @@ public class RunningInfo implements ILogger {
     }
 
     private void handleActuallyActivityEventChange(@NonNull AppInfo appInfo, @NonNull Runnable action, @Nullable Consumer<Throwable> throwableAction) {
-        Lock appInfoLock = appInfo.getLock();
-        appInfoLock.lock();
+        /*Lock appInfoLock = appInfo.getLock();
+        appInfoLock.lock();*/
         try {
             action.run();
         } catch (Throwable throwable) {
             if (throwableAction != null) {
                 throwableAction.accept(throwable);
             }
-        } finally {
+        }/* finally {
             appInfoLock.unlock();
-        }
+        }*/
     }
 
     private void updateAppSwitchState(/*int event, */ComponentName componentName, @NonNull AppInfo appInfo) {

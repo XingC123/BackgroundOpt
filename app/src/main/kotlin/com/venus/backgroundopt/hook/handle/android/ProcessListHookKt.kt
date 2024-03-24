@@ -33,7 +33,6 @@ import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils
-import com.venus.backgroundopt.utils.concurrent.lock
 import com.venus.backgroundopt.utils.getBooleanFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
@@ -329,14 +328,12 @@ class ProcessListHookKt(
                     throwable
                 )
             }) {
-                appInfo.lock {
-                    if (appInfo.appGroupEnum == AppGroupEnum.NONE) {
-                        runningInfo.handleActivityEventChange(
-                            ActivityManagerServiceHookKt.ACTIVITY_STOPPED,
-                            null,
-                            appInfo
-                        )
-                    }
+                if (appInfo.appGroupEnum == AppGroupEnum.NONE) {
+                    runningInfo.handleActivityEventChange(
+                        ActivityManagerServiceHookKt.ACTIVITY_STOPPED,
+                        null,
+                        appInfo
+                    )
                 }
             }
         }
