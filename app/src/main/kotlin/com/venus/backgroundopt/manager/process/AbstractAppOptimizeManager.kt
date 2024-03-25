@@ -14,11 +14,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.manager.process
+
+package com.venus.backgroundopt.manager.process
 
 import android.os.SystemClock
-import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.runCatchThrowable
 import java.util.concurrent.ConcurrentHashMap
@@ -35,13 +34,11 @@ abstract class AbstractAppOptimizeManager(val appOptimizeEnum: AppOptimizeEnum) 
     abstract fun getExecutor(): Executor
 
     open fun isNecessaryToOptimizeProcess(processRecordKt: ProcessRecordKt): Boolean {
-        val globalOomScorePolicy = CommonProperties.globalOomScorePolicy.value
-        val enabledGlobalOomScore = globalOomScorePolicy.enabled
-        val isUnsafeCustomOomScore = globalOomScorePolicy.customGlobalOomScore < 0
-        return if (enabledGlobalOomScore && isUnsafeCustomOomScore) {
+        val isSafeOomAdj = processRecordKt.mSetRawAdj >= 0
+        return if (isSafeOomAdj) {
             processRecordKt.isNecessaryToOptimize()
         } else {
-            processRecordKt.oomAdjScore >= 0 && processRecordKt.isNecessaryToOptimize()
+            false
         }
     }
 
