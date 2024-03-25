@@ -63,7 +63,7 @@ class ProcessRecordKt(
         }
 
         // 默认的主进程要设置的adj
-        const val DEFAULT_MAIN_ADJ = ProcessList.FOREGROUND_APP_ADJ
+        const val DEFAULT_MAIN_ADJ = -300
 
         // 默认的子进程要设置的adj
         const val SUB_PROC_ADJ = ProcessList.VISIBLE_APP_ADJ + 1
