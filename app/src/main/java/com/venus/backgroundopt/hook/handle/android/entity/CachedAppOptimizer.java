@@ -26,6 +26,9 @@ import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.utils.log.ILogger;
 
+import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
+
 import de.robv.android.xposed.XposedHelpers;
 
 /**
@@ -196,6 +199,20 @@ public class CachedAppOptimizer implements ILogger, IAndroidEntity {
             );
             return true;
         } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    public boolean compactProcessForce(int pid, int compactionFlags) {
+        String path = "/proc/" + pid + "/reclaim";
+        String action = switch (compactionFlags) {
+            case COMPACT_ACTION_FILE -> "file";
+            default -> "all";
+        };
+        try (FileOutputStream fos = new FileOutputStream(path)) {
+            fos.write(action.getBytes(StandardCharsets.UTF_8));
+            return true;
+        } catch (Throwable throwable) {
             return false;
         }
     }
