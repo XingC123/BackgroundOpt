@@ -262,14 +262,6 @@ class ProcessListHookKt(
                 return
             }
         }
-        val uid = param.args[1] as Int
-        val oomScoreAdj = param.args[2] as Int
-
-        val mainProcess = process.mainProcess
-        val mSetRawAdj = process.mSetRawAdj
-        var oomAdjustLevel = OomAdjustLevel.NONE
-        // 最终要被系统设置的oom分数
-        var finalApplyOomScoreAdj = oomScoreAdj
 
         if (appInfo.appGroupEnum == AppGroupEnum.DEAD) {
             // app已经死亡
@@ -278,16 +270,24 @@ class ProcessListHookKt(
             // 所以我们在这里再确认下是否AppInfo已经被标记为死亡
             return
         }
+        val uid = param.args[1] as Int
+
+        val mainProcess = process.mainProcess
+        val lastSetRawAdj = process.mSetRawAdj
+        var oomAdjustLevel = OomAdjustLevel.NONE
+
         val curSetRawAdj = process.processStateRecord.processStateRecord.callMethod<Int>(
             methodName = MethodConstants.getSetRawAdj
         )
+        // 最终要被系统设置的oom分数
+        var finalApplyOomScoreAdj = curSetRawAdj
         val globalOomScoreEffectiveScopeEnum = globalOomScorePolicy.globalOomScoreEffectiveScope
         val isHighLevelProcess = isHighLevelProcess(process).also {
             if (it) {
                 oomAdjustLevel = OomAdjustLevel.FIRST
             }
         }
-        val isUserSpaceAdj = oomScoreAdj >= 0
+        val isUserSpaceAdj = curSetRawAdj >= 0
 
         val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[process.packageName]
         val possibleAdj = appOptimizePolicy.getCustomMainProcessOomScore()
@@ -317,7 +317,7 @@ class ProcessListHookKt(
                         mainProcess = mainProcess
                     )*/
                     finalApplyOomScoreAdj = simpleLmkAdjHandler.computeFinalAdj(
-                        oomScoreAdj = oomScoreAdj,
+                        oomScoreAdj = curSetRawAdj,
                         processRecord = process,
                         appInfo = appInfo,
                         mainProcess = mainProcess
@@ -346,16 +346,16 @@ class ProcessListHookKt(
             } else {    // 普通子进程
                 finalApplyOomScoreAdj = computeSubprocessFinalOomScore(
                     processRecord = process,
-                    oomScoreAdj = oomScoreAdj
+                    oomScoreAdj = curSetRawAdj
                 )
             }
         }
 
         param.args[2] = finalApplyOomScoreAdj
         // 记录本次系统计算的分数
-        process.oomAdjScore = oomScoreAdj
+        process.oomAdjScore = curSetRawAdj
 
-        if (finalApplyOomScoreAdj != oomScoreAdj) {
+        if (finalApplyOomScoreAdj != curSetRawAdj) {
             // 修改curAdj
             process.processStateRecord.curAdj = finalApplyOomScoreAdj
         }
@@ -391,7 +391,7 @@ class ProcessListHookKt(
         // 内存压缩
         runningInfo.processManager.compactProcess(
             process,
-            mSetRawAdj,
+            lastSetRawAdj,
             curSetRawAdj,
             oomAdjustLevel
         )
