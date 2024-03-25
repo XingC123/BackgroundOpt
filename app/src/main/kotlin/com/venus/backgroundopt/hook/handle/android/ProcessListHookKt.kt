@@ -334,7 +334,6 @@ class ProcessListHookKt(
                             appInfo = appInfo,
                             mainProcess = mainProcess
                         )
-                        clearProcessUnexpectedState(processRecord = process)
                     }
                     if (process.fixedOomAdjScore != ProcessRecordKt.defaultMaxAdj) {
                         process.fixedOomAdjScore = ProcessRecordKt.defaultMaxAdj
