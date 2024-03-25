@@ -309,7 +309,7 @@ class ProcessListHookKt(
         } else if (isUserSpaceAdj) {
             if (isHighLevelProcess) {
                 if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
-                    finalApplyOomScoreAdj = ProcessList.FOREGROUND_APP_ADJ
+                    finalApplyOomScoreAdj = ProcessRecordKt.DEFAULT_MAIN_ADJ
                 } else if (useSimpleLmk()) {
                     /*finalApplyOomScoreAdj = computeFinalOomScoreUseSimpleLmk(
                         appInfo = appInfo,
