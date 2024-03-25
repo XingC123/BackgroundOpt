@@ -322,12 +322,16 @@ class ProcessRecordKt(
             if (processRecord.pid <= 0) {
                 return false
             }
-            // 主进程则查看当前应用内存分组
-            if (processRecord.mainProcess) {
-                return processRecord.appInfo.appGroupEnum != AppGroupEnum.DEAD
+
+            // 当前应用内存分组
+            if (processRecord.appInfo.appGroupEnum == AppGroupEnum.DEAD) {
+                return false
             }
+
             // 子进程在当前运行的app列表中来判断
-            return runningInfo.getRunningProcess(processRecord.pid) != null
+            runningInfo.getRunningProcess(processRecord.pid) ?: return false
+
+            return !processRecord.mKilledByAm
         }
 
         /**
@@ -446,6 +450,12 @@ class ProcessRecordKt(
 
     @JSONField(serialize = false)
     lateinit var appInfo: AppInfo
+
+    @get:JSONField(serialize = false)
+    val mKilledByAm: Boolean
+        get() {
+            return originalInstance.callMethod<Boolean>(MethodConstants.isKilledByAm)
+        }
 
     constructor(
         activityManagerService: ActivityManagerService,

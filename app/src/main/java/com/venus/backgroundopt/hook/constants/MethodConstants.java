@@ -140,6 +140,7 @@ public interface MethodConstants {
     String killLocked = "killLocked";
     String setWaitingToKill = "setWaitingToKill";
     String getSetRawAdj = "getSetRawAdj";
+    String isKilledByAm = "isKilledByAm";
 
     /**
      * miui
