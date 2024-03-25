@@ -650,6 +650,9 @@ class ProcessRecordKt(
     @JSONField(serialize = false)
     private val compactInterval = TimeUnit.MINUTES.toMillis(7)
 
+    @JSONField(serialize = false)
+    var mSetRawAdj = Int.MIN_VALUE
+
     fun addCompactProcess(runningInfo: RunningInfo) {
         runningInfo.processManager.addCompactProcess(this)
     }

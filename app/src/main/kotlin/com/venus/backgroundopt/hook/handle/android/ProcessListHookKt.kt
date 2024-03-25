@@ -32,6 +32,7 @@ import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.utils.callMethod
 import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.utils.getBooleanFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
@@ -230,7 +231,7 @@ class ProcessListHookKt(
         val oomScoreAdj = param.args[2] as Int
 
         val mainProcess = process.mainProcess
-        val lastOomScoreAdj = process.oomAdjScore
+        val mSetRawAdj = process.mSetRawAdj
         var oomAdjustLevel = OomAdjustLevel.NONE
         // 最终要被系统设置的oom分数
         var finalApplyOomScoreAdj = oomScoreAdj
@@ -313,6 +314,10 @@ class ProcessListHookKt(
             process.processStateRecord.curAdj = finalApplyOomScoreAdj
         }
 
+        // 修改mSetRawAdj
+        val curSetRawAdj = process.processStateRecord.processStateRecord.callMethod<Int>(MethodConstants.getSetRawAdj)
+        process.mSetRawAdj = curSetRawAdj
+
         // ProcessListHookKt.handleHandleProcessStartedLocked 执行后, 生成进程所属的appInfo
         // 但并没有将其设置内存分组。若在进程创建时就设置appInfo的内存分组, 则在某些场景下会产生额外消耗。
         // 例如, 在打开新app时, 会首先创建进程, 紧接着显示界面。分别会执行: ①ProcessListHookKt.handleHandleProcessStartedLocked
@@ -341,8 +346,8 @@ class ProcessListHookKt(
         // 内存压缩
         runningInfo.processManager.compactProcess(
             process,
-            lastOomScoreAdj,
-            oomScoreAdj,
+            mSetRawAdj,
+            curSetRawAdj,
             oomAdjustLevel
         )
     }

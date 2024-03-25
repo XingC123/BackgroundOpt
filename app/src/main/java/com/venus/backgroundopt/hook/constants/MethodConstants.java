@@ -139,6 +139,7 @@ public interface MethodConstants {
     String killProcessesForRemovedTask = "killProcessesForRemovedTask";
     String killLocked = "killLocked";
     String setWaitingToKill = "setWaitingToKill";
+    String getSetRawAdj = "getSetRawAdj";
 
     /**
      * miui

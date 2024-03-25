@@ -117,43 +117,43 @@ class AppCompactManager2(
         /*var compactReason = "OOM_SCORE"
         var compactBecauseProcAllow = false*/
 
-        if (isSpecialOomWorkMode) {
+        /*if (isSpecialOomWorkMode) {
             if (processRecord.isAllowedCompact(currentTimeMillis)) {
                 doCompact = true
                 processCompactEnum = ProcessCompactEnum.FULL
                 compactAction = CachedAppOptimizer.COMPACT_ACTION_FULL
             }
-        } else {
-            val timeDifference = currentTimeMillis - processingResult.lastProcessingTime
-            if (ProcessList.PERCEPTIBLE_APP_ADJ in lastOomScoreAdj..curOomScoreAdj && curOomScoreAdj <= ProcessList.SERVICE_B_ADJ) {
-                if ((lastProcessCompatEnum == ProcessCompactEnum.SOME && timeDifference < cachedAppOptimizer.mCompactThrottleSomeSome)
-                    || (lastProcessCompatEnum == ProcessCompactEnum.FULL && timeDifference < cachedAppOptimizer.mCompactThrottleSomeFull)
-                ) {
-                    // do nothing
-                } else {
-                    doCompact = true
-                    processCompactEnum = ProcessCompactEnum.SOME
-                    compactAction = CachedAppOptimizer.COMPACT_ACTION_FILE
-                }
-            } else if (ProcessList.CACHED_APP_MIN_ADJ in lastOomScoreAdj..curOomScoreAdj
-                || processRecord.isAllowedCompact(
-                    time = currentTimeMillis
-                )/*.also { compactBecauseProcAllow = it }*/
+        } else {*/
+        val timeDifference = currentTimeMillis - processingResult.lastProcessingTime
+        if (ProcessList.PERCEPTIBLE_APP_ADJ in lastOomScoreAdj..curOomScoreAdj && curOomScoreAdj <= ProcessList.SERVICE_B_ADJ) {
+            if ((lastProcessCompatEnum == ProcessCompactEnum.SOME && timeDifference < cachedAppOptimizer.mCompactThrottleSomeSome)
+                || (lastProcessCompatEnum == ProcessCompactEnum.FULL && timeDifference < cachedAppOptimizer.mCompactThrottleSomeFull)
             ) {
-                if ((lastProcessCompatEnum == ProcessCompactEnum.SOME && timeDifference < cachedAppOptimizer.mCompactThrottleFullSome)
-                    || (lastProcessCompatEnum == ProcessCompactEnum.FULL && timeDifference < cachedAppOptimizer.mCompactThrottleFullFull)
-                ) {
-                    // do nothing
-                } else {
-                    /*if (compactBecauseProcAllow) {
-                        compactReason = "从未压缩或超时"
-                    }*/
-                    doCompact = true
-                    processCompactEnum = ProcessCompactEnum.FULL
-                    compactAction = CachedAppOptimizer.COMPACT_ACTION_FULL
-                }
+                // do nothing
+            } else {
+                doCompact = true
+                processCompactEnum = ProcessCompactEnum.SOME
+                compactAction = CachedAppOptimizer.COMPACT_ACTION_FILE
+            }
+        } else if (ProcessList.CACHED_APP_MIN_ADJ in lastOomScoreAdj..curOomScoreAdj
+            || processRecord.isAllowedCompact(
+                time = currentTimeMillis
+            )/*.also { compactBecauseProcAllow = it }*/
+        ) {
+            if ((lastProcessCompatEnum == ProcessCompactEnum.SOME && timeDifference < cachedAppOptimizer.mCompactThrottleFullSome)
+                || (lastProcessCompatEnum == ProcessCompactEnum.FULL && timeDifference < cachedAppOptimizer.mCompactThrottleFullFull)
+            ) {
+                // do nothing
+            } else {
+                /*if (compactBecauseProcAllow) {
+                    compactReason = "从未压缩或超时"
+                }*/
+                doCompact = true
+                processCompactEnum = ProcessCompactEnum.FULL
+                compactAction = CachedAppOptimizer.COMPACT_ACTION_FULL
             }
         }
+        // }
 
         if (doCompact) {
             // 检查进程是否需要进行优化
