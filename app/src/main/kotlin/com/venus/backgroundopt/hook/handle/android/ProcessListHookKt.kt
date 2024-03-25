@@ -323,8 +323,9 @@ class ProcessListHookKt(
                         mainProcess = mainProcess
                     )
                 } else {
-                    if (CommonProperties.oomWorkModePref.oomMode != OomWorkModePref.MODE_NEGATIVE) {
-                        // 可以进入到此代码块的当前只有严格模式
+                    val oomMode = CommonProperties.oomWorkModePref.oomMode
+                    if (oomMode != OomWorkModePref.MODE_NEGATIVE) {
+                        // 可以进入到此代码块的当前只有严格/平衡模式
                         // 严格模式我们设置了maxAdj。因此使用oomScoreAdj不够精确
                         finalApplyOomScoreAdj = strictModeAdjHandler.computeFinalAdj(
                             oomScoreAdj = curSetRawAdj,
@@ -336,7 +337,10 @@ class ProcessListHookKt(
                     }
                     if (process.fixedOomAdjScore != ProcessRecordKt.defaultMaxAdj) {
                         process.fixedOomAdjScore = ProcessRecordKt.defaultMaxAdj
-                        process.setDefaultMaxAdj()
+
+                        if (oomMode == OomWorkModePref.MODE_STRICT || oomMode == OomWorkModePref.MODE_NEGATIVE) {
+                            process.setDefaultMaxAdj()
+                        }
                     }
                 }
             } else {    // 普通子进程
