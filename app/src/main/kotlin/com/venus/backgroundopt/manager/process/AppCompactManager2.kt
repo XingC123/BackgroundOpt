@@ -14,11 +14,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.manager.process
+
+package com.venus.backgroundopt.manager.process
 
 import android.os.SystemClock
-import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.environment.CommonProperties
@@ -74,7 +73,7 @@ class AppCompactManager2(
             return
         }
 
-        compactProcessMap.compute(processRecord) {_, lastScheduledFuture->
+        compactProcessMap.compute(processRecord) { _, lastScheduledFuture ->
             lastScheduledFuture?.cancel(true)
 
             executor.schedule({
