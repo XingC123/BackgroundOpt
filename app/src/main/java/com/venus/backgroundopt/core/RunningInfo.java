@@ -379,16 +379,16 @@ public class RunningInfo implements ILogger {
      * @param pid         pid
      */
     public void startProcess(@AndroidObject Object proc, int uid, int userId, String packageName, int pid) {
-        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
+        /*ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
             getLogger().error(
                     "创建进程(userId: " + userId + ", 包名: " + packageName + "uid: " + uid + ", pid: " + pid + ")出现错误: " + throwable.getMessage(),
                     throwable
             );
             return null;
-        }, () -> {
-            computeProcessIfAbsent(pid, proc, userId, uid, packageName);
-            return null;
-        });
+        }, () -> {*/
+        computeProcessIfAbsent(pid, proc, userId, uid, packageName);
+            /*return null;
+        });*/
     }
 
     /**
