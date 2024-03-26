@@ -102,48 +102,6 @@ class ProcessListHookKt(
         const val normalMinAdj = /*-100*/ 0
         const val importAppMinAdj = /*-200*/0
 
-        // slmk
-        private val simpleLmkAdjHandler = object : OomScoreAdjHandler(
-            minAdj = normalMinAdj,
-            maxAdj = normalMinAdj + ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
-            minImportAppAdj = importSystemAppAdjStartUseSimpleLmk,
-            maxImportAppAdj = importSystemAppAdjEndUseSimpleLmk
-        ) {
-            val importAppNormalAdj = "%.0f".format(
-                (minImportAppAdj + maxImportAppAdj) / 2.0
-            ).toInt()
-
-            override fun computeImportAppAdj(oomScoreAdj: Int): Int {
-                return importAppOomScoreAdjMap.computeIfAbsent(oomScoreAdj) { _ ->
-                    if (oomScoreAdj < ProcessList.VISIBLE_APP_ADJ) {
-                        minImportAppAdj
-                    } else if (oomScoreAdj < ProcessList.CACHED_APP_MIN_ADJ) {
-                        importAppNormalAdj
-                    } else {
-                        maxImportAppAdj
-                    }
-                }
-            }
-        }.apply {
-            highLevelSubProcessAdjOffset = maxAndMinAdjDifference
-        }
-
-        // 严格模式
-        private val strictModeAdjHandler = object : OomScoreAdjHandler(
-            minAdj = normalMinAdj,
-            maxAdj = normalMinAdj + ProcessList.FOREGROUND_APP_ADJ,
-            minImportAppAdj = importAppMinAdj,
-            maxImportAppAdj = normalMinAdj
-        ) {
-            override fun computeAdj(oomScoreAdj: Int): Int {
-                return minAdj
-            }
-
-            override fun computeImportAppAdj(oomScoreAdj: Int): Int {
-                return minImportAppAdj
-            }
-        }
-
         /**
          * 是否升级子进程的等级
          *
@@ -190,6 +148,70 @@ class ProcessListHookKt(
         fun isHighLevelProcess(
             processRecord: ProcessRecordKt
         ): Boolean = processRecord.mainProcess || isHighLevelSubProcess(processRecord)
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * oom adj处理器                                                            *
+     *                                                                         *
+     **************************************************************************/
+    private val oomAdjHandler = when (CommonProperties.oomWorkModePref.oomMode) {
+        OomWorkModePref.MODE_NEGATIVE -> object : OomScoreAdjHandler() {
+            override fun computeFinalAdj(
+                oomScoreAdj: Int,
+                processRecord: ProcessRecordKt,
+                appInfo: AppInfo,
+                mainProcess: Boolean
+            ): Int = 0
+        }
+
+        else -> {
+            if (useSimpleLmk()) {
+                generateSimpleLmkAdjHandler()
+            } else {
+                generateStrictModeAdjHandler()
+            }
+        }
+    }
+
+    private fun generateSimpleLmkAdjHandler(): OomScoreAdjHandler = object : OomScoreAdjHandler(
+        minAdj = normalMinAdj,
+        maxAdj = normalMinAdj + ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
+        minImportAppAdj = importSystemAppAdjStartUseSimpleLmk,
+        maxImportAppAdj = importSystemAppAdjEndUseSimpleLmk
+    ) {
+        val importAppNormalAdj = "%.0f".format(
+            (minImportAppAdj + maxImportAppAdj) / 2.0
+        ).toInt()
+
+        override fun computeImportAppAdj(oomScoreAdj: Int): Int {
+            return importAppOomScoreAdjMap.computeIfAbsent(oomScoreAdj) { _ ->
+                if (oomScoreAdj < ProcessList.VISIBLE_APP_ADJ) {
+                    minImportAppAdj
+                } else if (oomScoreAdj < ProcessList.CACHED_APP_MIN_ADJ) {
+                    importAppNormalAdj
+                } else {
+                    maxImportAppAdj
+                }
+            }
+        }
+    }.apply {
+        highLevelSubProcessAdjOffset = maxAndMinAdjDifference
+    }
+
+    private fun generateStrictModeAdjHandler(): OomScoreAdjHandler = object : OomScoreAdjHandler(
+        minAdj = normalMinAdj,
+        maxAdj = normalMinAdj + ProcessList.FOREGROUND_APP_ADJ,
+        minImportAppAdj = importAppMinAdj,
+        maxImportAppAdj = normalMinAdj
+    ) {
+        override fun computeAdj(oomScoreAdj: Int): Int {
+            return minAdj
+        }
+
+        override fun computeImportAppAdj(oomScoreAdj: Int): Int {
+            return minImportAppAdj
+        }
     }
 
     override fun getHookPoint(): Array<HookPoint> {
@@ -323,33 +345,18 @@ class ProcessListHookKt(
                 clearProcessUnexpectedState(processRecord = process)
             } else if (isUserSpaceAdj) {
                 if (isHighLevelProcess) {
+                    val oomMode = CommonProperties.oomWorkModePref.oomMode
                     if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
                         finalApplyOomScoreAdj = ProcessRecordKt.DEFAULT_MAIN_ADJ
-                    } else if (useSimpleLmk()) {
-                        /*finalApplyOomScoreAdj = computeFinalOomScoreUseSimpleLmk(
-                            appInfo = appInfo,
-                            oomScoreAdj = oomScoreAdj,
-                            processRecord = process,
-                            mainProcess = mainProcess
-                        )*/
-                        finalApplyOomScoreAdj = simpleLmkAdjHandler.computeFinalAdj(
+                    } else if (CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE) {
+                        // do nothing
+                    } else {
+                        finalApplyOomScoreAdj = oomAdjHandler.computeFinalAdj(
                             oomScoreAdj = curSetRawAdj,
                             processRecord = process,
                             appInfo = appInfo,
                             mainProcess = mainProcess
                         )
-                    } else {
-                        val oomMode = CommonProperties.oomWorkModePref.oomMode
-                        if (oomMode != OomWorkModePref.MODE_NEGATIVE) {
-                            // 可以进入到此代码块的当前只有严格/平衡模式
-                            // 严格模式我们设置了maxAdj。因此使用oomScoreAdj不够精确
-                            finalApplyOomScoreAdj = strictModeAdjHandler.computeFinalAdj(
-                                oomScoreAdj = curSetRawAdj,
-                                processRecord = process,
-                                appInfo = appInfo,
-                                mainProcess = mainProcess
-                            )
-                        }
                         if (process.fixedOomAdjScore != ProcessRecordKt.defaultMaxAdj) {
                             process.fixedOomAdjScore = ProcessRecordKt.defaultMaxAdj
 
