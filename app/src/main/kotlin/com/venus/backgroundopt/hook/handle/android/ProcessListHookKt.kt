@@ -310,21 +310,21 @@ class ProcessListHookKt(
         }
 
         val mainProcess = process.mainProcess
-        val lastSetRawAdj = process.mSetRawAdj
+        val lastSetRawAdj = process.mCurRawAdj
         var oomAdjustLevel = OomAdjustLevel.NONE
 
-        val curSetRawAdj = process.processStateRecord.processStateRecord.callMethod<Int>(
-            methodName = MethodConstants.getSetRawAdj
+        val curRawAdj = process.processStateRecord.processStateRecord.callMethod<Int>(
+            methodName = MethodConstants.getCurRawAdj
         )
         // 最终要被系统设置的oom分数
-        var finalApplyOomScoreAdj = curSetRawAdj
+        var finalApplyOomScoreAdj = curRawAdj
         val globalOomScoreEffectiveScopeEnum = globalOomScorePolicy.globalOomScoreEffectiveScope
         val isHighLevelProcess = isHighLevelProcess(process).also {
             if (it) {
                 oomAdjustLevel = OomAdjustLevel.FIRST
             }
         }
-        val isUserSpaceAdj = curSetRawAdj >= 0
+        val isUserSpaceAdj = curRawAdj >= 0
 
         val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[process.packageName]
         val possibleAdj = appOptimizePolicy.getCustomMainProcessOomScore()
@@ -352,7 +352,7 @@ class ProcessListHookKt(
                         // do nothing
                     } else {
                         finalApplyOomScoreAdj = oomAdjHandler.computeFinalAdj(
-                            oomScoreAdj = curSetRawAdj,
+                            oomScoreAdj = curRawAdj,
                             processRecord = process,
                             appInfo = appInfo,
                             mainProcess = mainProcess
@@ -368,23 +368,23 @@ class ProcessListHookKt(
                 } else {    // 普通子进程
                     finalApplyOomScoreAdj = computeSubprocessFinalOomScore(
                         processRecord = process,
-                        oomScoreAdj = curSetRawAdj
+                        oomScoreAdj = curRawAdj
                     )
                 }
             }
 
             param.args[2] = finalApplyOomScoreAdj
-            if (finalApplyOomScoreAdj != curSetRawAdj) {
+            if (finalApplyOomScoreAdj != curRawAdj) {
                 // 修改curAdj
                 process.processStateRecord.curAdj = finalApplyOomScoreAdj
             }
         }
 
         // 记录本次系统计算的分数
-        process.oomAdjScore = curSetRawAdj
+        process.oomAdjScore = curRawAdj
 
         // 修改mSetRawAdj
-        process.mSetRawAdj = curSetRawAdj
+        process.mCurRawAdj = curRawAdj
 
         // ProcessListHookKt.handleHandleProcessStartedLocked 执行后, 生成进程所属的appInfo
         // 但并没有将其设置内存分组。若在进程创建时就设置appInfo的内存分组, 则在某些场景下会产生额外消耗。
@@ -415,7 +415,7 @@ class ProcessListHookKt(
         runningInfo.processManager.compactProcess(
             process,
             lastSetRawAdj,
-            curSetRawAdj,
+            curRawAdj,
             oomAdjustLevel
         )
     }
