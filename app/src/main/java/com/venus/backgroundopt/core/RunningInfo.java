@@ -258,8 +258,12 @@ public class RunningInfo implements ILogger {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("创建新App记录: " + packageName + ", uid: " + uid);
             }
+            FindAppResult findAppResult = getFindAppResult(userId, packageName);
             AppInfo appInfo = new AppInfo(userId, packageName, this).setUid(uid);
-            appInfo.setFindAppResult(getFindAppResult(userId, packageName));
+            if (findAppResult.getImportantSystemApp() && !Objects.equals(activeLaunchPackageName, packageName)) {
+                appInfo.shouldHandleAdj = AppInfo.handleAdjDependOnAppOptimizePolicy;
+            }
+            appInfo.setFindAppResult(findAppResult);
             return appInfo;
         });
     }
@@ -647,6 +651,12 @@ public class RunningInfo implements ILogger {
     }
 
     public void setActiveLaunchPackageName(String activeLaunchPackageName) {
+        String curLaunchPackageName = this.activeLaunchPackageName;
+        // 将原桌面的adj调节修改
+        runningApps.values().stream()
+                .filter(appInfo -> Objects.equals(appInfo.getPackageName(), curLaunchPackageName))
+                .forEach(appInfo -> appInfo.shouldHandleAdj = AppInfo.handleAdjDependOnAppOptimizePolicy);
+        // 保存新桌面包名
         this.activeLaunchPackageName = activeLaunchPackageName;
     }
 

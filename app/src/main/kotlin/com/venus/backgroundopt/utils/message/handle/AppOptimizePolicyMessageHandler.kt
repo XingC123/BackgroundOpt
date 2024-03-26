@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.utils.message.handle
+
+package com.venus.backgroundopt.utils.message.handle
 
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.core.RunningInfo
@@ -90,6 +90,10 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         // 自定义的主进程oom分数
         var enableCustomMainProcessOomScore = false
         var customMainProcessOomScore = Int.MIN_VALUE
+
+        // 该app是否管理adj
+        // 2024.3.26: 目前仅针对系统app
+        var shouldHandleAdj: Boolean? = null
     }
 }
 

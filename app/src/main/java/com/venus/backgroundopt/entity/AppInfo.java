@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.entity;
+
+package com.venus.backgroundopt.entity;
 
 import static com.venus.backgroundopt.core.RunningInfo.AppGroupEnum;
 
@@ -26,10 +26,12 @@ import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.core.RunningInfo;
+import com.venus.backgroundopt.environment.CommonProperties;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
 import com.venus.backgroundopt.utils.concurrent.lock.LockFlag;
 import com.venus.backgroundopt.utils.log.ILogger;
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -41,6 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 
 /**
  * app信息
@@ -115,6 +118,27 @@ public class AppInfo implements ILogger, LockFlag {
     public void setComponentName(ComponentName componentName) {
         componentNameAtomicReference.set(componentName);
     }
+
+    /**
+     * 应用是否需要管理adj
+     *
+     * @return 需要 -> true
+     */
+    public boolean shouldHandleAdj() {
+        return shouldHandleAdj.apply(this);
+    }
+
+    public Function<AppInfo, Boolean> shouldHandleAdj = AppInfo.handleAdjAlways;
+
+    public static final Function<AppInfo, Boolean> handleAdjDependOnAppOptimizePolicy = appInfo -> {
+        AppOptimizePolicyMessageHandler.AppOptimizePolicy appOptimizePolicy = CommonProperties.INSTANCE.getAppOptimizePolicyMap().get(appInfo.packageName);
+        if (appOptimizePolicy == null) {
+            return false;
+        }
+        return Boolean.TRUE.equals(appOptimizePolicy.getShouldHandleAdj());
+    };
+
+    public static final Function<AppInfo, Boolean> handleAdjAlways = appInfo -> true;
 
     /* *************************************************************************
      *                                                                         *

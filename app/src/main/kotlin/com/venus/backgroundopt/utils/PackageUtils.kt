@@ -28,6 +28,7 @@ import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
+import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.ui.ConfigureAppProcessActivity
 import com.venus.backgroundopt.utils.log.logErrorAndroid
 import com.venus.backgroundopt.utils.log.logInfoAndroid
@@ -256,6 +257,7 @@ object PackageUtils {
                 ).apply {
                     versionName = packageInfo.versionName
                     longVersionCode = packageInfo.longVersionCode
+                    systemApp = ActivityManagerService.isImportantSystemApp(applicationInfo)
                 }
             }
             .sortedWith(

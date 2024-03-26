@@ -286,7 +286,6 @@ class ProcessListHookKt(
             // 24.3.25更正: 已弃用线程池异步方式, 但进行判断是更严谨的
             return
         }
-        val uid = param.args[1] as Int
 
         val mainProcess = process.mainProcess
         val lastSetRawAdj = process.mSetRawAdj
@@ -308,72 +307,74 @@ class ProcessListHookKt(
         val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[process.packageName]
         val possibleAdj = appOptimizePolicy.getCustomMainProcessOomScore()
 
-        if (possibleAdj != null && isHighLevelProcess) {    // 进程独立配置优先于任何情况
-            finalApplyOomScoreAdj = possibleAdj
-            clearProcessUnexpectedState(processRecord = process)
-        } else if (globalOomScorePolicy.enabled
-            && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL
-                    || isHighLevelProcess && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS_ANY || isUserSpaceAdj)
-                    || isUserSpaceAdj && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_AND_SUB_PROCESS
-                    )
-        ) {
-            // 逻辑概要:
-            // 开启全局oom && (作用域 == ALL || isHighLevelProcess && (作用域 == MAIN_PROC_ANY || isUserSpaceAdj) || /* 普通子进程 或 !isUserSpaceAdj */ isUserSpaceAdj && 作用域 == MAIN_AND_SUB_PROC)
-            finalApplyOomScoreAdj = globalOomScorePolicy.customGlobalOomScore
-            clearProcessUnexpectedState(processRecord = process)
-        } else if (isUserSpaceAdj) {
-            if (isHighLevelProcess) {
-                if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
-                    finalApplyOomScoreAdj = ProcessRecordKt.DEFAULT_MAIN_ADJ
-                } else if (useSimpleLmk()) {
-                    /*finalApplyOomScoreAdj = computeFinalOomScoreUseSimpleLmk(
-                        appInfo = appInfo,
-                        oomScoreAdj = oomScoreAdj,
-                        processRecord = process,
-                        mainProcess = mainProcess
-                    )*/
-                    finalApplyOomScoreAdj = simpleLmkAdjHandler.computeFinalAdj(
-                        oomScoreAdj = curSetRawAdj,
-                        processRecord = process,
-                        appInfo = appInfo,
-                        mainProcess = mainProcess
-                    )
-                } else {
-                    val oomMode = CommonProperties.oomWorkModePref.oomMode
-                    if (oomMode != OomWorkModePref.MODE_NEGATIVE) {
-                        // 可以进入到此代码块的当前只有严格/平衡模式
-                        // 严格模式我们设置了maxAdj。因此使用oomScoreAdj不够精确
-                        finalApplyOomScoreAdj = strictModeAdjHandler.computeFinalAdj(
+        if (appInfo.shouldHandleAdj()) {
+            if (possibleAdj != null && isHighLevelProcess) {    // 进程独立配置优先于任何情况
+                finalApplyOomScoreAdj = possibleAdj
+                clearProcessUnexpectedState(processRecord = process)
+            } else if (globalOomScorePolicy.enabled
+                && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL
+                        || isHighLevelProcess && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS_ANY || isUserSpaceAdj)
+                        || isUserSpaceAdj && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_AND_SUB_PROCESS
+                        )
+            ) {
+                // 逻辑概要:
+                // 开启全局oom && (作用域 == ALL || isHighLevelProcess && (作用域 == MAIN_PROC_ANY || isUserSpaceAdj) || /* 普通子进程 或 !isUserSpaceAdj */ isUserSpaceAdj && 作用域 == MAIN_AND_SUB_PROC)
+                finalApplyOomScoreAdj = globalOomScorePolicy.customGlobalOomScore
+                clearProcessUnexpectedState(processRecord = process)
+            } else if (isUserSpaceAdj) {
+                if (isHighLevelProcess) {
+                    if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
+                        finalApplyOomScoreAdj = ProcessRecordKt.DEFAULT_MAIN_ADJ
+                    } else if (useSimpleLmk()) {
+                        /*finalApplyOomScoreAdj = computeFinalOomScoreUseSimpleLmk(
+                            appInfo = appInfo,
+                            oomScoreAdj = oomScoreAdj,
+                            processRecord = process,
+                            mainProcess = mainProcess
+                        )*/
+                        finalApplyOomScoreAdj = simpleLmkAdjHandler.computeFinalAdj(
                             oomScoreAdj = curSetRawAdj,
                             processRecord = process,
                             appInfo = appInfo,
                             mainProcess = mainProcess
                         )
-                    }
-                    if (process.fixedOomAdjScore != ProcessRecordKt.defaultMaxAdj) {
-                        process.fixedOomAdjScore = ProcessRecordKt.defaultMaxAdj
+                    } else {
+                        val oomMode = CommonProperties.oomWorkModePref.oomMode
+                        if (oomMode != OomWorkModePref.MODE_NEGATIVE) {
+                            // 可以进入到此代码块的当前只有严格/平衡模式
+                            // 严格模式我们设置了maxAdj。因此使用oomScoreAdj不够精确
+                            finalApplyOomScoreAdj = strictModeAdjHandler.computeFinalAdj(
+                                oomScoreAdj = curSetRawAdj,
+                                processRecord = process,
+                                appInfo = appInfo,
+                                mainProcess = mainProcess
+                            )
+                        }
+                        if (process.fixedOomAdjScore != ProcessRecordKt.defaultMaxAdj) {
+                            process.fixedOomAdjScore = ProcessRecordKt.defaultMaxAdj
 
-                        if (oomMode == OomWorkModePref.MODE_STRICT || oomMode == OomWorkModePref.MODE_NEGATIVE) {
-                            process.setDefaultMaxAdj()
+                            if (oomMode == OomWorkModePref.MODE_STRICT || oomMode == OomWorkModePref.MODE_NEGATIVE) {
+                                process.setDefaultMaxAdj()
+                            }
                         }
                     }
+                } else {    // 普通子进程
+                    finalApplyOomScoreAdj = computeSubprocessFinalOomScore(
+                        processRecord = process,
+                        oomScoreAdj = curSetRawAdj
+                    )
                 }
-            } else {    // 普通子进程
-                finalApplyOomScoreAdj = computeSubprocessFinalOomScore(
-                    processRecord = process,
-                    oomScoreAdj = curSetRawAdj
-                )
+            }
+
+            param.args[2] = finalApplyOomScoreAdj
+            if (finalApplyOomScoreAdj != curSetRawAdj) {
+                // 修改curAdj
+                process.processStateRecord.curAdj = finalApplyOomScoreAdj
             }
         }
 
-        param.args[2] = finalApplyOomScoreAdj
         // 记录本次系统计算的分数
         process.oomAdjScore = curSetRawAdj
-
-        if (finalApplyOomScoreAdj != curSetRawAdj) {
-            // 修改curAdj
-            process.processStateRecord.curAdj = finalApplyOomScoreAdj
-        }
 
         // 修改mSetRawAdj
         process.mSetRawAdj = curSetRawAdj

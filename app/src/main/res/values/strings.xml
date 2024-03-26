@@ -164,4 +164,6 @@
     <string name="settingsExtraItemTitle" translatable="false">附加设置</string>
     <string name="settingsKillAfterRemoveTaskPrefText" translatable="false">划卡杀后台</string>
     <string name="settingsKillAfterRemoveTaskSummary" translatable="false">针对本模块修改的adj&lt;=-800的app</string>
+    <string name="configureAppProcessShouldHandleAdjText" translatable="false">管理Adj(前提是系统计算的adj&gt;0)</string>
+    <string name="configureAppProcessShouldHandleAdjSummary" translatable="false">前提是系统计算的adj&gt;0</string>
 </resources>
