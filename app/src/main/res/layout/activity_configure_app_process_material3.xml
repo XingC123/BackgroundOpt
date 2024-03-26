@@ -330,11 +330,11 @@
                 </LinearLayout>
 
                 <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/configureAppProcessShouldHandleAdjSwitch"
+                    android:id="@+id/configureAppProcessShouldHandleMainProcAdjSwitch"
                     style="@style/Theme.AppTheme"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/configureAppProcessShouldHandleAdjText"
+                    android:text="@string/configureAppProcessShouldHandleMainProcAdjText"
                     android:textSize="16sp" />
 
             </LinearLayout>

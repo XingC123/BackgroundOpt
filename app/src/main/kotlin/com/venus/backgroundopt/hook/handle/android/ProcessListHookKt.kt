@@ -314,6 +314,8 @@ class ProcessListHookKt(
         val mainProcess = process.mainProcess
         val lastSetRawAdj = process.mCurRawAdj
         var oomAdjustLevel = OomAdjustLevel.NONE
+        // 是否修改方法参数中的oom_score_adj
+        var doHookOriginalAdj = true
 
         val curRawAdj = process.processStateRecord.processStateRecord.callMethod<Int>(
             methodName = MethodConstants.getCurRawAdj
@@ -331,22 +333,22 @@ class ProcessListHookKt(
         val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[process.packageName]
         val possibleAdj = appOptimizePolicy.getCustomMainProcessOomScore()
 
-        if (appInfo.shouldHandleAdj()) {
-            if (possibleAdj != null && isHighLevelProcess) {    // 进程独立配置优先于任何情况
-                finalApplyOomScoreAdj = possibleAdj
-                clearProcessUnexpectedState(processRecord = process)
-            } else if (globalOomScorePolicy.enabled
-                && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL
-                        || isHighLevelProcess && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS_ANY || isUserSpaceAdj)
-                        || isUserSpaceAdj && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_AND_SUB_PROCESS
-                        )
-            ) {
-                // 逻辑概要:
-                // 开启全局oom && (作用域 == ALL || isHighLevelProcess && (作用域 == MAIN_PROC_ANY || isUserSpaceAdj) || /* 普通子进程 或 !isUserSpaceAdj */ isUserSpaceAdj && 作用域 == MAIN_AND_SUB_PROC)
-                finalApplyOomScoreAdj = globalOomScorePolicy.customGlobalOomScore
-                clearProcessUnexpectedState(processRecord = process)
-            } else if (isUserSpaceAdj) {
-                if (isHighLevelProcess) {
+        if (possibleAdj != null && isHighLevelProcess) {    // 进程独立配置优先于任何情况
+            finalApplyOomScoreAdj = possibleAdj
+            clearProcessUnexpectedState(processRecord = process)
+        } else if (globalOomScorePolicy.enabled
+            && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL
+                    || isHighLevelProcess && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS_ANY || isUserSpaceAdj)
+                    || isUserSpaceAdj && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_AND_SUB_PROCESS
+                    )
+        ) {
+            // 逻辑概要:
+            // 开启全局oom && (作用域 == ALL || isHighLevelProcess && (作用域 == MAIN_PROC_ANY || isUserSpaceAdj) || /* 普通子进程 或 !isUserSpaceAdj */ isUserSpaceAdj && 作用域 == MAIN_AND_SUB_PROC)
+            finalApplyOomScoreAdj = globalOomScorePolicy.customGlobalOomScore
+            clearProcessUnexpectedState(processRecord = process)
+        } else if (isUserSpaceAdj) {
+            if (isHighLevelProcess) {
+                if (appInfo.shouldHandleAdj()) {
                     val oomMode = CommonProperties.oomWorkModePref.oomMode
                     if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
                         finalApplyOomScoreAdj = ProcessRecordKt.DEFAULT_MAIN_ADJ
@@ -367,14 +369,18 @@ class ProcessListHookKt(
                             }
                         }
                     }
-                } else {    // 普通子进程
-                    finalApplyOomScoreAdj = computeSubprocessFinalOomScore(
-                        processRecord = process,
-                        oomScoreAdj = curRawAdj
-                    )
+                } else {
+                    doHookOriginalAdj = false
                 }
+            } else {    // 普通子进程
+                finalApplyOomScoreAdj = computeSubprocessFinalOomScore(
+                    processRecord = process,
+                    oomScoreAdj = curRawAdj
+                )
             }
+        }
 
+        if (doHookOriginalAdj) {
             param.args[2] = finalApplyOomScoreAdj
         }
 

@@ -109,6 +109,9 @@
         \n\t\t\t\ta. 系统oom_score_adj&gt;0
         \n\t\t\t\tb. 以上条件不满足，但启用了“自定义主进程oom”。
         \n\t\t\t\tc. 以上条件不满足，但开启了全局OOM(具体是否执行看作用域描述)
+        \n\t\t13) 截至2024.3.26(模块2.3_vc199)，app配置页的“管理Adj”功能生效条件：
+        \n\t\t\t\ta. 系统计算的oom_score_adj&gt;0。
+        \n\t\t\t\tb. 未使用“自定义主进程OOM”(即：本功能并不会影响“自定义主进程OOM”，其优先级仍然最高)或全局OOM。
 
 
         \n\n<b>3. 其他问题</b>
@@ -164,6 +167,6 @@
     <string name="settingsExtraItemTitle" translatable="false">附加设置</string>
     <string name="settingsKillAfterRemoveTaskPrefText" translatable="false">划卡杀后台</string>
     <string name="settingsKillAfterRemoveTaskSummary" translatable="false">针对本模块修改的adj&lt;=-800的app</string>
-    <string name="configureAppProcessShouldHandleAdjText" translatable="false">管理Adj(前提是系统计算的adj&gt;0)</string>
+    <string name="configureAppProcessShouldHandleMainProcAdjText" translatable="false">管理主进程Adj</string>
     <string name="configureAppProcessShouldHandleAdjSummary" translatable="false">前提是系统计算的adj&gt;0</string>
 </resources>
