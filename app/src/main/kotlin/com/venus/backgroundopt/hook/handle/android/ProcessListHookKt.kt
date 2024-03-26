@@ -308,6 +308,8 @@ class ProcessListHookKt(
             // 24.3.25更正: 已弃用线程池异步方式, 但进行判断是更严谨的
             return
         }
+        // 本次要设置的adj
+        // val oomScoreAdj = param.args[2] as Int
 
         val mainProcess = process.mainProcess
         val lastSetRawAdj = process.mCurRawAdj
@@ -374,10 +376,6 @@ class ProcessListHookKt(
             }
 
             param.args[2] = finalApplyOomScoreAdj
-            if (finalApplyOomScoreAdj != curRawAdj) {
-                // 修改curAdj
-                process.processStateRecord.curAdj = finalApplyOomScoreAdj
-            }
         }
 
         // 记录本次系统计算的分数
