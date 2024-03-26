@@ -103,12 +103,28 @@ class ProcessListHookKt(
         const val importAppMinAdj = /*-200*/0
 
         // slmk
-        private val simpleLmkAdjHandler = OomScoreAdjHandler(
+        private val simpleLmkAdjHandler = object : OomScoreAdjHandler(
             minAdj = normalMinAdj,
             maxAdj = normalMinAdj + ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
-            minImportAppAdj = importAppMinAdj,
-            maxImportAppAdj = normalMinAdj
-        ).apply {
+            minImportAppAdj = importSystemAppAdjStartUseSimpleLmk,
+            maxImportAppAdj = importSystemAppAdjEndUseSimpleLmk
+        ) {
+            val importAppNormalAdj = "%.0f".format(
+                (minImportAppAdj + maxImportAppAdj) / 2.0
+            ).toInt()
+
+            override fun computeImportAppAdj(oomScoreAdj: Int): Int {
+                return importAppOomScoreAdjMap.computeIfAbsent(oomScoreAdj) { _ ->
+                    if (oomScoreAdj < ProcessList.VISIBLE_APP_ADJ) {
+                        minImportAppAdj
+                    } else if (oomScoreAdj < ProcessList.CACHED_APP_MIN_ADJ) {
+                        importAppNormalAdj
+                    } else {
+                        maxImportAppAdj
+                    }
+                }
+            }
+        }.apply {
             highLevelSubProcessAdjOffset = maxAndMinAdjDifference
         }
 
@@ -689,7 +705,7 @@ internal open class OomScoreAdjHandler {
     }
 
     companion object {
-        private val oomScoreAdjMap = ConcurrentHashMap<Int, Int>(8)
-        private val importAppOomScoreAdjMap = ConcurrentHashMap<Int, Int>(8)
+        val oomScoreAdjMap = ConcurrentHashMap<Int, Int>(8)
+        val importAppOomScoreAdjMap = ConcurrentHashMap<Int, Int>(8)
     }
 }
