@@ -34,6 +34,7 @@ import com.venus.backgroundopt.utils.log.ILogger;
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -67,10 +68,15 @@ public class AppInfo implements ILogger, LockFlag {
     private String packageName;
     private int userId = Integer.MIN_VALUE;
 
-    public AppInfo(int userId, String packageName, RunningInfo runningInfo) {
+    public AppInfo(int userId, String packageName, FindAppResult findAppResult, RunningInfo runningInfo) {
         this.userId = userId;
         this.packageName = packageName;
+        this.findAppResult = findAppResult;
         this.runningInfo = runningInfo;
+
+        if (findAppResult.getImportantSystemApp() && !Objects.equals(runningInfo.getActiveLaunchPackageName(), packageName)) {
+            this.shouldHandleAdj = AppInfo.handleAdjDependOnAppOptimizePolicy;
+        }
     }
 
     /* *************************************************************************
@@ -119,17 +125,11 @@ public class AppInfo implements ILogger, LockFlag {
         componentNameAtomicReference.set(componentName);
     }
 
-    /**
-     * 应用是否需要管理adj
-     *
-     * @return 需要 -> true
-     */
-    public boolean shouldHandleAdj() {
-        return shouldHandleAdj.apply(this);
-    }
-
-    public Function<AppInfo, Boolean> shouldHandleAdj = AppInfo.handleAdjAlways;
-
+    /* *************************************************************************
+     *                                                                         *
+     * adj处理                                                                  *
+     *                                                                         *
+     **************************************************************************/
     public static final Function<AppInfo, Boolean> handleAdjDependOnAppOptimizePolicy = appInfo -> {
         AppOptimizePolicyMessageHandler.AppOptimizePolicy appOptimizePolicy = CommonProperties.INSTANCE.getAppOptimizePolicyMap().get(appInfo.packageName);
         if (appOptimizePolicy == null) {
@@ -139,6 +139,17 @@ public class AppInfo implements ILogger, LockFlag {
     };
 
     public static final Function<AppInfo, Boolean> handleAdjAlways = appInfo -> true;
+
+    public volatile Function<AppInfo, Boolean> shouldHandleAdj = AppInfo.handleAdjAlways;
+
+    /**
+     * 应用是否需要管理adj
+     *
+     * @return 需要 -> true
+     */
+    public boolean shouldHandleAdj() {
+        return shouldHandleAdj.apply(this);
+    }
 
     /* *************************************************************************
      *                                                                         *
@@ -215,7 +226,7 @@ public class AppInfo implements ILogger, LockFlag {
 
     static {
         fields = Arrays.stream(AppInfo.class.getDeclaredFields())
-                .filter(field -> !(field.getType().isPrimitive() || field.getType() == Field[].class))
+                .filter(field -> !(field.getType().isPrimitive() || field.getType() == Field[].class || Modifier.isStatic(field.getModifiers())))
                 .peek(field -> field.setAccessible(true))
                 .toArray(Field[]::new);
     }

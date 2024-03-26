@@ -258,13 +258,12 @@ public class RunningInfo implements ILogger {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("创建新App记录: " + packageName + ", uid: " + uid);
             }
-            FindAppResult findAppResult = getFindAppResult(userId, packageName);
-            AppInfo appInfo = new AppInfo(userId, packageName, this).setUid(uid);
-            if (findAppResult.getImportantSystemApp() && !Objects.equals(activeLaunchPackageName, packageName)) {
-                appInfo.shouldHandleAdj = AppInfo.handleAdjDependOnAppOptimizePolicy;
-            }
-            appInfo.setFindAppResult(findAppResult);
-            return appInfo;
+            return new AppInfo(
+                    userId,
+                    packageName,
+                    getFindAppResult(userId, packageName),
+                    this
+            ).setUid(uid);
         });
     }
 
