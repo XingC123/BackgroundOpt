@@ -33,7 +33,6 @@ import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.utils.callMethod
-import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.utils.getBooleanFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
@@ -371,20 +370,20 @@ class ProcessListHookKt(
         // 我们的目标是保活以及额外处理, 那么只需在①中将其放入running.runningApps, 在设置oom时就可以被管理。
         // 此时那些没有打开过页面的app就可以被设置内存分组, 相应的进行内存优化处理。
         if (mainProcess) {
-            ConcurrentUtils.execute(runningInfo.activityEventChangeExecutor, { throwable ->
+            /*ConcurrentUtils.execute(runningInfo.activityEventChangeExecutor, { throwable ->
                 logger.error(
                     "检查App(userId: ${appInfo.userId}, 包名: ${appInfo.packageName}, uid: $uid" +
                             ")是否需要放置到idle分组出错: ${throwable.message}",
                     throwable
                 )
-            }) {
-                if (appInfo.appGroupEnum == AppGroupEnum.NONE) {
-                    runningInfo.handleActivityEventChange(
-                        ActivityManagerServiceHookKt.ACTIVITY_STOPPED,
-                        null,
-                        appInfo
-                    )
-                }
+            }) {*/
+            if (appInfo.appGroupEnum == AppGroupEnum.NONE) {
+                runningInfo.handleActivityEventChange(
+                    ActivityManagerServiceHookKt.ACTIVITY_STOPPED,
+                    null,
+                    appInfo
+                )
+                // }
             }
         }
 

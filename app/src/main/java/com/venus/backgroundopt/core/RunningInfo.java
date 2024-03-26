@@ -460,23 +460,23 @@ public class RunningInfo implements ILogger {
     }
 
     public void handleActivityEventChange(int event, int userId, @NonNull String packageName, @Nullable ComponentName componentName) {
-        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
+        /*ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
             getLogger().error(
                     "处理app切换事件(userId: " + userId + "包名: " + packageName + ", event: " + event + ")错误: " + throwable.getMessage(),
                     throwable
             );
             return null;
-        }, () -> {
-            FindAppResult findAppResult = getFindAppResult(userId, packageName);
-            AppInfo appInfo;
-            if (findAppResult.getApplicationInfo() == null
-                    || (appInfo = getRunningAppInfo(userId, packageName)) == null) {
-                return null;
-            }
+        }, () -> {*/
+        FindAppResult findAppResult = getFindAppResult(userId, packageName);
+        AppInfo appInfo;
+        if (findAppResult.getApplicationInfo() == null
+                || (appInfo = getRunningAppInfo(userId, packageName)) == null) {
+            return /*null*/;
+        }
 
-            handleActivityEventChange(event, componentName, appInfo);
-            return null;
-        });
+        handleActivityEventChange(event, componentName, appInfo);
+            /*return null;
+        });*/
     }
 
     /**
