@@ -144,7 +144,7 @@ public class CachedAppOptimizer implements ILogger, IAndroidEntity {
 //        }
 //    }
 
-    public static boolean isOomAdjEnteredCached(ProcessRecordKt processRecord) {
+    public static boolean isOomAdjEnteredCached(ProcessRecord processRecord) {
         return isOomAdjEnteredCached(processRecord.getCurAdjNative());
     }
 
@@ -159,7 +159,7 @@ public class CachedAppOptimizer implements ILogger, IAndroidEntity {
      * @param app   ProcessRecord
      * @param force 是否强制
      */
-    public void compactAppFull(ProcessRecordKt app, boolean force) {
+    public void compactAppFull(ProcessRecord app, boolean force) {
         boolean oomAdjEnteredCached = isOomAdjEnteredCached(app);
 
         ++mFullCompactRequest;
@@ -171,7 +171,7 @@ public class CachedAppOptimizer implements ILogger, IAndroidEntity {
         }
     }
 
-    public boolean compactApp(ProcessRecordKt app, boolean force, String compactRequestType) {
+    public boolean compactApp(ProcessRecord app, boolean force, String compactRequestType) {
         return (boolean) XposedHelpers.callMethod(
                 this.cachedAppOptimizer,
                 MethodConstants.compactApp,

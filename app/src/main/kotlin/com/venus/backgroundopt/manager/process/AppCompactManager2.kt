@@ -23,7 +23,8 @@ import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
+import com.venus.backgroundopt.hook.handle.android.entity.isValid
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.runCatchThrowable
 import java.util.concurrent.ConcurrentHashMap
@@ -57,11 +58,11 @@ class AppCompactManager2(
         return ProcessCompactProcessingResult()
     }
 
-    private val compactProcessMap: MutableMap<ProcessRecordKt, ScheduledFuture<*>> =
+    private val compactProcessMap: MutableMap<ProcessRecord, ScheduledFuture<*>> =
         ConcurrentHashMap()
 
     fun compactProcess(
-        processRecord: ProcessRecordKt,
+        processRecord: ProcessRecord,
         lastOomScoreAdj: Int,
         curOomScoreAdj: Int,
         oomAdjustLevel: Int
@@ -92,13 +93,13 @@ class AppCompactManager2(
     }
 
     private fun compactProcessImpl(
-        processRecord: ProcessRecordKt,
+        processRecord: ProcessRecord,
         lastOomScoreAdj: Int,
         curOomScoreAdj: Int,
         oomAdjustLevel: Int
     ) {
         // 检验合法性
-        if (!ProcessRecordKt.isValid(runningInfo, processRecord)) {
+        if (!processRecord.isValid(runningInfo,)) {
             return
         }
 
@@ -169,7 +170,7 @@ class AppCompactManager2(
 
             processCompactResultCode =
                 compactProcess(pid = processRecord.pid, compactAction = compactAction)
-            updateProcessLastProcessingResult(processRecordKt = processRecord) {
+            updateProcessLastProcessingResult(processRecord = processRecord) {
                 processingResult.lastProcessingCode = processCompactResultCode
                 processingResult.processCompactEnum = processCompactEnum
             }

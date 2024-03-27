@@ -17,7 +17,6 @@
 
 package com.venus.backgroundopt.entity.base
 
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
 import com.venus.backgroundopt.manager.process.AbstractAppOptimizeManager.AppOptimizeEnum
 import com.venus.backgroundopt.manager.process.ProcessingResult
 import com.venus.backgroundopt.utils.message.MessageFlag

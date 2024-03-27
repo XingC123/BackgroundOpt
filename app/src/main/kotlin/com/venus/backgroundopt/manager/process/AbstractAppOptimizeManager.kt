@@ -18,7 +18,7 @@
 package com.venus.backgroundopt.manager.process
 
 import android.os.SystemClock
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.runCatchThrowable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
@@ -33,10 +33,10 @@ import java.util.concurrent.TimeUnit
 abstract class AbstractAppOptimizeManager(val appOptimizeEnum: AppOptimizeEnum) {
     abstract fun getExecutor(): Executor
 
-    open fun isNecessaryToOptimizeProcess(processRecordKt: ProcessRecordKt): Boolean {
-        val isSafeOomAdj = processRecordKt.mCurRawAdj >= 0
+    open fun isNecessaryToOptimizeProcess(processRecord: ProcessRecord): Boolean {
+        val isSafeOomAdj = processRecord.mCurRawAdj >= 0
         return if (isSafeOomAdj) {
-            processRecordKt.isNecessaryToOptimize()
+            processRecord.isNecessaryToOptimize()
         } else {
             false
         }
@@ -46,18 +46,18 @@ abstract class AbstractAppOptimizeManager(val appOptimizeEnum: AppOptimizeEnum) 
 
     open fun getBackgroundFirstTaskDelayTimeUnit(): TimeUnit = TimeUnit.SECONDS
 
-    val backgroundFirstTaskMap: MutableMap<ProcessRecordKt, ScheduledFuture<*>> =
+    val backgroundFirstTaskMap: MutableMap<ProcessRecord, ScheduledFuture<*>> =
         ConcurrentHashMap(4)
 
     open fun addBackgroundFirstTask(
-        processRecordKt: ProcessRecordKt,
+        processRecord: ProcessRecord,
         block: (() -> Unit)? = null,
     ) {
-        backgroundFirstTaskMap.computeIfAbsent(processRecordKt) { _ ->
+        backgroundFirstTaskMap.computeIfAbsent(processRecord) { _ ->
             (getExecutor() as ScheduledThreadPoolExecutor).schedule(
                 {
                     runCatchThrowable(finallyBlock = {
-                        backgroundFirstTaskMap.remove(processRecordKt)
+                        backgroundFirstTaskMap.remove(processRecord)
                     }) {
                         block?.let { it() }
                     }
@@ -69,10 +69,10 @@ abstract class AbstractAppOptimizeManager(val appOptimizeEnum: AppOptimizeEnum) 
     }
 
     open fun removeBackgroundFirstTask(
-        processRecordKt: ProcessRecordKt,
+        processRecord: ProcessRecord,
         block: ((ScheduledFuture<*>) -> Unit)? = null,
     ) {
-        backgroundFirstTaskMap.remove(processRecordKt)?.let { scheduledFuture ->
+        backgroundFirstTaskMap.remove(processRecord)?.let { scheduledFuture ->
             scheduledFuture.cancel(true)
             block?.let { it(scheduledFuture) }
         }
@@ -86,11 +86,11 @@ abstract class AbstractAppOptimizeManager(val appOptimizeEnum: AppOptimizeEnum) 
     open fun getProcessingResultIfAbsent(): ProcessingResult = ProcessingResult()
 
     inline fun updateProcessLastProcessingResult(
-        processRecordKt: ProcessRecordKt,
+        processRecord: ProcessRecord,
         appOptEnum: AppOptimizeEnum = appOptimizeEnum,
         block: (ProcessingResult) -> Unit
     ) {
-        val processingResult = processRecordKt.initLastProcessingResultIfAbsent(
+        val processingResult = processRecord.initLastProcessingResultIfAbsent(
             appOptimizeEnum = appOptEnum,
             processingResultSupplier = ::getProcessingResultIfAbsent
         )
@@ -100,13 +100,13 @@ abstract class AbstractAppOptimizeManager(val appOptimizeEnum: AppOptimizeEnum) 
     }
 
     fun removeProcessLastProcessingResult(
-        processRecordKt: ProcessRecordKt,
+        processRecord: ProcessRecord,
         appOptEnum: AppOptimizeEnum = appOptimizeEnum,
     ) {
-        processRecordKt.lastProcessingResultMap.remove(appOptEnum)
+        processRecord.lastProcessingResultMap.remove(appOptEnum)
     }
 
-    fun removeProcessLastProcessingResultFromSet(set: Set<ProcessRecordKt>) {
+    fun removeProcessLastProcessingResultFromSet(set: Set<ProcessRecord>) {
         set.forEach { process ->
             removeProcessLastProcessingResult(process)
         }

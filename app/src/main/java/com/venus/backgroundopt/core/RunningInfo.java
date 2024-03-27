@@ -19,7 +19,6 @@ package com.venus.backgroundopt.core;
 
 import static com.venus.backgroundopt.manager.application.DefaultApplicationManager.DefaultApplicationNode;
 
-import android.app.role.RoleManager;
 import android.content.ComponentName;
 import android.os.PowerManager;
 
@@ -36,7 +35,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerShellCommand;
 import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
 import com.venus.backgroundopt.hook.handle.android.entity.PackageManagerService;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.manager.application.DefaultApplicationManager;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.reference.PropertyChangeListener;
@@ -349,32 +348,32 @@ public class RunningInfo implements ILogger {
      * 运行的进程                                                                *
      *                                                                         *
      **************************************************************************/
-    private final Map<Integer, ProcessRecordKt> runningProcesses = new ConcurrentHashMap<>();
+    private final Map<Integer, ProcessRecord> runningProcesses = new ConcurrentHashMap<>();
 
     @Nullable
-    public ProcessRecordKt getRunningProcess(int pid) {
+    public ProcessRecord getRunningProcess(int pid) {
         return runningProcesses.get(pid);
     }
 
     @NonNull
-    public Collection<ProcessRecordKt> getRunningProcesses() {
+    public Collection<ProcessRecord> getRunningProcesses() {
         return runningProcesses.values();
     }
 
-    private void putIntoRunningProcesses(int pid, @NonNull ProcessRecordKt processRecord) {
+    private void putIntoRunningProcesses(int pid, @NonNull ProcessRecord processRecord) {
         runningProcesses.put(pid, processRecord);
     }
 
     @NonNull
-    private ProcessRecordKt computeProcessIfAbsent(int pid, @AndroidObject Object process, int userId, int uid, String packageName) {
+    private ProcessRecord computeProcessIfAbsent(int pid, @AndroidObject Object process, int userId, int uid, String packageName) {
         return runningProcesses.computeIfAbsent(pid, key -> {
             AppInfo appInfo = computeRunningAppIfAbsent(userId, packageName, uid);
-            return ProcessRecordKt.newInstance(activityManagerService, appInfo, process, pid, uid, userId, packageName);
+            return ProcessRecord.newInstance(activityManagerService, appInfo, process, pid, uid, userId, packageName);
         });
     }
 
     @Nullable
-    public ProcessRecordKt removeRunningProcess(int pid) {
+    public ProcessRecord removeRunningProcess(int pid) {
         return runningProcesses.remove(pid);
     }
 
@@ -407,7 +406,7 @@ public class RunningInfo implements ILogger {
      * @param pid pid
      */
     public void removeProcess(int pid) {
-        ProcessRecordKt processRecord = getRunningProcess(pid);
+        ProcessRecord processRecord = getRunningProcess(pid);
         if (processRecord == null) {
             return;
         }

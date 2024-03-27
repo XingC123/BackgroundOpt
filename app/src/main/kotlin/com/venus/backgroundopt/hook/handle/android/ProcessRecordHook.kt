@@ -20,7 +20,7 @@ package com.venus.backgroundopt.hook.handle.android
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.base.IHook
 import com.venus.backgroundopt.hook.constants.ClassConstants
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.beforeHook
 
 /**
@@ -58,9 +58,9 @@ class ProcessRecordHook(
             hookAllMethod = true,
         ) { param ->
             val process = param.thisObject
-            val pid = ProcessRecordKt.getPid(process)
+            val pid = ProcessRecord.getPid(process)
             val processRecord = runningInfo.getRunningProcess(pid) ?: return@beforeHook
-            if (!ProcessListHookKt.isHighPriorityProcess(processRecord)) {
+            if (!processRecord.isHighPriorityProcess()) {
                 return@beforeHook
             }
             val reason = param.args[0] as String

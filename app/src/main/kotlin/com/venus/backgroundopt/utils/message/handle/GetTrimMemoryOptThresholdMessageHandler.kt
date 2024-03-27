@@ -18,7 +18,7 @@
  package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
 import de.robv.android.xposed.XC_MethodHook
@@ -37,7 +37,7 @@ class GetTrimMemoryOptThresholdMessageHandler : MessageHandler {
             param = param,
             value = value
         ) { _ ->
-            ProcessRecordKt.minOptimizeRssInMBytesStr
+            ProcessRecord.minOptimizeRssInMBytesStr
         }
     }
 }

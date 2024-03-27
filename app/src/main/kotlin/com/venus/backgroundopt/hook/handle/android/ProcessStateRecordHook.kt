@@ -23,7 +23,7 @@ import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessStateRecord
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
@@ -55,12 +55,12 @@ class ProcessStateRecordHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) 
 
     private fun handleSetCurAdj(param: MethodHookParam) {
         val processStateRecord = param.thisObject
-        val processRecordKt =
-            ProcessRecordKt(
+        val processRecord =
+            ProcessRecord(
                 runningInfo.activityManagerService,
                 ProcessStateRecord.getProcessRecord(processStateRecord)
             )
-        val appInfo = runningInfo.getRunningAppInfo(processRecordKt.uid)
+        val appInfo = runningInfo.getRunningAppInfo(processRecord.uid)
         // 主进程首次创建时appInfo还未初始化, 此情况无需关心
         appInfo ?: return
 
@@ -70,8 +70,8 @@ class ProcessStateRecordHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) 
             Int.MIN_VALUE
         }
 
-        if (processRecordKt.pid == mPid) {
-            if (appInfo.mainProcCurAdj != ProcessRecordKt.DEFAULT_MAIN_ADJ) {
+        if (processRecord.pid == mPid) {
+            if (appInfo.mainProcCurAdj != ProcessRecord.DEFAULT_MAIN_ADJ) {
                 // 放行
             } else {
                 param.result = null
@@ -81,12 +81,12 @@ class ProcessStateRecordHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) 
 
     private fun handleGetCurAdj(param: MethodHookParam) {
         val processStateRecord = param.thisObject
-        val processRecordKt =
-            ProcessRecordKt(
+        val processRecord =
+            ProcessRecord(
                 runningInfo.activityManagerService,
                 ProcessStateRecord.getProcessRecord(processStateRecord)
             )
-        val appInfo = runningInfo.getRunningAppInfo(processRecordKt.uid)
+        val appInfo = runningInfo.getRunningAppInfo(processRecord.uid)
         // 主进程首次创建时appInfo还未初始化, 此情况无需关心
         appInfo ?: return
 
@@ -96,11 +96,11 @@ class ProcessStateRecordHook(classLoader: ClassLoader?, hookInfo: RunningInfo?) 
             Int.MIN_VALUE
         }
 
-        if (processRecordKt.pid == mPid) {
+        if (processRecord.pid == mPid) {
             /*if (BuildConfig.DEBUG) {
                 logger.debug("getCurAdj() >>> 包名: ${processRecordKt.packageName}, uid: ${processRecordKt.uid}, pid: ${processRecordKt.pid}, 目标主进程, 给你返回${ProcessRecordKt.DEFAULT_MAIN_ADJ}")
             }*/
-            param.result = ProcessRecordKt.DEFAULT_MAIN_ADJ
+            param.result = ProcessRecord.DEFAULT_MAIN_ADJ
         }
     }
 }

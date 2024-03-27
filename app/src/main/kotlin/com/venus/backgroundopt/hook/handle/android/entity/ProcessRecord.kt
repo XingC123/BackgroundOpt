@@ -26,6 +26,7 @@ import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
+import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
@@ -34,11 +35,13 @@ import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_NEWLINE_T
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_OUT_LONG
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.callMethod
+import com.venus.backgroundopt.utils.getBooleanFieldValue
 import com.venus.backgroundopt.utils.getIntFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
 import com.venus.backgroundopt.utils.getStringFieldValue
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.log.logInfo
+import com.venus.backgroundopt.utils.runCatchThrowable
 import com.venus.backgroundopt.utils.setIntFieldValue
 import java.math.RoundingMode
 import java.text.DecimalFormat
@@ -52,7 +55,7 @@ import java.util.concurrent.atomic.AtomicLong
  * @author XingC
  * @date 2023/9/26
  */
-class ProcessRecordKt(
+class ProcessRecord(
     @AndroidObject(classPath = ClassConstants.ProcessRecord)
     @get:JSONField(serialize = false)
     override val originalInstance: Any,
@@ -123,8 +126,8 @@ class ProcessRecordKt(
             runningInfo: RunningInfo,
             appInfo: AppInfo,
             @AndroidObject processRecord: Any
-        ): ProcessRecordKt {
-            val record = ProcessRecordKt(runningInfo.activityManagerService, processRecord)
+        ): ProcessRecord {
+            val record = ProcessRecord(runningInfo.activityManagerService, processRecord)
             // addCompactProcess(runningInfo, appInfo, record)
             return record
         }
@@ -139,7 +142,7 @@ class ProcessRecordKt(
             uid: Int = getUID(processRecord),
             userId: Int = getUserId(processRecord),
             packageName: String = getPkgName(processRecord)
-        ): ProcessRecordKt = ProcessRecordKt(
+        ): ProcessRecord = ProcessRecord(
             activityManagerService = activityManagerService,
             processRecord = processRecord,
             pid = pid,
@@ -151,45 +154,6 @@ class ProcessRecordKt(
 
             if (mainProcess) {
                 this.appInfo.setmProcessRecord(this)
-            }
-        }
-
-        @JvmStatic
-        fun setMainProcess(processRecord: ProcessRecordKt): ProcessRecordKt {
-            try {
-                processRecord.mainProcess = isMainProcess(processRecord)
-            } catch (ignore: Exception) {
-            }
-            return processRecord
-        }
-
-        @JvmStatic
-        fun isMainProcess(processRecord: ProcessRecordKt): Boolean {
-            return isMainProcess(processRecord.packageName, processRecord.processName)
-        }
-
-        @JvmStatic
-        fun isMainProcess(packageName: String, processName: String): Boolean {
-            return packageName == processName
-        }
-
-        /**
-         * 若该进程创建时, app处于IDLE, 则将此进程添加到待压缩列表
-         *
-         * @param runningInfo   运行信息
-         * @param appInfo       应用信息
-         * @param processRecord 进程记录
-         */
-        @JvmStatic
-        fun addCompactProcess(
-            runningInfo: RunningInfo,
-            appInfo: AppInfo,
-            processRecord: ProcessRecordKt
-        ) {
-            // 若该进程创建时, app处于IDLE且当前app不是桌面, 则将此进程添加到待压缩列表
-            if (AppGroupEnum.IDLE == appInfo.appGroupEnum && runningInfo.activeLaunchPackageName != appInfo.packageName) {
-                processRecord.appInfo = appInfo
-                processRecord.addCompactProcess(runningInfo)
             }
         }
 
@@ -272,7 +236,7 @@ class ProcessRecordKt(
          * @param collection 待设置的集合
          */
         @JvmStatic
-        fun setActualAdj(collection: Collection<ProcessRecordKt>) {
+        fun setActualAdj(collection: Collection<ProcessRecord>) {
             collection.forEach {
                 it.curAdj = it.getCurAdjNative()
             }
@@ -309,50 +273,6 @@ class ProcessRecordKt(
                 getPkgName(processRecord),
                 getProcessName(processRecord)
             )
-        }
-
-        /**
-         * 检查当前进程记录是否合法
-         *
-         * @return 合法 -> true
-         */
-        @JvmStatic
-        fun isValid(runningInfo: RunningInfo, processRecord: ProcessRecordKt): Boolean {
-            // pid是否合法
-            if (processRecord.pid <= 0) {
-                return false
-            }
-
-            // 当前应用内存分组
-            if (processRecord.appInfo.appGroupEnum == AppGroupEnum.DEAD) {
-                return false
-            }
-
-            // 子进程在当前运行的app列表中来判断
-            runningInfo.getRunningProcess(processRecord.pid) ?: return false
-
-            return !processRecord.mKilledByAm
-        }
-
-        /**
-         * processRecord.pid纠正
-         *
-         * @param processRecord 要纠正的ProcessRecord
-         */
-        @JvmStatic
-        fun correctProcessPid(processRecord: ProcessRecordKt?) {
-            if (processRecord == null || processRecord.pid > 0) {
-                return
-            }
-
-            var curCorrectTimes = 1
-            while (curCorrectTimes <= 10) {
-                processRecord.pid = getPid(processRecord.originalInstance)
-                curCorrectTimes++
-                if (processRecord.pid <= 0) {
-                    TimeUnit.MILLISECONDS.sleep(20)
-                }
-            }
         }
 
         /* *************************************************************************
@@ -405,7 +325,7 @@ class ProcessRecordKt(
             }*/
 
         /**
-         * 默认的用来设置[ProcessRecordKt.fixedOomAdjScore]的设置器
+         * 默认的用来设置[ProcessRecord.fixedOomAdjScore]的设置器
          */
         /*private val defaultFixedOomScoreAdjSetter =
             { process: ProcessRecordKt, oomScoreAdj: Int, isAdjustMaxAdj: Boolean ->
@@ -740,11 +660,84 @@ class ProcessRecordKt(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
-        val that = other as ProcessRecordKt
+        val that = other as ProcessRecord
         return uid == that.uid && pid == that.pid && processName == that.processName && packageName == that.packageName
     }
 
     override fun hashCode(): Int {
         return Objects.hash(uid, pid, processName, packageName)
+    }
+}
+
+fun ProcessRecord.isMainProcess(
+    packageName: String,
+    processName: String
+): Boolean = packageName == processName
+
+fun ProcessRecord.isMainProcess(): Boolean {
+    return isMainProcess(this.packageName, this.processName)
+}
+
+fun ProcessRecord.setMainProcess() {
+    runCatchThrowable {
+        this.mainProcess = isMainProcess()
+    }
+}
+
+/**
+ * 若该进程创建时, app处于IDLE, 则将此进程添加到待压缩列表
+ * @receiver ProcessRecordKt
+ * @param runningInfo RunningInfo
+ * @param appInfo AppInfo
+ */
+fun ProcessRecord.addCompactProcess(
+    runningInfo: RunningInfo,
+    appInfo: AppInfo,
+) {
+    // 若该进程创建时, app处于IDLE且当前app不是桌面, 则将此进程添加到待压缩列表
+    if (AppGroupEnum.IDLE == appInfo.appGroupEnum && runningInfo.activeLaunchPackageName != appInfo.packageName) {
+        this.appInfo = appInfo
+        addCompactProcess(runningInfo)
+    }
+}
+
+/**
+ * 检查当前进程记录是否合法
+ *
+ * @return 合法 -> true
+ */
+fun ProcessRecord.isValid(runningInfo: RunningInfo): Boolean {
+    // pid是否合法
+    if (this.pid <= 0) {
+        return false
+    }
+
+    // 当前应用内存分组
+    if (this.appInfo.appGroupEnum == AppGroupEnum.DEAD) {
+        return false
+    }
+
+    // 子进程在当前运行的app列表中来判断
+    runningInfo.getRunningProcess(this.pid) ?: return false
+
+    return !this.mKilledByAm
+}
+
+/**
+ * processRecord.pid纠正
+ * @receiver ProcessRecordKt? 要纠正的ProcessRecord
+ */
+fun ProcessRecord?.correctProcessPid() {
+    if (this == null || this.pid > 0) {
+        return
+    }
+
+    var curCorrectTimes = 1
+    while (curCorrectTimes <= 10) {
+        this.pid = ProcessRecord.getPid(this.originalInstance)
+        curCorrectTimes++
+        if (this.pid <= 0) {
+            TimeUnit.MILLISECONDS.sleep(20)
+        }
     }
 }

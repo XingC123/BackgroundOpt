@@ -28,7 +28,7 @@ import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.environment.CommonProperties;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.manager.application.DefaultApplicationManager;
 import com.venus.backgroundopt.utils.concurrent.lock.LockFlag;
 import com.venus.backgroundopt.utils.log.ILogger;
@@ -87,7 +87,7 @@ public class AppInfo implements ILogger, LockFlag {
      **************************************************************************/
     @SuppressWarnings("all")    // 别显示未final啦, 烦死辣
     private RunningInfo runningInfo;
-    private volatile ProcessRecordKt mProcessRecord;   // 主进程记录
+    private volatile ProcessRecord mProcessRecord;   // 主进程记录
 
     private final AtomicInteger appSwitchEvent = new AtomicInteger(Integer.MIN_VALUE); // app切换事件
 
@@ -329,11 +329,11 @@ public class AppInfo implements ILogger, LockFlag {
     }
 
     @Nullable
-    public ProcessRecordKt getmProcessRecord() {
+    public ProcessRecord getmProcessRecord() {
         return mProcessRecord;
     }
 
-    public void setmProcessRecord(ProcessRecordKt mProcessRecord) {
+    public void setmProcessRecord(ProcessRecord mProcessRecord) {
         this.mProcessRecord = mProcessRecord;
 
         if (BuildConfig.DEBUG) {
