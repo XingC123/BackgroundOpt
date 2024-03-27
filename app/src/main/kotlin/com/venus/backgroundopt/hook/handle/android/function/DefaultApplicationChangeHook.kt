@@ -36,7 +36,7 @@ import de.robv.android.xposed.XC_MethodHook
  * @date 2024/3/27
  */
 @FunctionHook(description = "监听默认应用的切换")
-class DefaultChangeHook(
+class DefaultApplicationChangeHook(
     classLoader: ClassLoader?,
     runningInfo: RunningInfo?
 ) : IHook(classLoader, runningInfo) {
