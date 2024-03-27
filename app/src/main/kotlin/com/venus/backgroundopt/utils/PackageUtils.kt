@@ -171,6 +171,8 @@ object PackageUtils {
             var hasConfiguredAppOptimizePolicy = false
             // 自定义oom
             var hasConfiguredMainProcessCustomOomScore = false
+            // 管理系统app的主进程的adj
+            var hasConfiguredShouldHandleMainProcAdj = false
             appOptimizePolicies[packageName]?.let { appOptimizePolicy ->
                 if (appOptimizePolicy.disableForegroundTrimMem != null ||
                     appOptimizePolicy.disableBackgroundTrimMem != null ||
@@ -193,6 +195,12 @@ object PackageUtils {
                     appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.CustomMainProcessOomScore)
                     hasConfiguredMainProcessCustomOomScore = true
                 }
+
+                // 系统app 且 允许管理oom adj
+                if (appOptimizePolicy.shouldHandleAdj == true) {
+                    appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.ShouldHandleMainProcAdj)
+                    hasConfiguredShouldHandleMainProcAdj = true
+                }
             }
 
             // 是否配置过子进程oom策略
@@ -208,6 +216,7 @@ object PackageUtils {
             }
             return hasConfiguredAppOptimizePolicy or
                     hasConfiguredMainProcessCustomOomScore or
+                    hasConfiguredShouldHandleMainProcAdj or
                     hasConfiguredSubProcessOomPolicy
         }
 

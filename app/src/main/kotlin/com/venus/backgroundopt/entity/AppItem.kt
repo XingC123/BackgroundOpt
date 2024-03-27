@@ -100,6 +100,7 @@ class AppItem @JSONCreator constructor() : MessageFlag {
         AppOptimizePolicy("App内存优化策略"),
         SubProcessOomPolicy("OOM策略"),
         CustomMainProcessOomScore("自定义主进程OOM"),
+        ShouldHandleMainProcAdj("管理主进程Adj"),
     }
 
     @get:JSONField(serialize = false)
