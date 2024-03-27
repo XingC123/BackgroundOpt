@@ -353,7 +353,7 @@ class ProcessListHookKt(
                     if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
                         finalApplyOomScoreAdj = ProcessRecordKt.DEFAULT_MAIN_ADJ
                     } else if (CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE) {
-                        // do nothing
+                        doHookOriginalAdj = false
                     } else {
                         finalApplyOomScoreAdj = oomAdjHandler.computeFinalAdj(
                             oomScoreAdj = curRawAdj,
