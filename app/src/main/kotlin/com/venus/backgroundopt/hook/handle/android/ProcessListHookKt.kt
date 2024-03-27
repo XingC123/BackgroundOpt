@@ -91,8 +91,8 @@ class ProcessListHookKt(
         const val oomScoreAdjConvertDivisor =
             MAX_ALLOWED_OOM_SCORE_ADJ / maxAndMinOomScoreAdjDifference
 
-        // 高水平的子进程的adj分数相对于主进程的偏移量
-        const val highLevelSubProcessAdjOffset = 1
+        // 高优先级的子进程的adj分数相对于主进程的偏移量
+        const val highPrioritySubProcessAdjOffset = 1
 
         /* *************************************************************************
          *                                                                         *
@@ -128,26 +128,26 @@ class ProcessListHookKt(
             )?.getBooleanFieldValue(fieldName = FieldConstants.mHasClientActivities) == true
 
         /**
-         * 是否是高等级子进程
+         * 是否是高优先级子进程
          * @param processRecord ProcessRecordKt 进程记录器
-         * @return Boolean 高水平 -> true
+         * @return Boolean 高优先级 -> true
          */
         @JvmStatic
-        fun isHighLevelSubProcess(
+        fun isHighPrioritySubProcess(
             processRecord: ProcessRecordKt
         ): Boolean = isUpgradeSubProcessLevel(processRecord.processName)
                 || isNeedHandleWebviewProcess(processRecord)
                 || processRecord.hasWakeLock()
 
         /**
-         * 是否是高等级进程
+         * 是否是高优先级进程
          * @param processRecord ProcessRecordKt
-         * @return Boolean 高水平 -> true
+         * @return Boolean 高优先级 -> true
          */
         @JvmStatic
-        fun isHighLevelProcess(
+        fun isHighPriorityProcess(
             processRecord: ProcessRecordKt
-        ): Boolean = processRecord.mainProcess || isHighLevelSubProcess(processRecord)
+        ): Boolean = processRecord.mainProcess || isHighPrioritySubProcess(processRecord)
     }
 
     /* *************************************************************************
@@ -196,7 +196,7 @@ class ProcessListHookKt(
             }
         }
     }.apply {
-        highLevelSubProcessAdjOffset = maxAndMinAdjDifference
+        highPrioritySubProcessAdjOffset = maxAndMinAdjDifference
     }
 
     private fun generateStrictModeAdjHandler(): OomScoreAdjHandler = object : OomScoreAdjHandler(
@@ -213,7 +213,7 @@ class ProcessListHookKt(
             return minImportAppAdj
         }
     }.apply {
-        highLevelSubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ + 1
+        highPrioritySubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ + 1
     }
 
     override fun getHookPoint(): Array<HookPoint> {
@@ -325,7 +325,7 @@ class ProcessListHookKt(
         // 最终要被系统设置的oom分数
         var finalApplyOomScoreAdj = curRawAdj
         val globalOomScoreEffectiveScopeEnum = globalOomScorePolicy.globalOomScoreEffectiveScope
-        val isHighLevelProcess = isHighLevelProcess(process).also {
+        val isHighPriorityProcess = isHighPriorityProcess(process).also {
             if (it) {
                 oomAdjustLevel = OomAdjustLevel.FIRST
             }
@@ -335,21 +335,21 @@ class ProcessListHookKt(
         val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[process.packageName]
         val possibleAdj = appOptimizePolicy.getCustomMainProcessOomScore()
 
-        if (possibleAdj != null && isHighLevelProcess) {    // 进程独立配置优先于任何情况
+        if (possibleAdj != null && isHighPriorityProcess) {    // 进程独立配置优先于任何情况
             finalApplyOomScoreAdj = possibleAdj
             clearProcessUnexpectedState(processRecord = process)
         } else if (globalOomScorePolicy.enabled
             && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL
-                    || isHighLevelProcess && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS_ANY || isUserSpaceAdj)
+                    || isHighPriorityProcess && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS_ANY || isUserSpaceAdj)
                     || isUserSpaceAdj && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_AND_SUB_PROCESS
                     )
         ) {
             // 逻辑概要:
-            // 开启全局oom && (作用域 == ALL || isHighLevelProcess && (作用域 == MAIN_PROC_ANY || isUserSpaceAdj) || /* 普通子进程 或 !isUserSpaceAdj */ isUserSpaceAdj && 作用域 == MAIN_AND_SUB_PROC)
+            // 开启全局oom && (作用域 == ALL || isHighPriorityProcess && (作用域 == MAIN_PROC_ANY || isUserSpaceAdj) || /* 普通子进程 或 !isUserSpaceAdj */ isUserSpaceAdj && 作用域 == MAIN_AND_SUB_PROC)
             finalApplyOomScoreAdj = globalOomScorePolicy.customGlobalOomScore
             clearProcessUnexpectedState(processRecord = process)
         } else if (isUserSpaceAdj) {
-            if (isHighLevelProcess) {
+            if (isHighPriorityProcess) {
                 if (appInfo.shouldHandleAdj()) {
                     val oomMode = CommonProperties.oomWorkModePref.oomMode
                     if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
@@ -557,8 +557,8 @@ internal open class OomScoreAdjHandler {
     // 默认的主进程adj
     var defaultMainAdj = ProcessRecordKt.DEFAULT_MAIN_ADJ
 
-    // 高水平的子进程的adj分数相对于主进程的偏移量
-    var highLevelSubProcessAdjOffset = 1
+    // 高优先级的子进程的adj分数相对于主进程的偏移量
+    var highPrioritySubProcessAdjOffset = 1
 
     /* *************************************************************************
      *                                                                         *
@@ -568,14 +568,14 @@ internal open class OomScoreAdjHandler {
     @JvmOverloads
     constructor(
         defaultMainAdj: Int = ProcessRecordKt.DEFAULT_MAIN_ADJ,
-        highLevelSubProcessAdjOffset: Int = 1,
+        highPrioritySubProcessAdjOffset: Int = 1,
         minAdj: Int = 0,
         maxAdj: Int = minAdj,
         minImportAppAdj: Int = 0,
         maxImportAppAdj: Int = minAdj,
     ) {
         this.defaultMainAdj = defaultMainAdj
-        this.highLevelSubProcessAdjOffset = highLevelSubProcessAdjOffset
+        this.highPrioritySubProcessAdjOffset = highPrioritySubProcessAdjOffset
         this.minAdj = minAdj
         this.maxAdj = maxAdj
         this.minImportAppAdj = minImportAppAdj
@@ -714,7 +714,7 @@ internal open class OomScoreAdjHandler {
                 computeAdj(oomScoreAdj = oomScoreAdj)
             }
         } else {    // 子进程
-            computeAdj(oomScoreAdj = oomScoreAdj) + highLevelSubProcessAdjOffset
+            computeAdj(oomScoreAdj = oomScoreAdj) + highPrioritySubProcessAdjOffset
         }
     }
 
