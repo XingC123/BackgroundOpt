@@ -17,6 +17,9 @@
 
 package com.venus.backgroundopt.core;
 
+import static com.venus.backgroundopt.manager.application.DefaultApplicationManager.DefaultApplicationNode;
+
+import android.app.role.RoleManager;
 import android.content.ComponentName;
 import android.os.PowerManager;
 
@@ -34,7 +37,9 @@ import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerShellCo
 import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
 import com.venus.backgroundopt.hook.handle.android.entity.PackageManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
+import com.venus.backgroundopt.manager.application.DefaultApplicationManager;
 import com.venus.backgroundopt.manager.process.ProcessManager;
+import com.venus.backgroundopt.reference.PropertyChangeListener;
 import com.venus.backgroundopt.service.ProcessDaemonService;
 import com.venus.backgroundopt.utils.ThrowableUtilsKt;
 import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils;
@@ -51,6 +56,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import de.robv.android.xposed.XC_MethodHook;
 
@@ -642,13 +648,25 @@ public class RunningInfo implements ILogger {
      * 默认桌面                                                                  *
      *                                                                         *
      **************************************************************************/
+    private final DefaultApplicationManager defaultApplicationManager = new DefaultApplicationManager();
+
+    public void setDefaultPackageName(String key, String packageName) {
+        defaultApplicationManager.setDefaultPackageName(key, packageName);
+    }
+
+    public String getDefaultPackageName(String key) {
+        return defaultApplicationManager.getDefaultPackageName(key);
+    }
+
+    @Deprecated
     private volatile String activeLaunchPackageName = null;
 
     @Nullable
     public String getActiveLaunchPackageName() {
-        return activeLaunchPackageName;
+        return getDefaultPackageName(DefaultApplicationManager.DEFAULT_APP_HOME);
     }
 
+    @Deprecated
     public void setActiveLaunchPackageName(String activeLaunchPackageName) {
         String curLaunchPackageName = this.activeLaunchPackageName;
         // 将原桌面的adj调节修改
@@ -659,16 +677,83 @@ public class RunningInfo implements ILogger {
         this.activeLaunchPackageName = activeLaunchPackageName;
     }
 
-    public void initActiveLaunchPackageName() {
-        if (packageManagerService != null && activeLaunchPackageName == null) {
-            String defaultHomeName = packageManagerService.getDefaultHome();
-            if (defaultHomeName != null) {
-                setActiveLaunchPackageName(defaultHomeName);
-                getLogger().info("默认启动器为: " + defaultHomeName);
-            } else {
-                getLogger().warn("初始化当前桌面失败");
+    public void initActiveDefaultAppPackageName() {
+        if (packageManagerService != null) {
+            // 以下数组的索引一一对应
+            String[] keys = {
+                    DefaultApplicationManager.DEFAULT_APP_BROWSER,
+                    DefaultApplicationManager.DEFAULT_APP_HOME,
+                    DefaultApplicationManager.DEFAULT_APP_ASSISTANT,
+                    DefaultApplicationManager.DEFAULT_APP_INPUT_METHOD,
+            };
+            Supplier<String>[] suppliers = new Supplier[]{
+                    packageManagerService::getDefaultBrowser,
+                    packageManagerService::getDefaultHome,
+                    packageManagerService::getDefaultAssistant,
+                    packageManagerService::getDefaultInputMethod
+            };
+            String[] tags = {
+                    "浏览器",
+                    "桌面",
+                    "智能助手",
+                    "输入法",
+            };
+            for (int i = 0; i < keys.length; i++) {
+                int finalI = i;
+                defaultApplicationManager.initDefaultApplicationNode(
+                        keys[finalI],
+                        defaultApplicationNode -> {
+                            initDefaultApplicationNode(
+                                    defaultApplicationNode,
+                                    suppliers[finalI],
+                                    keys[finalI],
+                                    tags[finalI],
+                                    generateDefaultApplicationChangeListener(tags[finalI])
+                            );
+                            return null;
+                        }
+                );
             }
         }
+    }
+
+    private void initDefaultApplicationNode(
+            DefaultApplicationNode defaultApplicationNode,
+            Supplier<String> defaultPkgNameSupplier,
+            String key,
+            String tag,
+            PropertyChangeListener<String> listener
+    ) {
+        String defaultPkgName = defaultPkgNameSupplier.get();
+        defaultApplicationNode.setValue(defaultPkgName);
+        defaultApplicationNode.addListener(key, listener);
+        if (defaultPkgName != null) {
+            getLogger().info("默认" + tag + "为: " + defaultPkgName);
+        } else {
+            getLogger().warn("获取默认" + tag + "失败");
+        }
+    }
+
+    private PropertyChangeListener<String> generateDefaultApplicationChangeListener(String tag) {
+        return (oldValue, newValue) -> {
+            String newPkgName = DefaultApplicationManager.getDefaultPkgNameFromUriStr(newValue);
+            if (Objects.equals(oldValue, newPkgName)) {
+                return;
+            }
+            runningApps.values().stream()
+                    .filter(AppInfo::isImportSystemApp)
+                    .filter(appInfo -> Objects.equals(appInfo.getPackageName(), oldValue) || Objects.equals(appInfo.getPackageName(), newPkgName))
+                    .forEach(appInfo -> {
+                        if (Objects.equals(appInfo.getPackageName(), oldValue)) {
+                            // 将原应用恢复默认策略
+                            appInfo.shouldHandleAdj = AppInfo.handleAdjDependOnAppOptimizePolicy;
+                        } else {
+                            // 设置当前app
+                            appInfo.shouldHandleAdj = AppInfo.handleAdjAlways;
+                        }
+                    });
+            getLogger().info("更换的" + tag + "包名为: " + newPkgName);
+        };
     }
 
     /* *************************************************************************

@@ -62,8 +62,10 @@ public interface MethodConstants {
     String systemReady = "systemReady";
     String startBootstrapServices = "startBootstrapServices";
     String main = "main";
+    String getRoleHoldersAsUser = "getRoleHoldersAsUser";
     String getDefaultAppProvider = "getDefaultAppProvider";
     String getDefaultHome = "getDefaultHome";
+    String getDefaultBrowser = "getDefaultBrowser";
     String configureSystemServerDexReporter = "configureSystemServerDexReporter";
     String isFirstBoot = "isFirstBoot";
     String readProcLines = "readProcLines";
@@ -142,6 +144,7 @@ public interface MethodConstants {
     String getSetRawAdj = "getSetRawAdj";
     String getCurRawAdj = "getCurRawAdj";
     String isKilledByAm = "isKilledByAm";
+    String putStringForUser = "putStringForUser";
 
     /**
      * miui

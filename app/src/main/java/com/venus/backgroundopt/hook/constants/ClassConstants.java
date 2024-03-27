@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.constants;
+
+package com.venus.backgroundopt.hook.constants;
 
 /**
  * author: XingC
@@ -74,6 +74,7 @@ public interface ClassConstants {
     String ServiceManager = "android.os.ServiceManager";
     String PowerManagerService = "com.android.server.power.PowerManagerService";
     String IWakeLockCallback = "android.os.IWakeLockCallback";
+    String Settings_Secure = "android.provider.Settings.Secure";
 
     /**
      * miui

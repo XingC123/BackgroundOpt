@@ -29,6 +29,7 @@ import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.environment.CommonProperties;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
+import com.venus.backgroundopt.manager.application.DefaultApplicationManager;
 import com.venus.backgroundopt.utils.concurrent.lock.LockFlag;
 import com.venus.backgroundopt.utils.log.ILogger;
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler;
@@ -74,7 +75,7 @@ public class AppInfo implements ILogger, LockFlag {
         this.findAppResult = findAppResult;
         this.runningInfo = runningInfo;
 
-        if (findAppResult.getImportantSystemApp() && !Objects.equals(runningInfo.getActiveLaunchPackageName(), packageName)) {
+        if (findAppResult.getImportantSystemApp() && !DefaultApplicationManager.isDefaultAppPkgName(packageName)) {
             this.shouldHandleAdj = AppInfo.handleAdjDependOnAppOptimizePolicy;
         }
     }
