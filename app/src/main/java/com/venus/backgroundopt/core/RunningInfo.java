@@ -47,6 +47,7 @@ import com.venus.backgroundopt.utils.log.ILogger;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -678,41 +679,38 @@ public class RunningInfo implements ILogger {
 
     public void initActiveDefaultAppPackageName() {
         if (packageManagerService != null) {
-            // 以下数组的索引一一对应
-            String[] keys = {
-                    DefaultApplicationManager.DEFAULT_APP_BROWSER,
-                    DefaultApplicationManager.DEFAULT_APP_HOME,
-                    DefaultApplicationManager.DEFAULT_APP_ASSISTANT,
-                    DefaultApplicationManager.DEFAULT_APP_INPUT_METHOD,
-            };
-            Supplier<String>[] suppliers = new Supplier[]{
-                    packageManagerService::getDefaultBrowser,
-                    packageManagerService::getDefaultHome,
-                    packageManagerService::getDefaultAssistant,
-                    packageManagerService::getDefaultInputMethod
-            };
-            String[] tags = {
-                    "浏览器",
-                    "桌面",
-                    "智能助手",
-                    "输入法",
-            };
-            for (int i = 0; i < keys.length; i++) {
-                int finalI = i;
+            List.of(
+                    new DefaultApplicationPkgNameInitializer()
+                            .setKey(DefaultApplicationManager.DEFAULT_APP_BROWSER)
+                            .setTag("浏览器")
+                            .setPkgNameGetter(packageManagerService::getDefaultBrowser),
+                    new DefaultApplicationPkgNameInitializer()
+                            .setKey(DefaultApplicationManager.DEFAULT_APP_HOME)
+                            .setTag("桌面")
+                            .setPkgNameGetter(packageManagerService::getDefaultHome),
+                    new DefaultApplicationPkgNameInitializer()
+                            .setKey(DefaultApplicationManager.DEFAULT_APP_ASSISTANT)
+                            .setTag("智能助手")
+                            .setPkgNameGetter(packageManagerService::getDefaultAssistant),
+                    new DefaultApplicationPkgNameInitializer()
+                            .setKey(DefaultApplicationManager.DEFAULT_APP_INPUT_METHOD)
+                            .setTag("输入法")
+                            .setPkgNameGetter(packageManagerService::getDefaultInputMethod)
+            ).forEach(initializer -> {
                 defaultApplicationManager.initDefaultApplicationNode(
-                        keys[finalI],
+                        initializer.key,
                         defaultApplicationNode -> {
                             initDefaultApplicationNode(
                                     defaultApplicationNode,
-                                    suppliers[finalI],
-                                    keys[finalI],
-                                    tags[finalI],
-                                    generateDefaultApplicationChangeListener(tags[finalI])
+                                    initializer.pkgNameGetter,
+                                    initializer.key,
+                                    initializer.tag,
+                                    generateDefaultApplicationChangeListener(initializer.tag)
                             );
                             return null;
                         }
                 );
-            }
+            });
         }
     }
 
@@ -753,6 +751,30 @@ public class RunningInfo implements ILogger {
                     });
             getLogger().info("更换的" + tag + "包名为: " + newPkgName);
         };
+    }
+
+    /**
+     * 用于初始化默认应用的包名的事件节点
+     */
+    private static class DefaultApplicationPkgNameInitializer {
+        String key;
+        String tag;
+        Supplier<String> pkgNameGetter;
+
+        public DefaultApplicationPkgNameInitializer setKey(String key) {
+            this.key = key;
+            return this;
+        }
+
+        public DefaultApplicationPkgNameInitializer setTag(String tag) {
+            this.tag = tag;
+            return this;
+        }
+
+        public DefaultApplicationPkgNameInitializer setPkgNameGetter(Supplier<String> pkgNameGetter) {
+            this.pkgNameGetter = pkgNameGetter;
+            return this;
+        }
     }
 
     /* *************************************************************************
