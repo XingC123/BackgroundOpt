@@ -212,6 +212,8 @@ class ProcessListHookKt(
         override fun computeImportAppAdj(oomScoreAdj: Int): Int {
             return minImportAppAdj
         }
+    }.apply {
+        highLevelSubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ + 1
     }
 
     override fun getHookPoint(): Array<HookPoint> {
