@@ -14,17 +14,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
+
  package com.venus.backgroundopt.ui
 
 import android.os.Bundle
 import android.widget.TextView
-import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.R
-import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
 
 /**
@@ -39,10 +37,6 @@ class AboutAppActivityMaterial3 : BaseActivityMaterial3() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         init()
-    }
-
-    override fun initToolBar(): Toolbar? {
-        return findViewById(R.id.toolbar)
     }
 
     fun init() {

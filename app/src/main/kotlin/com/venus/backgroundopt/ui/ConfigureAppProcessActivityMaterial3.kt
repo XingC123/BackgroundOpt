@@ -28,7 +28,6 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
-import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
@@ -60,10 +59,6 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
         showProgressBarViewForAction("正在加载...") {
             init()
         }
-    }
-
-    override fun initToolBar(): Toolbar? {
-        return findViewById(R.id.toolbar)
     }
 
     override fun setOnMenuItemClickListener(menuItem: MenuItem) {

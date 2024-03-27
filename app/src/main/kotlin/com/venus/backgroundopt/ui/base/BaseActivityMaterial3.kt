@@ -60,7 +60,7 @@ abstract class BaseActivityMaterial3 : BaseActivity() {
      *                                                                         *
      **************************************************************************/
     override fun initToolBar(): Toolbar? {
-        return null
+        return findViewById(R.id.toolbar)
     }
 
     /**

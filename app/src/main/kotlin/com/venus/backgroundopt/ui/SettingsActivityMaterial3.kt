@@ -14,17 +14,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
+
  package com.venus.backgroundopt.ui
 
 import android.os.Bundle
 import android.view.MenuItem
-import androidx.appcompat.widget.Toolbar
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AllPreference
-import com.venus.backgroundopt.ui.base.PreferenceActivity
 import com.venus.backgroundopt.ui.base.PreferenceActivityMaterial3
-import com.venus.backgroundopt.utils.UiUtils
 
 /**
  * @author XingC
@@ -39,10 +36,6 @@ class SettingsActivityMaterial3 : PreferenceActivityMaterial3() {
 
     override fun getContentView(): Int {
         return R.layout.activity_settings_material3
-    }
-
-    override fun initToolBar(): Toolbar? {
-        return findViewById(R.id.toolbar)
     }
 
     override fun setOnMenuItemClickListener(menuItem: MenuItem) {

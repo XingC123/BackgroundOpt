@@ -14,15 +14,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
+
  package com.venus.backgroundopt.ui.base
 
 import android.os.Bundle
-import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.alibaba.fastjson2.JSON
-import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.ui.style.RecycleViewItemSpaceDecoration
@@ -41,10 +39,6 @@ abstract class ShowInfoFromAppItemActivityMaterial3 : BaseActivityMaterial3() {
         showProgressBarViewForAction("正在加载...") {
             init()
         }
-    }
-
-    override fun initToolBar(): Toolbar? {
-        return findViewById(R.id.toolbar)
     }
 
     abstract fun getShowInfoAdapter(
