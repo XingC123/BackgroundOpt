@@ -170,4 +170,7 @@
     <string name="configureAppProcessShouldHandleMainProcAdjText" translatable="false">管理主进程Adj</string>
     <string name="configureAppProcessShouldHandleAdjSummary" translatable="false">前提是系统计算的adj&gt;0</string>
     <string name="itemInstalledAppsShouldHandleMainProcAdjFlagText" translatable="false">管理主进程Adj</string>
+    <string name="settingsUiTitle">UI</string>
+    <string name="settingsDynamicThemePrefText" translatable="false">动态取色</string>
+    <string name="settingsDynamicThemePrefSummary" translatable="false">重启app生效</string>
 </resources>

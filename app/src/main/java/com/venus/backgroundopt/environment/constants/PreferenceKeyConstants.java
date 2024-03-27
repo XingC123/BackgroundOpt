@@ -33,4 +33,5 @@ public interface PreferenceKeyConstants {
     String GLOBAL_OOM_SCORE_EFFECTIVE_SCOPE = "pref_key_global_oom_score_effective_scope";
     String GLOBAL_OOM_SCORE_VALUE = "pref_key_global_oom_score_value";
     String KILL_AFTER_REMOVE_TASK = "pref_key_kill_after_remove_task";
+    String DYNAMIC_THEME = "pref_key_dynamic_theme";
 }

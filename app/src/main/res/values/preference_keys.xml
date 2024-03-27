@@ -13,4 +13,10 @@
     <string name="pref_key_global_oom_score_value" translatable="false">pref_key_global_oom_score_value</string>
     <!--划卡杀后台-->
     <string name="pref_key_kill_after_remove_task" translatable="false">pref_key_kill_after_remove_task</string>
+
+    <!--
+        界面
+    -->
+    <!--动态取色-->
+    <string name="pref_key_dynamic_theme" translatable="false">pref_key_dynamic_theme</string>
 </resources>
