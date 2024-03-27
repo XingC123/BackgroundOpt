@@ -253,12 +253,19 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                 }
             }
 
-            // 是否被模块纳入管理
+            /*
+                是否被模块纳入管理
+             */
             findViewById<SwitchCompat>(R.id.configureAppProcessShouldHandleMainProcAdjSwitch)?.let { switch ->
                 switch.visibility = if (appItem.systemApp) {    // 只有系统app才可以设置
                     View.VISIBLE
                 } else {
                     View.GONE
+                }
+
+                // 初始状态
+                if (appOptimizePolicy.shouldHandleAdj == true) {
+                    switch.isChecked = true
                 }
 
                 switch.setOnCheckedChangeListener { _, isChecked ->
