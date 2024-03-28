@@ -17,6 +17,8 @@
 
 package com.venus.backgroundopt.core;
 
+import static com.venus.backgroundopt.manager.application.DefaultApplicationManager.DefaultApplicationNode;
+
 import android.content.ComponentName;
 import android.os.PowerManager;
 
@@ -33,17 +35,19 @@ import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerShellCommand;
 import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
 import com.venus.backgroundopt.hook.handle.android.entity.PackageManagerService;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
+import com.venus.backgroundopt.manager.application.DefaultApplicationManager;
 import com.venus.backgroundopt.manager.process.ProcessManager;
+import com.venus.backgroundopt.reference.PropertyChangeListener;
 import com.venus.backgroundopt.service.ProcessDaemonService;
 import com.venus.backgroundopt.utils.ThrowableUtilsKt;
 import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils;
-import com.venus.backgroundopt.utils.concurrent.ConcurrentUtilsKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -51,8 +55,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import de.robv.android.xposed.XC_MethodHook;
 
@@ -260,9 +264,12 @@ public class RunningInfo implements ILogger {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("创建新App记录: " + packageName + ", uid: " + uid);
             }
-            AppInfo appInfo = new AppInfo(userId, packageName, this).setUid(uid);
-            appInfo.setFindAppResult(getFindAppResult(userId, packageName));
-            return appInfo;
+            return new AppInfo(
+                    userId,
+                    packageName,
+                    getFindAppResult(userId, packageName),
+                    this
+            ).setUid(uid);
         });
     }
 
@@ -272,18 +279,27 @@ public class RunningInfo implements ILogger {
      * @param appInfo app信息
      */
     public void removeRunningApp(@NonNull AppInfo appInfo) {
+        // 设置内存分组到死亡分组
+        appInfo.setAppGroupEnum(AppGroupEnum.DEAD);
+
         String packageName = appInfo.getPackageName();
         if (packageName == null) {
             getLogger().warn("kill: 包名为空");
             return;
         }
-        ConcurrentUtilsKt.lock(appInfo, () -> {
+
+        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
+            getLogger().error(
+                    "杀死app(packageName: " + packageName + ", userId: " + appInfo.getUserId() + ")出现错误",
+                    throwable
+            );
+            return null;
+        }, () -> {
+            /*ConcurrentUtilsKt.lock(appInfo, () -> {*/
             // 从运行列表移除
             AppInfo remove = runningApps.remove(getRunningAppIdentifier(appInfo.getUserId(), packageName));
 
             if (remove != null) {
-                // 设置内存分组到死亡分组
-                remove.setAppGroupEnum(AppGroupEnum.DEAD);
                 // 从待处理列表中移除
                 activeAppGroup.remove(appInfo);
                 idleAppGroup.remove(appInfo);
@@ -302,6 +318,8 @@ public class RunningInfo implements ILogger {
                     getLogger().warn("kill: 未找到移除项 -> userId: " + appInfo.getUserId() + ", packageName: " + packageName);
                 }
             }
+                /*return null;
+            });*/
             return null;
         });
     }
@@ -312,16 +330,16 @@ public class RunningInfo implements ILogger {
             return;
         }
         ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
-            ConcurrentUtilsKt.lock(appInfo, () -> {
-                ThrowableUtilsKt.runCatchThrowable(null, throwable -> {
-                    getLogger().error("强制停止app出错(uid: " + appInfo.getUid() + ", packageName: " + packageName + ")", throwable);
-                    return null;
-                }, null, () -> {
-                    activityManagerService.forceStopPackage(packageName, appInfo.getUserId());
-                    return null;
-                });
+            /*ConcurrentUtilsKt.lock(appInfo, () -> {*/
+            ThrowableUtilsKt.runCatchThrowable(null, throwable -> {
+                getLogger().error("强制停止app出错(uid: " + appInfo.getUid() + ", packageName: " + packageName + ")", throwable);
+                return null;
+            }, null, () -> {
+                activityManagerService.forceStopPackage(packageName, appInfo.getUserId());
                 return null;
             });
+                /*return null;
+            });*/
             return null;
         });
     }
@@ -331,32 +349,32 @@ public class RunningInfo implements ILogger {
      * 运行的进程                                                                *
      *                                                                         *
      **************************************************************************/
-    private final Map<Integer, ProcessRecordKt> runningProcesses = new ConcurrentHashMap<>();
+    private final Map<Integer, ProcessRecord> runningProcesses = new ConcurrentHashMap<>();
 
     @Nullable
-    public ProcessRecordKt getRunningProcess(int pid) {
+    public ProcessRecord getRunningProcess(int pid) {
         return runningProcesses.get(pid);
     }
 
     @NonNull
-    public Collection<ProcessRecordKt> getRunningProcesses() {
+    public Collection<ProcessRecord> getRunningProcesses() {
         return runningProcesses.values();
     }
 
-    private void putIntoRunningProcesses(int pid, @NonNull ProcessRecordKt processRecord) {
+    private void putIntoRunningProcesses(int pid, @NonNull ProcessRecord processRecord) {
         runningProcesses.put(pid, processRecord);
     }
 
     @NonNull
-    private ProcessRecordKt computeProcessIfAbsent(int pid, @AndroidObject Object process, int userId, int uid, String packageName) {
+    private ProcessRecord computeProcessIfAbsent(int pid, @AndroidObject Object process, int userId, int uid, String packageName) {
         return runningProcesses.computeIfAbsent(pid, key -> {
             AppInfo appInfo = computeRunningAppIfAbsent(userId, packageName, uid);
-            return ProcessRecordKt.newInstance(activityManagerService, appInfo, process, pid, uid, userId, packageName);
+            return ProcessRecord.newInstance(activityManagerService, appInfo, process, pid, uid, userId, packageName);
         });
     }
 
     @Nullable
-    public ProcessRecordKt removeRunningProcess(int pid) {
+    public ProcessRecord removeRunningProcess(int pid) {
         return runningProcesses.remove(pid);
     }
 
@@ -370,16 +388,16 @@ public class RunningInfo implements ILogger {
      * @param pid         pid
      */
     public void startProcess(@AndroidObject Object proc, int uid, int userId, String packageName, int pid) {
-        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
+        /*ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
             getLogger().error(
                     "创建进程(userId: " + userId + ", 包名: " + packageName + "uid: " + uid + ", pid: " + pid + ")出现错误: " + throwable.getMessage(),
                     throwable
             );
             return null;
-        }, () -> {
-            computeProcessIfAbsent(pid, proc, userId, uid, packageName);
-            return null;
-        });
+        }, () -> {*/
+        computeProcessIfAbsent(pid, proc, userId, uid, packageName);
+            /*return null;
+        });*/
     }
 
     /**
@@ -389,39 +407,23 @@ public class RunningInfo implements ILogger {
      * @param pid pid
      */
     public void removeProcess(int pid) {
-        ProcessRecordKt processRecord = getRunningProcess(pid);
+        ProcessRecord processRecord = getRunningProcess(pid);
         if (processRecord == null) {
             return;
         }
         AppInfo appInfo = processRecord.appInfo;
         String packageName = appInfo.getPackageName();
-        boolean[] isMainProcess = {false};
-        String[] processName = new String[1];
-        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
-            getLogger().error(
-                    "移除进程(packageName: " + packageName + ", fullProcessName: " + processName[0] + ", userId: " + appInfo.getUserId() + ",pid: " + pid + ", isMainProcess: " + isMainProcess[0] + ")出现错误",
-                    throwable
-            );
-            return null;
-        }, () -> {
-            isMainProcess[0] = processRecord.getMainProcess();
-            processName[0] = processRecord.getFullProcessName();
+        boolean isMainProcess = processRecord.getMainProcess();
 
-            // 移除进程记录
-            removeRunningProcess(pid);
-            if (isMainProcess[0]) {
-                ConcurrentUtilsKt.lock(appInfo, () -> {
-                    removeRunningApp(appInfo);
-                    return null;
-                });
-            } else {
-                if (BuildConfig.DEBUG) {
-                    getLogger().debug("kill: userId: " + appInfo.getUserId() + ", packageName: " + packageName + ", pid: " + pid + " >>> 子进程被杀");
-                }
+        // 移除进程记录
+        removeRunningProcess(pid);
+        if (isMainProcess) {
+            removeRunningApp(appInfo);
+        } else {
+            if (BuildConfig.DEBUG) {
+                getLogger().debug("kill: userId: " + appInfo.getUserId() + ", packageName: " + packageName + ", pid: " + pid + " >>> 子进程被杀");
             }
-
-            return null;
-        });
+        }
     }
 
     /* *************************************************************************
@@ -467,23 +469,23 @@ public class RunningInfo implements ILogger {
     }
 
     public void handleActivityEventChange(int event, int userId, @NonNull String packageName, @Nullable ComponentName componentName) {
-        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
+        /*ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
             getLogger().error(
                     "处理app切换事件(userId: " + userId + "包名: " + packageName + ", event: " + event + ")错误: " + throwable.getMessage(),
                     throwable
             );
             return null;
-        }, () -> {
-            FindAppResult findAppResult = getFindAppResult(userId, packageName);
-            AppInfo appInfo;
-            if (findAppResult.getApplicationInfo() == null
-                    || (appInfo = getRunningAppInfo(userId, packageName)) == null) {
-                return null;
-            }
+        }, () -> {*/
+        FindAppResult findAppResult = getFindAppResult(userId, packageName);
+        AppInfo appInfo;
+        if (findAppResult.getApplicationInfo() == null
+                || (appInfo = getRunningAppInfo(userId, packageName)) == null) {
+            return /*null*/;
+        }
 
-            handleActivityEventChange(event, componentName, appInfo);
-            return null;
-        });
+        handleActivityEventChange(event, componentName, appInfo);
+            /*return null;
+        });*/
     }
 
     /**
@@ -556,17 +558,17 @@ public class RunningInfo implements ILogger {
     }
 
     private void handleActuallyActivityEventChange(@NonNull AppInfo appInfo, @NonNull Runnable action, @Nullable Consumer<Throwable> throwableAction) {
-        Lock appInfoLock = appInfo.getLock();
-        appInfoLock.lock();
+        /*Lock appInfoLock = appInfo.getLock();
+        appInfoLock.lock();*/
         try {
             action.run();
         } catch (Throwable throwable) {
             if (throwableAction != null) {
                 throwableAction.accept(throwable);
             }
-        } finally {
+        }/* finally {
             appInfoLock.unlock();
-        }
+        }*/
     }
 
     private void updateAppSwitchState(/*int event, */ComponentName componentName, @NonNull AppInfo appInfo) {
@@ -646,26 +648,132 @@ public class RunningInfo implements ILogger {
      * 默认桌面                                                                  *
      *                                                                         *
      **************************************************************************/
+    private final DefaultApplicationManager defaultApplicationManager = new DefaultApplicationManager();
+
+    public void setDefaultPackageName(String key, String packageName) {
+        defaultApplicationManager.setDefaultPackageName(key, packageName);
+    }
+
+    public String getDefaultPackageName(String key) {
+        return defaultApplicationManager.getDefaultPackageName(key);
+    }
+
+    @Deprecated
     private volatile String activeLaunchPackageName = null;
 
     @Nullable
     public String getActiveLaunchPackageName() {
-        return activeLaunchPackageName;
+        return getDefaultPackageName(DefaultApplicationManager.DEFAULT_APP_HOME);
     }
 
+    @Deprecated
     public void setActiveLaunchPackageName(String activeLaunchPackageName) {
+        String curLaunchPackageName = this.activeLaunchPackageName;
+        // 将原桌面的adj调节修改
+        runningApps.values().stream()
+                .filter(appInfo -> Objects.equals(appInfo.getPackageName(), curLaunchPackageName))
+                .forEach(appInfo -> appInfo.shouldHandleAdj = AppInfo.handleAdjDependOnAppOptimizePolicy);
+        // 保存新桌面包名
         this.activeLaunchPackageName = activeLaunchPackageName;
     }
 
-    public void initActiveLaunchPackageName() {
-        if (packageManagerService != null && activeLaunchPackageName == null) {
-            String defaultHomeName = packageManagerService.getDefaultHome();
-            if (defaultHomeName != null) {
-                setActiveLaunchPackageName(defaultHomeName);
-                getLogger().info("默认启动器为: " + defaultHomeName);
-            } else {
-                getLogger().warn("初始化当前桌面失败");
+    public void initActiveDefaultAppPackageName() {
+        if (packageManagerService != null) {
+            List.of(
+                    new DefaultApplicationPkgNameInitializer()
+                            .setKey(DefaultApplicationManager.DEFAULT_APP_BROWSER)
+                            .setTag("浏览器")
+                            .setPkgNameGetter(packageManagerService::getDefaultBrowser),
+                    new DefaultApplicationPkgNameInitializer()
+                            .setKey(DefaultApplicationManager.DEFAULT_APP_HOME)
+                            .setTag("桌面")
+                            .setPkgNameGetter(packageManagerService::getDefaultHome),
+                    new DefaultApplicationPkgNameInitializer()
+                            .setKey(DefaultApplicationManager.DEFAULT_APP_ASSISTANT)
+                            .setTag("智能助手")
+                            .setPkgNameGetter(packageManagerService::getDefaultAssistant),
+                    new DefaultApplicationPkgNameInitializer()
+                            .setKey(DefaultApplicationManager.DEFAULT_APP_INPUT_METHOD)
+                            .setTag("输入法")
+                            .setPkgNameGetter(packageManagerService::getDefaultInputMethod)
+            ).forEach(initializer -> {
+                defaultApplicationManager.initDefaultApplicationNode(
+                        initializer.key,
+                        defaultApplicationNode -> {
+                            initDefaultApplicationNode(
+                                    defaultApplicationNode,
+                                    initializer.pkgNameGetter,
+                                    initializer.key,
+                                    initializer.tag,
+                                    generateDefaultApplicationChangeListener(initializer.tag)
+                            );
+                            return null;
+                        }
+                );
+            });
+        }
+    }
+
+    private void initDefaultApplicationNode(
+            DefaultApplicationNode defaultApplicationNode,
+            Supplier<String> defaultPkgNameSupplier,
+            String key,
+            String tag,
+            PropertyChangeListener<String> listener
+    ) {
+        String defaultPkgName = defaultPkgNameSupplier.get();
+        defaultApplicationNode.setValue(defaultPkgName);
+        defaultApplicationNode.addListener(key, listener);
+        if (defaultPkgName != null) {
+            getLogger().info("默认" + tag + "为: " + defaultPkgName);
+        } else {
+            getLogger().warn("获取默认" + tag + "失败");
+        }
+    }
+
+    private PropertyChangeListener<String> generateDefaultApplicationChangeListener(String tag) {
+        return (oldValue, newValue) -> {
+            String newPkgName = DefaultApplicationManager.getDefaultPkgNameFromUriStr(newValue);
+            if (Objects.equals(oldValue, newPkgName)) {
+                return;
             }
+            runningApps.values().stream()
+                    .filter(AppInfo::isImportSystemApp)
+                    .filter(appInfo -> Objects.equals(appInfo.getPackageName(), oldValue) || Objects.equals(appInfo.getPackageName(), newPkgName))
+                    .forEach(appInfo -> {
+                        if (Objects.equals(appInfo.getPackageName(), oldValue)) {
+                            // 将原应用恢复默认策略
+                            appInfo.shouldHandleAdj = AppInfo.handleAdjDependOnAppOptimizePolicy;
+                        } else {
+                            // 设置当前app
+                            appInfo.shouldHandleAdj = AppInfo.handleAdjAlways;
+                        }
+                    });
+            getLogger().info("更换的" + tag + "包名为: " + newPkgName);
+        };
+    }
+
+    /**
+     * 用于初始化默认应用的包名的事件节点
+     */
+    private static class DefaultApplicationPkgNameInitializer {
+        String key;
+        String tag;
+        Supplier<String> pkgNameGetter;
+
+        public DefaultApplicationPkgNameInitializer setKey(String key) {
+            this.key = key;
+            return this;
+        }
+
+        public DefaultApplicationPkgNameInitializer setTag(String tag) {
+            this.tag = tag;
+            return this;
+        }
+
+        public DefaultApplicationPkgNameInitializer setPkgNameGetter(Supplier<String> pkgNameGetter) {
+            this.pkgNameGetter = pkgNameGetter;
+            return this;
         }
     }
 

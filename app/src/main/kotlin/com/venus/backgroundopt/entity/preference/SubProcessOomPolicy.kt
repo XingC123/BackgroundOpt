@@ -17,7 +17,7 @@
                     
  package com.venus.backgroundopt.entity.preference
 
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.message.MessageFlag
 
 /**
@@ -28,7 +28,7 @@ import com.venus.backgroundopt.utils.message.MessageFlag
  */
 class SubProcessOomPolicy : MessageFlag {
     var policyEnum: SubProcessOomPolicyEnum = SubProcessOomPolicyEnum.DEFAULT
-    var targetOomAdjScore: Int = ProcessRecordKt.SUB_PROC_ADJ
+    var targetOomAdjScore: Int = ProcessRecord.SUB_PROC_ADJ
 
     enum class SubProcessOomPolicyEnum(val configCode: Int, val configName: String) {
         DEFAULT(1, "默认"),

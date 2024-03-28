@@ -14,13 +14,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.handle.android.entity
+
+package com.venus.backgroundopt.hook.handle.android.entity
 
 import com.venus.backgroundopt.annotation.AndroidObject
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
+import com.venus.backgroundopt.manager.application.DefaultApplicationManager
 import com.venus.backgroundopt.utils.callMethod
 import com.venus.backgroundopt.utils.getObjectFieldValue
 import com.venus.backgroundopt.utils.runCatchThrowable
@@ -33,13 +34,37 @@ class PackageManagerService(
     @AndroidObject(classPath = ClassConstants.PackageManagerService)
     override val originalInstance: Any
 ) : IAndroidEntity {
+    val mInjector: Any?
+
+    val mDefaultAppProvider: Any?
+
+    init {
+        mInjector = originalInstance.getObjectFieldValue(fieldName = FieldConstants.mInjector)
+        mDefaultAppProvider = mInjector?.let {
+            mInjector.callMethod(methodName = MethodConstants.getDefaultAppProvider)
+        }
+    }
+
     fun getDefaultHome(): String? {
         return runCatchThrowable(defaultValue = null) {
-            originalInstance.getObjectFieldValue(fieldName = FieldConstants.mInjector)?.let { mInjector->
-                mInjector.callMethod(methodName = MethodConstants.getDefaultAppProvider)?.let { mDefaultAppProvider->
-                    mDefaultAppProvider.callMethod(methodName = MethodConstants.getDefaultHome, 0) as String?
-                }
-            }
+            mDefaultAppProvider?.callMethod<String?>(methodName = MethodConstants.getDefaultHome, 0)
         }
+    }
+
+    fun getDefaultBrowser(): String? {
+        return runCatchThrowable(defaultValue = null) {
+            mDefaultAppProvider?.callMethod<String?>(
+                methodName = MethodConstants.getDefaultBrowser,
+                0
+            )
+        }
+    }
+
+    fun getDefaultAssistant(): String? {
+        return DefaultApplicationManager.getDefaultPkgNameFromSettings(key = Settings.Secure.ASSISTANT)
+    }
+
+    fun getDefaultInputMethod(): String? {
+        return DefaultApplicationManager.getDefaultPkgNameFromSettings(key = Settings.Secure.DEFAULT_INPUT_METHOD)
     }
 }

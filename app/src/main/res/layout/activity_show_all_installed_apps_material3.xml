@@ -6,23 +6,16 @@
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
+        android:layout_height="wrap_content">
 
-        <com.google.android.material.appbar.CollapsingToolbarLayout
-            style="?attr/collapsingToolbarLayoutLargeStyle"
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/collapsingToolbarLayoutLargeSize">
-
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:elevation="0dp"
-                app:menu="@menu/menu_installed_app_toolbar"
-                app:navigationIcon="@drawable/baseline_arrow_back_24_dynamic"
-                app:title="@string/showAllInstalledAppToolBar" />
-        </com.google.android.material.appbar.CollapsingToolbarLayout>
+            android:layout_height="wrap_content"
+            android:minHeight="?attr/actionBarSize"
+            app:menu="@menu/menu_installed_app_toolbar"
+            app:navigationIcon="@drawable/baseline_arrow_back_24_dynamic"
+            app:title="@string/showAllInstalledAppToolBar" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout

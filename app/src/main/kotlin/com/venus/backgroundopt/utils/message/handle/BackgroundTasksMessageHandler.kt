@@ -20,7 +20,7 @@
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.environment.CommonProperties
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
@@ -39,11 +39,11 @@ class BackgroundTasksMessageHandler : MessageHandler {
         value: String?
     ) {
         createResponse<Any>(param, value, setJsonData = true) { _ ->
-            val processRecordKts = runningInfo.processManager.backgroundTasks.apply {
-                ProcessRecordKt.setActualAdj(this)
+            val processRecords = runningInfo.processManager.backgroundTasks.apply {
+                ProcessRecord.setActualAdj(this)
             }
             BackgroundTaskMessage().apply {
-                processInfos = processRecordKts.toMutableList()
+                processInfos = processRecords.toMutableList()
                 appOptimizePolicyMap = CommonProperties.appOptimizePolicyMap
             }
         }

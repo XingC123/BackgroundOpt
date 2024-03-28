@@ -23,7 +23,8 @@ import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
+import com.venus.backgroundopt.hook.handle.android.entity.isValid
 import com.venus.backgroundopt.utils.concurrent.lock
 import com.venus.backgroundopt.utils.log.ILogger
 import java.util.Collections
@@ -79,7 +80,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
 
     // 待压缩的进程信息列表
     // 注意: 是"进程信息"而不是"应用信息", 其size代表的是进程数不是app数
-    val compactProcesses: MutableSet<ProcessRecordKt> =
+    val compactProcesses: MutableSet<ProcessRecord> =
         Collections.newSetFromMap(ConcurrentHashMap())
 
     init {
@@ -109,7 +110,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
             val upgradeSubProcessNames = CommonProperties.getUpgradeSubProcessNames()
             compactProcesses.forEach { process ->
                 // 检验合法性
-                if (!ProcessRecordKt.isValid(runningInfo, process)) {
+                if (!process.isValid(runningInfo)) {
                     cancelCompactProcess(process, "进程不合法")
                     return@forEach
                 }
@@ -126,7 +127,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
                 }
 
                 // 根据默认规则压缩
-                var compactMethod: (processRecordKt: ProcessRecordKt) -> Int = ::compactAppFull
+                var compactMethod: (processRecord: ProcessRecord) -> Int = ::compactAppFull
 
                 if (process.mainProcess || upgradeSubProcessNames.contains(process.processName)) {
                     val currentTime = System.currentTimeMillis()
@@ -223,31 +224,31 @@ class AppCompactManager(// 封装的CachedAppOptimizer
         }
     }
 
-    fun addCompactProcess(processRecordKt: ProcessRecordKt) {
-        addCompactProcessImpl(processRecordKt)
+    fun addCompactProcess(processRecord: ProcessRecord) {
+        addCompactProcessImpl(processRecord)
         checkCompactTask()
 
         if (BuildConfig.DEBUG) {
-            logger.debug("uid: ${processRecordKt.uid}, pid: ${processRecordKt.pid} >>> 加入待压缩列表")
+            logger.debug("uid: ${processRecord.uid}, pid: ${processRecord.pid} >>> 加入待压缩列表")
         }
     }
 
     /**
      * 在确保已对[AppInfo]上锁的情况下再使用
      *
-     * @param processRecordKt
+     * @param processRecord
      */
     @UsageComment("确保AppInfo已上锁")
     private fun addCompactProcessImpl(
-        processRecordKt: ProcessRecordKt,
+        processRecord: ProcessRecord,
         lastCompactTime: Long = System.currentTimeMillis()
     ) {
         // 先执行一次压缩
-        addBackgroundFirstTask(processRecordKt = processRecordKt) {
-            compactAppSome(processRecordKt.pid)
+        addBackgroundFirstTask(processRecord = processRecord) {
+            compactAppSome(processRecord.pid)
         }
 
-        compactProcesses.add(processRecordKt.also {
+        compactProcesses.add(processRecord.also {
             it.setLastCompactTime(lastCompactTime)
         })
     }
@@ -256,11 +257,11 @@ class AppCompactManager(// 封装的CachedAppOptimizer
      * 移除压缩进程
      */
     @JvmOverloads
-    fun cancelCompactProcess(processRecordKt: ProcessRecordKt?, cancelReason: String = "") {
-        processRecordKt?.let { process ->
+    fun cancelCompactProcess(processRecord: ProcessRecord?, cancelReason: String = "") {
+        processRecord?.let { process ->
             compactProcesses.remove(process).also {
                 if (it) {
-                    removeProcessLastProcessingResult(processRecordKt)
+                    removeProcessLastProcessingResult(processRecord)
                     checkCompactTask()
 
                     if (BuildConfig.DEBUG) {
@@ -275,7 +276,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     }
 
     fun cancelCompactProcess(appInfo: AppInfo) {
-        var set: Set<ProcessRecordKt>? = null
+        var set: Set<ProcessRecord>? = null
         appInfo.lock { set = compactProcesses.filter { it.uid == appInfo.uid }.toSet() }
         set?.let { setFromUid ->
             if (setFromUid.isNotEmpty()) {
@@ -298,8 +299,8 @@ class AppCompactManager(// 封装的CachedAppOptimizer
      * 压缩方式                                                                  *
      *                                                                         *
      **************************************************************************/
-    fun compactApp(processRecordKt: ProcessRecordKt) {
-        compactApp(processRecordKt.pid)
+    fun compactApp(processRecord: ProcessRecord) {
+        compactApp(processRecord.pid)
     }
 
     fun compactApp(pid: Int) {
@@ -370,11 +371,11 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     //    public boolean compactAppFull(ProcessInfo processInfo) {
     //        return cachedAppOptimizer.compactApp(processInfo.getProcessRecord(), true, "Full");
     //    }
-    fun compactAppFull(processRecordKt: ProcessRecordKt): Int {
-        return compactAppFull(processRecordKt.pid, processRecordKt.oomAdjScore)
+    fun compactAppFull(processRecord: ProcessRecord): Int {
+        return compactAppFull(processRecord.pid, processRecord.oomAdjScore)
     }
 
-    fun compactAppFullNoCheck(processRecordKt: ProcessRecordKt): Int {
-        return compactAppFullNoCheck(processRecordKt.pid)
+    fun compactAppFullNoCheck(processRecord: ProcessRecord): Int {
+        return compactAppFullNoCheck(processRecord.pid)
     }
 }

@@ -70,6 +70,10 @@ class AppItem @JSONCreator constructor() : MessageFlag {
     @JSONField(serialize = false)
     lateinit var lastProcessingResultMap: MutableMap<AppOptimizeEnum, ProcessingResult>
 
+    // 是否是系统app
+    @JSONField(serialize = false)
+    var systemApp = false
+
     constructor(packageName: String) : this() {
         this.packageName = packageName
     }
@@ -96,6 +100,7 @@ class AppItem @JSONCreator constructor() : MessageFlag {
         AppOptimizePolicy("App内存优化策略"),
         SubProcessOomPolicy("OOM策略"),
         CustomMainProcessOomScore("自定义主进程OOM"),
+        ShouldHandleMainProcAdj("管理主进程Adj"),
     }
 
     @get:JSONField(serialize = false)

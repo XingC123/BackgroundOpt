@@ -20,7 +20,6 @@ package com.venus.backgroundopt.ui
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.MenuItem
-import androidx.appcompat.widget.Toolbar
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -45,10 +44,6 @@ import com.venus.backgroundopt.utils.showProgressBarViewForAction
  * @date 2023/9/27
  */
 class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
-    override fun initToolBar(): Toolbar? {
-        return findViewById(R.id.toolbar)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

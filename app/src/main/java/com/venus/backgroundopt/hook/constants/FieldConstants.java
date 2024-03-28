@@ -94,4 +94,6 @@ public interface FieldConstants {
     String mHasClientActivities = "mHasClientActivities";
     String mReceivers = "mReceivers";
     String mOwner = "mOwner";
+    String ASSISTANT = "ASSISTANT";
+    String DEFAULT_INPUT_METHOD = "DEFAULT_INPUT_METHOD";
 }

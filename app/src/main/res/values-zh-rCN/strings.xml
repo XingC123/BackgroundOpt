@@ -70,4 +70,5 @@
     <string name="configAppProcessFgMemTrimEnableRadio">启用</string>
     <string name="configAppProcessFgMemTrimDisableRadio">禁用</string>
     <string name="settingsAppWebviewProcessProtect">保护app创建的webview</string>
+    <string name="settingsUiTitle">界面</string>
 </resources>

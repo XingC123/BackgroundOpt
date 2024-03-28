@@ -18,7 +18,7 @@
  package com.venus.backgroundopt.manager.process;
 
 import com.venus.backgroundopt.BuildConfig;
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.util.Map;
@@ -40,7 +40,7 @@ public abstract class AppMemoryTrimManager implements ILogger {
     final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(4);
 
     // 缓存ProcessRecord对应的AppMemoryTrimTask, 使得前后台切换无需重复创建
-    private final Map<ProcessRecordKt, AppMemoryTrimTask> appMemoryTrimTaskMap = new ConcurrentHashMap<>();
+    private final Map<ProcessRecord, AppMemoryTrimTask> appMemoryTrimTaskMap = new ConcurrentHashMap<>();
 
     public AppMemoryTrimManager() {
         // 在任务取消时一并将其移除
@@ -94,7 +94,7 @@ public abstract class AppMemoryTrimManager implements ILogger {
         return getMemoryTrimManagerName() + ": ";
     }
 
-    public void startTrimTask(ProcessRecordKt processRecord) {
+    public void startTrimTask(ProcessRecord processRecord) {
         if (processRecord == null) {
             if (BuildConfig.DEBUG) {
                 getLogger().warn("processRecord为空设置个屁");
@@ -141,7 +141,7 @@ public abstract class AppMemoryTrimManager implements ILogger {
         }
     }
 
-    public void cancelScheduledFuture(ProcessRecordKt processRecord) {
+    public void cancelScheduledFuture(ProcessRecord processRecord) {
         if (processRecord == null) {
             if (BuildConfig.DEBUG) {
                 getLogger().warn(getMemoryTrimManagerNameImpl() + "processRecord为空cancelScheduledFuture不执行");
@@ -159,7 +159,7 @@ public abstract class AppMemoryTrimManager implements ILogger {
      * 移除进程的内存清理任务
      * 在进程被杀死时调用
      */
-    public void removeTrimTask(ProcessRecordKt processRecord) {
+    public void removeTrimTask(ProcessRecord processRecord) {
         if (processRecord == null) {
             if (BuildConfig.DEBUG) {
                 getLogger().warn(getMemoryTrimManagerNameImpl() + "processRecord为空移除个屁");
@@ -184,7 +184,7 @@ public abstract class AppMemoryTrimManager implements ILogger {
         }
     }
 
-    private Runnable getAppMemoryTrimRunnable(ProcessRecordKt processRecord) {
+    private Runnable getAppMemoryTrimRunnable(ProcessRecord processRecord) {
         return () -> {
             boolean result =
                     processRecord.scheduleTrimMemory(getDefaultTrimLevel());
@@ -222,9 +222,9 @@ public abstract class AppMemoryTrimManager implements ILogger {
          * app进行gc
          */
         Task gcTask;
-        ProcessRecordKt processRecord;
+        ProcessRecord processRecord;
 
-        public AppMemoryTrimTask(ProcessRecordKt processRecord) {
+        public AppMemoryTrimTask(ProcessRecord processRecord) {
             this.processRecord = processRecord;
 
             this.scheduleTrimMemoryTask = new Task(getAppMemoryTrimRunnable(processRecord));
@@ -240,7 +240,7 @@ public abstract class AppMemoryTrimManager implements ILogger {
             processRecord = null;
         }
 
-        static final Consumer<ProcessRecordKt> gcRunnable = ProcessManager::handleGC;
+        static final Consumer<ProcessRecord> gcRunnable = ProcessManager::handleGC;
 
         class Task {
             Runnable runnable;
