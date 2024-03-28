@@ -14,17 +14,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.manager.process
+
+package com.venus.backgroundopt.manager.process
 
 import android.os.SystemClock
-import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
+import com.venus.backgroundopt.hook.handle.android.entity.isValid
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.runCatchThrowable
 import java.util.concurrent.ConcurrentHashMap
@@ -58,11 +58,11 @@ class AppCompactManager2(
         return ProcessCompactProcessingResult()
     }
 
-    private val compactProcessMap: MutableMap<ProcessRecordKt, ScheduledFuture<*>> =
+    private val compactProcessMap: MutableMap<ProcessRecord, ScheduledFuture<*>> =
         ConcurrentHashMap()
 
     fun compactProcess(
-        processRecord: ProcessRecordKt,
+        processRecord: ProcessRecord,
         lastOomScoreAdj: Int,
         curOomScoreAdj: Int,
         oomAdjustLevel: Int
@@ -74,7 +74,7 @@ class AppCompactManager2(
             return
         }
 
-        compactProcessMap.compute(processRecord) {_, lastScheduledFuture->
+        compactProcessMap.compute(processRecord) { _, lastScheduledFuture ->
             lastScheduledFuture?.cancel(true)
 
             executor.schedule({
@@ -93,13 +93,13 @@ class AppCompactManager2(
     }
 
     private fun compactProcessImpl(
-        processRecord: ProcessRecordKt,
+        processRecord: ProcessRecord,
         lastOomScoreAdj: Int,
         curOomScoreAdj: Int,
         oomAdjustLevel: Int
     ) {
         // 检验合法性
-        if (!ProcessRecordKt.isValid(runningInfo, processRecord)) {
+        if (!processRecord.isValid(runningInfo,)) {
             return
         }
 
@@ -117,43 +117,43 @@ class AppCompactManager2(
         /*var compactReason = "OOM_SCORE"
         var compactBecauseProcAllow = false*/
 
-        if (isSpecialOomWorkMode) {
+        /*if (isSpecialOomWorkMode) {
             if (processRecord.isAllowedCompact(currentTimeMillis)) {
                 doCompact = true
                 processCompactEnum = ProcessCompactEnum.FULL
                 compactAction = CachedAppOptimizer.COMPACT_ACTION_FULL
             }
-        } else {
-            val timeDifference = currentTimeMillis - processingResult.lastProcessingTime
-            if (ProcessList.PERCEPTIBLE_APP_ADJ in lastOomScoreAdj..curOomScoreAdj && curOomScoreAdj <= ProcessList.SERVICE_B_ADJ) {
-                if ((lastProcessCompatEnum == ProcessCompactEnum.SOME && timeDifference < cachedAppOptimizer.mCompactThrottleSomeSome)
-                    || (lastProcessCompatEnum == ProcessCompactEnum.FULL && timeDifference < cachedAppOptimizer.mCompactThrottleSomeFull)
-                ) {
-                    // do nothing
-                } else {
-                    doCompact = true
-                    processCompactEnum = ProcessCompactEnum.SOME
-                    compactAction = CachedAppOptimizer.COMPACT_ACTION_FILE
-                }
-            } else if (ProcessList.CACHED_APP_MIN_ADJ in lastOomScoreAdj..curOomScoreAdj
-                || processRecord.isAllowedCompact(
-                    time = currentTimeMillis
-                )/*.also { compactBecauseProcAllow = it }*/
+        } else {*/
+        val timeDifference = currentTimeMillis - processingResult.lastProcessingTime
+        if (ProcessList.PERCEPTIBLE_APP_ADJ in lastOomScoreAdj..curOomScoreAdj && curOomScoreAdj <= ProcessList.SERVICE_B_ADJ) {
+            if ((lastProcessCompatEnum == ProcessCompactEnum.SOME && timeDifference < cachedAppOptimizer.mCompactThrottleSomeSome)
+                || (lastProcessCompatEnum == ProcessCompactEnum.FULL && timeDifference < cachedAppOptimizer.mCompactThrottleSomeFull)
             ) {
-                if ((lastProcessCompatEnum == ProcessCompactEnum.SOME && timeDifference < cachedAppOptimizer.mCompactThrottleFullSome)
-                    || (lastProcessCompatEnum == ProcessCompactEnum.FULL && timeDifference < cachedAppOptimizer.mCompactThrottleFullFull)
-                ) {
-                    // do nothing
-                } else {
-                    /*if (compactBecauseProcAllow) {
-                        compactReason = "从未压缩或超时"
-                    }*/
-                    doCompact = true
-                    processCompactEnum = ProcessCompactEnum.FULL
-                    compactAction = CachedAppOptimizer.COMPACT_ACTION_FULL
-                }
+                // do nothing
+            } else {
+                doCompact = true
+                processCompactEnum = ProcessCompactEnum.SOME
+                compactAction = CachedAppOptimizer.COMPACT_ACTION_FILE
+            }
+        } else if (ProcessList.CACHED_APP_MIN_ADJ in lastOomScoreAdj..curOomScoreAdj
+            || processRecord.isAllowedCompact(
+                time = currentTimeMillis
+            )/*.also { compactBecauseProcAllow = it }*/
+        ) {
+            if ((lastProcessCompatEnum == ProcessCompactEnum.SOME && timeDifference < cachedAppOptimizer.mCompactThrottleFullSome)
+                || (lastProcessCompatEnum == ProcessCompactEnum.FULL && timeDifference < cachedAppOptimizer.mCompactThrottleFullFull)
+            ) {
+                // do nothing
+            } else {
+                /*if (compactBecauseProcAllow) {
+                    compactReason = "从未压缩或超时"
+                }*/
+                doCompact = true
+                processCompactEnum = ProcessCompactEnum.FULL
+                compactAction = CachedAppOptimizer.COMPACT_ACTION_FULL
             }
         }
+        // }
 
         if (doCompact) {
             // 检查进程是否需要进行优化
@@ -170,7 +170,7 @@ class AppCompactManager2(
 
             processCompactResultCode =
                 compactProcess(pid = processRecord.pid, compactAction = compactAction)
-            updateProcessLastProcessingResult(processRecordKt = processRecord) {
+            updateProcessLastProcessingResult(processRecord = processRecord) {
                 processingResult.lastProcessingCode = processCompactResultCode
                 processingResult.processCompactEnum = processCompactEnum
             }
@@ -206,7 +206,7 @@ class AppCompactManager2(
         pid: Int,
         compactAction: Int,
     ): Int {
-        return if (cachedAppOptimizer.compactProcess(pid, compactAction)) {
+        return if (cachedAppOptimizer.compactProcessForce(pid, compactAction)) {
             ProcessCompactResultCode.success
         } else {
             ProcessCompactResultCode.problem

@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.handle.android.entity;
+
+package com.venus.backgroundopt.hook.handle.android.entity;
 
 import androidx.annotation.NonNull;
 
@@ -25,6 +25,9 @@ import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.utils.log.ILogger;
+
+import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
 
 import de.robv.android.xposed.XposedHelpers;
 
@@ -141,7 +144,7 @@ public class CachedAppOptimizer implements ILogger, IAndroidEntity {
 //        }
 //    }
 
-    public static boolean isOomAdjEnteredCached(ProcessRecordKt processRecord) {
+    public static boolean isOomAdjEnteredCached(ProcessRecord processRecord) {
         return isOomAdjEnteredCached(processRecord.getCurAdjNative());
     }
 
@@ -156,7 +159,7 @@ public class CachedAppOptimizer implements ILogger, IAndroidEntity {
      * @param app   ProcessRecord
      * @param force 是否强制
      */
-    public void compactAppFull(ProcessRecordKt app, boolean force) {
+    public void compactAppFull(ProcessRecord app, boolean force) {
         boolean oomAdjEnteredCached = isOomAdjEnteredCached(app);
 
         ++mFullCompactRequest;
@@ -168,7 +171,7 @@ public class CachedAppOptimizer implements ILogger, IAndroidEntity {
         }
     }
 
-    public boolean compactApp(ProcessRecordKt app, boolean force, String compactRequestType) {
+    public boolean compactApp(ProcessRecord app, boolean force, String compactRequestType) {
         return (boolean) XposedHelpers.callMethod(
                 this.cachedAppOptimizer,
                 MethodConstants.compactApp,
@@ -196,6 +199,20 @@ public class CachedAppOptimizer implements ILogger, IAndroidEntity {
             );
             return true;
         } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    public boolean compactProcessForce(int pid, int compactionFlags) {
+        String path = "/proc/" + pid + "/reclaim";
+        String action = switch (compactionFlags) {
+            case COMPACT_ACTION_FILE -> "file";
+            default -> "all";
+        };
+        try (FileOutputStream fos = new FileOutputStream(path)) {
+            fos.write(action.getBytes(StandardCharsets.UTF_8));
+            return true;
+        } catch (Throwable throwable) {
             return false;
         }
     }

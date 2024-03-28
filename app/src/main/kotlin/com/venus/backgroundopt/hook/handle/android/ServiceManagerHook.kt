@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.handle.android
+
+package com.venus.backgroundopt.hook.handle.android
 
 import android.os.IBinder
 import com.venus.backgroundopt.core.RunningInfo
@@ -24,6 +24,7 @@ import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.constants.ServiceConstants
 import com.venus.backgroundopt.utils.afterHook
+import com.venus.backgroundopt.utils.concurrent.newThreadTask
 
 /**
  * @author XingC
@@ -42,8 +43,8 @@ class ServiceManagerHook(
             val name = param.args[0] as String
             val service = param.args[1] as IBinder
 
-            when(name) {
-                ServiceConstants.role -> runningInfo.initActiveLaunchPackageName()
+            when (name) {
+                ServiceConstants.role -> newThreadTask(runningInfo::initActiveDefaultAppPackageName)
             }
         }
     }

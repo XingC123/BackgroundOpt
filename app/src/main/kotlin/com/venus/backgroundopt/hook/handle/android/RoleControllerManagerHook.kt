@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.handle.android
+
+package com.venus.backgroundopt.hook.handle.android
 
 import android.app.role.RoleManager
 import com.venus.backgroundopt.core.RunningInfo
@@ -53,10 +53,33 @@ class RoleControllerManagerHook(classLoader: ClassLoader?, hookInfo: RunningInfo
     private fun handleOnAddRoleHolder(param: MethodHookParam) {
         when (param.args[0] as String) {
             RoleManager.ROLE_HOME -> {
-                val packageName = param.args[1] as String
-                runningInfo.activeLaunchPackageName = packageName
-                logger.debug("更换的桌面包名为: $packageName")
+                handleOnAddRoleHolder(param = param) { _, packageName, _, _ ->
+                    runningInfo.setDefaultPackageName(RoleManager.ROLE_HOME, packageName)
+                }
+            }
+
+            RoleManager.ROLE_BROWSER -> {
+                handleOnAddRoleHolder(param = param) { _, packageName, _, _ ->
+                    runningInfo.setDefaultPackageName(RoleManager.ROLE_BROWSER, packageName)
+                }
+            }
+
+            RoleManager.ROLE_ASSISTANT -> {
+                handleOnAddRoleHolder(param = param) { _, packageName, _, _ ->
+                    runningInfo.setDefaultPackageName(RoleManager.ROLE_ASSISTANT, packageName)
+                }
             }
         }
+    }
+
+    private inline fun handleOnAddRoleHolder(
+        param: MethodHookParam,
+        block: (String, String, Int, Any?) -> Unit
+    ) {
+        val roleName = param.args[0] as String
+        val packageName = param.args[1] as String
+        val flags = param.args[2] as Int
+        val callback = param.args[3]
+        block(roleName, packageName, flags, callback)
     }
 }

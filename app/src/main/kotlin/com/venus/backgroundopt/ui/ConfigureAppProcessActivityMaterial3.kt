@@ -14,12 +14,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.ui
+
+package com.venus.backgroundopt.ui
 
 import android.content.Context
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -27,7 +28,6 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
-import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
@@ -37,7 +37,6 @@ import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
-import com.venus.backgroundopt.ui.base.BaseActivity
 import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.StringUtils
@@ -60,10 +59,6 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
         showProgressBarViewForAction("正在加载...") {
             init()
         }
-    }
-
-    override fun initToolBar(): Toolbar? {
-        return findViewById(R.id.toolbar)
     }
 
     override fun setOnMenuItemClickListener(menuItem: MenuItem) {
@@ -252,6 +247,27 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                     enableInputArea(isChecked)
                 }
             }
+
+            /*
+                是否被模块纳入管理
+             */
+            findViewById<SwitchCompat>(R.id.configureAppProcessShouldHandleMainProcAdjSwitch)?.let { switch ->
+                switch.visibility = if (appItem.systemApp) {    // 只有系统app才可以设置
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
+
+                // 初始状态
+                if (appOptimizePolicy.shouldHandleAdj == true) {
+                    switch.isChecked = true
+                }
+
+                switch.setOnCheckedChangeListener { _, isChecked ->
+                    appOptimizePolicy.shouldHandleAdj = if (isChecked) true else null
+                    appOptimizePolicySaveAction(appOptimizePolicy)
+                }
+            }
         }
 
         // 获取进程列表
@@ -288,9 +304,10 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
         // 设置view
         runOnUiThread {
             findViewById<RecyclerView>(R.id.configureAppProcessRecycleView).apply {
-                layoutManager = LinearLayoutManager(this@ConfigureAppProcessActivityMaterial3).apply {
-                    orientation = LinearLayoutManager.VERTICAL
-                }
+                layoutManager =
+                    LinearLayoutManager(this@ConfigureAppProcessActivityMaterial3).apply {
+                        orientation = LinearLayoutManager.VERTICAL
+                    }
                 adapter =
                     ConfigureAppProcessAdapter(appItem.processes.toList(), subProcessOomPolicyList)
             }

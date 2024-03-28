@@ -207,15 +207,15 @@ public class ProcessList implements ILogger {
         return new CopyOnWriteArrayList<>(processRecordList);
     }
 
-    public Map<ApplicationIdentity, List<ProcessRecordKt>> getProcessMap() {
-        Map<ApplicationIdentity, List<ProcessRecordKt>> processMap = new HashMap<>();
+    public Map<ApplicationIdentity, List<ProcessRecord>> getProcessMap() {
+        Map<ApplicationIdentity, List<ProcessRecord>> processMap = new HashMap<>();
         List<?> procList = getProcList();
         try {
-            ProcessRecordKt processRecord;
+            ProcessRecord processRecord;
             ApplicationIdentity applicationIdentity;
-            List<ProcessRecordKt> list;
+            List<ProcessRecord> list;
             for (Object proc : procList) {
-                processRecord = new ProcessRecordKt(activityManagerService, proc);
+                processRecord = new ProcessRecord(activityManagerService, proc);
                 applicationIdentity = new ApplicationIdentity(processRecord.getUserId(), processRecord.getPackageName());
                 list = processMap.computeIfAbsent(applicationIdentity, k -> new ArrayList<>());
                 list.add(processRecord);
@@ -227,12 +227,12 @@ public class ProcessList implements ILogger {
         return processMap;
     }
 
-    public List<ProcessRecordKt> getProcessList(AppInfo appInfo) {
+    public List<ProcessRecord> getProcessList(AppInfo appInfo) {
         List<?> procList = getProcList();
 
         return procList.parallelStream()
-                .filter(process -> Objects.equals(ProcessRecordKt.getPkgName(process), appInfo.getPackageName()))
-                .map(process -> new ProcessRecordKt(activityManagerService, process))
+                .filter(process -> Objects.equals(ProcessRecord.getPkgName(process), appInfo.getPackageName()))
+                .map(process -> new ProcessRecord(activityManagerService, process))
                 .collect(Collectors.toList());
     }
 
@@ -243,18 +243,18 @@ public class ProcessList implements ILogger {
      * @param appInfo app信息
      * @return 匹配的进程的列表
      */
-    public List<ProcessRecordKt> getProcessRecords(AppInfo appInfo) {
-        List<ProcessRecordKt> processRecords = new ArrayList<>();
+    public List<ProcessRecord> getProcessRecords(AppInfo appInfo) {
+        List<ProcessRecord> processRecords = new ArrayList<>();
         List<?> procList = getProcList();
 
         procList.stream()
                 .filter(process ->
-                        Objects.equals(appInfo.getUserId(), ProcessRecordKt.getUserId(process))
-                                && Objects.equals(appInfo.getPackageName(), ProcessRecordKt.getPkgName(process)))
+                        Objects.equals(appInfo.getUserId(), ProcessRecord.getUserId(process))
+                                && Objects.equals(appInfo.getPackageName(), ProcessRecord.getPkgName(process)))
                 .forEach(process -> {
-                    ProcessRecordKt processRecord = new ProcessRecordKt(activityManagerService, process);
+                    ProcessRecord processRecord = new ProcessRecord(activityManagerService, process);
 
-                    if (ProcessRecordKt.isProcessNameSame(appInfo.getPackageName(), process)) {
+                    if (ProcessRecord.isProcessNameSame(appInfo.getPackageName(), process)) {
                         processRecords.add(0, processRecord);
                     } else {
                         processRecords.add(processRecord);
@@ -270,33 +270,33 @@ public class ProcessList implements ILogger {
      * @param appInfo app信息
      * @return 主进程
      */
-    private ProcessRecordKt getMProcessRecord(AppInfo appInfo) {
+    private ProcessRecord getMProcessRecord(AppInfo appInfo) {
         return getMProcessRecord(appInfo.getPackageName());
     }
 
-    private ProcessRecordKt getMProcessRecord(String packageName) {
+    private ProcessRecord getMProcessRecord(String packageName) {
         Object process;
         for (int i = processRecordList.size() - 1; i >= 0; i--) {
             process = processRecordList.get(i);
-            if (ProcessRecordKt.isProcessNameSame(packageName, process)) {
-                return new ProcessRecordKt(activityManagerService, process);
+            if (ProcessRecord.isProcessNameSame(packageName, process)) {
+                return new ProcessRecord(activityManagerService, process);
             }
         }
 
         return null;
     }
 
-    public ProcessRecordKt getMProcessRecordLocked(String packageName) {
+    public ProcessRecord getMProcessRecordLocked(String packageName) {
         synchronized (activityManagerService.getmProcLock()) {
             return getMProcessRecord(packageName);
         }
     }
 
-    public ProcessRecordKt getMProcessRecordLockedWhenThrowException(AppInfo appInfo) {
+    public ProcessRecord getMProcessRecordLockedWhenThrowException(AppInfo appInfo) {
         return getMProcessRecordLockedWhenThrowException(appInfo.getPackageName());
     }
 
-    public ProcessRecordKt getMProcessRecordLockedWhenThrowException(String packageName) {
+    public ProcessRecord getMProcessRecordLockedWhenThrowException(String packageName) {
         try {   // 先不使用锁来获取
             return getMProcessRecord(packageName);
         } catch (ConcurrentModificationException e) {   // 出现异常, 加锁获取
@@ -314,14 +314,14 @@ public class ProcessList implements ILogger {
      *
      * @param pid 进程pid
      */
-    public ProcessRecordKt getTargetProcessRecord(int pid) {
-        ObjectReference<ProcessRecordKt> processRecord = new ObjectReference<>();
+    public ProcessRecord getTargetProcessRecord(int pid) {
+        ObjectReference<ProcessRecord> processRecord = new ObjectReference<>();
         List<?> procList = getProcList();
 
         procList.stream()
-                .filter(process -> Objects.equals(ProcessRecordKt.getPid(process), pid))
+                .filter(process -> Objects.equals(ProcessRecord.getPid(process), pid))
                 .findAny()
-                .ifPresent(process -> processRecord.set(new ProcessRecordKt(activityManagerService, processRecord)));
+                .ifPresent(process -> processRecord.set(new ProcessRecord(activityManagerService, processRecord)));
 
         return processRecord.get();
     }

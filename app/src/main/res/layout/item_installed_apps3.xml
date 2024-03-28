@@ -75,6 +75,17 @@
                     android:paddingVertical="@dimen/padding_vertical_if_use_border"
                     android:text="@string/itemInstalledAppsOomPolicyFlagText"
                     android:textColor="@color/shanChui" />
+
+                <TextView
+                    android:id="@+id/itemInstalledAppsShouldHandleMainProcAdjFlagText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:background="@drawable/border"
+                    android:paddingHorizontal="@dimen/padding_horizontal_if_use_border"
+                    android:paddingVertical="@dimen/padding_vertical_if_use_border"
+                    android:text="@string/itemInstalledAppsShouldHandleMainProcAdjFlagText"
+                    android:textColor="@color/shanChui" />
             </com.venus.backgroundopt.ui.base.LineFeedLayout>
         </LinearLayout>
 

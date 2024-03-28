@@ -18,7 +18,7 @@
  package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.message.IMessage
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
@@ -40,8 +40,8 @@ class HomePageModuleInfoMessageHandler : MessageHandler {
             setJsonData = true
         ) { _ ->
             HomePageModuleInfoMessage().apply {
-                defaultMaxAdjStr = ProcessRecordKt.defaultMaxAdjStr
-                minOptimizeRssInMBytesStr = ProcessRecordKt.minOptimizeRssInMBytesStr
+                defaultMaxAdjStr = ProcessRecord.defaultMaxAdjStr
+                minOptimizeRssInMBytesStr = ProcessRecord.minOptimizeRssInMBytesStr
             }
         }
     }

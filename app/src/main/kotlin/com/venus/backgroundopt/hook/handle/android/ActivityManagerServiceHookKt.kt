@@ -29,7 +29,7 @@ import com.venus.backgroundopt.hook.base.generateMatchedMethodHookPoint
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.getStaticIntFieldValue
 import com.venus.backgroundopt.utils.message.registeredMessageHandler
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -187,7 +187,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
 
     private fun handleKillProcessesBelowAdj(param: MethodHookParam) {
         // 拔高adj分数
-        param.args[0] = ProcessRecordKt.SUB_PROC_ADJ
+        param.args[0] = ProcessRecord.SUB_PROC_ADJ
     }
 
     /**

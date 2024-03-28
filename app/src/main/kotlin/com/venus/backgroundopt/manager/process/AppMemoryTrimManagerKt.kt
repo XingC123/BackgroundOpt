@@ -22,7 +22,9 @@ import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
+import com.venus.backgroundopt.hook.handle.android.entity.correctProcessPid
+import com.venus.backgroundopt.hook.handle.android.entity.isValid
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.runCatchThrowable
@@ -83,9 +85,9 @@ class AppMemoryTrimManagerKt(
     /**
      * 初始容量为4。此列表放置的是app主进程, 因此同步于[RunningInfo.activeAppGroup]的初始容量
      */
-    val foregroundTasks: MutableSet<ProcessRecordKt> =
+    val foregroundTasks: MutableSet<ProcessRecord> =
         Collections.newSetFromMap(ConcurrentHashMap(4))
-    val backgroundTasks: MutableSet<ProcessRecordKt> =
+    val backgroundTasks: MutableSet<ProcessRecord> =
         Collections.newSetFromMap(ConcurrentHashMap())
 
     init {
@@ -151,10 +153,10 @@ class AppMemoryTrimManagerKt(
     /**
      * 添加前台任务
      *
-     * @param processRecordKt 进程记录器
+     * @param processRecord 进程记录器
      */
-    fun addForegroundTask(processRecordKt: ProcessRecordKt?) {
-        processRecordKt ?: run {
+    fun addForegroundTask(processRecord: ProcessRecord?) {
+        processRecord ?: run {
             if (BuildConfig.DEBUG) {
                 logger.warn("processRecord为空设置个屁")
             }
@@ -162,20 +164,20 @@ class AppMemoryTrimManagerKt(
             return
         }
 
-        ProcessRecordKt.correctProcessPid(processRecordKt)
+        processRecord.correctProcessPid()
 
         // 移除后台任务
-        removeBackgroundFirstTrimTask(processRecordKt)
-        removeBackgroundTask(processRecordKt)
+        removeBackgroundFirstTrimTask(processRecord)
+        removeBackgroundTask(processRecord)
 
-        val add = foregroundTasks.add(processRecordKt)
+        val add = foregroundTasks.add(processRecord)
         if (BuildConfig.DEBUG) {
             if (add) {
                 logger.debug(
                     "${
                         logStrPrefix(
                             foregroundTrimManagerName,
-                            processRecordKt
+                            processRecord
                         )
                     }添加Task成功"
                 )
@@ -184,7 +186,7 @@ class AppMemoryTrimManagerKt(
                     "${
                         logStrPrefix(
                             foregroundTrimManagerName,
-                            processRecordKt
+                            processRecord
                         )
                     }添加Task失败"
                 )
@@ -199,10 +201,10 @@ class AppMemoryTrimManagerKt(
     /**
      * 添加后台任务
      *
-     * @param processRecordKt 进程记录器
+     * @param processRecord 进程记录器
      */
-    fun addBackgroundTask(processRecordKt: ProcessRecordKt?) {
-        processRecordKt ?: run {
+    fun addBackgroundTask(processRecord: ProcessRecord?) {
+        processRecord ?: run {
             if (BuildConfig.DEBUG) {
                 logger.warn("processRecord为空移除个屁")
             }
@@ -210,14 +212,14 @@ class AppMemoryTrimManagerKt(
             return
         }
 
-        ProcessRecordKt.correctProcessPid(processRecordKt)
+        processRecord.correctProcessPid()
 
         // 移除前台任务
-        removeForegroundTask(processRecordKt)
+        removeForegroundTask(processRecord)
 
-        addBackgroundFirstTrimTask(processRecordKt)
+        addBackgroundFirstTrimTask(processRecord)
 
-        val add = backgroundTasks.add(processRecordKt)
+        val add = backgroundTasks.add(processRecord)
 
         if (BuildConfig.DEBUG) {
             if (add) {
@@ -225,7 +227,7 @@ class AppMemoryTrimManagerKt(
                     "${
                         logStrPrefix(
                             backgroundTrimManagerName,
-                            processRecordKt
+                            processRecord
                         )
                     }添加Task成功"
                 )
@@ -234,7 +236,7 @@ class AppMemoryTrimManagerKt(
                     "${
                         logStrPrefix(
                             backgroundTrimManagerName,
-                            processRecordKt
+                            processRecord
                         )
                     }添加Task失败或Task已存在"
                 )
@@ -250,33 +252,33 @@ class AppMemoryTrimManagerKt(
 
     override fun getBackgroundFirstTaskDelayTimeUnit(): TimeUnit = backgroundFirstTrimTimeUnit
 
-    private fun addBackgroundFirstTrimTask(processRecordKt: ProcessRecordKt) {
-        addBackgroundFirstTask(processRecordKt = processRecordKt) {
+    private fun addBackgroundFirstTrimTask(processRecord: ProcessRecord) {
+        addBackgroundFirstTask(processRecord = processRecord) {
             runCatchThrowable {
                 // UI资源的清理
-                processRecordKt.scheduleTrimMemory(ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN)
+                processRecord.scheduleTrimMemory(ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN)
 
                 if (BuildConfig.DEBUG) {
-                    logger.info("packageName: ${processRecordKt.packageName}, processName: ${processRecordKt.processName}, userId: ${processRecordKt.userId}, 执行TrimMemoryTask(${ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN})成功")
+                    logger.info("packageName: ${processRecord.packageName}, processName: ${processRecord.processName}, userId: ${processRecord.userId}, 执行TrimMemoryTask(${ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN})成功")
                 }
             }
         }
     }
 
-    private fun removeBackgroundFirstTrimTask(processRecordKt: ProcessRecordKt) {
-        removeBackgroundFirstTask(processRecordKt = processRecordKt)
+    private fun removeBackgroundFirstTrimTask(processRecord: ProcessRecord) {
+        removeBackgroundFirstTask(processRecord = processRecord)
     }
 
     /**
      * 移除所有任务
      *
-     * @param processRecordKt 进程记录器
+     * @param processRecord 进程记录器
      */
-    fun removeAllTask(processRecordKt: ProcessRecordKt?) {
-        processRecordKt?.let {
-            foregroundTasks.remove(processRecordKt)
-            backgroundTasks.remove(processRecordKt)
-            backgroundFirstTaskMap.remove(processRecordKt)
+    fun removeAllTask(processRecord: ProcessRecord?) {
+        processRecord?.let {
+            foregroundTasks.remove(processRecord)
+            backgroundTasks.remove(processRecord)
+            backgroundFirstTaskMap.remove(processRecord)
             if (BuildConfig.DEBUG) {
                 logger.debug("foregroundTasks元素个数: ${foregroundTasks.size}, backgroundTasks元素个数: ${backgroundTasks.size}")
             }
@@ -290,23 +292,23 @@ class AppMemoryTrimManagerKt(
     **************************************************************************/
     private fun executeTaskImpl(
         trimManagerName: String,
-        list: MutableSet<ProcessRecordKt>,
-        processRecordKt: ProcessRecordKt,
+        list: MutableSet<ProcessRecord>,
+        processRecord: ProcessRecord,
         block: (AppOptimizePolicy?) -> Unit
     ) {
-        if (!ProcessRecordKt.isValid(runningInfo, processRecordKt)) {
-            removeTaskImpl(processRecordKt, trimManagerName, list, "进程不合法")
+        if (!processRecord.isValid(runningInfo)) {
+            removeTaskImpl(processRecord, trimManagerName, list, "进程不合法")
             return
         }
 
         // 获取优化操作
-        val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[processRecordKt.packageName]
+        val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[processRecord.packageName]
 
-        if (isNecessaryToOptimizeProcess(processRecordKt)) {
+        if (isNecessaryToOptimizeProcess(processRecord)) {
             block(appOptimizePolicy)
         } else {
             if (BuildConfig.DEBUG) {
-                logger.debug("uid: ${processRecordKt.uid}, pid: ${processRecordKt.pid}, 包名: ${processRecordKt.packageName}不需要优化")
+                logger.debug("uid: ${processRecord.uid}, pid: ${processRecord.pid}, 包名: ${processRecord.packageName}不需要优化")
             }
         }
     }
@@ -314,13 +316,13 @@ class AppMemoryTrimManagerKt(
     /**
      * 执行前台任务
      *
-     * @param processRecordKt 进程记录器
+     * @param processRecord 进程记录器
      */
-    private fun executeForegroundTask(processRecordKt: ProcessRecordKt) {
+    private fun executeForegroundTask(processRecord: ProcessRecord) {
         executeTaskImpl(
             foregroundTrimManagerName,
             foregroundTasks,
-            processRecordKt
+            processRecord
         ) { appOptimizePolicy ->
             appOptimizePolicy?.let { policy ->
                 if (policy.enableForegroundTrimMem == false) {
@@ -329,39 +331,39 @@ class AppMemoryTrimManagerKt(
             }
             trimMemory(
                 foregroundTrimManagerName,
-                processRecordKt,
+                processRecord,
                 CommonProperties.getForegroundProcTrimMemLevel(),
                 foregroundTasks
             )
         }
     }
 
-    private fun removeForegroundTask(processRecordKt: ProcessRecordKt) {
-        removeTaskImpl(processRecordKt, foregroundTrimManagerName, foregroundTasks)
+    private fun removeForegroundTask(processRecord: ProcessRecord) {
+        removeTaskImpl(processRecord, foregroundTrimManagerName, foregroundTasks)
     }
 
     /**
      * 执行后台任务
      *
-     * @param processRecordKt 进程记录器
+     * @param processRecord 进程记录器
      */
-    private fun executeBackgroundTask(processRecordKt: ProcessRecordKt) {
+    private fun executeBackgroundTask(processRecord: ProcessRecord) {
         executeTaskImpl(
             backgroundTrimManagerName,
             backgroundTasks,
-            processRecordKt
+            processRecord
         ) { appOptimizePolicy ->
             appOptimizePolicy?.let { policy ->
                 if (policy.enableBackgroundTrimMem != false) {
                     trimMemory(
                         backgroundTrimManagerName,
-                        processRecordKt,
+                        processRecord,
                         backgroundTrimLevel,
                         backgroundTasks
                     )
                 }
                 if (policy.enableBackgroundGc != false) {
-                    gc(processRecordKt)
+                    gc(processRecord)
                 }
                 return@executeTaskImpl
             }
@@ -370,7 +372,7 @@ class AppMemoryTrimManagerKt(
              */
             trimMemory(
                 backgroundTrimManagerName,
-                processRecordKt,
+                processRecord,
                 backgroundTrimLevel,
                 backgroundTasks
             )
@@ -379,17 +381,17 @@ class AppMemoryTrimManagerKt(
         }
     }
 
-    private fun removeBackgroundTask(processRecordKt: ProcessRecordKt) {
-        removeTaskImpl(processRecordKt, backgroundTrimManagerName, backgroundTasks)
+    private fun removeBackgroundTask(processRecord: ProcessRecord) {
+        removeTaskImpl(processRecord, backgroundTrimManagerName, backgroundTasks)
     }
 
     private fun removeTaskImpl(
-        processRecordKt: ProcessRecordKt,
+        processRecord: ProcessRecord,
         trimManagerName: String,
-        list: MutableSet<ProcessRecordKt>,
+        list: MutableSet<ProcessRecord>,
         removeReason: String = ""
     ) {
-        val remove = list.remove(processRecordKt)
+        val remove = list.remove(processRecord)
 
         if (BuildConfig.DEBUG) {
             if (remove) {
@@ -397,7 +399,7 @@ class AppMemoryTrimManagerKt(
                     "${
                         logStrPrefix(
                             trimManagerName,
-                            processRecordKt
+                            processRecord
                         )
                     }移除Task" + if (removeReason.isEmpty()) removeReason else ": reason: $removeReason"
                 )
@@ -412,15 +414,15 @@ class AppMemoryTrimManagerKt(
      **************************************************************************/
     private fun trimMemory(
         trimManagerName: String,
-        processRecordKt: ProcessRecordKt,
+        processRecord: ProcessRecord,
         trimLevel: Int,
-        list: MutableSet<ProcessRecordKt>
+        list: MutableSet<ProcessRecord>
     ) {
         val result = run {
-            if (backgroundFirstTaskMap.contains(processRecordKt)) {
+            if (backgroundFirstTaskMap.contains(processRecord)) {
                 null
             } else {
-                processRecordKt.scheduleTrimMemory(trimLevel)
+                processRecord.scheduleTrimMemory(trimLevel)
             }
         }
 
@@ -429,7 +431,7 @@ class AppMemoryTrimManagerKt(
                 "${
                     logStrPrefix(
                         trimManagerName,
-                        processRecordKt
+                        processRecord
                     )
                 }执行TrimMemoryTask(${trimLevel}): 已有任务正在等待执行(初次进入后台的回收)"
             )
@@ -439,34 +441,34 @@ class AppMemoryTrimManagerKt(
                     "${
                         logStrPrefix(
                             trimManagerName,
-                            processRecordKt
+                            processRecord
                         )
                     }执行TrimMemoryTask(${trimLevel}) 成功"
                 )
             }
         } else {    // 若调用scheduleTrimMemory()后目标进程被终结(kill), 则会得到此结果
             // 移除此任务
-            list.remove(processRecordKt)
+            list.remove(processRecord)
 
             logger.warn(
                 "${
                     logStrPrefix(
                         trimManagerName,
-                        processRecordKt
+                        processRecord
                     )
                 }执行TrimMemoryTask(${trimLevel}) 失败或未执行"
             )
         }
     }
 
-    private fun gc(processRecordKt: ProcessRecordKt) {
-        if (!ProcessManager.handleGC(processRecordKt)) {
-            backgroundTasks.remove(processRecordKt)
+    private fun gc(processRecord: ProcessRecord) {
+        if (!ProcessManager.handleGC(processRecord)) {
+            backgroundTasks.remove(processRecord)
         }
     }
 
-    private fun logStrPrefix(trimManagerName: String, processRecordKt: ProcessRecordKt): String {
-        return "${trimManagerName}: ${processRecordKt.packageName}, uid: ${processRecordKt.uid} ->>> "
+    private fun logStrPrefix(trimManagerName: String, processRecord: ProcessRecord): String {
+        return "${trimManagerName}: ${processRecord.packageName}, uid: ${processRecord.uid} ->>> "
     }
 
     private class Tasks {}

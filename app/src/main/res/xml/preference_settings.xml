@@ -3,6 +3,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
+        android:title="@string/settingsUiTitle"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="@string/pref_key_dynamic_theme"
+            android:title="@string/settingsDynamicThemePrefText"
+            app:iconSpaceReserved="false"
+            app:summary="@string/settingsDynamicThemePrefSummary" />
+    </PreferenceCategory>
+    <PreferenceCategory
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:title="@string/settingsMemOptimizeItemTitle"

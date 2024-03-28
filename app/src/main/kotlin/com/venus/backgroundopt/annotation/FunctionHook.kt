@@ -15,17 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- package com.venus.backgroundopt.ui
-
-import com.venus.backgroundopt.R
-import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
+package com.venus.backgroundopt.annotation
 
 /**
+ * 被注解的类是实现了一个完整功能的Hook
+ *
  * @author XingC
- * @date 2023/11/3
+ * @date 2024/3/27
  */
-class FeatureActivityMaterial3 : BaseActivityMaterial3() {
-    override fun getContentView(): Int {
-        return R.layout.activity_feature_material3
-    }
-}
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.SOURCE)
+annotation class FunctionHook(val description: String = "")

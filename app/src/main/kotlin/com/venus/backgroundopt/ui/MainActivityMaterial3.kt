@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
+
  package com.venus.backgroundopt.ui
 
 import android.content.Intent
@@ -22,7 +22,6 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
-import androidx.appcompat.widget.Toolbar
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
@@ -43,10 +42,6 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
 
     override fun getContentView(): Int {
         return R.layout.activity_main_material3
-    }
-
-    override fun initToolBar(): Toolbar? {
-        return findViewById(R.id.toolbar)
     }
 
     override fun setOnMenuItemClickListener(menuItem: MenuItem) {

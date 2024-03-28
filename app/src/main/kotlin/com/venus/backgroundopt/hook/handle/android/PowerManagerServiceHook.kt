@@ -23,7 +23,7 @@ import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.base.IHook
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecordKt
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.afterHook
 import java.util.concurrent.ConcurrentHashMap
 
@@ -35,7 +35,7 @@ class PowerManagerServiceHook(
     classLoader: ClassLoader?,
     runningInfo: RunningInfo?
 ) : IHook(classLoader, runningInfo) {
-    val wakeLockMap = ConcurrentHashMap<IBinder, ProcessRecordKt>(8)
+    val wakeLockMap = ConcurrentHashMap<IBinder, ProcessRecord>(8)
 
     override fun hook() {
         ClassConstants.PowerManagerService.afterHook(

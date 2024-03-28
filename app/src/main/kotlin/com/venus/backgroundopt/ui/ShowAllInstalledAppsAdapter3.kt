@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.ui
+
+package com.venus.backgroundopt.ui
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -47,6 +47,7 @@ class ShowAllInstalledAppsAdapter3(
         var itemInstalledAppsMemTrimFlagText: TextView
         var itemInstalledAppsCustomMainProcOomScoreFlagText: TextView
         var itemInstalledAppsOomPolicyFlagText: TextView
+        var itemInstalledAppsShouldHandleMainProcAdjFlagText: TextView
 
         var hadSetClickedListener: Boolean = false
 
@@ -59,6 +60,8 @@ class ShowAllInstalledAppsAdapter3(
                 itemView.findViewById(R.id.itemInstalledAppsCustomMainProcOomScoreFlagText)
             itemInstalledAppsOomPolicyFlagText =
                 itemView.findViewById(R.id.itemInstalledAppsOomPolicyFlagText)
+            itemInstalledAppsShouldHandleMainProcAdjFlagText =
+                itemView.findViewById(R.id.itemInstalledAppsShouldHandleMainProcAdjFlagText)
         }
     }
 
@@ -100,6 +103,11 @@ class ShowAllInstalledAppsAdapter3(
             holder.itemInstalledAppsOomPolicyFlagText,
             appItem,
             AppItem.AppConfiguredEnum.SubProcessOomPolicy
+        )
+        setAppFlagTextVisible(
+            holder.itemInstalledAppsShouldHandleMainProcAdjFlagText,
+            appItem,
+            AppItem.AppConfiguredEnum.ShouldHandleMainProcAdj
         )
 
         if (!holder.hadSetClickedListener) {

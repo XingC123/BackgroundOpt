@@ -28,6 +28,7 @@ import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
+import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.ui.ConfigureAppProcessActivity
 import com.venus.backgroundopt.utils.log.logErrorAndroid
 import com.venus.backgroundopt.utils.log.logInfoAndroid
@@ -170,6 +171,8 @@ object PackageUtils {
             var hasConfiguredAppOptimizePolicy = false
             // 自定义oom
             var hasConfiguredMainProcessCustomOomScore = false
+            // 管理系统app的主进程的adj
+            var hasConfiguredShouldHandleMainProcAdj = false
             appOptimizePolicies[packageName]?.let { appOptimizePolicy ->
                 if (appOptimizePolicy.disableForegroundTrimMem != null ||
                     appOptimizePolicy.disableBackgroundTrimMem != null ||
@@ -192,6 +195,12 @@ object PackageUtils {
                     appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.CustomMainProcessOomScore)
                     hasConfiguredMainProcessCustomOomScore = true
                 }
+
+                // 系统app 且 允许管理oom adj
+                if (appOptimizePolicy.shouldHandleAdj == true) {
+                    appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.ShouldHandleMainProcAdj)
+                    hasConfiguredShouldHandleMainProcAdj = true
+                }
             }
 
             // 是否配置过子进程oom策略
@@ -207,6 +216,7 @@ object PackageUtils {
             }
             return hasConfiguredAppOptimizePolicy or
                     hasConfiguredMainProcessCustomOomScore or
+                    hasConfiguredShouldHandleMainProcAdj or
                     hasConfiguredSubProcessOomPolicy
         }
 
@@ -256,6 +266,7 @@ object PackageUtils {
                 ).apply {
                     versionName = packageInfo.versionName
                     longVersionCode = packageInfo.longVersionCode
+                    systemApp = ActivityManagerService.isImportantSystemApp(applicationInfo)
                 }
             }
             .sortedWith(
