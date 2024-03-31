@@ -17,7 +17,7 @@ class WindowProcessControllerHook(
     runningInfo: RunningInfo?
 ) : IHook(classLoader, runningInfo) {
     override fun hook() {
-        // 在执行完此方法以后, 将foregroundServices置为false, 以忽略是否拥有前台直接进行杀后台(划卡杀后台)
+        // 只要当前hook的方法返回true, 那么就将当前进程加入查杀列表
         ClassConstants.WindowProcessController.afterHook(
             classLoader = classLoader,
             methodName = MethodConstants.shouldKillProcessForRemovedTask,
