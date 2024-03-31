@@ -172,5 +172,5 @@
     <string name="itemInstalledAppsShouldHandleMainProcAdjFlagText" translatable="false">管理主进程Adj</string>
     <string name="settingsUiTitle">UI</string>
     <string name="settingsDynamicThemePrefText" translatable="false">动态取色</string>
-    <string name="settingsDynamicThemePrefSummary" translatable="false">重启app生效</string>
+    <string name="settingsDynamicThemePrefSummary" translatable="false">切换需重启app生效</string>
 </resources>
