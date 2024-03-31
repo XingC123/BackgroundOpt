@@ -319,7 +319,7 @@ class ProcessListHookKt(
                         if (process.fixedOomAdjScore != ProcessRecord.defaultMaxAdj) {
                             process.fixedOomAdjScore = ProcessRecord.defaultMaxAdj
 
-                            if (oomMode == OomWorkModePref.MODE_STRICT || oomMode == OomWorkModePref.MODE_NEGATIVE) {
+                            if (oomMode == OomWorkModePref.MODE_STRICT /*|| oomMode == OomWorkModePref.MODE_NEGATIVE*/) {
                                 process.setDefaultMaxAdj()
                             }
                         }
