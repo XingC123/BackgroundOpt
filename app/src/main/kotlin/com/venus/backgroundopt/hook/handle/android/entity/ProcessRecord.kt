@@ -91,7 +91,7 @@ class ProcessRecord(
         const val maxOptimizeRssInBytes = 419430400.0
 
         // 资源占用因子
-        const val minOptimizeRssFactor = 0.035
+        const val minOptimizeRssFactor = 0.025
 
         init {
             // 根据配置文件决定defaultMaxAdj
