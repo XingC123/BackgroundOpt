@@ -19,6 +19,7 @@ package com.venus.backgroundopt.manager.process
 
 import android.os.SystemClock
 import com.venus.backgroundopt.core.RunningInfo
+import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
@@ -61,6 +62,10 @@ class AppCompactManager2(
     private val compactProcessMap: MutableMap<ProcessRecord, ScheduledFuture<*>> =
         ConcurrentHashMap()
 
+    override fun isNecessaryToOptimizeProcess(processRecord: ProcessRecord): Boolean {
+        return processRecord.mCurRawAdj >= 0 && processRecord.appInfo.appGroupEnum != AppGroupEnum.ACTIVE
+    }
+
     fun compactProcess(
         processRecord: ProcessRecord,
         lastOomScoreAdj: Int,
@@ -99,7 +104,7 @@ class AppCompactManager2(
         oomAdjustLevel: Int
     ) {
         // 检验合法性
-        if (!processRecord.isValid(runningInfo,)) {
+        if (!processRecord.isValid(runningInfo)) {
             return
         }
 
