@@ -99,8 +99,8 @@ class ProcessListHookKt(
          * oom_score_adj分数处理器                                                   *
          *                                                                         *
          **************************************************************************/
-        const val normalMinAdj = /*-100*/ 0
-        const val importAppMinAdj = /*-200*/0
+        const val normalMinAdj = /*-100*/ 1
+        const val importAppMinAdj = /*-200*/1
     }
 
     /* *************************************************************************
