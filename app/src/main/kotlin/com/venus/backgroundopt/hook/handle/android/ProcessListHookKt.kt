@@ -30,6 +30,7 @@ import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
+import com.venus.backgroundopt.hook.handle.android.entity.ActivityManager
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.callMethod
@@ -387,6 +388,7 @@ class ProcessListHookKt(
         processRecord.processStateRecord.apply {
             cached = false
             empty = false
+            curProcState = ActivityManager.PROCESS_STATE_TOP
         }
     }
 

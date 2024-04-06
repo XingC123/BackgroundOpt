@@ -145,6 +145,8 @@ public interface MethodConstants {
     String getCurRawAdj = "getCurRawAdj";
     String isKilledByAm = "isKilledByAm";
     String putStringForUser = "putStringForUser";
+    String setCurProcState = "setCurProcState";
+    String getCurProcState = "getCurProcState";
 
     /**
      * miui

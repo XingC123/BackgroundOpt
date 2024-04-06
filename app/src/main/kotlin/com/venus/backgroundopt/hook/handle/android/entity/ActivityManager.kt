@@ -6,6 +6,7 @@ package com.venus.backgroundopt.hook.handle.android.entity
  */
 class ActivityManager {
     companion object {
-        const val PROCESS_STATE_TRANSIENT_BACKGROUND = ProcessStateEnum.TRANSIENT_BACKGROUND;
+        const val PROCESS_STATE_TOP = ProcessStateEnum.TOP
+        const val PROCESS_STATE_TRANSIENT_BACKGROUND = ProcessStateEnum.TRANSIENT_BACKGROUND
     }
 }
