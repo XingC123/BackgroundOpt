@@ -36,14 +36,16 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
     RecyclerView.Adapter<ShowInfoFromAppItemAdapter.ShowInfoFromAppItemViewHolder>() {
     open class ShowInfoFromAppItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var appIcon: ImageView
-        var appItemTasksText1: TextView
+        var processNameText: TextView
+        var appNameText: TextView
         var appItemTasksText2: TextView
         var appItemTasksText3: TextView
         var appItemTasksText4: TextView
 
         init {
             appIcon = itemView.findViewById(R.id.appItemAppIcon)
-            appItemTasksText1 = itemView.findViewById(R.id.appItemText1)
+            appNameText = itemView.findViewById(R.id.appName)
+            processNameText = itemView.findViewById(R.id.processName)
             appItemTasksText2 = itemView.findViewById(R.id.appItemText2)
             appItemTasksText3 = itemView.findViewById(R.id.appItemText3)
             appItemTasksText4 = itemView.findViewById(R.id.appItemText4)
@@ -76,6 +78,7 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
      * 具体的内容                                                                *
      *                                                                         *
      **************************************************************************/
+    open fun getText0Content(appItem: AppItem): String = appItem.appName
     abstract fun getText1Content(appItem: AppItem): String?
     abstract fun getText2Content(appItem: AppItem): String
     abstract fun getText3Content(appItem: AppItem): String
@@ -102,7 +105,7 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
             LayoutInflater.from(parent.context)
                 .inflate(R.layout.recycler_app_item, parent, false)
         // 修改tip内容
-        view.findViewById<TextView>(R.id.appItemTipText1)
+        view.findViewById<TextView>(R.id.appName)
             ?.setText(getTipText1ResId())
         view.findViewById<TextView>(R.id.appItemTipText2)
             ?.setText(getTipText2ResId())
@@ -116,7 +119,8 @@ abstract class ShowInfoFromAppItemAdapter(protected open val items: List<AppItem
     override fun onBindViewHolder(holder: ShowInfoFromAppItemViewHolder, position: Int) {
         val appItem = items[position]
         holder.appIcon.setImageDrawable(appItem.appIcon)
-        holder.appItemTasksText1.text = getText1Content(appItem)
+        holder.appNameText.text = getText0Content(appItem)
+        holder.processNameText.text = getText1Content(appItem)
         holder.appItemTasksText2.text = getText2Content(appItem)
         holder.appItemTasksText3.text = getText3Content(appItem)
         holder.appItemTasksText4.text = getText4Content(appItem)
