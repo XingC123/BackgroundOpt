@@ -291,7 +291,7 @@ class ProcessListHookKt(
 
         if (possibleAdj != null && isHighPriorityProcess) {    // 进程独立配置优先于任何情况
             finalApplyOomScoreAdj = possibleAdj
-            clearProcessUnexpectedState(processRecord = process)
+            process.clearProcessUnexpectedState()
         } else if (globalOomScorePolicy.enabled
             && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL
                     || isHighPriorityProcess && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS_ANY || isUserSpaceAdj)
@@ -301,7 +301,7 @@ class ProcessListHookKt(
             // 逻辑概要:
             // 开启全局oom && (作用域 == ALL || isHighPriorityProcess && (作用域 == MAIN_PROC_ANY || isUserSpaceAdj) || /* 普通子进程 或 !isUserSpaceAdj */ isUserSpaceAdj && 作用域 == MAIN_AND_SUB_PROC)
             finalApplyOomScoreAdj = globalOomScorePolicy.customGlobalOomScore
-            clearProcessUnexpectedState(processRecord = process)
+            process.clearProcessUnexpectedState()
         } else if (isUserSpaceAdj) {
             if (isHighPriorityProcess) {
                 if (appInfo.shouldHandleAdj()) {
@@ -381,18 +381,6 @@ class ProcessListHookKt(
     }
 
     /**
-     * 清除进程非预期的状态记录
-     * @param processRecord ProcessRecordKt
-     */
-    private fun clearProcessUnexpectedState(processRecord: ProcessRecord) {
-        processRecord.processStateRecord.apply {
-            cached = false
-            empty = false
-            curProcState = ActivityManager.PROCESS_STATE_TOP
-        }
-    }
-
-    /**
      * 在使用Simple Lmk的情况下, 计算最终adj
      * @param appInfo AppInfo
      * @param oomScoreAdj Int
@@ -414,7 +402,7 @@ class ProcessListHookKt(
         }
 
         return if (mainProcess) {
-            clearProcessUnexpectedState(processRecord = processRecord)
+            processRecord.clearProcessUnexpectedState()
             possibleFinalAdj
         } else {
             possibleFinalAdj + simpleLmkMaxAndMinOffset
@@ -635,17 +623,6 @@ internal open class OomScoreAdjHandler {
     }
 
     /**
-     * 清除进程非预期的状态记录
-     * @param processRecord ProcessRecordKt
-     */
-    private fun clearProcessUnexpectedState(processRecord: ProcessRecord) {
-        processRecord.processStateRecord.apply {
-            cached = false
-            empty = false
-        }
-    }
-
-    /**
      * 计算最终的分数
      * @param oomScoreAdj Int 系统计算的oom_score_adj
      * @param processRecord ProcessRecordKt 进程记录器的包装器
@@ -660,7 +637,7 @@ internal open class OomScoreAdjHandler {
         mainProcess: Boolean = processRecord.mainProcess,
     ): Int {
         return if (mainProcess) {
-            clearProcessUnexpectedState(processRecord = processRecord)
+            processRecord.clearProcessUnexpectedState()
 
             if (appInfo.isImportSystemApp) {
                 // 严格模式我们设置了maxAdj。因此使用oomScoreAdj不够精确
@@ -720,3 +697,14 @@ fun ProcessRecord.isHighPrioritySubProcess(): Boolean {
  * @return Boolean 高优先级 -> true
  */
 fun ProcessRecord.isHighPriorityProcess(): Boolean = mainProcess || isHighPrioritySubProcess()
+
+/**
+ * 清除进程非预期的状态记录
+ */
+fun ProcessRecord.clearProcessUnexpectedState() {
+    this.processStateRecord.apply {
+        cached = false
+        empty = false
+        curProcState = ActivityManager.PROCESS_STATE_TOP
+    }
+}
