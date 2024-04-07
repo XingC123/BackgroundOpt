@@ -129,9 +129,9 @@ class ActivityManagerServiceHookNew(
                                 )
                             }
                         }
+                        set.remove(windowProcessController)
                     }
                 }
-                set.clear()
             }
         }
     }
