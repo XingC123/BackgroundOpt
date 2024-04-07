@@ -84,7 +84,7 @@ class ShowBackgroundTasksAdapter(
         val viewHolder = holder as ShowBackgroundTasksViewHolder
 
         // 设置应用名
-        viewHolder.appItemTipText1.text = appItem.appName
+        viewHolder.appItemTipText1.text = appItem.processName
 
         var enablePolicyForegroundTrim = enableForegroundProcTrimMem
         var enablePolicyBackgroundTrim = PreferenceDefaultValue.enableBackgroundTrimMem
@@ -134,9 +134,7 @@ class ShowBackgroundTasksAdapter(
         val appItemBackgroundGcText: TextView
 
         init {
-            appItemTipText1 = itemView.findViewById<TextView>(R.id.appItemTipText1).apply {
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 16F)
-            }
+            appItemTipText1 = itemView.findViewById(R.id.processName)
 
             appItemForegroundTrimMemText = itemView.findViewById(R.id.appItemForegroundTrimMemText)
             appItemBackgroundTrimMemText = itemView.findViewById(R.id.appItemBackgroundTrimMemText)

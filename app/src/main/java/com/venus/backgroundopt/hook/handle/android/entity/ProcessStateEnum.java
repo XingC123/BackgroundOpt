@@ -15,15 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.venus.backgroundopt.hook.handle.android.entity
+package com.venus.backgroundopt.hook.handle.android.entity;
 
 /**
  * @author XingC
  * @date 2024/3/19
  */
-class ActivityManager {
-    companion object {
-        const val PROCESS_STATE_TOP = ProcessStateEnum.TOP
-        const val PROCESS_STATE_TRANSIENT_BACKGROUND = ProcessStateEnum.TRANSIENT_BACKGROUND
-    }
+public interface ProcessStateEnum {
+    /**
+     * Process is hosting the current top activities.  Note that this covers all activities that are visible to the user.
+     */
+    int  TOP = 2;
+    int  TRANSIENT_BACKGROUND = 8;
 }

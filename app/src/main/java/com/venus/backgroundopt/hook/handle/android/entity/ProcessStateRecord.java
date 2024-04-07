@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.handle.android.entity;
+
+package com.venus.backgroundopt.hook.handle.android.entity;
 
 import androidx.annotation.NonNull;
 
@@ -109,6 +109,14 @@ public class ProcessStateRecord {
 
     public boolean getEmpty() {
         return (boolean) XposedUtilsKt.callMethod(processStateRecord, MethodConstants.getEmpty);
+    }
+
+    public void setCurProcState(int curProcState) {
+        XposedUtilsKt.callMethod(processStateRecord, MethodConstants.setCurProcState, curProcState);
+    }
+
+    public int getCurProcState() {
+        return (int) XposedUtilsKt.callMethod(processStateRecord, MethodConstants.getCurProcState);
     }
 
     public static void setCurAdj(@NonNull @AndroidObject Object instance, int curAdj) {
