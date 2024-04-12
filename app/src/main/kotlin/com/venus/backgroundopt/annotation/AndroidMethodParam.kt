@@ -14,16 +14,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.handle.android.entity;
 
-import com.venus.backgroundopt.hook.constants.ClassConstants;
+package com.venus.backgroundopt.annotation
+
+import android.os.Build
 
 /**
- * 封装了 {@link ClassConstants#ActivityManagerShellCommand}
+ * 安卓方法的参数的注解
  *
  * @author XingC
- * @date 2023/7/13
+ * @date 2024/4/12
  */
-public class ActivityManagerShellCommand {
-}
+@Target(AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.SOURCE)
+annotation class AndroidMethodParam(
+    val name: String = "",
+    val since: Int = Build.VERSION_CODES.S,
+)
