@@ -86,7 +86,7 @@ class DefaultApplicationChangeHook(
             hookAllMethod = true
         ) { param ->
             val name = param.args[1] as String
-            val value = param.args[2] as String
+            val value = param.args[2] as? String ?: return@afterHook
             newThreadTask {
                 when (name) {
                     Settings.Secure.ASSISTANT -> {
