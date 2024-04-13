@@ -7,14 +7,9 @@ import android.os.Build
  * @date 2024/4/12
  */
 object SystemUtils {
-    @JvmStatic
-    val androidVersionCode: Int
-        get() {
-            return Build.VERSION.SDK_INT
-        }
+    @JvmField
+    val androidVersionCode: Int = Build.VERSION.SDK_INT
 
-    val isUOrHigher: Boolean
-        get() {
-            return androidVersionCode >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
-        }
+    @JvmField
+    val isUOrHigher: Boolean = androidVersionCode >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
 }
