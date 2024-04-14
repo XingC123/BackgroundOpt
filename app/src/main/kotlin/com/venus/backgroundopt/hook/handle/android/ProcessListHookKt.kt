@@ -36,6 +36,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.callMethod
 import com.venus.backgroundopt.utils.getBooleanFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
+import com.venus.backgroundopt.utils.ifTrue
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
 import com.venus.backgroundopt.utils.message.handle.getCustomMainProcessOomScore
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -286,10 +287,8 @@ class ProcessListHookKt(
         // 最终要被系统设置的oom分数
         var finalApplyOomScoreAdj = curRawAdj
         val globalOomScoreEffectiveScopeEnum = globalOomScorePolicy.globalOomScoreEffectiveScope
-        val isHighPriorityProcess = process.isHighPriorityProcess().also {
-            if (it) {
-                oomAdjustLevel = OomAdjustLevel.FIRST
-            }
+        val isHighPriorityProcess = process.isHighPriorityProcess().ifTrue {
+            oomAdjustLevel = OomAdjustLevel.FIRST
         }
         val isUserSpaceAdj = curRawAdj >= 0
 
