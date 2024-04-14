@@ -38,6 +38,7 @@ public interface ClassConstants {
     String LowMemDetector = "com.android.server.am.LowMemDetector";
     String LowMemThread = "com.android.server.am.LowMemDetector.LowMemThread";
     String AppProfiler = "com.android.server.am.AppProfiler";
+    String ProcessServiceRecord = "com.android.server.am.ProcessServiceRecord";
     String RecentTasks = "com.android.server.wm.RecentTasks";
     String WindowProcessController = "com.android.server.wm.WindowProcessController";
     String Task = "com.android.server.wm.Task";

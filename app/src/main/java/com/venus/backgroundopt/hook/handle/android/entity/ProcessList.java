@@ -199,8 +199,8 @@ public class ProcessList implements ILogger {
     }
 
     @AndroidObjectField
-    private List<?> getProcList() {
-        return new ArrayList<>(processRecordList);
+    public List<?> getProcList() {
+        return processRecordList;
     }
 
     private List<?> getCopyOnWriteProcList() {

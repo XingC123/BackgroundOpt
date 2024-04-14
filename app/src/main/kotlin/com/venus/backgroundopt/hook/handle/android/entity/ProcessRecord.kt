@@ -18,15 +18,16 @@
 package com.venus.backgroundopt.hook.handle.android.entity
 
 import android.content.pm.ApplicationInfo
+import android.os.Build
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.BuildConfig
+import com.venus.backgroundopt.annotation.AndroidMethod
 import com.venus.backgroundopt.annotation.AndroidObject
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
-import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
@@ -316,6 +317,75 @@ class ProcessRecord(
             }
         }
 
+        @JvmStatic
+        fun getProcessStateRecord(
+            processRecord: Any
+        ): Any = processRecord.getObjectFieldValue(FieldConstants.mState)!!
+
+        @JvmStatic
+        @AndroidMethod
+        fun isKilledByAm(processRecord: Any): Boolean = processRecord.callMethod<Boolean>(
+            methodName = MethodConstants.isKilledByAm
+        )
+
+        @JvmStatic
+        @AndroidMethod
+        fun getThread(processRecord: Any): Any? = processRecord.callMethod(
+            methodName = MethodConstants.getThread
+        )
+
+        @JvmStatic
+        @AndroidMethod
+        fun isPendingFinishAttach(processRecord: Any): Boolean = processRecord.callMethod<Boolean>(
+            methodName = MethodConstants.isPendingFinishAttach
+        )
+
+        @JvmStatic
+        fun getProcessServiceRecord(processRecord: Any): Any = processRecord.getObjectFieldValue(
+            fieldName = FieldConstants.mServices
+        )!!
+
+        @JvmStatic
+        fun isIsolated(processRecord: Any): Boolean = processRecord.getBooleanFieldValue(
+            fieldName = FieldConstants.isolated
+        )
+
+        @JvmStatic
+        @AndroidMethod
+        fun getIsolatedEntryPoint(processRecord: Any): Any? = processRecord.callMethod(
+            methodName = MethodConstants.getIsolatedEntryPoint
+        )
+
+        @JvmStatic
+        @AndroidMethod
+        fun killLocked(
+            processRecord: Any,
+            reason: String,
+            reasonCode: Int,
+            subReason: Int,
+            noisy: Boolean
+        ) {
+            processRecord.callMethod(
+                methodName = MethodConstants.killLocked,
+                reason,
+                reasonCode,
+                subReason,
+                noisy
+            )
+        }
+
+        @JvmStatic
+        @AndroidObject(since = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+        fun isSdkSandbox(processRecord: Any): Boolean = processRecord.getBooleanFieldValue(
+            fieldName = FieldConstants.isSdkSandbox
+        )
+
+        @JvmStatic
+        @AndroidMethod
+        fun getActiveInstrumentation(processRecord: Any): Any? = processRecord.callMethod(
+            methodName = MethodConstants.getActiveInstrumentation
+        )
+
         /**
          * 进程的int值消费者
          */
@@ -396,7 +466,7 @@ class ProcessRecord(
         webviewProcess = isWebviewProc(processRecord)
         webviewProcessProbable = isWebviewProcProbable(processRecord)
         processStateRecord =
-            ProcessStateRecord(processRecord.getObjectFieldValue(FieldConstants.mState))
+            ProcessStateRecord(getProcessStateRecord(processRecord = processRecord))
     }
 
     constructor(
@@ -501,7 +571,7 @@ class ProcessRecord(
     fun scheduleTrimMemory(level: Int): Boolean {
 //        XposedHelpers.callMethod(mThread, MethodConstants.scheduleTrimMemory, level);
         val thread: Any? = try {
-            originalInstance.callMethod(MethodConstants.getThread)
+            getThread(originalInstance)
         } catch (ignore: Throwable) {
             null
         }

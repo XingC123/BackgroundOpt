@@ -147,6 +147,14 @@ public interface MethodConstants {
     String putStringForUser = "putStringForUser";
     String setCurProcState = "setCurProcState";
     String getCurProcState = "getCurProcState";
+    String getCompletedAdjSeq = "getCompletedAdjSeq";
+    String isPendingFinishAttach = "isPendingFinishAttach";
+    String getIsolatedEntryPoint = "getIsolatedEntryPoint";
+    String numberOfRunningServices = "numberOfRunningServices";
+    String isSdkSandbox = "isSdkSandbox";
+    String getActiveInstrumentation = "getActiveInstrumentation";
+    String updateAppUidRecLSP = "updateAppUidRecLSP";
+    String getLruProcessesLOSP = "getLruProcessesLOSP";
 
     /**
      * miui

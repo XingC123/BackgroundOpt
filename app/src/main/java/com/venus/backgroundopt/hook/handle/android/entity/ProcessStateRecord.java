@@ -126,4 +126,8 @@ public class ProcessStateRecord {
     public static void setSetAdj(@NonNull @AndroidObject Object instance, int setAdj) {
         XposedUtilsKt.callMethod(instance, MethodConstants.setSetAdj, setAdj);
     }
+
+    public static int getCompletedAdjSeq(@NonNull @AndroidObject Object instance) {
+        return (int) XposedUtilsKt.callMethod(instance, MethodConstants.getCompletedAdjSeq);
+    }
 }

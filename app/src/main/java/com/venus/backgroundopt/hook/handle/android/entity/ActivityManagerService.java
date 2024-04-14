@@ -132,6 +132,15 @@ public class ActivityManagerService implements ILogger {
         return this.context.getPackageManager();
     }
 
+    @AndroidObject
+    public static Object getAppProfiler() {
+        return XposedUtilsKt.getObjectFieldValue(
+                RunningInfo.getInstance().getActivityManagerService().activityManagerService,
+                FieldConstants.mAppProfiler,
+                null
+        );
+    }
+
     /**
      * 是否是重要的系统app。<br>
      * 安卓源码ActivityManagerService.java判断方式:
