@@ -251,8 +251,15 @@ class ProcessListHookKt(
         val globalOomScorePolicy = CommonProperties.globalOomScorePolicy.value
         if (!globalOomScorePolicy.enabled) {
             // 若app未进入后台, 则不进行设置
-            if (appInfo.appGroupEnum !in processedAppGroup) {
+            /*if (appInfo.appGroupEnum !in processedAppGroup) {
                 return
+            }*/
+            // 使用when分支而不是for循环
+            when (appInfo.appGroupEnum) {
+                AppGroupEnum.NONE, AppGroupEnum.ACTIVE, AppGroupEnum.IDLE -> {
+                    // 将会被处理
+                }
+                else -> return
             }
         }
 

@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.handle.android
+
+package com.venus.backgroundopt.hook.handle.android
 
 import android.app.usage.UsageEvents
 import android.content.ComponentName
@@ -146,17 +146,22 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
         val args = param.args
 
         // 获取切换事件
-        val event = args[2] as Int
-        if (event !in handleEvents) {
+        // val event = args[2] as Int
+        /*if (event !in handleEvents) {
             return
+        }*/
+        when (val event = args[2] as Int) {
+            ACTIVITY_RESUMED, ACTIVITY_STOPPED -> {
+                // 本次事件包名
+                val componentName = (args[0] as? ComponentName) ?: return
+                // 本次事件用户
+                val userId = args[1] as Int
+
+                runningInfo.handleActivityEventChange(event, userId, componentName)
+            }
+
+            else -> return
         }
-
-        // 本次事件包名
-        val componentName = (args[0] as? ComponentName) ?: return
-        // 本次事件用户
-        val userId = args[1] as Int
-
-        runningInfo.handleActivityEventChange(event, userId, componentName)
     }
 
     /* *************************************************************************
