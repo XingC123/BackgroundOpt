@@ -340,6 +340,8 @@ class ProcessListHookKt(
                     oomScoreAdj = curRawAdj
                 )
             }
+        } else {
+            doHookOriginalAdj = false
         }
 
         if (doHookOriginalAdj) {
