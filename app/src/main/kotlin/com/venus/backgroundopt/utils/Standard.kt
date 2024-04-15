@@ -36,6 +36,20 @@ inline fun Any?.ifNotNull(block: (Any) -> Unit): Any? {
     return this
 }
 
+inline fun Any?.eq(target: Any?, block: () -> Unit): Any? {
+    if (this == target) {
+        block()
+    }
+    return this
+}
+
+inline fun Any?.ne(target: Any?, block: () -> Unit): Any? {
+    if (this != target) {
+        block()
+    }
+    return this
+}
+
 /* *************************************************************************
  *                                                                         *
  * Boolean                                                                 *
@@ -55,4 +69,121 @@ inline fun Boolean.ifTrue(block: () -> Unit): Boolean {
 
 inline fun Boolean.ifFalse(block: () -> Unit): Boolean {
     return ifBlock(predicate = { !this }, block = block)
+}
+
+/* *************************************************************************
+ *                                                                         *
+ * Number                                                                  *
+ *                                                                         *
+ **************************************************************************/
+inline fun Int.le(target: Int, block: () -> Unit): Int {
+    if (this <= target) {
+        block()
+    }
+    return this
+}
+
+inline fun Int.lt(target: Int, block: () -> Unit): Int {
+    if (this < target) {
+        block()
+    }
+    return this
+}
+
+inline fun Int.ge(target: Int, block: () -> Unit): Int {
+    if (this >= target) {
+        block()
+    }
+    return this
+}
+
+inline fun Int.gt(target: Int, block: () -> Unit): Int {
+    if (this > target) {
+        block()
+    }
+    return this
+}
+
+inline fun Long.le(target: Long, block: () -> Unit): Long {
+    if (this <= target) {
+        block()
+    }
+    return this
+}
+
+inline fun Long.lt(target: Long, block: () -> Unit): Long {
+    if (this < target) {
+        block()
+    }
+    return this
+}
+
+inline fun Long.ge(target: Long, block: () -> Unit): Long {
+    if (this >= target) {
+        block()
+    }
+    return this
+}
+
+inline fun Long.gt(target: Long, block: () -> Unit): Long {
+    if (this > target) {
+        block()
+    }
+    return this
+}
+
+inline fun Float.le(target: Float, block: () -> Unit): Float {
+    if (this <= target) {
+        block()
+    }
+    return this
+}
+
+inline fun Float.lt(target: Float, block: () -> Unit): Float {
+    if (this < target) {
+        block()
+    }
+    return this
+}
+
+inline fun Float.ge(target: Float, block: () -> Unit): Float {
+    if (this >= target) {
+        block()
+    }
+    return this
+}
+
+inline fun Float.gt(target: Float, block: () -> Unit): Float {
+    if (this > target) {
+        block()
+    }
+    return this
+}
+
+inline fun Double.le(target: Double, block: () -> Unit): Double {
+    if (this <= target) {
+        block()
+    }
+    return this
+}
+
+inline fun Double.lt(target: Double, block: () -> Unit): Double {
+    if (this < target) {
+        block()
+    }
+    return this
+}
+
+inline fun Double.ge(target: Double, block: () -> Unit): Double {
+    if (this >= target) {
+        block()
+    }
+    return this
+}
+
+inline fun Double.gt(target: Double, block: () -> Unit): Double {
+    if (this > target) {
+        block()
+    }
+    return this
 }
