@@ -417,6 +417,9 @@ public class RunningInfo implements ILogger {
 
         // 移除进程记录
         removeRunningProcess(pid);
+        // 移除内存压缩文件流的缓存
+        activityManagerService.getOomAdjuster().getCachedAppOptimizer().removeCompactOutputStreams(pid);
+
         if (isMainProcess) {
             removeRunningApp(appInfo);
         } else {
