@@ -20,7 +20,7 @@ package com.venus.backgroundopt.hook.handle.android
 import android.content.Intent
 import android.os.Build
 import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.base.IHook
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
@@ -47,7 +47,7 @@ class ActivityTaskSupervisorHook(
             methodName = getMethodNameForCleanUpRemovedTask(),
             hookAllMethod = true,
         ) { param ->
-            if (!CommonProperties.enableKillAfterRemoveTask.value) {
+            if (!HookCommonProperties.enableKillAfterRemoveTask.value) {
                 return@beforeHook
             }
 
@@ -64,8 +64,8 @@ class ActivityTaskSupervisorHook(
                 } ?: return@beforeHook
             val userId = taskInstance.getIntFieldValue(fieldName = FieldConstants.mUserId)
             val appInfo = runningInfo.getRunningAppInfo(userId, packageName) ?: return@beforeHook
-            val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[appInfo.packageName]
-            val globalOomScorePolicy = CommonProperties.globalOomScorePolicy.value
+            val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[appInfo.packageName]
+            val globalOomScorePolicy = HookCommonProperties.globalOomScorePolicy.value
 
             if (appOptimizePolicy != null && appOptimizePolicy.enableCustomMainProcessOomScore) {
                 // 自定义主进程会优先于全局oom。

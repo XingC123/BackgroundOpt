@@ -33,7 +33,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
@@ -276,7 +276,7 @@ class ConfigureAppProcessActivity : BaseActivity() {
                     // 不存在
                     SubProcessOomPolicy().apply {
                         // 当前进程是否在默认白名单
-                        if (CommonProperties.subProcessDefaultUpgradeSet.contains(processName)) {
+                        if (HookCommonProperties.subProcessDefaultUpgradeSet.contains(processName)) {
                             this.policyEnum =
                                 SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
 

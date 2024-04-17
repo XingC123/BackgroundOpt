@@ -19,7 +19,7 @@
 
 import androidx.annotation.NonNull;
 
-import com.venus.backgroundopt.environment.CommonProperties;
+import com.venus.backgroundopt.environment.hook.HookCommonProperties;
 import com.venus.backgroundopt.hook.base.action.AfterHookAction;
 import com.venus.backgroundopt.hook.base.action.BeforeHookAction;
 import com.venus.backgroundopt.hook.base.action.DoNotingHookAction;
@@ -48,7 +48,7 @@ import de.robv.android.xposed.XposedHelpers;
 public class HookPoint implements ILogger {
     public static final Set<String> dontPrintLogHookList = new HashSet<>() {
         {
-            add(CommonProperties.class.getTypeName() + ".isModuleActive");
+            add(HookCommonProperties.class.getTypeName() + ".isModuleActive");
         }
     };
 

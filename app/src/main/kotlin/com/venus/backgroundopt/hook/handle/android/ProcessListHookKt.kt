@@ -22,7 +22,7 @@ import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.afterHookAction
@@ -110,7 +110,7 @@ class ProcessListHookKt(
      * oom adj处理器                                                            *
      *                                                                         *
      **************************************************************************/
-    private val oomAdjHandler = when (CommonProperties.oomWorkModePref.oomMode) {
+    private val oomAdjHandler = when (HookCommonProperties.oomWorkModePref.oomMode) {
         OomWorkModePref.MODE_NEGATIVE -> object : OomScoreAdjHandler() {
             override fun computeFinalAdj(
                 oomScoreAdj: Int,
@@ -241,7 +241,7 @@ class ProcessListHookKt(
     private fun getMainProcessOomScoreAdjNonNull(oomScoreAdj: Int?): Int =
         oomScoreAdj ?: ProcessRecord.DEFAULT_MAIN_ADJ
 
-    private fun useSimpleLmk(): Boolean = CommonProperties.useSimpleLmk()
+    private fun useSimpleLmk(): Boolean = HookCommonProperties.useSimpleLmk()
 
     private fun handleSetOomAdj(param: MethodHookParam) {
         val pid = param.args[0] as Int
@@ -249,7 +249,7 @@ class ProcessListHookKt(
         val process = runningInfo.getRunningProcess(pid) ?: return
         val appInfo = process.appInfo
 
-        val globalOomScorePolicy = CommonProperties.globalOomScorePolicy.value
+        val globalOomScorePolicy = HookCommonProperties.globalOomScorePolicy.value
         if (!globalOomScorePolicy.enabled) {
             // 若app未进入后台, 则不进行设置
             /*if (appInfo.appGroupEnum !in processedAppGroup) {
@@ -292,7 +292,7 @@ class ProcessListHookKt(
         }
         val isUserSpaceAdj = curRawAdj >= 0
 
-        val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[process.packageName]
+        val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[process.packageName]
         val possibleAdj = appOptimizePolicy.getCustomMainProcessOomScore()
 
         if (possibleAdj != null && isHighPriorityProcess) {    // 进程独立配置优先于任何情况
@@ -311,10 +311,10 @@ class ProcessListHookKt(
         } else if (isUserSpaceAdj) {
             if (isHighPriorityProcess) {
                 if (appInfo.shouldHandleAdj()) {
-                    val oomMode = CommonProperties.oomWorkModePref.oomMode
+                    val oomMode = HookCommonProperties.oomWorkModePref.oomMode
                     if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
                         finalApplyOomScoreAdj = ProcessRecord.DEFAULT_MAIN_ADJ
-                    } else if (CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE) {
+                    } else if (HookCommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE) {
                         doHookOriginalAdj = false
                     } else {
                         finalApplyOomScoreAdj = oomAdjHandler.computeFinalAdj(
@@ -670,7 +670,7 @@ internal open class OomScoreAdjHandler {
  * @return Boolean 升级 -> true
  */
 fun ProcessRecord.isUpgradeSubProcessLevel(): Boolean {
-    return CommonProperties.subProcessOomPolicyMap[this.processName]?.let {
+    return HookCommonProperties.subProcessOomPolicyMap[this.processName]?.let {
         it.policyEnum == SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
     } ?: false
 }
@@ -681,7 +681,7 @@ fun ProcessRecord.isUpgradeSubProcessLevel(): Boolean {
  * @return Boolean 需要处理 -> true
  */
 fun ProcessRecord.isNeedHandleWebviewProcess(): Boolean {
-    return CommonProperties.enableWebviewProcessProtect.value
+    return HookCommonProperties.enableWebviewProcessProtect.value
             && this.webviewProcessProbable
             && this.originalInstance.getObjectFieldValue(
         fieldName = FieldConstants.mWindowProcessController

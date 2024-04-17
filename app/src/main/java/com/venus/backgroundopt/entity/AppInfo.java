@@ -26,7 +26,7 @@ import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.core.RunningInfo;
-import com.venus.backgroundopt.environment.CommonProperties;
+import com.venus.backgroundopt.environment.hook.HookCommonProperties;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.manager.application.DefaultApplicationManager;
@@ -132,7 +132,7 @@ public class AppInfo implements ILogger, LockFlag {
      *                                                                         *
      **************************************************************************/
     public static final Function<AppInfo, Boolean> handleAdjDependOnAppOptimizePolicy = appInfo -> {
-        AppOptimizePolicyMessageHandler.AppOptimizePolicy appOptimizePolicy = CommonProperties.INSTANCE.getAppOptimizePolicyMap().get(appInfo.packageName);
+        AppOptimizePolicyMessageHandler.AppOptimizePolicy appOptimizePolicy = HookCommonProperties.INSTANCE.getAppOptimizePolicyMap().get(appInfo.packageName);
         if (appOptimizePolicy == null) {
             return false;
         }

@@ -19,7 +19,7 @@
 
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
@@ -44,7 +44,7 @@ class BackgroundTasksMessageHandler : MessageHandler {
             }
             BackgroundTaskMessage().apply {
                 processInfos = processRecords.toMutableList()
-                appOptimizePolicyMap = CommonProperties.appOptimizePolicyMap
+                appOptimizePolicyMap = HookCommonProperties.appOptimizePolicyMap
             }
         }
     }

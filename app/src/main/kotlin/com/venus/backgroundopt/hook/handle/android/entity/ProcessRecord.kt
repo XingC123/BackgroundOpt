@@ -28,7 +28,7 @@ import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
@@ -96,7 +96,7 @@ class ProcessRecord(
 
         init {
             // 根据配置文件决定defaultMaxAdj
-            val oomMode = CommonProperties.oomWorkModePref.oomMode
+            val oomMode = HookCommonProperties.oomWorkModePref.oomMode
             defaultMaxAdj = when (oomMode) {
                 OomWorkModePref.MODE_STRICT -> ProcessList.VISIBLE_APP_ADJ
                 // OomWorkModePref.MODE_NEGATIVE -> ProcessList.HEAVY_WEIGHT_APP_ADJ

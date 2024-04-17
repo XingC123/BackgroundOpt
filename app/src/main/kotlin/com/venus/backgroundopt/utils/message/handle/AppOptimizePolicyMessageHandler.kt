@@ -19,7 +19,7 @@ package com.venus.backgroundopt.utils.message.handle
 
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.utils.message.MessageFlag
@@ -40,7 +40,7 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         value: String?
     ) {
         createResponse<AppOptimizePolicy>(param, value) { appOptimizePolicy ->
-            CommonProperties.appOptimizePolicyMap[appOptimizePolicy.packageName] = appOptimizePolicy
+            HookCommonProperties.appOptimizePolicyMap[appOptimizePolicy.packageName] = appOptimizePolicy
             null
         }
     }

@@ -19,7 +19,7 @@
 
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
@@ -63,7 +63,7 @@ class AppMemoryTrimManagerKt(
         val backgroundFirstTrimTimeUnit = TimeUnit.SECONDS
     }
 
-    var enableForegroundTrim = CommonProperties.isEnableForegroundProcTrimMem()
+    var enableForegroundTrim = HookCommonProperties.isEnableForegroundProcTrimMem()
         set(value) {
             field = value
 
@@ -101,7 +101,7 @@ class AppMemoryTrimManagerKt(
      */
     private fun init() {
         // 前台任务
-        enableForegroundTrim = CommonProperties.isEnableForegroundProcTrimMem()
+        enableForegroundTrim = HookCommonProperties.isEnableForegroundProcTrimMem()
         if (!enableForegroundTrim && foregroundTaskScheduledFuture == null) {
             logger.info("禁用: 前台进程内存回收")
         }
@@ -145,7 +145,7 @@ class AppMemoryTrimManagerKt(
                         }
                     }
                 }, foregroundInitialDelay, foregroundDelay, foregroundTimeUnit)
-                logger.info("启用: 前台进程内存回收。回收等级为: ${CommonProperties.getForegroundProcTrimMemLevelUiName()}")
+                logger.info("启用: 前台进程内存回收。回收等级为: ${HookCommonProperties.getForegroundProcTrimMemLevelUiName()}")
             }
         }
     }
@@ -302,7 +302,7 @@ class AppMemoryTrimManagerKt(
         }
 
         // 获取优化操作
-        val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[processRecord.packageName]
+        val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[processRecord.packageName]
 
         if (isNecessaryToOptimizeProcess(processRecord)) {
             block(appOptimizePolicy)
@@ -332,7 +332,7 @@ class AppMemoryTrimManagerKt(
             trimMemory(
                 foregroundTrimManagerName,
                 processRecord,
-                CommonProperties.getForegroundProcTrimMemLevel(),
+                HookCommonProperties.getForegroundProcTrimMemLevel(),
                 foregroundTasks
             )
         }

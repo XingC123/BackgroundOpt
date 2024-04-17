@@ -24,7 +24,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.utils.getView
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
@@ -74,7 +74,7 @@ object ConfigureAppProcessDialogBuilder {
                                     SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT
                                 // 删除原有配置
                                 context.prefEdit(SUB_PROCESS_OOM_POLICY, commit = true) {
-                                    if (CommonProperties.subProcessDefaultUpgradeSet.contains(
+                                    if (HookCommonProperties.subProcessDefaultUpgradeSet.contains(
                                             processName
                                         )
                                     ) {

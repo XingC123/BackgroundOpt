@@ -21,7 +21,7 @@ import android.os.SystemClock
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
@@ -49,7 +49,7 @@ class AppCompactManager2(
         removeOnCancelPolicy = true
     }
 
-    private val isSpecialOomWorkMode = CommonProperties.oomWorkModePref.oomMode.run {
+    private val isSpecialOomWorkMode = HookCommonProperties.oomWorkModePref.oomMode.run {
         this == OomWorkModePref.MODE_STRICT || this == OomWorkModePref.MODE_NEGATIVE
     }
 
