@@ -180,21 +180,36 @@ object HookCommonProperties : ILogger {
                     key = PreferenceKeyConstants.SIMPLE_LMK,
                     defaultValue = PreferenceDefaultValue.enableSimpleLmk
                 )
-            )
-        logger.info("[${if (useSimpleLmk(isEnabled = propertyValueWrapper.value)) "启用" else "禁用"}]Simple Lmk")
+            ).apply {
+                addListener(PreferenceKeyConstants.SIMPLE_LMK) { _, isEnabled ->
+                    useSimpleLmk = useSimpleLmk(isEnabled = isEnabled)
+                }
+            }
         propertyValueWrapper
     }
 
+    @JvmStatic
+    @Volatile
+    var useSimpleLmk: Boolean = useSimpleLmk(isEnabled = enableSimpleLmk.value).also {
+        printPreferenceActiveState(isEnabled = it, description = "Simple Lmk")
+    }
+        set(value) {
+            field = value
+            printPreferenceActiveState(isEnabled = value, description = "Simple Lmk")
+        }
+
     /**
      * simple lmk 只在平衡模式生效
+     * @param isEnabled Boolean 配置文件中的启用/禁用状态
      * @return Boolean 启用 -> true
      */
     @JvmStatic
-    fun useSimpleLmk(): Boolean = useSimpleLmk(isEnabled = enableSimpleLmk.value)
-
-    @JvmStatic
-    private fun useSimpleLmk(isEnabled: Boolean): Boolean =
-        isEnabled && oomWorkModePref.oomMode == OomWorkModePref.MODE_BALANCE
+    private fun useSimpleLmk(isEnabled: Boolean): Boolean {
+        return isEnabled && (
+                oomWorkModePref.oomMode == OomWorkModePref.MODE_BALANCE
+                        || oomWorkModePref.oomMode == OomWorkModePref.MODE_BALANCE_PLUS
+                )
+    }
 
     /* *************************************************************************
      *                                                                         *

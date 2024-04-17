@@ -98,7 +98,7 @@ class ProcessRecord(
             // 根据配置文件决定defaultMaxAdj
             val oomMode = HookCommonProperties.oomWorkModePref.oomMode
             defaultMaxAdj = when (oomMode) {
-                OomWorkModePref.MODE_STRICT -> ProcessList.VISIBLE_APP_ADJ
+                OomWorkModePref.MODE_STRICT, OomWorkModePref.MODE_BALANCE_PLUS -> ProcessList.VISIBLE_APP_ADJ
                 // OomWorkModePref.MODE_NEGATIVE -> ProcessList.HEAVY_WEIGHT_APP_ADJ
                 else -> ProcessList.UNKNOWN_ADJ
             }

@@ -37,11 +37,13 @@
         <item>模式一(严格模式)</item>
         <item>模式二(宽松模式)</item>
         <item>模式三(平衡模式)</item>
+        <item>模式四(平衡模式+)</item>
     </string-array>
     <string-array name="oom_work_mode_values">
         <item>1</item>
         <item>2</item>
         <item>3</item>
+        <item>4</item>
     </string-array>
 
     <!--全局OOM生效范围-->

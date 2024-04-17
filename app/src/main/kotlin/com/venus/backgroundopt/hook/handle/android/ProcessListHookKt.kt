@@ -241,7 +241,7 @@ class ProcessListHookKt(
     private fun getMainProcessOomScoreAdjNonNull(oomScoreAdj: Int?): Int =
         oomScoreAdj ?: ProcessRecord.DEFAULT_MAIN_ADJ
 
-    private fun useSimpleLmk(): Boolean = HookCommonProperties.useSimpleLmk()
+    private fun useSimpleLmk(): Boolean = HookCommonProperties.useSimpleLmk
 
     private fun handleSetOomAdj(param: MethodHookParam) {
         val pid = param.args[0] as Int
@@ -260,6 +260,7 @@ class ProcessListHookKt(
                 AppGroupEnum.NONE, AppGroupEnum.ACTIVE, AppGroupEnum.IDLE -> {
                     // 将会被处理
                 }
+
                 else -> return
             }
         }
@@ -326,8 +327,14 @@ class ProcessListHookKt(
                         if (process.fixedOomAdjScore != ProcessRecord.DEFAULT_MAIN_ADJ) {
                             process.fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
 
-                            if (oomMode == OomWorkModePref.MODE_STRICT /*|| oomMode == OomWorkModePref.MODE_NEGATIVE*/) {
-                                process.setDefaultMaxAdj()
+                            when (oomMode) {
+                                OomWorkModePref.MODE_STRICT,
+                                    /*|| oomMode == OomWorkModePref.MODE_NEGATIVE, */
+                                OomWorkModePref.MODE_BALANCE_PLUS -> {
+                                    process.setDefaultMaxAdj()
+                                }
+
+                                else -> {}
                             }
                         }
                     }

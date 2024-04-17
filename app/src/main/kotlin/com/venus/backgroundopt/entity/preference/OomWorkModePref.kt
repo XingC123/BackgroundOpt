@@ -46,6 +46,13 @@ class OomWorkModePref() {
          */
         const val MODE_BALANCE = 3
 
+        /**
+         * 平衡模式
+         *
+         * maxAdj = 严格模式, defaultAdj = 0。进程可以进入Background
+         */
+        const val MODE_BALANCE_PLUS = 4
+
         @JvmStatic
         fun getDefault(): OomWorkModePref = OomWorkModePref()
     }
