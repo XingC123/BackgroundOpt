@@ -579,6 +579,17 @@ internal open class OomScoreAdjHandler {
         }
     }
 
+    /**
+     * 计算高优先级子进程的adj
+     * @param oomScoreAdj Int 当前系统的adj
+     * @return Int 计算后的子进程adj
+     */
+    open fun computeHighPrioritySubProcessAdj(oomScoreAdj: Int): Int {
+        return subProcessOomScoreAdjMap.computeIfAbsent(oomScoreAdj) { _ ->
+            computeAdj(oomScoreAdj = oomScoreAdj) + highPrioritySubProcessAdjOffset
+        }
+    }
+
     /* *************************************************************************
      *                                                                         *
      * 重要进程                                                                  *
@@ -661,12 +672,13 @@ internal open class OomScoreAdjHandler {
                 computeAdj(oomScoreAdj = oomScoreAdj)
             }
         } else {    // 子进程
-            computeAdj(oomScoreAdj = oomScoreAdj) + highPrioritySubProcessAdjOffset
+            computeHighPrioritySubProcessAdj(oomScoreAdj = oomScoreAdj)
         }
     }
 
     companion object {
         val oomScoreAdjMap = ConcurrentHashMap<Int, Int>(8)
+        val subProcessOomScoreAdjMap = ConcurrentHashMap<Int, Int>(8)
         val importAppOomScoreAdjMap = ConcurrentHashMap<Int, Int>(8)
     }
 }
