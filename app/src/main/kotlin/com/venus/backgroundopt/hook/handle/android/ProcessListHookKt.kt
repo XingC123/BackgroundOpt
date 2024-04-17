@@ -34,6 +34,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.ActivityManager
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.callMethod
+import com.venus.backgroundopt.utils.clamp
 import com.venus.backgroundopt.utils.getBooleanFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
 import com.venus.backgroundopt.utils.ifTrue
@@ -81,8 +82,7 @@ class ProcessListHookKt(
         ).toInt()
 
         // 第一等级的app的adj的起始值
-//        const val normalAppAdjStartUseSimpleLmk = importSystemAppAdjEndUseSimpleLmk + 1
-        const val normalAppAdjStartUseSimpleLmk = minSimpleLmkOomScore + 1
+        const val normalAppAdjStartUseSimpleLmk = importSystemAppAdjEndUseSimpleLmk + 1
 
         /**
          * 严格模式
@@ -130,8 +130,10 @@ class ProcessListHookKt(
     }
 
     private fun generateSimpleLmkAdjHandler(): OomScoreAdjHandler = object : OomScoreAdjHandler(
-        minAdj = normalMinAdj,
+        highPrioritySubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
+        minAdj = normalAppAdjStartUseSimpleLmk,
         maxAdj = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
+        adjConvertDivisor = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
         minImportAppAdj = importSystemAppAdjStartUseSimpleLmk,
         maxImportAppAdj = importSystemAppAdjEndUseSimpleLmk
     ) {
@@ -150,13 +152,13 @@ class ProcessListHookKt(
                 }
             }
         }
-    }.apply {
-        highPrioritySubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
     }
 
     private fun generateStrictModeAdjHandler(): OomScoreAdjHandler = object : OomScoreAdjHandler(
+        highPrioritySubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
         minAdj = normalMinAdj,
         maxAdj = normalMinAdj + ProcessList.FOREGROUND_APP_ADJ,
+        adjConvertDivisor = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
         minImportAppAdj = importAppMinAdj,
         maxImportAppAdj = normalMinAdj
     ) {
@@ -167,8 +169,6 @@ class ProcessListHookKt(
         override fun computeImportAppAdj(oomScoreAdj: Int): Int {
             return minImportAppAdj
         }
-    }.apply {
-        highPrioritySubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
     }
 
     override fun getHookPoint(): Array<HookPoint> {
@@ -529,17 +529,22 @@ internal open class OomScoreAdjHandler {
         highPrioritySubProcessAdjOffset: Int = 1,
         minAdj: Int = 0,
         maxAdj: Int = minAdj,
-        minImportAppAdj: Int = 0,
-        maxImportAppAdj: Int = minAdj,
+        adjConvertDivisor: Int = 1,
+        minImportAppAdj: Int = minAdj,
+        maxImportAppAdj: Int = maxAdj,
+        importAppAdjConvertDivisor: Int = adjConvertDivisor
+
     ) {
         this.defaultMainAdj = defaultMainAdj
         this.highPrioritySubProcessAdjOffset = highPrioritySubProcessAdjOffset
+
         this.minAdj = minAdj
         this.maxAdj = maxAdj
+        this.adjConvertDivisor = adjConvertDivisor
+
         this.minImportAppAdj = minImportAppAdj
         this.maxImportAppAdj = maxImportAppAdj
-
-        updateValue()
+        this.importAppAdjConvertDivisor = importAppAdjConvertDivisor
     }
 
     /* *************************************************************************
@@ -548,34 +553,12 @@ internal open class OomScoreAdjHandler {
      *                                                                         *
      **************************************************************************/
     var minAdj = 0
-        set(value) {
-            field = value
-            updateAdjConvertDivisor()
-        }
     var maxAdj = minAdj
-        set(value) {
-            field = value
-            updateAdjConvertDivisor()
-        }
-    var startAdj = minAdj + 1
-    var maxAndMinAdjDifference = max(maxAdj - minAdj, 1)
     var adjConvertDivisor = 1
-
-    private fun updateAdjConvertDivisor() {
-        maxAndMinAdjDifference = computeMaxAndMinAdjDifference(
-            maxAdj = maxAdj,
-            minAdj = minAdj
-        )
-        adjConvertDivisor = computeAdjConvertDivisor()
-    }
-
-    open fun computeAdjConvertDivisor(): Int {
-        return maxAllowedOomScoreAdj / maxAndMinAdjDifference
-    }
 
     open fun computeAdj(oomScoreAdj: Int): Int {
         return oomScoreAdjMap.computeIfAbsent(oomScoreAdj) { _ ->
-            max((oomScoreAdj / adjConvertDivisor) + minAdj, startAdj)
+            clamp(oomScoreAdj / adjConvertDivisor, minAdj, maxAdj)
         }
     }
 
@@ -596,34 +579,12 @@ internal open class OomScoreAdjHandler {
      *                                                                         *
      **************************************************************************/
     var minImportAppAdj = 0
-        set(value) {
-            field = value
-            updateImportAppAdjConvertDivisor()
-        }
     var maxImportAppAdj = minAdj
-        set(value) {
-            field = value
-            updateImportAppAdjConvertDivisor()
-        }
-    var importAppStartAdj = minImportAppAdj + 1
-    var maxAndMinImportAppAdjDifference = max(maxImportAppAdj - minImportAppAdj, 1)
     var importAppAdjConvertDivisor = 1
-
-    private fun updateImportAppAdjConvertDivisor() {
-        maxAndMinImportAppAdjDifference = computeMaxAndMinAdjDifference(
-            maxAdj = maxImportAppAdj,
-            minAdj = minImportAppAdj
-        )
-        importAppAdjConvertDivisor = computeImportAppAdjConvertDivisor()
-    }
-
-    open fun computeImportAppAdjConvertDivisor(): Int {
-        return maxAllowedOomScoreAdj / maxAndMinImportAppAdjDifference
-    }
 
     open fun computeImportAppAdj(oomScoreAdj: Int): Int {
         return importAppOomScoreAdjMap.computeIfAbsent(oomScoreAdj) { _ ->
-            max((oomScoreAdj / importAppAdjConvertDivisor) + minImportAppAdj, importAppStartAdj)
+            clamp(oomScoreAdj / importAppAdjConvertDivisor, minImportAppAdj, maxImportAppAdj)
         }
     }
 
@@ -639,14 +600,6 @@ internal open class OomScoreAdjHandler {
      * @return Int
      */
     open fun computeMaxAndMinAdjDifference(maxAdj: Int, minAdj: Int): Int = max(maxAdj - minAdj, 1)
-
-    /**
-     * 部分字段修改后需要额外对部分变量进行更新
-     */
-    fun updateValue() {
-        startAdj = minAdj + 1
-        importAppStartAdj = minImportAppAdj + 1
-    }
 
     /**
      * 计算最终的分数
