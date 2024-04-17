@@ -131,7 +131,7 @@ class ProcessListHookKt(
 
     private fun generateSimpleLmkAdjHandler(): OomScoreAdjHandler = object : OomScoreAdjHandler(
         minAdj = normalMinAdj,
-        maxAdj = normalMinAdj + ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
+        maxAdj = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
         minImportAppAdj = importSystemAppAdjStartUseSimpleLmk,
         maxImportAppAdj = importSystemAppAdjEndUseSimpleLmk
     ) {
@@ -151,7 +151,7 @@ class ProcessListHookKt(
             }
         }
     }.apply {
-        highPrioritySubProcessAdjOffset = maxAndMinAdjDifference
+        highPrioritySubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
     }
 
     private fun generateStrictModeAdjHandler(): OomScoreAdjHandler = object : OomScoreAdjHandler(
@@ -168,7 +168,7 @@ class ProcessListHookKt(
             return minImportAppAdj
         }
     }.apply {
-        highPrioritySubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ + 1
+        highPrioritySubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
     }
 
     override fun getHookPoint(): Array<HookPoint> {
