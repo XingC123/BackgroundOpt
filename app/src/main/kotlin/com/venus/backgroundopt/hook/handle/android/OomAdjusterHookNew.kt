@@ -53,37 +53,71 @@ class OomAdjusterHookNew(
     private lateinit var lruList: List<*>
     private lateinit var mAppProfiler: Any
 
-    private fun applyOomAdjLSP(processRecord: Any, now: Long, nowElapsed: Long, oomAdjReason: Int) {
+    private fun applyOomAdjLSP(
+        processRecord: Any,
+        now: Long,
+        nowElapsed: Long,
+        oomAdjReason: Any?
+    ) {
         applyOomAdjLSPMethod(processRecord, now, nowElapsed, oomAdjReason)
     }
 
-    private val applyOomAdjLSPMethod = if (SystemUtils.isUOrHigher) {
-        { processRecord: Any, now: Long, nowElapsed: Long, oomAdjReason: Int ->
-            oomAdjuster.callMethod(
-                methodName = MethodConstants.applyOomAdjLSP,
-                processRecord,
-                true,
-                now,
-                nowElapsed,
-                oomAdjReason
-            )
-        }
-    } else {
-        { processRecord: Any, now: Long, nowElapsed: Long, _: Int ->
-            oomAdjuster.callMethod(
-                methodName = MethodConstants.applyOomAdjLSP,
-                processRecord,
-                true,
-                now,
-                nowElapsed
-            )
+    /**
+     * applyOomAdjLSP方法是否含有oomAdjReason字段
+     *
+     * 通常情况下, 按照aosp源码做即可。但存在例外情况。
+     *
+     * 在红米note5 pro(whyred)的Nusantara v5.3 official a13中, 此方法的入参并不同于aosp, 扩展一下,
+     * 可能某些rom也会对此修改。因此为了模块的通用性, 改用在第一次使用时动态生成。
+     */
+    @Volatile
+    private var hasOomAdjReasonField: Boolean = SystemUtils.isUOrHigher
+
+    private val applyOomAdjLSPMethod by lazy {
+        if (hasOomAdjReasonField) {
+            { processRecord: Any, now: Long, nowElapsed: Long, oomAdjReason: Any? ->
+                oomAdjuster.callMethod(
+                    methodName = MethodConstants.applyOomAdjLSP,
+                    processRecord,
+                    true,
+                    now,
+                    nowElapsed,
+                    oomAdjReason
+                )
+            }
+        } else {
+            { processRecord: Any, now: Long, nowElapsed: Long, _: Any? ->
+                oomAdjuster.callMethod(
+                    methodName = MethodConstants.applyOomAdjLSP,
+                    processRecord,
+                    true,
+                    now,
+                    nowElapsed
+                )
+            }
         }
     }
 
-    private fun getOomAdjReason(param: MethodHookParam): Int = if (SystemUtils.isUOrHigher) {
-        param.args[4] as Int
-    } else {
-        Int.MIN_VALUE
+    private fun getOomAdjReason(param: MethodHookParam): Any? = getOomAdjReasonMethod(param.args)
+
+    @Volatile
+    private var getOomAdjReasonMethod = { paramArgs: Array<Any?> ->
+        hasOomAdjReasonField = paramArgs.size > 4
+        val finalMethod = if (hasOomAdjReasonField) {
+            { args: Array<Any?> ->
+                args[4]
+            }
+        } else {
+            { _: Array<Any?> ->
+                null
+            }
+        }
+        resetOomAdjReasonMethod(finalMethod)
+        finalMethod(paramArgs)
+    }
+
+    private fun resetOomAdjReasonMethod(oomAdjReasonMethod: (Array<Any?>) -> Any?) {
+        getOomAdjReasonMethod = oomAdjReasonMethod
     }
 
     private val isPendingFinishAttachMethod = if (SystemUtils.isUOrHigher) {
@@ -174,8 +208,8 @@ class OomAdjusterHookNew(
     )
     private fun updateAndTrimProcessLSP(param: MethodHookParam): Boolean {
         val now = param.args[0] as Long
-        /*val nowElapsed = param.args[1] as Long
-        val oomAdjReason = getOomAdjReason(param)*/
+        val nowElapsed = param.args[1] as Long
+        val oomAdjReason = getOomAdjReason(param)
 
         val numLru = lruList.size
 
@@ -183,12 +217,10 @@ class OomAdjusterHookNew(
             // ProcessRecord
             val app: Any = lruList[i]!!
             // ProcessStateRecord
-            // val state: Any = ProcessRecord.getProcessStateRecord(app)
+            val state: Any = ProcessRecord.getProcessStateRecord(app)
             if (!ProcessRecord.isKilledByAm(app) && ProcessRecord.getThread(app) != null) {
-                // 在红米note5 pro(whyred)的Nusantara v5.3 official a13中, 此方法的入参并不同于aosp,
-                // 扩展一下, 可能某些rom也会对此修改。因此为了模块的通用性, 遂禁用对applyOomAdjLSP的调用
                 // We don't need to apply the update for the process which didn't get computed
-                /*if (ProcessStateRecord.getCompletedAdjSeq(state) == oomAdjuster.getIntFieldValue(
+                if (ProcessStateRecord.getCompletedAdjSeq(state) == oomAdjuster.getIntFieldValue(
                         fieldName = FieldConstants.mAdjSeq
                     )
                 ) {
@@ -198,7 +230,7 @@ class OomAdjusterHookNew(
                         nowElapsed = nowElapsed,
                         oomAdjReason = oomAdjReason
                     )
-                }*/
+                }
                 if (isPendingFinishAttachMethod(app)) {
                     // Avoid trimming processes that are still initializing. If they aren't
                     // hosting any components yet because they may be unfairly killed.
