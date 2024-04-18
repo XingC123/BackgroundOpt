@@ -103,6 +103,7 @@ class ProcessListHookKt(
          **************************************************************************/
         const val normalMinAdj = /*-100*/ 1
         const val importAppMinAdj = /*-200*/1
+        const val ADJ_CONVERT_DIVISOR = ProcessList.UNKNOWN_ADJ / ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
     }
 
     /* *************************************************************************
@@ -133,7 +134,7 @@ class ProcessListHookKt(
         highPrioritySubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
         minAdj = normalAppAdjStartUseSimpleLmk,
         maxAdj = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
-        adjConvertDivisor = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
+        adjConvertDivisor = ADJ_CONVERT_DIVISOR,
         minImportAppAdj = importSystemAppAdjStartUseSimpleLmk,
         maxImportAppAdj = importSystemAppAdjEndUseSimpleLmk
     ) {
@@ -158,7 +159,7 @@ class ProcessListHookKt(
         highPrioritySubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
         minAdj = normalMinAdj,
         maxAdj = normalMinAdj + ProcessList.FOREGROUND_APP_ADJ,
-        adjConvertDivisor = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
+        adjConvertDivisor = ADJ_CONVERT_DIVISOR,
         minImportAppAdj = importAppMinAdj,
         maxImportAppAdj = normalMinAdj
     ) {
