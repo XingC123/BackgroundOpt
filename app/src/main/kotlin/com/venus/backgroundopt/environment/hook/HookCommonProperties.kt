@@ -19,6 +19,7 @@ package com.venus.backgroundopt.environment.hook
 
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
+import com.venus.backgroundopt.environment.CommonProperties.subProcessDefaultUpgradeSet
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
@@ -41,14 +42,6 @@ import java.util.concurrent.ConcurrentHashMap
 object HookCommonProperties : ILogger {
     private fun printPreferenceActiveState(isEnabled: Boolean, description: String) {
         logger.info("[${if (isEnabled) "启用" else "禁用"}] ${description}")
-    }
-
-    // 默认白名单
-    val subProcessDefaultUpgradeSet: Set<String> by lazy {
-        setOf(
-            "com.tencent.mobileqq:MSF", /* qq */
-            "com.tencent.mm:push", /* 微信 */
-        )
     }
 
     // 子进程oom策略映射表

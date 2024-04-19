@@ -26,4 +26,12 @@ object CommonProperties {
     fun isModuleActive(): Boolean {
         return false
     }
+
+    // 默认白名单
+    val subProcessDefaultUpgradeSet: Set<String> by lazy {
+        setOf(
+            "com.tencent.mobileqq:MSF", /* qq */
+            "com.tencent.mm:push", /* 微信 */
+        )
+    }
 }
