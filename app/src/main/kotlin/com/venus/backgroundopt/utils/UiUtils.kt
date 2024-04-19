@@ -21,6 +21,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.res.TypedArray
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -374,4 +376,13 @@ fun Context.showProgressBarViewForAction(
         negativeBtnText,
         action
     )
+}
+
+/* *************************************************************************
+ *                                                                         *
+ * 文本                                                                     *
+ *                                                                         *
+ **************************************************************************/
+fun TextView.setTextSizeSP(typedArray: TypedArray, index: Int, defValue: Float = 16f) {
+    setTextSize(TypedValue.COMPLEX_UNIT_SP, typedArray.getDimension(index, defValue))
 }
