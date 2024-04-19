@@ -182,6 +182,14 @@ public class AppInfo implements ILogger, LockFlag {
             this.shouldHandleAdj = AppInfo.handleAdjNever;
         }
 
+        // 如果现在是永不处理
+        if (this.shouldHandleAdj == AppInfo.handleAdjNever) {
+            runningInfo.getRunningProcesses().stream()
+                    // 按包名匹配(处理应用分身情况)
+                    .filter(processRecord -> Objects.equals(processRecord.getPackageName(), packageName))
+                    .forEach(ProcessRecord::resetMaxAdj);
+        }
+
         return shouldHandleAdjUiState;
     }
 
