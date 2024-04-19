@@ -14,14 +14,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.ui.base
+
+package com.venus.backgroundopt.ui.base
 
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import com.venus.backgroundopt.utils.message.MessageKeyConstants
+import com.venus.backgroundopt.utils.message.handle.ModuleRunningMessageHandler.ModuleRunningMessage
+import com.venus.backgroundopt.utils.message.sendMessage
+import com.venus.backgroundopt.utils.runCatchThrowable
 
 /**
  * @author XingC
@@ -93,4 +97,30 @@ abstract class BaseActivity : AppCompatActivity() {
         lateinit var title: String
         var resId: Int = Int.MIN_VALUE
     }
+}
+
+fun BaseActivity.sendMessage(key: String, value: Any = ""): String? {
+    return sendMessage(this, key, value)
+}
+
+inline fun <reified E> BaseActivity.sendMessage(key: String, value: Any = ""): E? {
+    return sendMessage<E>(this, key, value)
+}
+
+/**
+ * 检查模块后端是否运行
+ * @receiver BaseActivity
+ * @return Boolean 正在运行 -> true
+ */
+fun BaseActivity.isModuleRunning(): Boolean {
+    // 如果模块未启动, 这里就是正常的调用消息通知借用的方法
+    return runCatchThrowable(defaultValue = false) {
+        sendMessage<ModuleRunningMessage>(
+            context = this,
+            key = MessageKeyConstants.moduleRunning,
+            value = ModuleRunningMessage().apply {
+                messageType = ModuleRunningMessage.MODULE_RUNNING
+            }
+        )!!.value as Boolean
+    }!!
 }
