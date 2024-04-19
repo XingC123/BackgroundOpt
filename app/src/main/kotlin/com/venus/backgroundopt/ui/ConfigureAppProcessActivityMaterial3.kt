@@ -85,16 +85,7 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
          */
         val curPackageName = appItem.packageName
         // 获取本地配置
-        val appOptimizePolicy = sendMessage<AppOptimizePolicy>(
-            context = this,
-            key = MessageKeyConstants.appOptimizePolicy,
-            AppOptimizePolicyMessage().apply {
-                uid = appItem.uid
-                packageName = curPackageName
-
-                messageType = AppOptimizePolicyMessage.MSG_CREATE_OR_GET
-            }
-        )!!
+        val appOptimizePolicy = getAppOptimizePolicy(curPackageName)
 
         // 设置基本数据
         runOnUiThread {
@@ -256,7 +247,8 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
              */
             findViewById<VenusSwitchMaterial3>(R.id.configureAppProcessShouldHandleMainProcAdjSwitch)?.let { switch ->
                 // 初始状态
-                switch.isChecked = appOptimizePolicy.shouldHandleAdj ?: appOptimizePolicy.shouldHandleAdjUiState
+                switch.isChecked = appOptimizePolicy.shouldHandleAdj
+                    ?: appOptimizePolicy.shouldHandleAdjUiState
 
                 switch.setOnCheckedChangeListener { _, isChecked ->
                     appOptimizePolicy.shouldHandleAdj = isChecked
@@ -265,7 +257,9 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
 
                 switch.setButtonOnClickedListener {
                     appOptimizePolicy.shouldHandleAdj = null
-                    appOptimizePolicySaveAction(appOptimizePolicy)
+                    appOptimizePolicySaveAction(appOptimizePolicy) {
+                        runOnUiThread { switch.isChecked = it.shouldHandleAdjUiState }
+                    }
                 }
             }
         }
@@ -314,20 +308,39 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
         }
     }
 
-    private fun appOptimizePolicySaveAction(appOptimizePolicy: AppOptimizePolicy) {
+    private fun appOptimizePolicySaveAction(
+        appOptimizePolicy: AppOptimizePolicy,
+        block: ((AppOptimizePolicy) -> Unit)? = null
+    ) {
         // 保存到本地
         saveAppMemoryOptimize(appOptimizePolicy, this)
         // 通知模块进程
         showProgressBarViewForAction("正在设置") {
-            sendMessage(
+            val returnAppOptimizePolicy = sendMessage<AppOptimizePolicy>(
                 context = this,
                 key = MessageKeyConstants.appOptimizePolicy,
                 value = AppOptimizePolicyMessage().apply {
                     value = appOptimizePolicy
+                    uid = appItem.uid
+                    packageName = appItem.packageName
                     messageType = AppOptimizePolicyMessage.MSG_SAVE
                 }
             )
+            returnAppOptimizePolicy?.let { block?.invoke(it) }
         }
+    }
+
+    private fun getAppOptimizePolicy(packageName: String): AppOptimizePolicy {
+        return sendMessage<AppOptimizePolicy>(
+            context = this,
+            key = MessageKeyConstants.appOptimizePolicy,
+            AppOptimizePolicyMessage().apply {
+                this.uid = appItem.uid
+                this.packageName = packageName
+
+                messageType = AppOptimizePolicyMessage.MSG_CREATE_OR_GET
+            }
+        )!!
     }
 
     companion object {

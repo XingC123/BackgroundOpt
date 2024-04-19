@@ -44,26 +44,26 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
     ) {
         createResponse<AppOptimizePolicyMessage>(param, value, setJsonData = true) { message ->
             var returnValue: Any? = null
+
             val appOptimizePolicyMap = HookCommonProperties.appOptimizePolicyMap
+            val userId = UserHandle.getUserId(message.uid)
+            val packageName = message.packageName
 
             when (message.messageType) {
                 AppOptimizePolicyMessage.MSG_NONE -> {}
 
                 AppOptimizePolicyMessage.MSG_CREATE_OR_GET -> {
-                    val userId = UserHandle.getUserId(message.uid)
-                    val packageName = message.packageName
                     returnValue = appOptimizePolicyMap.computeIfAbsent(packageName) {
                         AppOptimizePolicy().apply {
                             this.packageName = packageName
                         }
                     }.apply {
-                        if (shouldHandleAdj == null) {
-                            // 检查是否需要管理adj
-                            val findAppResult = runningInfo.getFindAppResult(userId, packageName)
-                            if (AppInfo.shouldHandleAdj(findAppResult, packageName)) {
-                                shouldHandleAdjUiState = true
-                            }
-                        }
+                        checkAndSetShouldHandleAdjUiState(
+                            runningInfo = runningInfo,
+                            userId = userId,
+                            packageName = packageName,
+                            appOptimizePolicy = this
+                        )
                     }
                 }
 
@@ -74,11 +74,34 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
                     runningInfo.runningAppInfos.asSequence()
                         .filter { appInfo -> appInfo.packageName == appOptimizePolicy.packageName }
                         .forEach { appInfo -> appInfo.setShouldHandleAdj(appOptimizePolicy) }
+
+                    checkAndSetShouldHandleAdjUiState(
+                        runningInfo = runningInfo,
+                        userId = userId,
+                        packageName = packageName,
+                        appOptimizePolicy = appOptimizePolicy
+                    )
+                    returnValue = appOptimizePolicy
                 }
 
                 else -> {}
             }
             returnValue
+        }
+    }
+
+    private fun checkAndSetShouldHandleAdjUiState(
+        runningInfo: RunningInfo,
+        userId: Int,
+        packageName: String,
+        appOptimizePolicy: AppOptimizePolicy
+    ) {
+        if (appOptimizePolicy.shouldHandleAdj == null) {
+            // 检查是否需要管理adj
+            val findAppResult = runningInfo.getFindAppResult(userId, packageName)
+            if (AppInfo.shouldHandleAdj(findAppResult, packageName)) {
+                appOptimizePolicy.shouldHandleAdjUiState = true
+            }
         }
     }
 
