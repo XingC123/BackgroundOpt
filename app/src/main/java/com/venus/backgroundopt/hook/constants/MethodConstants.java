@@ -155,6 +155,7 @@ public interface MethodConstants {
     String getActiveInstrumentation = "getActiveInstrumentation";
     String updateAppUidRecLSP = "updateAppUidRecLSP";
     String getLruProcessesLOSP = "getLruProcessesLOSP";
+    String getUserId = "getUserId";
 
     /**
      * miui

@@ -75,6 +75,7 @@ public interface ClassConstants {
     String ServiceManager = "android.os.ServiceManager";
     String PowerManagerService = "com.android.server.power.PowerManagerService";
     String IWakeLockCallback = "android.os.IWakeLockCallback";
+    String UserHandle = "android.os.UserHandle";
     String Settings_Secure = "android.provider.Settings.Secure";
 
     /**

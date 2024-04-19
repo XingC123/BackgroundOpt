@@ -43,5 +43,6 @@ interface MessageKeyConstants {
         const val getTrimMemoryOptThreshold = "getTrimMemoryOptThreshold"
         const val getHomePageModuleInfo = "getHomePageModuleInfo"
         const val killAfterRemoveTask = "killAfterRemoveTask"
+        const val moduleRunning = "moduleRunning"
     }
 }

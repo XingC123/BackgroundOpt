@@ -30,6 +30,7 @@ import com.venus.backgroundopt.annotation.AndroidObject;
 import com.venus.backgroundopt.annotation.UsageComment;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.FindAppResult;
+import com.venus.backgroundopt.environment.hook.HookCommonProperties;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerShellCommand;
@@ -741,16 +742,18 @@ public class RunningInfo implements ILogger {
                 return;
             }
             runningApps.values().stream()
-                    .filter(AppInfo::isImportSystemApp)
+                    // .filter(AppInfo::isImportSystemApp)
                     .filter(appInfo -> Objects.equals(appInfo.getPackageName(), oldValue) || Objects.equals(appInfo.getPackageName(), newPkgName))
                     .forEach(appInfo -> {
+                        boolean shouldHandleAdjUiState = false;
                         if (Objects.equals(appInfo.getPackageName(), oldValue)) {
-                            // 将原应用恢复默认策略
-                            appInfo.shouldHandleAdj = AppInfo.handleAdjDependOnAppOptimizePolicy;
+                            shouldHandleAdjUiState = appInfo.setShouldHandleAdj();
                         } else {
                             // 设置当前app
                             appInfo.shouldHandleAdj = AppInfo.handleAdjAlways;
+                            shouldHandleAdjUiState = true;
                         }
+                        HookCommonProperties.setShouldHandleAdjUiState(appInfo.getUserId(), appInfo.getPackageName(), shouldHandleAdjUiState);
                     });
             getLogger().info("更换的" + tag + "包名为: " + newPkgName);
         };

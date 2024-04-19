@@ -19,12 +19,15 @@ package com.venus.backgroundopt.utils.message.handle
 
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.environment.hook.HookCommonProperties
+import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
+import com.venus.backgroundopt.hook.handle.android.entity.UserHandle
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
+import com.venus.backgroundopt.utils.message.parseObjectFromJsonObject
 import de.robv.android.xposed.XC_MethodHook
 
 /**
@@ -39,9 +42,43 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         param: XC_MethodHook.MethodHookParam,
         value: String?
     ) {
-        createResponse<AppOptimizePolicy>(param, value) { appOptimizePolicy ->
-            HookCommonProperties.appOptimizePolicyMap[appOptimizePolicy.packageName] = appOptimizePolicy
-            null
+        createResponse<AppOptimizePolicyMessage>(param, value, setJsonData = true) { message ->
+            var returnValue: Any? = null
+            val appOptimizePolicyMap = HookCommonProperties.appOptimizePolicyMap
+
+            when (message.messageType) {
+                AppOptimizePolicyMessage.MSG_NONE -> {}
+
+                AppOptimizePolicyMessage.MSG_CREATE_OR_GET -> {
+                    val userId = UserHandle.getUserId(message.uid)
+                    val packageName = message.packageName
+                    returnValue = appOptimizePolicyMap.computeIfAbsent(packageName) {
+                        AppOptimizePolicy().apply {
+                            this.packageName = packageName
+                        }
+                    }.apply {
+                        if (shouldHandleAdj == null) {
+                            // 检查是否需要管理adj
+                            val findAppResult = runningInfo.getFindAppResult(userId, packageName)
+                            if (AppInfo.shouldHandleAdj(findAppResult, packageName)) {
+                                shouldHandleAdjUiState = true
+                            }
+                        }
+                    }
+                }
+
+                AppOptimizePolicyMessage.MSG_SAVE -> {
+                    val appOptimizePolicy =
+                        parseObjectFromJsonObject<AppOptimizePolicy>(message.value)!!
+                    appOptimizePolicyMap[appOptimizePolicy.packageName] = appOptimizePolicy
+                    runningInfo.runningAppInfos.asSequence()
+                        .filter { appInfo -> appInfo.packageName == appOptimizePolicy.packageName }
+                        .forEach { appInfo -> appInfo.setShouldHandleAdj(appOptimizePolicy) }
+                }
+
+                else -> {}
+            }
+            returnValue
         }
     }
 
@@ -92,8 +129,27 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         var customMainProcessOomScore = Int.MIN_VALUE
 
         // 该app是否管理adj
-        // 2024.3.26: 目前仅针对系统app
         var shouldHandleAdj: Boolean? = null
+
+        // 在ui中的开关应该显示的状态
+        // 增加此属性, 仅通过此属性决定ui的状态, 而不通过shouldHandleAdj,
+        // 防止因版本变化导致的后端策略的变化从而使用户侧存储了错误数据(用户从未设置过此字段, 却被模块后端影响, 并持久化)
+        // 该属性仅通过模块后端决定, 不在shouldHandleAdj改变的时候在用户侧修改
+        var shouldHandleAdjUiState: Boolean = false
+    }
+
+    class AppOptimizePolicyMessage : MessageFlag {
+        var value: Any? = null
+        var messageType = MSG_NONE
+
+        var uid: Int = 0
+        var packageName: String = ""
+
+        companion object {
+            const val MSG_NONE = 0
+            const val MSG_CREATE_OR_GET = 1
+            const val MSG_SAVE = 2
+        }
     }
 }
 

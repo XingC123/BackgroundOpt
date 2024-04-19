@@ -329,14 +329,15 @@
 
                 </LinearLayout>
 
-                <com.google.android.material.materialswitch.MaterialSwitch
+                <com.venus.backgroundopt.ui.component.VenusSwitchMaterial3
                     android:id="@+id/configureAppProcessShouldHandleMainProcAdjSwitch"
                     style="@style/Theme.AppTheme"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/configureAppProcessShouldHandleMainProcAdjText"
-                    android:textSize="16sp" />
-
+                    app:switchText="@string/configureAppProcessShouldHandleMainProcAdjText"
+                    app:switchTextSize="16sp"
+                    app:buttonText="重置"
+                    app:buttonVisible="true"/>
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView

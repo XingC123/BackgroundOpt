@@ -20,7 +20,6 @@ package com.venus.backgroundopt.ui
 import android.content.Context
 import android.os.Bundle
 import android.view.MenuItem
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -38,12 +37,14 @@ import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
+import com.venus.backgroundopt.ui.component.VenusSwitchMaterial3
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.StringUtils
 import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.getTmpData
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicyMessage
 import com.venus.backgroundopt.utils.message.sendMessage
 import com.venus.backgroundopt.utils.preference.prefPut
 import com.venus.backgroundopt.utils.preference.prefValue
@@ -79,6 +80,22 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
     private fun init() {
         appItem = getTmpData() as AppItem
 
+        /*
+            app优化策略
+         */
+        val curPackageName = appItem.packageName
+        // 获取本地配置
+        val appOptimizePolicy = sendMessage<AppOptimizePolicy>(
+            context = this,
+            key = MessageKeyConstants.appOptimizePolicy,
+            AppOptimizePolicyMessage().apply {
+                uid = appItem.uid
+                packageName = curPackageName
+
+                messageType = AppOptimizePolicyMessage.MSG_CREATE_OR_GET
+            }
+        )!!
+
         // 设置基本数据
         runOnUiThread {
             findViewById<ImageView>(R.id.configureAppProcessAppIcon)?.setImageDrawable(appItem.appIcon)
@@ -93,20 +110,6 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
             }
             findViewById<TextView>(R.id.configureAppProcessVersionCodeText)?.let {
                 it.text = appItem.longVersionCode.toString()
-            }
-        }
-
-        runOnUiThread {
-            /*
-                app优化策略
-             */
-            val curPackageName = appItem.packageName
-            // 获取本地配置
-            val appOptimizePolicy = prefValue<AppOptimizePolicy>(
-                PreferenceNameConstants.APP_OPTIMIZE_POLICY,
-                curPackageName
-            ) ?: AppOptimizePolicy().apply {
-                this.packageName = curPackageName
             }
 
             fun initAppMemoryOptimizeRadioGroup(
@@ -251,20 +254,17 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
             /*
                 是否被模块纳入管理
              */
-            findViewById<SwitchCompat>(R.id.configureAppProcessShouldHandleMainProcAdjSwitch)?.let { switch ->
-                switch.visibility = if (appItem.systemApp) {    // 只有系统app才可以设置
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
-
+            findViewById<VenusSwitchMaterial3>(R.id.configureAppProcessShouldHandleMainProcAdjSwitch)?.let { switch ->
                 // 初始状态
-                if (appOptimizePolicy.shouldHandleAdj == true) {
-                    switch.isChecked = true
-                }
+                switch.isChecked = appOptimizePolicy.shouldHandleAdj ?: appOptimizePolicy.shouldHandleAdjUiState
 
                 switch.setOnCheckedChangeListener { _, isChecked ->
-                    appOptimizePolicy.shouldHandleAdj = if (isChecked) true else null
+                    appOptimizePolicy.shouldHandleAdj = isChecked
+                    appOptimizePolicySaveAction(appOptimizePolicy)
+                }
+
+                switch.setButtonOnClickedListener {
+                    appOptimizePolicy.shouldHandleAdj = null
                     appOptimizePolicySaveAction(appOptimizePolicy)
                 }
             }
@@ -319,7 +319,14 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
         saveAppMemoryOptimize(appOptimizePolicy, this)
         // 通知模块进程
         showProgressBarViewForAction("正在设置") {
-            sendMessage(this, MessageKeyConstants.appOptimizePolicy, appOptimizePolicy)
+            sendMessage(
+                context = this,
+                key = MessageKeyConstants.appOptimizePolicy,
+                value = AppOptimizePolicyMessage().apply {
+                    value = appOptimizePolicy
+                    messageType = AppOptimizePolicyMessage.MSG_SAVE
+                }
+            )
         }
     }
 

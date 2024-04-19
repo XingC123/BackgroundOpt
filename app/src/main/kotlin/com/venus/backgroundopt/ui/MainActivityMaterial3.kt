@@ -15,22 +15,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- package com.venus.backgroundopt.ui
+package com.venus.backgroundopt.ui
 
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
+import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
+import com.venus.backgroundopt.ui.base.sendMessage
 import com.venus.backgroundopt.ui.widget.QueryInfoDialog
+import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.findViewById
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.HomePageModuleInfoMessage
+import com.venus.backgroundopt.utils.message.handle.ModuleRunningMessageHandler
 import com.venus.backgroundopt.utils.message.sendMessage
+import com.venus.backgroundopt.utils.showProgressBarViewForAction
 
 
 class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
@@ -112,7 +117,31 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
         findViewById<Button>(
             R.id.gotoConfigureAppProcessActivityBtn, moduleActive
         )?.setOnClickListener { _ ->
-            startActivity(Intent(this, ShowAllInstalledAppsActivityMaterial3::class.java))
+            // 检查版本是否匹配
+            showProgressBarViewForAction(text = "版本校验中...") {
+                val versionCode = sendMessage<ModuleRunningMessageHandler.ModuleRunningMessage>(
+                    key = MessageKeyConstants.moduleRunning,
+                    value = ModuleRunningMessageHandler.ModuleRunningMessage().apply {
+                        messageType =
+                            ModuleRunningMessageHandler.ModuleRunningMessage.MODULE_VERSION_CODE
+                    }
+                )?.value as? Int
+
+                if (versionCode == null || versionCode < BuildConfig.VERSION_CODE) {
+                    runOnUiThread {
+                        UiUtils.createDialog(
+                            context = this,
+                            text = "app与模块版本不匹配, 请重启后再试",
+                            enablePositiveBtn = true
+                        ).show()
+                    }
+                    return@showProgressBarViewForAction
+                }
+
+                runOnUiThread {
+                    startActivity(Intent(this, ShowAllInstalledAppsActivityMaterial3::class.java))
+                }
+            }
         }
     }
 }

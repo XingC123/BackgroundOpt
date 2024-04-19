@@ -102,4 +102,7 @@ public interface FieldConstants {
     String mAppProfiler = "mAppProfiler";
     String mService = "mService";
     String isSdkSandbox = "isSdkSandbox";
+    String PER_USER_RANGE = "PER_USER_RANGE";
+    String USER_SYSTEM = "USER_SYSTEM";
+    String MU_ENABLED = "MU_ENABLED";
 }

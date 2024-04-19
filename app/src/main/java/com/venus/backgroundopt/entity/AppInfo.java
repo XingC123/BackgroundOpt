@@ -32,7 +32,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.manager.application.DefaultApplicationManager;
 import com.venus.backgroundopt.utils.concurrent.lock.LockFlag;
 import com.venus.backgroundopt.utils.log.ILogger;
-import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler;
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -75,9 +75,7 @@ public class AppInfo implements ILogger, LockFlag {
         this.findAppResult = findAppResult;
         this.runningInfo = runningInfo;
 
-        if (findAppResult.getImportantSystemApp() && !DefaultApplicationManager.isDefaultAppPkgName(packageName)) {
-            this.shouldHandleAdj = AppInfo.handleAdjDependOnAppOptimizePolicy;
-        }
+        setShouldHandleAdj();
     }
 
     /* *************************************************************************
@@ -131,17 +129,18 @@ public class AppInfo implements ILogger, LockFlag {
      * adj处理                                                                  *
      *                                                                         *
      **************************************************************************/
-    public static final Function<AppInfo, Boolean> handleAdjDependOnAppOptimizePolicy = appInfo -> {
-        AppOptimizePolicyMessageHandler.AppOptimizePolicy appOptimizePolicy = HookCommonProperties.INSTANCE.getAppOptimizePolicyMap().get(appInfo.packageName);
+    public static final Function<AppOptimizePolicy, Boolean> handleAdjDependOnAppOptimizePolicy = appOptimizePolicy -> {
         if (appOptimizePolicy == null) {
             return false;
         }
         return Boolean.TRUE.equals(appOptimizePolicy.getShouldHandleAdj());
     };
 
-    public static final Function<AppInfo, Boolean> handleAdjAlways = appInfo -> true;
+    public static final Function<AppOptimizePolicy, Boolean> handleAdjAlways = appOptimizePolicy -> true;
 
-    public volatile Function<AppInfo, Boolean> shouldHandleAdj = AppInfo.handleAdjAlways;
+    public static final Function<AppOptimizePolicy, Boolean> handleAdjNever = appOptimizePolicy -> false;
+
+    public volatile Function<AppOptimizePolicy, Boolean> shouldHandleAdj = AppInfo.handleAdjAlways;
 
     /**
      * 应用是否需要管理adj
@@ -149,7 +148,48 @@ public class AppInfo implements ILogger, LockFlag {
      * @return 需要 -> true
      */
     public boolean shouldHandleAdj() {
-        return shouldHandleAdj.apply(this);
+        return shouldHandleAdj.apply(HookCommonProperties.INSTANCE.getAppOptimizePolicyMap().get(packageName));
+    }
+
+    public boolean shouldHandleAdj(AppOptimizePolicy appOptimizePolicy) {
+        return shouldHandleAdj.apply(appOptimizePolicy);
+    }
+
+    public boolean setShouldHandleAdj() {
+        return setShouldHandleAdj(HookCommonProperties.INSTANCE.getAppOptimizePolicyMap().get(packageName));
+    }
+
+    public boolean setShouldHandleAdj(@Nullable AppOptimizePolicy appOptimizePolicy) {
+        boolean shouldHandleAdjUiState = false;
+        // 未配置app优化策略
+        if (appOptimizePolicy == null) {
+            // 系统app默认不管理
+            if (shouldHandleAdj(findAppResult, packageName)) {
+                // 用户app默认管理adj
+                this.shouldHandleAdj = AppInfo.handleAdjAlways;
+                shouldHandleAdjUiState = true;
+            } else {
+                this.shouldHandleAdj = AppInfo.handleAdjNever;
+            }
+        }
+        // 已配置app优化策略 或者 打开过app配置页
+        else if (Boolean.TRUE.equals(appOptimizePolicy.getShouldHandleAdj())
+                || (appOptimizePolicy.getShouldHandleAdj() == null && shouldHandleAdj(findAppResult, packageName))
+        ) {
+            this.shouldHandleAdj = AppInfo.handleAdjAlways;
+            shouldHandleAdjUiState = true;
+        } else {
+            this.shouldHandleAdj = AppInfo.handleAdjNever;
+        }
+
+        return shouldHandleAdjUiState;
+    }
+
+    public static boolean shouldHandleAdj(@NonNull FindAppResult findAppResult, String packageName) {
+        // 系统app默认不管理
+        // 用户app默认管理adj
+        // 默认app默认管理adj
+        return !(findAppResult.getImportantSystemApp() && !DefaultApplicationManager.isDefaultAppPkgName(packageName));
     }
 
     /* *************************************************************************

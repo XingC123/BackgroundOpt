@@ -42,6 +42,7 @@ import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreMessageHandler
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreValueMessageHandler
 import com.venus.backgroundopt.utils.message.handle.HomePageModuleInfoMessageHandler
 import com.venus.backgroundopt.utils.message.handle.KillAfterRemoveTaskMessageHandler
+import com.venus.backgroundopt.utils.message.handle.ModuleRunningMessageHandler
 import com.venus.backgroundopt.utils.message.handle.RunningAppInfoMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SimpleLmkMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMessageHandler
@@ -85,6 +86,7 @@ val registeredMessageHandler = mapOf(
 //    MessageKeyConstants.getTrimMemoryOptThreshold to GetTrimMemoryOptThresholdMessageHandler(),
     MessageKeyConstants.getHomePageModuleInfo to HomePageModuleInfoMessageHandler(),
     MessageKeyConstants.killAfterRemoveTask to KillAfterRemoveTaskMessageHandler(),
+    MessageKeyConstants.moduleRunning to ModuleRunningMessageHandler(),
 )
 
 // json传输的载体
@@ -244,4 +246,15 @@ inline fun <reified E> createResponse(
         )
         param.result = nullComponentName
     }
+}
+
+/**
+ * 将[JSONObject]转换为指定的类型[E]
+ *
+ * 若类class A { var value: Any? = null }导致fastjson无法正确映射value的类型。则使用本方法来进行转换
+ * @param jsonObject Any? 确保此字段为[JSONObject]
+ * @return E?
+ */
+inline fun <reified E> parseObjectFromJsonObject(jsonObject: Any?): E? {
+    return JSON.parseObject(jsonObject.toString(), E::class.java)
 }

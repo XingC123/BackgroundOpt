@@ -312,7 +312,7 @@ class ProcessListHookKt(
             process.clearProcessUnexpectedState()
         } else if (isUserSpaceAdj) {
             if (isHighPriorityProcess) {
-                if (appInfo.shouldHandleAdj()) {
+                if (appInfo.shouldHandleAdj(appOptimizePolicy)) {
                     val oomMode = HookCommonProperties.oomWorkModePref.oomMode
                     if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
                         finalApplyOomScoreAdj = ProcessRecord.DEFAULT_MAIN_ADJ
