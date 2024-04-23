@@ -38,6 +38,7 @@ import com.venus.backgroundopt.utils.clamp
 import com.venus.backgroundopt.utils.getBooleanFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
 import com.venus.backgroundopt.utils.ifTrue
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
 import com.venus.backgroundopt.utils.message.handle.getCustomMainProcessOomScore
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -244,6 +245,26 @@ class ProcessListHookKt(
 
     private fun useSimpleLmk(): Boolean = HookCommonProperties.useSimpleLmk
 
+    /**
+     * 应用最终要被应用的adj
+     *
+     * 当不满足一些条件时, [block]不会被执行
+     * @param appInfo AppInfo app信息
+     * @param appOptimizePolicy AppOptimizePolicy? app优化配置
+     * @param block Function0<Unit> 在此方法内, 完成对adj的赋值
+     */
+    private inline fun applyHighPriorityProcessFinalAdj(
+        appInfo: AppInfo,
+        appOptimizePolicy: AppOptimizePolicy?,
+        block: () -> Unit
+    ) {
+        if (!appInfo.shouldHandleAdj(appOptimizePolicy)) {
+            return
+        }
+
+        block()
+    }
+
     private fun handleSetOomAdj(param: MethodHookParam) {
         val pid = param.args[0] as Int
         // 获取当前进程对象
@@ -298,8 +319,10 @@ class ProcessListHookKt(
         val possibleAdj = appOptimizePolicy.getCustomMainProcessOomScore()
 
         if (possibleAdj != null && isHighPriorityProcess) {    // 进程独立配置优先于任何情况
-            finalApplyOomScoreAdj = possibleAdj
-            process.clearProcessUnexpectedState()
+            applyHighPriorityProcessFinalAdj(appInfo = appInfo, appOptimizePolicy = appOptimizePolicy) {
+                finalApplyOomScoreAdj = possibleAdj
+                process.clearProcessUnexpectedState()
+            }
         } else if (globalOomScorePolicy.enabled
             && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL
                     || isHighPriorityProcess && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS_ANY || isUserSpaceAdj)
@@ -308,39 +331,39 @@ class ProcessListHookKt(
         ) {
             // 逻辑概要:
             // 开启全局oom && (作用域 == ALL || isHighPriorityProcess && (作用域 == MAIN_PROC_ANY || isUserSpaceAdj) || /* 普通子进程 或 !isUserSpaceAdj */ isUserSpaceAdj && 作用域 == MAIN_AND_SUB_PROC)
-            finalApplyOomScoreAdj = globalOomScorePolicy.customGlobalOomScore
-            process.clearProcessUnexpectedState()
+            applyHighPriorityProcessFinalAdj(appInfo = appInfo, appOptimizePolicy = appOptimizePolicy) {
+                finalApplyOomScoreAdj = globalOomScorePolicy.customGlobalOomScore
+                process.clearProcessUnexpectedState()
+            }
         } else if (isUserSpaceAdj) {
             if (isHighPriorityProcess) {
-                if (appInfo.shouldHandleAdj(appOptimizePolicy)) {
-                    val oomMode = HookCommonProperties.oomWorkModePref.oomMode
-                    if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
-                        finalApplyOomScoreAdj = ProcessRecord.DEFAULT_MAIN_ADJ
-                    } else if (HookCommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE) {
-                        doHookOriginalAdj = false
-                    } else {
+                val oomMode = HookCommonProperties.oomWorkModePref.oomMode
+                if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
+                    finalApplyOomScoreAdj = ProcessRecord.DEFAULT_MAIN_ADJ
+                } else if (HookCommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE) {
+                    doHookOriginalAdj = false
+                } else {
+                    applyHighPriorityProcessFinalAdj(appInfo = appInfo, appOptimizePolicy = appOptimizePolicy) {
                         finalApplyOomScoreAdj = oomAdjHandler.computeFinalAdj(
                             oomScoreAdj = curRawAdj,
                             processRecord = process,
                             appInfo = appInfo,
                             mainProcess = mainProcess
                         )
-                        if (process.fixedOomAdjScore != ProcessRecord.DEFAULT_MAIN_ADJ) {
-                            process.fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
+                    }
+                    if (process.fixedOomAdjScore != ProcessRecord.DEFAULT_MAIN_ADJ) {
+                        process.fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
 
-                            when (oomMode) {
-                                OomWorkModePref.MODE_STRICT,
-                                    /*|| oomMode == OomWorkModePref.MODE_NEGATIVE, */
-                                OomWorkModePref.MODE_BALANCE_PLUS -> {
-                                    process.setDefaultMaxAdj()
-                                }
-
-                                else -> {}
+                        when (oomMode) {
+                            OomWorkModePref.MODE_STRICT,
+                                /*|| oomMode == OomWorkModePref.MODE_NEGATIVE, */
+                            OomWorkModePref.MODE_BALANCE_PLUS -> {
+                                process.setDefaultMaxAdj()
                             }
+
+                            else -> {}
                         }
                     }
-                } else {
-                    doHookOriginalAdj = false
                 }
             } else {    // 普通子进程
                 finalApplyOomScoreAdj = computeSubprocessFinalOomScore(
