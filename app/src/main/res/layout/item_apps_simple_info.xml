@@ -7,10 +7,6 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginRight="5dp"
-        android:layout_marginBottom="5dp"
         android:divider="@drawable/item_space_horizontal"
         android:gravity="center_vertical"
         android:orientation="horizontal"
@@ -33,13 +29,6 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/installedAppItemAppNameText" />
-
-        <TextView
-            android:id="@+id/installedAppConfiguredFlagText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0"
-            android:textColor="@color/shanChui" />
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

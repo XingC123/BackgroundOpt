@@ -194,6 +194,13 @@
                     android:layout_weight="0"
                     android:text="@string/getAppCompactItemsBtn" />
 
+                <Button
+                    android:id="@+id/getManageAdjDefalutAppsBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/getManagedAdjDefalutAppsBtn" />
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/gotoConfigureAppProcessActivityBtn"
                     android:layout_width="wrap_content"

@@ -17,7 +17,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:id="@+id/installedAppItemAppIcon"
+            android:id="@+id/appIconImageView"
             android:layout_width="52dp"
             android:layout_height="52dp"
             android:layout_weight="0"
@@ -30,7 +30,7 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/installedAppItemAppNameText"
+                android:id="@+id/appNameText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"

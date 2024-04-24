@@ -113,6 +113,14 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
             startActivity(Intent(this, ShowAppCompactListActivityMaterial3::class.java))
         }
 
+        // 被管理adj的默认app
+        findViewById<Button>(
+            resId = R.id.getManageAdjDefalutAppsBtn,
+            enable = moduleActive
+        )?.setOnClickListener { _ ->
+            startActivity(Intent(this, ShowManagedAdjDefaultAppsActivityMaterial3::class.java))
+        }
+
         // 转去设置应用进程页面
         findViewById<Button>(
             R.id.gotoConfigureAppProcessActivityBtn, moduleActive

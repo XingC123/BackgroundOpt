@@ -662,6 +662,10 @@ public class RunningInfo implements ILogger {
         return defaultApplicationManager.getDefaultPackageName(key);
     }
 
+    public Collection<String> getAllDefaultPackageNames() {
+        return defaultApplicationManager.getAllPkgNames();
+    }
+
     @Deprecated
     private volatile String activeLaunchPackageName = null;
 

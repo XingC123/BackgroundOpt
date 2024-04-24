@@ -78,6 +78,12 @@ class DefaultApplicationManager {
 
     fun getDefaultPackageName(key: String): String? = defaultAppPkgNameMap[key]?.value
 
+    fun getAllPkgNames(): Collection<String> {
+        return defaultAppPkgNameMap.values.map { defaultApplicationNode ->
+            defaultApplicationNode.value ?: ""
+        }
+    }
+
     /* *************************************************************************
      *                                                                         *
      * 默认包名的包装节点                                                          *

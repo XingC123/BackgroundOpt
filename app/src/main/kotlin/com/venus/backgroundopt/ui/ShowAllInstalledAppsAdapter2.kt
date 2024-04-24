@@ -47,8 +47,8 @@ class ShowAllInstalledAppsAdapter2(private val appItems: List<AppItem>) :
         var itemInstalledAppsOomPolicyFlagText: TextView
 
         init {
-            appIcon = itemView.findViewById(R.id.installedAppItemAppIcon)
-            appName = itemView.findViewById(R.id.installedAppItemAppNameText)
+            appIcon = itemView.findViewById(R.id.appIconImageView)
+            appName = itemView.findViewById(R.id.appNameText)
             itemInstalledAppsMemTrimFlagText =
                 itemView.findViewById(R.id.itemInstalledAppsMemTrimFlagText)
             itemInstalledAppsCustomMainProcOomScoreFlagText =

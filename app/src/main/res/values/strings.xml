@@ -174,4 +174,6 @@
     <string name="settingsUiTitle">UI</string>
     <string name="settingsDynamicThemePrefText" translatable="false">动态取色</string>
     <string name="settingsDynamicThemePrefSummary" translatable="false">切换需重启app生效</string>
+    <string name="getManagedAdjDefalutAppsBtn" translatable="false">获取被管理adj的默认app</string>
+    <string name="showManagedAdjDefaultAppsToolBarText" translatable="false">被管理adj的默认应用</string>
 </resources>

@@ -44,5 +44,6 @@ interface MessageKeyConstants {
         const val getHomePageModuleInfo = "getHomePageModuleInfo"
         const val killAfterRemoveTask = "killAfterRemoveTask"
         const val moduleRunning = "moduleRunning"
+        const val getManagedAdjDefaultApps = "getManagedAdjDefaultApps"
     }
 }

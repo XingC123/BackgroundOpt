@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.utils
+
+package com.venus.backgroundopt.utils
 
 import android.content.Context
 import android.content.pm.ComponentInfo
@@ -31,7 +31,6 @@ import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.ui.ConfigureAppProcessActivity
 import com.venus.backgroundopt.utils.log.logErrorAndroid
-import com.venus.backgroundopt.utils.log.logInfoAndroid
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.preference.prefAll
 import java.text.Collator
@@ -139,6 +138,32 @@ object PackageUtils {
         // 清空缓存
         infoCache.clear()
         return appItems
+    }
+
+    /**
+     * 根据[packageNames]包名, 查找匹配的[AppItem]集合
+     * @param context Context
+     * @param packageNames Collection<String>
+     * @return List<AppItem>
+     */
+    fun getTargetApps(context: Context, packageNames: Collection<String>): List<AppItem> {
+        val packageManager = context.packageManager
+        return packageNames.asSequence()
+            .map { packageName ->
+                getPackageInfo(
+                    packageManager,
+                    packageName
+                )?.let { packageInfo ->
+                    val applicationInfo = packageInfo.applicationInfo ?: return@map null
+                    AppItem(packageName).apply {
+                        appName = applicationInfo.loadLabel(packageManager).toString()
+                        appIcon = applicationInfo.loadIcon(packageManager)
+                        this.packageInfo = packageInfo
+                    }
+                }
+            }
+            .filterNotNull()
+            .toList()
     }
 
     /**
