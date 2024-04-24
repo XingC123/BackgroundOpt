@@ -741,13 +741,9 @@ public class RunningInfo implements ILogger {
 
     private PropertyChangeListener<String> generateDefaultApplicationChangeListener(String tag) {
         return (oldValue, newValue) -> {
-            String newPkgName = DefaultApplicationManager.getDefaultPkgNameFromUriStr(newValue);
-            if (Objects.equals(oldValue, newPkgName)) {
-                return;
-            }
             runningApps.values().stream()
                     // .filter(AppInfo::isImportSystemApp)
-                    .filter(appInfo -> Objects.equals(appInfo.getPackageName(), oldValue) || Objects.equals(appInfo.getPackageName(), newPkgName))
+                    .filter(appInfo -> Objects.equals(appInfo.getPackageName(), oldValue) || Objects.equals(appInfo.getPackageName(), newValue))
                     .forEach(appInfo -> {
                         boolean shouldHandleAdjUiState = false;
                         if (Objects.equals(appInfo.getPackageName(), oldValue)) {
@@ -759,7 +755,7 @@ public class RunningInfo implements ILogger {
                         }
                         HookCommonProperties.setShouldHandleAdjUiState(appInfo.getUserId(), appInfo.getPackageName(), shouldHandleAdjUiState);
                     });
-            getLogger().info("更换的" + tag + "包名为: " + newPkgName);
+            getLogger().info("更换的" + tag + "包名为: " + newValue);
         };
     }
 

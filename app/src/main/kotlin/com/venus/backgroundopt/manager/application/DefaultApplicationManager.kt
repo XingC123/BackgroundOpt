@@ -93,6 +93,12 @@ class DefaultApplicationManager {
         @Volatile
         var value: String? = null
             set(value) {
+                // 处理传入的包名
+                val newPackageName = getDefaultPkgNameFromUriStr(value)
+                if (field == newPackageName) {
+                    return
+                }
+
                 // 执行监听
                 valueChangeListeners.values.forEach { propertyChangeListener ->
                     propertyChangeListener.change(field, value)
@@ -153,15 +159,18 @@ class DefaultApplicationManager {
          */
         @JvmStatic
         fun getDefaultPkgNameFromSettings(key: String?): String? {
+            return getDefaultPkgNameFromUriStr(uriStr = getDefaultPkgNameFromSettingsDirectly(key))
+        }
+
+        @JvmStatic
+        fun getDefaultPkgNameFromSettingsDirectly(key: String?): String? {
             if (key == null) {
                 return null
             }
 
-            return getDefaultPkgNameFromUriStr(
-                uriStr = Settings.Secure.getString(
-                    RunningInfo.getInstance().activityManagerService.context.contentResolver,
-                    key
-                )
+            return Settings.Secure.getString(
+                RunningInfo.getInstance().activityManagerService.context.contentResolver,
+                key
             )
         }
 

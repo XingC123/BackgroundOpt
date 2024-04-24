@@ -22,6 +22,7 @@ import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemActivityMaterial3
 import com.venus.backgroundopt.ui.base.sendMessage
 import com.venus.backgroundopt.utils.PackageUtils
+import com.venus.backgroundopt.utils.log.logInfoAndroid
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.GetManagedAdjDefaultAppsMessageHandler.ManagedAdjDefaultAppMessage
 
@@ -46,11 +47,16 @@ class ShowManagedAdjDefaultAppsActivityMaterial3 : ShowInfoFromAppItemActivityMa
             key = MessageKeyConstants.getManagedAdjDefaultApps
         ) ?: return
         val packageNames = managedAdjDefaultAppMessage.defaultAppPackageNames ?: return
+        packageNames.forEach {
+            logInfoAndroid("packageNames: ${it}")
+        }
 
         val appItems = PackageUtils.getTargetApps(
             context = this,
             packageNames = packageNames
         )
+
+        logInfoAndroid("appItems: ${appItems.size}")
 
         initRecyclerView(appItems = appItems)
     }
