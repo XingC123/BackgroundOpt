@@ -15,9 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
                     
- package com.venus.backgroundopt.ui
+package com.venus.backgroundopt.ui
 
-import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -25,7 +24,7 @@ import android.widget.TextView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
-import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
+import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemViewHolder
 import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandler
 
 /**
@@ -35,7 +34,7 @@ import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandle
 class ShowBackgroundTasksAdapter(
     override val items: List<AppItem>,
     private val backgroundTaskMessage: BackgroundTasksMessageHandler.BackgroundTaskMessage
-) : ShowInfoFromAppItemAdapter(items) {
+) : ShowProcessInfoFromAppItemAdapter(items) {
     private var enableForegroundProcTrimMem = false
 
     override fun getText1Content(appItem: AppItem): String {
@@ -58,14 +57,14 @@ class ShowBackgroundTasksAdapter(
         return R.string.appItemTipProcessName
     }
 
-    override fun getViewHolder(view: View): ShowInfoFromAppItemViewHolder {
+    override fun getViewHolder(view: View): ShowProcessInfoFromAppItemViewHolder {
         return ShowBackgroundTasksViewHolder(view)
     }
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): ShowInfoFromAppItemViewHolder {
+    ): ShowProcessInfoFromAppItemViewHolder {
         return super.onCreateViewHolder(parent, viewType).apply {
             // 上次运行结果
             itemView.findViewById<LinearLayout>(R.id.appItemLastProcessingResultLayout)?.let {
@@ -126,7 +125,7 @@ class ShowBackgroundTasksAdapter(
         }
     }
 
-    class ShowBackgroundTasksViewHolder(itemView: View) : ShowInfoFromAppItemViewHolder(itemView) {
+    class ShowBackgroundTasksViewHolder(itemView: View) : ShowProcessInfoFromAppItemViewHolder(itemView) {
         val appItemTipText1: TextView
 
         val appItemForegroundTrimMemText: TextView

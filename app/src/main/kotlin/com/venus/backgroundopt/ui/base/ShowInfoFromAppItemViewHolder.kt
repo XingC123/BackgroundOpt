@@ -17,13 +17,14 @@
 
 package com.venus.backgroundopt.ui.base
 
+import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.entity.AppItem
 
 /**
- * 从[AppItem]中展示信息的Adapter都应继承自此类
+ * 从[AppItem]中展示信息的ViewHolder都应继承自此类
  *
  * @author XingC
  * @date 2024/4/24
  */
-abstract class ShowInfoFromAppItemAdapter : RecyclerView.Adapter<ShowInfoFromAppItemViewHolder>()
+abstract class ShowInfoFromAppItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)

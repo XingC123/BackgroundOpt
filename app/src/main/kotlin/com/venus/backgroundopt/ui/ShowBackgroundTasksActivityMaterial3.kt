@@ -21,7 +21,6 @@ import com.alibaba.fastjson2.JSON
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemActivityMaterial3
-import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandler.BackgroundTaskMessage
@@ -38,7 +37,7 @@ class ShowBackgroundTasksActivityMaterial3 : ShowInfoFromAppItemActivityMaterial
     override fun getShowInfoAdapter(
         appItems: List<AppItem>,
         vararg others: Any?
-    ): ShowInfoFromAppItemAdapter {
+    ): ShowProcessInfoFromAppItemAdapter {
         return ShowBackgroundTasksAdapter(appItems, others[0] as BackgroundTaskMessage)
     }
 
