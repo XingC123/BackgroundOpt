@@ -195,6 +195,19 @@ inline fun <reified E> createResponseWithNullData(
     )
 }
 
+inline fun <reified E> createJsonResponse(
+    param: MethodHookParam,
+    value: String?,
+    generateData: (value: E) -> Any?
+) {
+    createResponse<E>(
+        param = param,
+        value = value,
+        setJsonData = true,
+        generateData
+    )
+}
+
 /**
  * 创建响应
  *
