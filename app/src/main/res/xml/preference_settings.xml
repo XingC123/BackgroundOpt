@@ -29,6 +29,11 @@
             app:key="@string/pref_key_autoStopCompactTask"
             app:summary="@string/settingsAutoStopCompactPrefSummaryText" />
         <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/pref_key_enable_background_proc_trim_mem_policy"
+            android:title="@string/settingsBackgroundProcTrimMemEnablePrefText"
+            app:iconSpaceReserved="false" />
+        <SwitchPreference
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:defaultValue="true"

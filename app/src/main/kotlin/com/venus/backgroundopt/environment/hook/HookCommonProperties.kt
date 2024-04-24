@@ -131,6 +131,17 @@ object HookCommonProperties : ILogger {
     fun getForegroundProcTrimMemLevelUiName(): String =
         foregroundProcTrimMemPolicy.value.foregroundProcTrimMemLevelEnum.uiName
 
+    val backgroundProcTrimMemPolicy by lazy {
+        val isEnabled = PreferencesUtil.getBoolean(
+            PreferenceNameConstants.MAIN_SETTINGS,
+            PreferenceKeyConstants.ENABLE_BACKGROUND_PROC_TRIM_MEM_POLICY,
+            PreferenceDefaultValue.enableBackgroundTrimMem
+        )
+        PropertyValueWrapper(isEnabled)
+    }
+
+    fun isEnableBackgroundProcTrimMem(): Boolean = backgroundProcTrimMemPolicy.value
+
     /* *************************************************************************
      *                                                                         *
      * 应用后台优化相关                                                           *

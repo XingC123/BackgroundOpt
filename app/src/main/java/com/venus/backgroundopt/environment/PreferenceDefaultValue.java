@@ -54,6 +54,16 @@ public interface PreferenceDefaultValue {
         );
     }
 
+    static boolean isEnableBackgroundTrimMem(@NonNull Context context) {
+        return PreferencesUtilKt.pref(
+                context,
+                PreferenceNameConstants.MAIN_SETTINGS
+        ).getBoolean(
+                PreferenceKeyConstants.ENABLE_BACKGROUND_PROC_TRIM_MEM_POLICY,
+                enableBackgroundTrimMem
+        );
+    }
+
     /* *************************************************************************
      *                                                                         *
      * OOM工作模式                                                               *

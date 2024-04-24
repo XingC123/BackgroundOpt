@@ -19,8 +19,8 @@
 
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.hook.handle.android.entity.correctProcessPid
@@ -107,11 +107,15 @@ class AppMemoryTrimManagerKt(
         }
 
         // 后台任务
-        executor.scheduleWithFixedDelay({
-            backgroundTasks.forEach {
-                executeBackgroundTask(it)
-            }
-        }, backgroundInitialDelay, backgroundDelay, backgroundTimeUnit)
+        if (HookCommonProperties.isEnableBackgroundProcTrimMem()) {
+            executor.scheduleWithFixedDelay({
+                backgroundTasks.forEach {
+                    executeBackgroundTask(it)
+                }
+            }, backgroundInitialDelay, backgroundDelay, backgroundTimeUnit)
+        } else {
+            logger.info("禁用: 后台进程内存回收")
+        }
     }
 
     private fun configureForegroundTrimCheckTask(isEnable: Boolean) {

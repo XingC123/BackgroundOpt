@@ -36,6 +36,7 @@ class ShowBackgroundTasksAdapter(
     private val backgroundTaskMessage: BackgroundTasksMessageHandler.BackgroundTaskMessage
 ) : ShowProcessInfoFromAppItemAdapter(items) {
     private var enableForegroundProcTrimMem = false
+    private var enableBackgroundProcTrimMem = false
 
     override fun getText1Content(appItem: AppItem): String {
         return ""
@@ -73,6 +74,9 @@ class ShowBackgroundTasksAdapter(
             // 设置前台可见性
             enableForegroundProcTrimMem =
                 PreferenceDefaultValue.isEnableForegroundTrimMem(this.itemView.context)
+            // 设置后台可见性
+            enableBackgroundProcTrimMem =
+                PreferenceDefaultValue.isEnableBackgroundTrimMem(this.itemView.context)
         }
     }
 
@@ -107,10 +111,14 @@ class ShowBackgroundTasksAdapter(
                 enablePolicyForegroundTrim
             )
         }
-        setAppOptimizePolicyTextVisible(
-            viewHolder.appItemBackgroundTrimMemText,
-            enablePolicyBackgroundTrim
-        )
+        if (!enableBackgroundProcTrimMem) {
+            setAppOptimizePolicyTextVisible(viewHolder.appItemBackgroundTrimMemText, false)
+        } else {
+            setAppOptimizePolicyTextVisible(
+                viewHolder.appItemBackgroundTrimMemText,
+                enablePolicyBackgroundTrim
+            )
+        }
         setAppOptimizePolicyTextVisible(
             viewHolder.appItemBackgroundGcText,
             enablePolicyBackgroundGc

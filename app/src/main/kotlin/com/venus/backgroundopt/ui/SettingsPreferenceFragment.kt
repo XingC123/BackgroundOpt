@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.ui
+
+package com.venus.backgroundopt.ui
 
 import android.os.Bundle
 import androidx.preference.EditTextPreference
@@ -45,6 +45,11 @@ class SettingsPreferenceFragment : BasePreferenceFragment<SettingsActivity>() {
         initSwitchPreferenceChangeListener(
             switchPreference = findPreference(PreferenceKeyConstants.AUTO_STOP_COMPACT_TASK),
             messageKey = MessageKeyConstants.autoStopCompactTask,
+        )
+
+        // 后台进程内存紧张
+        initSwitchPreferenceActiveAfterRestart(
+            preferenceKey = PreferenceKeyConstants.ENABLE_BACKGROUND_PROC_TRIM_MEM_POLICY
         )
 
         // 前台进程内存紧张
@@ -163,6 +168,28 @@ class SettingsPreferenceFragment : BasePreferenceFragment<SettingsActivity>() {
             preferenceKey = PreferenceKeyConstants.KILL_AFTER_REMOVE_TASK,
             messageKey = MessageKeyConstants.killAfterRemoveTask
         )
+    }
+
+    /**
+     * 初始化功能的切换需要重启才能生效的[SwitchPreference]
+     * @param preferenceKey String 配置项对应的key
+     */
+    private fun initSwitchPreferenceActiveAfterRestart(
+        preferenceKey: String,
+    ) {
+        findPreference<SwitchPreference>(preferenceKey)?.apply {
+            setOnPreferenceChangeListener { _, _ ->
+                UiUtils.createDialog(
+                    requireActivity(),
+                    text = "更改此配置需要重启生效",
+                    enablePositiveBtn = true,
+                    positiveBlock = { dialogInterface, _ ->
+                        dialogInterface.dismiss()
+                    }
+                ).show()
+                true
+            }
+        }
     }
 
     private fun initSwitchPreferenceChangeListener(
