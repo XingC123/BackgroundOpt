@@ -15,11 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
                     
- package com.venus.backgroundopt.hook.base;
+package com.venus.backgroundopt.hook.base;
 
 import androidx.annotation.NonNull;
 
-import com.venus.backgroundopt.environment.hook.HookCommonProperties;
+import com.venus.backgroundopt.environment.CommonProperties;
 import com.venus.backgroundopt.hook.base.action.AfterHookAction;
 import com.venus.backgroundopt.hook.base.action.BeforeHookAction;
 import com.venus.backgroundopt.hook.base.action.DoNotingHookAction;
@@ -48,7 +48,7 @@ import de.robv.android.xposed.XposedHelpers;
 public class HookPoint implements ILogger {
     public static final Set<String> dontPrintLogHookList = new HashSet<>() {
         {
-            add(HookCommonProperties.class.getTypeName() + ".isModuleActive");
+            add(CommonProperties.class.getTypeName() + ".isModuleActive");
         }
     };
 
