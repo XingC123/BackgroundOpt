@@ -26,6 +26,7 @@ import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
+import com.venus.backgroundopt.ui.base.ifVersionIsCompatible
 import com.venus.backgroundopt.ui.base.sendMessage
 import com.venus.backgroundopt.ui.widget.QueryInfoDialog
 import com.venus.backgroundopt.utils.UiUtils
@@ -118,7 +119,11 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
             resId = R.id.getManageAdjDefalutAppsBtn,
             enable = moduleActive
         )?.setOnClickListener { _ ->
-            startActivity(Intent(this, ShowManagedAdjDefaultAppsActivityMaterial3::class.java))
+            ifVersionIsCompatible(targetVersionCode = 201) {
+                runOnUiThread {
+                    startActivity(Intent(this, ShowManagedAdjDefaultAppsActivityMaterial3::class.java))
+                }
+            }
         }
 
         // 转去设置应用进程页面
