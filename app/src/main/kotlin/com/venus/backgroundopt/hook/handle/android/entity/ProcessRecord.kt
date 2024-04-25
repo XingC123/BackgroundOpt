@@ -318,6 +318,11 @@ class ProcessRecord(
         }
 
         @JvmStatic
+        fun getProcessCachedOptimizerRecord(
+            processRecord: Any
+        ): Any? = processRecord.getObjectFieldValue(FieldConstants.mOptRecord)
+
+        @JvmStatic
         fun getProcessStateRecord(
             processRecord: Any
         ): Any = processRecord.getObjectFieldValue(FieldConstants.mState)!!

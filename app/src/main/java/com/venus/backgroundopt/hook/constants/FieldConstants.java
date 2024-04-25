@@ -105,4 +105,7 @@ public interface FieldConstants {
     String PER_USER_RANGE = "PER_USER_RANGE";
     String USER_SYSTEM = "USER_SYSTEM";
     String MU_ENABLED = "MU_ENABLED";
+    String mConstants = "mConstants";
+    String USE_TIERED_CACHED_ADJ = "USE_TIERED_CACHED_ADJ";
+    String TIERED_CACHED_ADJ_DECAY_TIME = "TIERED_CACHED_ADJ_DECAY_TIME";
 }

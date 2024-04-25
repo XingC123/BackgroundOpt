@@ -17,9 +17,13 @@
                     
  package com.venus.backgroundopt.hook.handle.android.entity;
 
+import androidx.annotation.NonNull;
+
+import com.venus.backgroundopt.annotation.AndroidMethod;
 import com.venus.backgroundopt.annotation.AndroidObject;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
+import com.venus.backgroundopt.utils.XposedUtilsKt;
 
 import de.robv.android.xposed.XposedHelpers;
 
@@ -43,5 +47,15 @@ public class ProcessCachedOptimizerRecord {
                 MethodConstants.setReqCompactAction,
                 reqCompactAction
         );
+    }
+
+    @AndroidMethod(classPath = ClassConstants.ProcessCachedOptimizerRecord)
+    public boolean isFreezeExempt() {
+        return isFreezeExempt(processCachedOptimizerRecord);
+    }
+
+    @AndroidMethod(classPath = ClassConstants.ProcessCachedOptimizerRecord)
+    public static boolean isFreezeExempt(@NonNull @AndroidObject Object instance) {
+        return (boolean) XposedUtilsKt.callMethod(instance, MethodConstants.isFreezeExempt);
     }
 }

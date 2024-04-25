@@ -77,6 +77,7 @@ public class ActivityManagerService implements ILogger {
                 XposedHelpers.getObjectField(activityManagerService, FieldConstants.mOomAdjuster), classLoader);
         this.mPidsSelfLocked = XposedHelpers.getObjectField(activityManagerService, FieldConstants.mPidsSelfLocked);
         this.mProcLock = XposedHelpers.getObjectField(activityManagerService, FieldConstants.mProcLock);
+        this.activityManagerConstants = new ActivityManagerConstants(XposedUtilsKt.getObjectFieldValue(activityManagerService, FieldConstants.mConstants, null));
 
         this.runningInfo = runningInfo;
 
@@ -101,6 +102,13 @@ public class ActivityManagerService implements ILogger {
 
     public Context getContext() {
         return context;
+    }
+
+    private final ActivityManagerConstants activityManagerConstants;
+
+    @NonNull
+    public ActivityManagerConstants getActivityManagerConstants() {
+        return activityManagerConstants;
     }
 
     @AndroidObjectField(

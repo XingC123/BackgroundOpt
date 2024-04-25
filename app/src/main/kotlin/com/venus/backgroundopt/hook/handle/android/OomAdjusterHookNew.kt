@@ -17,15 +17,21 @@
 
 package com.venus.backgroundopt.hook.handle.android
 
+import android.os.SystemClock
 import com.venus.backgroundopt.annotation.AndroidMethodReplacement
 import com.venus.backgroundopt.core.RunningInfo
+import com.venus.backgroundopt.environment.Features
 import com.venus.backgroundopt.hook.base.IHook
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
+import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerInternal
 import com.venus.backgroundopt.hook.handle.android.entity.AppProfiler
 import com.venus.backgroundopt.hook.handle.android.entity.ApplicationExitInfo
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessCachedOptimizerRecord
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList.CACHED_APP_MIN_ADJ
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList.UNKNOWN_ADJ
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessServiceRecord
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessStateRecord
@@ -48,6 +54,7 @@ class OomAdjusterHookNew(
 ) : IHook(classLoader, runningInfo) {
     private lateinit var oomAdjuster: Any
     private lateinit var mProcessList: Any
+    private lateinit var mConstants: Any
 
     // List<ProcessRecord>
     private lateinit var lruList: List<*>
@@ -140,6 +147,9 @@ class OomAdjusterHookNew(
             mProcessList = oomAdjuster.getObjectFieldValue(
                 fieldName = FieldConstants.mProcessList
             )!!
+            mConstants = oomAdjuster.getObjectFieldValue(
+                fieldName = FieldConstants.mConstants
+            )!!
             lruList = mProcessList.callMethod(
                 methodName = MethodConstants.getLruProcessesLOSP
             ) as List<*>
@@ -164,6 +174,15 @@ class OomAdjusterHookNew(
             hookAllMethod = true,
         ) {
             updateAndTrimProcessLSP(it)
+        }
+
+        ClassConstants.OomAdjuster.replaceHook(
+            enable = !SystemUtils.isUOrHigher && Features.USE_TIERED_CACHED_ADJ == true,
+            classLoader = classLoader,
+            methodName = MethodConstants.assignCachedAdjIfNecessary,
+            hookAllMethod = true,
+        ) {
+            assignCachedAdjIfNecessary(it)
         }
 
         /**
@@ -289,5 +308,55 @@ class OomAdjusterHookNew(
             numTrimming = 0,
             now = now,
         )
+    }
+
+    /**
+     * 对[ClassConstants.OomAdjuster].[MethodConstants.assignCachedAdjIfNecessary]的重写
+     *
+     * 为a14以下版本开启分级缓存
+     *
+     * @param param MethodHookParam
+     */
+    @AndroidMethodReplacement(
+        classPath = ClassConstants.OomAdjuster,
+        methodName = MethodConstants.assignCachedAdjIfNecessary
+    )
+    private fun assignCachedAdjIfNecessary(param: MethodHookParam) {
+        val lruList = param.args[0] as List<*>
+
+        val numLru: Int = lruList.size
+        val now = SystemClock.uptimeMillis()
+        for (i in numLru - 1 downTo 0) {
+            // ProcessRecord
+            val app: Any = lruList[i]!!
+            // ProcessStateRecord
+            val state: Any = ProcessRecord.getProcessStateRecord(app)
+            // ProcessCachedOptimizerRecord
+            val opt: Any? = ProcessRecord.getProcessCachedOptimizerRecord(app)
+            if (!ProcessRecord.isKilledByAm(app) && ProcessRecord.getThread(app) != null
+                && ProcessStateRecord.getCurAdj(state) >= UNKNOWN_ADJ
+            ) {
+                // ProcessServiceRecord
+                val psr: Any = ProcessRecord.getProcessServiceRecord(app)
+                var targetAdj = CACHED_APP_MIN_ADJ
+                targetAdj += if (opt != null && ProcessCachedOptimizerRecord.isFreezeExempt(opt)) {
+                    // BIND_WAIVE_PRIORITY and the like get oom_adj 900
+                    0
+                } else if (ProcessStateRecord.getSetAdj(state) >= CACHED_APP_MIN_ADJ
+                    && (ProcessStateRecord.getLastStateTime(state) + ActivityManagerConstants.TIERED_CACHED_ADJ_DECAY_TIME) < now
+                ) {
+                    // Older cached apps get 950
+                    50
+                } else {
+                    // Newer cached apps get 910
+                    10
+                }
+                ProcessStateRecord.setCurRawAdj(state, targetAdj)
+                ProcessStateRecord.setCurAdj(
+                    state,
+                    ProcessServiceRecord.modifyRawOomAdj(psr, targetAdj)
+                )
+            }
+        }
     }
 }

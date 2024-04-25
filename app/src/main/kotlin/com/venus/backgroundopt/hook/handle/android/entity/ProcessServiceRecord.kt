@@ -17,6 +17,7 @@
 
 package com.venus.backgroundopt.hook.handle.android.entity
 
+import com.venus.backgroundopt.annotation.AndroidMethod
 import com.venus.backgroundopt.annotation.AndroidObject
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
@@ -36,5 +37,14 @@ class ProcessServiceRecord(
             processServiceRecord.callMethod<Int>(
                 methodName = MethodConstants.numberOfRunningServices
             )
+
+        @JvmStatic
+        @AndroidMethod
+        fun modifyRawOomAdj(processServiceRecord: Any, adj: Int): Int {
+            return processServiceRecord.callMethod<Int>(
+                methodName = MethodConstants.modifyRawOomAdj,
+                adj
+            )
+        }
     }
 }

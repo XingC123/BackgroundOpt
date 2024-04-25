@@ -156,6 +156,11 @@ public interface MethodConstants {
     String updateAppUidRecLSP = "updateAppUidRecLSP";
     String getLruProcessesLOSP = "getLruProcessesLOSP";
     String getUserId = "getUserId";
+    String assignCachedAdjIfNecessary = "assignCachedAdjIfNecessary";
+    String isFreezeExempt = "isFreezeExempt";
+    String getLastStateTime = "getLastStateTime";
+    String modifyRawOomAdj = "modifyRawOomAdj";
+    String updateUseTieredCachedAdj = "updateUseTieredCachedAdj";
 
     /**
      * miui
