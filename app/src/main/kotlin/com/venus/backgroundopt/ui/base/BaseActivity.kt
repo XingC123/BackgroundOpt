@@ -22,6 +22,7 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.ModuleRunningMessageHandler.ModuleRunningMessage
@@ -146,14 +147,19 @@ inline fun BaseActivity.ifVersionIsCompatible(
 ) {
     // 检查版本是否匹配
     showProgressBarViewForAction(text = "版本校验中...") {
-        val versionCode = sendMessage<ModuleRunningMessage>(
-            key = MessageKeyConstants.moduleRunning,
-            value = ModuleRunningMessage().apply {
-                messageType = ModuleRunningMessage.MODULE_VERSION_CODE
-            }
-        )?.value as? Int
+        val versionCode = CommonProperties.moduleVersionCode ?: run {
+            val returnVersionCode = sendMessage<ModuleRunningMessage>(
+                key = MessageKeyConstants.moduleRunning,
+                value = ModuleRunningMessage().apply {
+                    messageType = ModuleRunningMessage.MODULE_VERSION_CODE
+                }
+            )?.value as? Int ?: Int.MIN_VALUE
+            CommonProperties.moduleVersionCode = returnVersionCode
 
-        if (versionCode == null || versionCode < targetVersionCode) {
+            returnVersionCode
+        }
+
+        if (versionCode < targetVersionCode) {
             incompatibleBlock(this)
             return@showProgressBarViewForAction
         }

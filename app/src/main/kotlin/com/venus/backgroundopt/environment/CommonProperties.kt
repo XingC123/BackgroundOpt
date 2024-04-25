@@ -34,4 +34,8 @@ object CommonProperties {
             "com.tencent.mm:push", /* 微信 */
         )
     }
+
+    // 模块后端版本
+    @JvmStatic
+    var moduleVersionCode:Int? = null
 }
