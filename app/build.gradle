@@ -57,7 +57,8 @@ def getVersionInfo(String releaseKey, String debugKey, KeyType keyType) {
 
 // 生成版本信息
 def generateVersionCode() {
-    return getVersionInfo("RELEASE_VERSION_CODE", "DEBUG_VERSION_CODE", KeyType.Integer)
+    // return getVersionInfo("RELEASE_VERSION_CODE", "DEBUG_VERSION_CODE", KeyType.Integer)
+    return getVersionInfo("RELEASE_VERSION_CODE", "RELEASE_VERSION_CODE", KeyType.Integer)
 }
 
 def generateVersionName() {
