@@ -22,10 +22,12 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.ModuleRunningMessageHandler.ModuleRunningMessage
 import com.venus.backgroundopt.utils.message.sendMessage
 import com.venus.backgroundopt.utils.runCatchThrowable
+import com.venus.backgroundopt.utils.showProgressBarViewForAction
 
 /**
  * @author XingC
@@ -123,4 +125,39 @@ fun BaseActivity.isModuleRunning(): Boolean {
             }
         )!!.value as Boolean
     }!!
+}
+
+/**
+ * 比较模块后端的版本和[targetVersionCode], 如果符合要求, 则执行[compatibleBlock]。不符合则执行[incompatibleBlock]
+ * @receiver BaseActivity
+ */
+inline fun BaseActivity.ifVersionIsCompatible(
+    targetVersionCode: Int,
+    crossinline incompatibleBlock: (BaseActivity) -> Unit = {
+        runOnUiThread {
+            UiUtils.createDialog(
+                context = this,
+                text = "app与模块版本不匹配, 请重启后再试",
+                enablePositiveBtn = true
+            ).show()
+        }
+    },
+    crossinline compatibleBlock: (BaseActivity) -> Unit
+) {
+    // 检查版本是否匹配
+    showProgressBarViewForAction(text = "版本校验中...") {
+        val versionCode = sendMessage<ModuleRunningMessage>(
+            key = MessageKeyConstants.moduleRunning,
+            value = ModuleRunningMessage().apply {
+                messageType = ModuleRunningMessage.MODULE_VERSION_CODE
+            }
+        )?.value as? Int
+
+        if (versionCode == null || versionCode < targetVersionCode) {
+            incompatibleBlock(this)
+            return@showProgressBarViewForAction
+        }
+
+        compatibleBlock(this)
+    }
 }
