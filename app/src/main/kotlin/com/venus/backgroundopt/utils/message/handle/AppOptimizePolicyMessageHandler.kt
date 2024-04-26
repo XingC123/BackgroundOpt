@@ -22,6 +22,7 @@ import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.environment.hook.HookCommonProperties
+import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.UserHandle
 import com.venus.backgroundopt.utils.message.MessageFlag
@@ -159,6 +160,13 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         // 防止因版本变化导致的后端策略的变化从而使用户侧存储了错误数据(用户从未设置过此字段, 却被模块后端影响, 并持久化)
         // 该属性仅通过模块后端决定, 不在shouldHandleAdj改变的时候在用户侧修改
         var shouldHandleAdjUiState: Boolean = false
+
+        /**
+         * 有界面时保活主进程
+         *
+         * 生效逻辑详见: [ProcessListHookKt.applyHighPriorityProcessFinalAdj]
+         */
+        var keepMainProcessAliveHasActivity: Boolean? = null
     }
 
     class AppOptimizePolicyMessage : MessageFlag {

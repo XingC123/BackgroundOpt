@@ -536,6 +536,8 @@ public class RunningInfo implements ILogger {
                     consumer = doNothing;
                 }
                 handleActuallyActivityEventChange(appInfo, () -> {
+                    appInfo.activityActive(componentName);
+
                     consumer.accept(appInfo);
                     updateAppSwitchState(/*event, */componentName, appInfo);
                 }, throwable -> getLogger().error("ACTIVITY_RESUMED处理出错", throwable));
@@ -554,6 +556,10 @@ public class RunningInfo implements ILogger {
                         }, throwable -> getLogger().error("ACTIVITY_STOPPED处理出错", throwable));
                     }
                 }
+            }
+
+            case ActivityManagerServiceHookKt.ACTIVITY_DESTROYED -> {
+                appInfo.activityDie(componentName);
             }
 
             default -> {

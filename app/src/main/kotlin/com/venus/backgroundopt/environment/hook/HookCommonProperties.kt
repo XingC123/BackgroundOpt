@@ -184,6 +184,32 @@ object HookCommonProperties : ILogger {
 
     /* *************************************************************************
      *                                                                         *
+     * 拥有界面时临时保活主进程                                                     *
+     *                                                                         *
+     **************************************************************************/
+    val keepMainProcessAliveHasActivityPolicy by lazy {
+        val isEnabled = PreferencesUtil.getBoolean(
+            path = PreferenceNameConstants.MAIN_SETTINGS,
+            key = PreferenceKeyConstants.KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY,
+            defaultValue = PreferenceDefaultValue.keepMainProcessAliveHasActivity
+        )
+        printKeepMainProcessAliveHasActivityInfo(isEnabled)
+        PropertyValueWrapper(isEnabled)
+    }
+
+    @JvmStatic
+    fun printKeepMainProcessAliveHasActivityInfo(isEnabled:Boolean) {
+        printPreferenceActiveState(
+            isEnabled = isEnabled,
+            description = "拥有界面的app的主进程临时保活"
+        )
+    }
+
+    @JvmStatic
+    fun isEnableKeepMainProcessAliveHasActivity(): Boolean = keepMainProcessAliveHasActivityPolicy.value
+
+    /* *************************************************************************
+     *                                                                         *
      * webview进程的处理                                                         *
      *                                                                         *
      **************************************************************************/

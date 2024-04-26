@@ -168,6 +168,12 @@ class SettingsPreferenceFragment : BasePreferenceFragment<SettingsActivity>() {
             preferenceKey = PreferenceKeyConstants.KILL_AFTER_REMOVE_TASK,
             messageKey = MessageKeyConstants.killAfterRemoveTask
         )
+
+        // 拥有界面时临时保活主进程
+        initSwitchPreferenceChangeListener(
+            preferenceKey = PreferenceKeyConstants.KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY,
+            messageKey = MessageKeyConstants.KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY
+        )
     }
 
     /**

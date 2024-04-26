@@ -15,6 +15,9 @@
     <!--划卡杀后台-->
     <string name="pref_key_kill_after_remove_task" translatable="false">pref_key_kill_after_remove_task</string>
 
+    <!--有界面时临时保活主进程-->
+    <string name="pref_key_keep_main_process_alive_has_activity" translatable="false">pref_key_keep_main_process_alive_has_activity</string>
+
     <!--
         界面
     -->

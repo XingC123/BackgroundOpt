@@ -35,4 +35,5 @@ public interface PreferenceKeyConstants {
     String GLOBAL_OOM_SCORE_VALUE = "pref_key_global_oom_score_value";
     String KILL_AFTER_REMOVE_TASK = "pref_key_kill_after_remove_task";
     String DYNAMIC_THEME = "pref_key_dynamic_theme";
+    String KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY = "pref_key_keep_main_process_alive_has_activity";
 }

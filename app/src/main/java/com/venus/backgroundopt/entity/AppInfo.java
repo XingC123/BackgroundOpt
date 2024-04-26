@@ -38,8 +38,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -87,6 +90,10 @@ public class AppInfo implements ILogger, LockFlag {
     private RunningInfo runningInfo;
     private volatile ProcessRecord mProcessRecord;   // 主进程记录
 
+    // 当前app被模块检测到的activity的ComponentName
+    @SuppressWarnings("all")
+    private Set<ComponentName> activities = Collections.newSetFromMap(new ConcurrentHashMap<>(4));
+
     private final AtomicInteger appSwitchEvent = new AtomicInteger(Integer.MIN_VALUE); // app切换事件
 
     private final AtomicBoolean switchEventHandled = new AtomicBoolean(false);    // 切换事件处理完毕
@@ -122,6 +129,22 @@ public class AppInfo implements ILogger, LockFlag {
 
     public void setComponentName(ComponentName componentName) {
         componentNameAtomicReference.set(componentName);
+    }
+
+    public void activityActive(@NonNull ComponentName componentName) {
+        activities.add(componentName);
+    }
+
+    public void activityDie(@NonNull ComponentName componentName) {
+        activities.remove(componentName);
+    }
+
+    public int getAppShowingActivityCount() {
+        return activities.size();
+    }
+
+    public boolean hasActivity() {
+        return getAppShowingActivityCount() >= 1;
     }
 
     /* *************************************************************************

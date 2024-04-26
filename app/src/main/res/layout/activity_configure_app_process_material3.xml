@@ -338,6 +338,17 @@
                     app:switchTextSize="16sp"
                     app:buttonText="重置"
                     app:buttonVisible="true"/>
+
+                <com.venus.backgroundopt.ui.component.VenusSwitchMaterial3
+                    android:id="@+id/configureAppProcessKeepMainProcessAliveHasActivitySwitch"
+                    style="@style/Theme.AppTheme"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:switchText="@string/configureAppProcessKeepMainProcessAliveHasActivityText"
+                    app:switchTextSize="16sp"
+                    app:switchChecked="true"
+                    app:buttonText="重置"
+                    app:buttonVisible="true"/>
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView

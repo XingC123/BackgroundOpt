@@ -33,6 +33,7 @@ import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
@@ -260,6 +261,27 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                     appOptimizePolicySaveAction(appOptimizePolicy) {
                         runOnUiThread { switch.isChecked = it.shouldHandleAdjUiState }
                     }
+                }
+            }
+
+            // 拥有界面时临时保活主进程
+            findViewById<VenusSwitchMaterial3>(R.id.configureAppProcessKeepMainProcessAliveHasActivitySwitch)?.let { switch ->
+                fun setSwitchChecked(appOptimizePolicy: AppOptimizePolicy) {
+                    switch.isChecked = appOptimizePolicy.keepMainProcessAliveHasActivity
+                        ?: PreferenceDefaultValue.keepMainProcessAliveHasActivity
+                }
+                // 初始状态
+                setSwitchChecked(appOptimizePolicy)
+
+                switch.setOnCheckedChangeListener { _, isChecked ->
+                    appOptimizePolicy.keepMainProcessAliveHasActivity = isChecked
+                    appOptimizePolicySaveAction(appOptimizePolicy)
+                }
+
+                switch.setButtonOnClickedListener {
+                    appOptimizePolicy.keepMainProcessAliveHasActivity = null
+                    setSwitchChecked(appOptimizePolicy)
+                    appOptimizePolicySaveAction(appOptimizePolicy)
                 }
             }
         }

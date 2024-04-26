@@ -198,6 +198,8 @@ object PackageUtils {
             var hasConfiguredMainProcessCustomOomScore = false
             // 管理系统app的主进程的adj
             var hasConfiguredShouldHandleMainProcAdj = false
+            // 拥有界面时临时保活主进程
+            var hasConfiguredKeepMainProcessAliveHasActivity = false
             appOptimizePolicies[packageName]?.let { appOptimizePolicy ->
                 if (appOptimizePolicy.disableForegroundTrimMem != null ||
                     appOptimizePolicy.disableBackgroundTrimMem != null ||
@@ -226,6 +228,12 @@ object PackageUtils {
                     appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.ShouldHandleMainProcAdj)
                     hasConfiguredShouldHandleMainProcAdj = true
                 }
+
+                // 拥有界面时临时保活主进程
+                if (appOptimizePolicy.keepMainProcessAliveHasActivity == true) {
+                    appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.KeepMainProcessAliveHasActivity)
+                    hasConfiguredKeepMainProcessAliveHasActivity = true
+                }
             }
 
             // 是否配置过子进程oom策略
@@ -242,6 +250,7 @@ object PackageUtils {
             return hasConfiguredAppOptimizePolicy or
                     hasConfiguredMainProcessCustomOomScore or
                     hasConfiguredShouldHandleMainProcAdj or
+                    hasConfiguredKeepMainProcessAliveHasActivity or
                     hasConfiguredSubProcessOomPolicy
         }
 

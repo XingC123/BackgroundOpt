@@ -99,6 +99,11 @@
             app:iconSpaceReserved="false"
             app:key="@string/pref_key_kill_after_remove_task"
             app:summary="@string/settingsKillAfterRemoveTaskSummary" />
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/pref_key_keep_main_process_alive_has_activity"
+            android:title="@string/settingsKeepMainProcessAliveHasActivity"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
     <PreferenceCategory
         android:layout_width="wrap_content"

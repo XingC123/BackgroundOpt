@@ -17,6 +17,7 @@
 
 package com.venus.backgroundopt.hook.handle.android
 
+import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.AppInfo
@@ -258,8 +259,22 @@ class ProcessListHookKt(
         appOptimizePolicy: AppOptimizePolicy?,
         block: () -> Unit
     ) {
+        // 不管理adj
         if (!appInfo.shouldHandleAdj(appOptimizePolicy)) {
-            return
+            // 全局设置开启了 拥有界面时临时保活主进程
+            if (HookCommonProperties.isEnableKeepMainProcessAliveHasActivity()
+                // app没有配置过 || 未关闭对此属性的判断
+                && (appOptimizePolicy == null
+                        ||  appOptimizePolicy.keepMainProcessAliveHasActivity != false)
+                && appInfo.hasActivity()
+                ) {
+                // 通过检查
+                if (BuildConfig.DEBUG) {
+                    logger.debug("包名: ${appInfo.packageName}, uid: ${appInfo.uid}, 界面数量: ${appInfo.appShowingActivityCount}, 拥有界面, 进行保活处理")
+                }
+            } else {
+                return
+            }
         }
 
         block()

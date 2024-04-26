@@ -42,6 +42,7 @@ import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScope
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreMessageHandler
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreValueMessageHandler
 import com.venus.backgroundopt.utils.message.handle.HomePageModuleInfoMessageHandler
+import com.venus.backgroundopt.utils.message.handle.KeepMainProcessAliveHasActivityMessageHandler
 import com.venus.backgroundopt.utils.message.handle.KillAfterRemoveTaskMessageHandler
 import com.venus.backgroundopt.utils.message.handle.ModuleRunningMessageHandler
 import com.venus.backgroundopt.utils.message.handle.RunningAppInfoMessageHandler
@@ -89,6 +90,7 @@ val registeredMessageHandler = mapOf(
     MessageKeyConstants.killAfterRemoveTask to KillAfterRemoveTaskMessageHandler(),
     MessageKeyConstants.moduleRunning to ModuleRunningMessageHandler(),
     MessageKeyConstants.getManagedAdjDefaultApps to GetManagedAdjDefaultAppsMessageHandler(),
+    MessageKeyConstants.KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY to KeepMainProcessAliveHasActivityMessageHandler(),
 )
 
 // json传输的载体

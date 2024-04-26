@@ -94,6 +94,10 @@
         \n\t\t\t\ta. 生效范围: xxx(adj&gt;0) -> 只有系统计算出的adj&gt;0的app的进程才会被管理。
         \n\t\t\t\tb. 自定义全局OOM值: 取值范围[-1000, 1000]。<b>模块支持对-800及以下取值的app划卡杀后台</b>
 
+        \n\t\t6) 附加设置-临时保活有界面的app的主进程：见名知意。
+        \n\t\t\t\ta. 在app配置页，可以针对当前app进行设置。且优先级高于全局设置。
+        \n\t\t\t\tb. 在adj调整基本规则生满足的前提下(详见“2. 补充说明12”)，只有 管理主进程adj<b>处于关闭</b> + 未配置过app策略(或app配置页该开关未处于关闭状态) + 当前app含有界面 时，该功能才生效。
+
         \n\n<b>2. 补充说明：</b>
         \n\t\t1) “内存回收”和“内存压缩”受进程策略影响。
         \n\t\t2) <b>自启<i>(开机自启/杀死后台后自启)</i>的app依然会被模块管理</b>。
@@ -177,4 +181,7 @@
     <string name="getManagedAdjDefalutAppsBtn" translatable="false">获取被管理ADJ的默认app</string>
     <string name="showManagedAdjDefaultAppsToolBarText" translatable="false">被管理ADJ的默认应用</string>
     <string name="settingsBackgroundProcTrimMemEnablePrefText" translatable="false">启用后台进程内存回收</string>
+    <string name="settingsKeepMainProcessAliveHasActivity" translatable="false">临时保活有界面的app的主进程</string>
+    <string name="configureAppProcessKeepMainProcessAliveHasActivityText" translatable="false">有界面时临时保活主进程</string>
+    <string name="itemInstalledAppsKeepMainProcessAliveHasActivityFlagText" translatable="false">有界面时临时保活主进程</string>
 </resources>
