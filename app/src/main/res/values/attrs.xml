@@ -18,4 +18,17 @@
         <attr name="buttonTextSize" format="dimension" />
         <attr name="buttonVisible" format="boolean" />
     </declare-styleable>
+
+    <declare-styleable name="VenusListCheckMaterial3">
+        <!--title-->
+        <attr name="title" format="string" />
+        <attr name="titleTextSize" format="dimension" />
+        <!--summary-->
+        <attr name="summary" format="string" />
+        <attr name="summaryTextSize" format="dimension" />
+        <!--选项列表-->
+        <attr name="entries" format="reference" />
+        <attr name="entryValues" format="reference" />
+        <attr name="defaultValue" format="string|boolean|integer|reference|float"/>
+    </declare-styleable>
 </resources>
