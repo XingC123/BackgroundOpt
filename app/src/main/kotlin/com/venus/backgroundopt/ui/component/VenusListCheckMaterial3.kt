@@ -40,11 +40,22 @@ class VenusListCheckMaterial3 : LinearLayout {
     lateinit var title: TextView
     lateinit var summary: TextView
     var entries: Array<CharSequence>? = null
+        set(value) {
+            field = value
+
+            // 重计算summary
+            summary.text = this.value ?: value?.get(0)
+        }
     var entryValues: Array<CharSequence>? = null
 
     private var dialogConfirmClickListener: DialogConfirmClickListener? = null
 
     var value: CharSequence? = null
+        set(value) {
+            field = value
+
+            summary.text = value ?: "null"
+        }
 
     constructor(context: Context) : this(context, null)
 
