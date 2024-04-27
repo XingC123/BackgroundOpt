@@ -354,7 +354,7 @@ inline fun AlertDialog.Builder.setPositiveBtn(
     }
 ): AlertDialog.Builder {
     if (enablePositiveBtn) {
-        setNegativeButton(positiveBtnText) { dialogInterface, i ->
+        setPositiveButton(positiveBtnText) { dialogInterface, i ->
             block(dialogInterface, i)
         }
     }
