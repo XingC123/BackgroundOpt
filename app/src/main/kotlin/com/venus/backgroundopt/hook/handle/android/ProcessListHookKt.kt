@@ -17,7 +17,6 @@
 
 package com.venus.backgroundopt.hook.handle.android
 
-import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.AppInfo
@@ -105,7 +104,8 @@ class ProcessListHookKt(
          **************************************************************************/
         const val normalMinAdj = /*-100*/ 1
         const val importAppMinAdj = /*-200*/1
-        const val ADJ_CONVERT_DIVISOR = ProcessList.UNKNOWN_ADJ / ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
+        const val ADJ_CONVERT_DIVISOR =
+            ProcessList.UNKNOWN_ADJ / ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
     }
 
     /* *************************************************************************
@@ -257,27 +257,40 @@ class ProcessListHookKt(
     private inline fun applyHighPriorityProcessFinalAdj(
         appInfo: AppInfo,
         appOptimizePolicy: AppOptimizePolicy?,
-        block: () -> Unit
-    ) {
-        // 不管理adj
-        if (!appInfo.shouldHandleAdj(appOptimizePolicy)) {
-            // 全局设置开启了 拥有界面时临时保活主进程
-            if (HookCommonProperties.isEnableKeepMainProcessAliveHasActivity()
-                // app没有配置过 || 未关闭对此属性的判断
-                && (appOptimizePolicy == null
-                        ||  appOptimizePolicy.keepMainProcessAliveHasActivity != false)
-                && appInfo.hasActivity()
-                ) {
-                // 通过检查
-                if (BuildConfig.DEBUG) {
-                    logger.debug("包名: ${appInfo.packageName}, uid: ${appInfo.uid}, 界面数量: ${appInfo.appShowingActivityCount}, 拥有界面, 进行保活处理")
-                }
+        curAdj: Int,
+        shouldNotHandleAdjBlock: (Int) -> Int = {
+            if (appInfo.isImportSystemApp) {
+                curAdj
             } else {
-                return
+                max(it, ProcessRecord.SUB_PROC_ADJ)
             }
-        }
+        },
+        block: (Int) -> Int
+    ): Int {
+        return when (appInfo.shouldHandleAdj) {
+            AppInfo.handleAdjAlways -> block(curAdj)
+            AppInfo.handleAdjNever -> curAdj
+            AppInfo.handleAdjIfHasActivity -> {
+                if (appInfo.shouldHandleAdj()) {
+                    block(curAdj)
+                } else {
+                    computeHighPriorityProcessAdjNotHasActivity(appInfo, curAdj)
+                }
+            }
 
-        block()
+            else -> computeHighPriorityProcessAdjNotHasActivity(appInfo, curAdj)
+        }
+    }
+
+    private fun computeHighPriorityProcessAdjNotHasActivity(
+        appInfo: AppInfo,
+        curAdj: Int
+    ): Int {
+        return /*if (appInfo.isImportSystemApp) {
+            curAdj
+        } else {
+            max(curAdj, ProcessRecord.SUB_PROC_ADJ)
+        }*/ max(curAdj, ProcessRecord.SUB_PROC_ADJ)
     }
 
     private fun handleSetOomAdj(param: MethodHookParam) {
@@ -334,9 +347,13 @@ class ProcessListHookKt(
         val possibleAdj = appOptimizePolicy.getCustomMainProcessOomScore()
 
         if (possibleAdj != null && isHighPriorityProcess) {    // 进程独立配置优先于任何情况
-            applyHighPriorityProcessFinalAdj(appInfo = appInfo, appOptimizePolicy = appOptimizePolicy) {
-                finalApplyOomScoreAdj = possibleAdj
+            finalApplyOomScoreAdj = applyHighPriorityProcessFinalAdj(
+                appInfo = appInfo,
+                appOptimizePolicy = appOptimizePolicy,
+                curAdj = curRawAdj,
+            ) {
                 process.clearProcessUnexpectedState()
+                possibleAdj
             }
         } else if (globalOomScorePolicy.enabled
             && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL
@@ -346,9 +363,13 @@ class ProcessListHookKt(
         ) {
             // 逻辑概要:
             // 开启全局oom && (作用域 == ALL || isHighPriorityProcess && (作用域 == MAIN_PROC_ANY || isUserSpaceAdj) || /* 普通子进程 或 !isUserSpaceAdj */ isUserSpaceAdj && 作用域 == MAIN_AND_SUB_PROC)
-            applyHighPriorityProcessFinalAdj(appInfo = appInfo, appOptimizePolicy = appOptimizePolicy) {
-                finalApplyOomScoreAdj = globalOomScorePolicy.customGlobalOomScore
+            finalApplyOomScoreAdj = applyHighPriorityProcessFinalAdj(
+                appInfo = appInfo,
+                appOptimizePolicy = appOptimizePolicy,
+                curAdj = curRawAdj,
+            ) {
                 process.clearProcessUnexpectedState()
+                globalOomScorePolicy.customGlobalOomScore
             }
         } else if (isUserSpaceAdj) {
             if (isHighPriorityProcess) {
@@ -358,8 +379,12 @@ class ProcessListHookKt(
                 } else if (HookCommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE) {
                     doHookOriginalAdj = false
                 } else {
-                    applyHighPriorityProcessFinalAdj(appInfo = appInfo, appOptimizePolicy = appOptimizePolicy) {
-                        finalApplyOomScoreAdj = oomAdjHandler.computeFinalAdj(
+                    finalApplyOomScoreAdj = applyHighPriorityProcessFinalAdj(
+                        appInfo = appInfo,
+                        appOptimizePolicy = appOptimizePolicy,
+                        curAdj = curRawAdj
+                    ) {
+                        oomAdjHandler.computeFinalAdj(
                             oomScoreAdj = curRawAdj,
                             processRecord = process,
                             appInfo = appInfo,

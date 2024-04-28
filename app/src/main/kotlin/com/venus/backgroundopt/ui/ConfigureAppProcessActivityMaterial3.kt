@@ -38,6 +38,7 @@ import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
+import com.venus.backgroundopt.ui.component.VenusListCheckMaterial3
 import com.venus.backgroundopt.ui.component.VenusSwitchMaterial3
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.StringUtils
@@ -45,6 +46,7 @@ import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.getTmpData
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy.MainProcessAdjManagePolicy
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicyMessage
 import com.venus.backgroundopt.utils.message.sendMessage
 import com.venus.backgroundopt.utils.preference.prefPut
@@ -282,6 +284,37 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                     appOptimizePolicy.keepMainProcessAliveHasActivity = null
                     setSwitchChecked(appOptimizePolicy)
                     appOptimizePolicySaveAction(appOptimizePolicy)
+                }
+            }
+
+            /*
+             * 管理主进程adj的条件
+             */
+            findViewById<VenusListCheckMaterial3>(R.id.manage_main_process_adj_venus_list_check)?.let { listCheck ->
+                fun getMapFromMainProcessAdjManagePolicy(): Map<String, String> {
+                    return HashMap<String, String>(MainProcessAdjManagePolicy.entries.size).apply {
+                        MainProcessAdjManagePolicy.entries.forEach { policy ->
+                            put(policy.uiText, policy.name)
+                        }
+                    }
+                }
+                // 界面显示与值的映射
+                val map = getMapFromMainProcessAdjManagePolicy()
+                listCheck.setEntriesAndValue(map)
+
+                // 默认值
+                listCheck.defaultValue = appOptimizePolicy.defaultMainProcessAdjManagePolicyUiText
+
+                listCheck.setDialogConfirmClickListener { _: Int, _: Int, _: CharSequence?, entryValue: CharSequence? ->
+                    val policyName = entryValue?.toString() ?: return@setDialogConfirmClickListener
+                    appOptimizePolicy.mainProcessAdjManagePolicy =
+                        MainProcessAdjManagePolicy.valueOf(policyName)
+
+                    appOptimizePolicySaveAction(appOptimizePolicy) {
+                        runOnUiThread {
+                            listCheck.defaultValue = it.defaultMainProcessAdjManagePolicyUiText
+                        }
+                    }
                 }
             }
         }

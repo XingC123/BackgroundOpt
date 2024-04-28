@@ -198,8 +198,8 @@ object PackageUtils {
             var hasConfiguredMainProcessCustomOomScore = false
             // 管理系统app的主进程的adj
             var hasConfiguredShouldHandleMainProcAdj = false
-            // 拥有界面时临时保活主进程
-            var hasConfiguredKeepMainProcessAliveHasActivity = false
+            // 主进程ADJ管理策略
+            var hasConfiguredMainProcessAdjManagePolicy = false
             appOptimizePolicies[packageName]?.let { appOptimizePolicy ->
                 if (appOptimizePolicy.disableForegroundTrimMem != null ||
                     appOptimizePolicy.disableBackgroundTrimMem != null ||
@@ -224,15 +224,15 @@ object PackageUtils {
                 }
 
                 // 系统app 且 允许管理oom adj
-                if (appOptimizePolicy.shouldHandleAdj == true) {
+                /*if (appOptimizePolicy.shouldHandleAdj == true) {
                     appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.ShouldHandleMainProcAdj)
                     hasConfiguredShouldHandleMainProcAdj = true
-                }
+                }*/
 
-                // 拥有界面时临时保活主进程
-                if (appOptimizePolicy.keepMainProcessAliveHasActivity == true) {
-                    appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.KeepMainProcessAliveHasActivity)
-                    hasConfiguredKeepMainProcessAliveHasActivity = true
+                // 主进程ADJ管理策略
+                if (appOptimizePolicy.mainProcessAdjManagePolicy != AppOptimizePolicy.MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_DEFAULT) {
+                    appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.MainProcessAdjManagePolicy)
+                    hasConfiguredMainProcessAdjManagePolicy = true
                 }
             }
 
@@ -250,7 +250,7 @@ object PackageUtils {
             return hasConfiguredAppOptimizePolicy or
                     hasConfiguredMainProcessCustomOomScore or
                     hasConfiguredShouldHandleMainProcAdj or
-                    hasConfiguredKeepMainProcessAliveHasActivity or
+                    hasConfiguredMainProcessAdjManagePolicy or
                     hasConfiguredSubProcessOomPolicy
         }
 

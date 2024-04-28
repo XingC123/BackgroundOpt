@@ -48,7 +48,7 @@ class ShowAllInstalledAppsAdapter3(
         var itemInstalledAppsCustomMainProcOomScoreFlagText: TextView
         var itemInstalledAppsOomPolicyFlagText: TextView
         var itemInstalledAppsShouldHandleMainProcAdjFlagText: TextView
-        var itemInstalledAppsKeepMainProcessAliveHasActivityFlagText: TextView
+        var itemInstalledAppsMainProcessAdjManagePolicy: TextView
 
         var hadSetClickedListener: Boolean = false
 
@@ -63,8 +63,8 @@ class ShowAllInstalledAppsAdapter3(
                 itemView.findViewById(R.id.itemInstalledAppsOomPolicyFlagText)
             itemInstalledAppsShouldHandleMainProcAdjFlagText =
                 itemView.findViewById(R.id.itemInstalledAppsShouldHandleMainProcAdjFlagText)
-            itemInstalledAppsKeepMainProcessAliveHasActivityFlagText =
-                itemView.findViewById(R.id.itemInstalledAppsKeepMainProcessAliveHasActivityFlagText)
+            itemInstalledAppsMainProcessAdjManagePolicy =
+                itemView.findViewById(R.id.itemInstalledAppsMainProcessAdjManagePolicy)
         }
     }
 
@@ -113,9 +113,9 @@ class ShowAllInstalledAppsAdapter3(
             AppItem.AppConfiguredEnum.ShouldHandleMainProcAdj
         )
         setAppFlagTextVisible(
-            holder.itemInstalledAppsKeepMainProcessAliveHasActivityFlagText,
+            holder.itemInstalledAppsMainProcessAdjManagePolicy,
             appItem,
-            AppItem.AppConfiguredEnum.KeepMainProcessAliveHasActivity
+            AppItem.AppConfiguredEnum.MainProcessAdjManagePolicy
         )
 
         if (!holder.hadSetClickedListener) {

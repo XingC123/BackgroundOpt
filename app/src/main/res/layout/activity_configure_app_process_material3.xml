@@ -334,21 +334,30 @@
                     style="@style/Theme.AppTheme"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:switchText="@string/configureAppProcessShouldHandleMainProcAdjText"
-                    app:switchTextSize="16sp"
+                    android:visibility="gone"
                     app:buttonText="重置"
-                    app:buttonVisible="true"/>
+                    app:buttonVisible="true"
+                    app:switchText="@string/configureAppProcessShouldHandleMainProcAdjText"
+                    app:switchTextSize="16sp" />
 
                 <com.venus.backgroundopt.ui.component.VenusSwitchMaterial3
                     android:id="@+id/configureAppProcessKeepMainProcessAliveHasActivitySwitch"
                     style="@style/Theme.AppTheme"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:switchText="@string/configureAppProcessKeepMainProcessAliveHasActivityText"
-                    app:switchTextSize="16sp"
-                    app:switchChecked="true"
+                    android:visibility="gone"
                     app:buttonText="重置"
-                    app:buttonVisible="true"/>
+                    app:buttonVisible="true"
+                    app:switchChecked="true"
+                    app:switchText="@string/configureAppProcessKeepMainProcessAliveHasActivityText"
+                    app:switchTextSize="16sp" />
+
+                <com.venus.backgroundopt.ui.component.VenusListCheckMaterial3
+                    android:id="@+id/manage_main_process_adj_venus_list_check"
+                    style="@style/Theme.AppTheme"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:title="@string/configureAppProcessMainProcAdjManagePolicyText"/>
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView

@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.environment;
+
+package com.venus.backgroundopt.environment;
 
 import android.content.Context;
 
@@ -26,6 +26,7 @@ import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants;
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants;
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy.MainProcessAdjManagePolicy;
 import com.venus.backgroundopt.utils.message.handle.ForegroundProcTrimMemLevelEnum;
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum;
 import com.venus.backgroundopt.utils.preference.PreferencesUtilKt;
@@ -121,4 +122,11 @@ public interface PreferenceDefaultValue {
      *                                                                         *
      **************************************************************************/
     boolean keepMainProcessAliveHasActivity = true;
+
+    /* *************************************************************************
+     *                                                                         *
+     * 主进程adj管理策略                                                          *
+     *                                                                         *
+     **************************************************************************/
+    MainProcessAdjManagePolicy mainProcessAdjManagePolicy = MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_HAS_ACTIVITY;
 }

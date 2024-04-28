@@ -19,15 +19,14 @@ package com.venus.backgroundopt.utils.message.handle
 
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
-import com.venus.backgroundopt.hook.handle.android.entity.UserHandle
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy.MainProcessAdjManagePolicy
 import com.venus.backgroundopt.utils.message.parseObjectFromJsonObject
 import de.robv.android.xposed.XC_MethodHook
 
@@ -47,7 +46,6 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
             var returnValue: Any? = null
 
             val appOptimizePolicyMap = HookCommonProperties.appOptimizePolicyMap
-            val userId = UserHandle.getUserId(message.uid)
             val packageName = message.packageName
 
             when (message.messageType) {
@@ -59,12 +57,7 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
                             this.packageName = packageName
                         }
                     }.apply {
-                        checkAndSetShouldHandleAdjUiState(
-                            runningInfo = runningInfo,
-                            userId = userId,
-                            packageName = packageName,
-                            appOptimizePolicy = this
-                        )
+                        initMainProcessAdjManagePolicyUiText(this)
                     }
                 }
 
@@ -76,12 +69,7 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
                         .filter { appInfo -> appInfo.packageName == appOptimizePolicy.packageName }
                         .forEach { appInfo -> appInfo.setShouldHandleAdj(appOptimizePolicy) }
 
-                    checkAndSetShouldHandleAdjUiState(
-                        runningInfo = runningInfo,
-                        userId = userId,
-                        packageName = packageName,
-                        appOptimizePolicy = appOptimizePolicy
-                    )
+                    initMainProcessAdjManagePolicyUiText(appOptimizePolicy)
                     returnValue = appOptimizePolicy
                 }
 
@@ -91,19 +79,13 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         }
     }
 
-    private fun checkAndSetShouldHandleAdjUiState(
-        runningInfo: RunningInfo,
-        userId: Int,
-        packageName: String,
-        appOptimizePolicy: AppOptimizePolicy
-    ) {
-        if (appOptimizePolicy.shouldHandleAdj == null) {
-            // 检查是否需要管理adj
-            val findAppResult = runningInfo.getFindAppResult(userId, packageName)
-            if (AppInfo.shouldHandleAdj(findAppResult, packageName)) {
-                appOptimizePolicy.shouldHandleAdjUiState = true
+    private fun initMainProcessAdjManagePolicyUiText(appOptimizePolicy: AppOptimizePolicy) {
+        appOptimizePolicy.defaultMainProcessAdjManagePolicyUiText =
+            if (appOptimizePolicy.mainProcessAdjManagePolicy == MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_DEFAULT) {
+                PreferenceDefaultValue.mainProcessAdjManagePolicy.uiText
+            } else {
+                appOptimizePolicy.mainProcessAdjManagePolicy.uiText
             }
-        }
     }
 
     class AppOptimizePolicy : MessageFlag {
@@ -153,12 +135,24 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
         var customMainProcessOomScore = Int.MIN_VALUE
 
         // 该app是否管理adj
+        @Deprecated(message = "已被取代", replaceWith = ReplaceWith("mainProcessAdjManagePolicy"))
+        @JSONField(serialize = false)
         var shouldHandleAdj: Boolean? = null
+            set(value) {
+                if (value == true) {
+                    mainProcessAdjManagePolicy = MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_ALWAYS
+                } else if (value == false) {
+                    mainProcessAdjManagePolicy = MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_NEVER
+                }
+                field = value
+            }
 
         // 在ui中的开关应该显示的状态
         // 增加此属性, 仅通过此属性决定ui的状态, 而不通过shouldHandleAdj,
         // 防止因版本变化导致的后端策略的变化从而使用户侧存储了错误数据(用户从未设置过此字段, 却被模块后端影响, 并持久化)
         // 该属性仅通过模块后端决定, 不在shouldHandleAdj改变的时候在用户侧修改
+        @Deprecated(message = "已被取代", replaceWith = ReplaceWith("mainProcessAdjManagePolicy"))
+        @JSONField(serialize = false)
         var shouldHandleAdjUiState: Boolean = false
 
         /**
@@ -166,7 +160,19 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
          *
          * 生效逻辑详见: [ProcessListHookKt.applyHighPriorityProcessFinalAdj]
          */
+        @Deprecated(message = "已被取代", replaceWith = ReplaceWith("mainProcessAdjManagePolicy"))
         var keepMainProcessAliveHasActivity: Boolean? = null
+
+        // 主进程ADJ管理策略
+        var mainProcessAdjManagePolicy = MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_DEFAULT
+        var defaultMainProcessAdjManagePolicyUiText = "invalid"
+
+        enum class MainProcessAdjManagePolicy(val code: Int, val uiText: String) {
+            MAIN_PROC_ADJ_MANAGE_DEFAULT(0, "重置"),
+            MAIN_PROC_ADJ_MANAGE_NEVER(1, "从不"),
+            MAIN_PROC_ADJ_MANAGE_HAS_ACTIVITY(2, "拥有界面"),
+            MAIN_PROC_ADJ_MANAGE_ALWAYS(3, "强制"),
+        }
     }
 
     class AppOptimizePolicyMessage : MessageFlag {

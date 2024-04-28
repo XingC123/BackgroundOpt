@@ -101,7 +101,7 @@ class AppItem @JSONCreator constructor() : MessageFlag {
         SubProcessOomPolicy("OOM策略"),
         CustomMainProcessOomScore("自定义主进程OOM"),
         ShouldHandleMainProcAdj("管理主进程Adj"),
-        KeepMainProcessAliveHasActivity("拥有界面时临时保活主进程"),
+        MainProcessAdjManagePolicy("主进程ADJ管理策略"),
     }
 
     @get:JSONField(serialize = false)

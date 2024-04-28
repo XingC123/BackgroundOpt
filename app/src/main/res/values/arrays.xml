@@ -59,4 +59,11 @@
         <item>MAIN_PROCESS_ANY</item>
         <item>ALL</item>
     </string-array>
+    
+    <!--app配置页-主进程adj管理策略-->
+    <string-array name="manage_main_proc_adj_entries">
+        <item>从不</item>
+        <item>拥有界面</item>
+        <item>强制</item>
+    </string-array>
 </resources>

@@ -17,8 +17,6 @@
 
 package com.venus.backgroundopt.environment.hook
 
-import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.CommonProperties.subProcessDefaultUpgradeSet
@@ -159,11 +157,6 @@ object HookCommonProperties : ILogger {
     fun computeAppOptimizePolicy(userId: Int, packageName: String): AppOptimizePolicy {
         return AppOptimizePolicy().apply {
             this.packageName = packageName
-            // 检查是否需要管理adj
-            val findAppResult = RunningInfo.getInstance().getFindAppResult(userId, packageName)
-            if (AppInfo.shouldHandleAdj(findAppResult, packageName)) {
-                shouldHandleAdj = true
-            }
         }
     }
 
@@ -175,6 +168,10 @@ object HookCommonProperties : ILogger {
     }
 
     @JvmStatic
+    @Deprecated(
+        message = "AppOptimizePolicy.shouldHandleAdjUiState已被取代",
+        replaceWith = ReplaceWith("mainProcessAdjManagePolicy")
+    )
     fun setShouldHandleAdjUiState(userId: Int, packageName: String, shouldHandleAdjUiState: Boolean) {
         computeAppOptimizePolicyInMap(
             userId = userId,

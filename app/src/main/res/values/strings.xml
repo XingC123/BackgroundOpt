@@ -94,10 +94,6 @@
         \n\t\t\t\ta. 生效范围: xxx(adj&gt;0) -> 只有系统计算出的adj&gt;0的app的进程才会被管理。
         \n\t\t\t\tb. 自定义全局OOM值: 取值范围[-1000, 1000]。<b>模块支持对-800及以下取值的app划卡杀后台</b>
 
-        \n\t\t6) 附加设置-临时保活有界面的app的主进程：见名知意。
-        \n\t\t\t\ta. 在app配置页，可以针对当前app进行设置。且优先级高于全局设置。
-        \n\t\t\t\tb. 在adj调整基本规则生满足的前提下(详见“2. 补充说明12”)，只有 管理主进程adj<b>处于关闭</b> + 未配置过app策略(或app配置页该开关未处于关闭状态) + 当前app含有界面 时，该功能才生效。
-
         \n\n<b>2. 补充说明：</b>
         \n\t\t1) “内存回收”和“内存压缩”受进程策略影响。
         \n\t\t2) <b>自启<i>(开机自启/杀死后台后自启)</i>的app依然会被模块管理</b>。
@@ -117,6 +113,14 @@
         \n\t\t13) 截至2024.3.26(模块2.3_vc199)，app配置页的“管理Adj”功能生效条件：
         \n\t\t\t\ta. 系统计算的oom_score_adj&gt;0。
         \n\t\t\t\tb. 未使用“自定义主进程OOM”(即：本功能并不会影响“自定义主进程OOM”，其优先级仍然最高)或全局OOM。
+
+        \n\t\t14) app配置页-主进程adj管理策略：
+        \n\t\t\t\ta. 该配置旨在应用adj调整的最终阶段进行判定。
+        \n\t\t\t\tb. 在adj调整基本规则生满足的前提下(详见“补充说明12”)，只有符合本功能所选项的情况下，adj调整才最终生效。
+        \n\t\t\t\tc. 策略说明(2024.4.28，模块2.5_vc201版本)：
+        \n\t\t\t\t\t\t① 从不：模块不对adj进行干预。
+        \n\t\t\t\t\t\t② 拥有界面：后台含有界面时，模块会对其进行“保活”。不含界面时，模块会将其视为子进程级别处理adj。
+        \n\t\t\t\t\t\t③ 强制：无论如何都进行adj调整。
 
 
         \n\n<b>3. 其他问题</b>
@@ -183,5 +187,7 @@
     <string name="settingsBackgroundProcTrimMemEnablePrefText" translatable="false">启用后台进程内存回收</string>
     <string name="settingsKeepMainProcessAliveHasActivity" translatable="false">临时保活有界面的app的主进程</string>
     <string name="configureAppProcessKeepMainProcessAliveHasActivityText" translatable="false">有界面时临时保活主进程</string>
-    <string name="itemInstalledAppsKeepMainProcessAliveHasActivityFlagText" translatable="false">有界面时临时保活主进程</string>
+    <string name="itemInstalledAppsMainProcessAdjManagePolicy" translatable="false">主进程ADJ管理策略</string>
+    <string name="configureAppProcessMainProcAdjManagePolicyText" translatable="false">主进程ADJ管理策略</string>
+    <string name="configureAppProcessMainProcAdjManagePolicyDefault" translatable="false">拥有界面</string>
 </resources>
