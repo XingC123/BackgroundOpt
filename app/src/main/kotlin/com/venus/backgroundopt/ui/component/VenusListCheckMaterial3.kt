@@ -49,8 +49,11 @@ class VenusListCheckMaterial3 : LinearLayout {
     var entryValues: Array<CharSequence>? = null
 
     private var dialogConfirmClickListener: DialogConfirmClickListener? = null
+    private var radioButtonIdGenerator: RadioButtonIdGenerator? = null
 
-    var value: CharSequence? = null
+    private var value: CharSequence? = null
+
+    var defaultValue: CharSequence? = null
         set(value) {
             field = value
 
@@ -141,14 +144,18 @@ class VenusListCheckMaterial3 : LinearLayout {
                     // 添加单选按钮
                     entries?.forEachIndexed { index, title ->
                         val radioButton = MaterialRadioButton(context).apply {
-                            id = index
+                            id = radioButtonIdGenerator?.get(index, entries, entryValues) ?: index
                             text = title
 
-                            if (title == value) {
+                            if (title == (value ?: defaultValue)) {
                                 isChecked = true
                             }
                         }
                         radioGroup.addView(radioButton)
+                    }
+
+                    radioGroup.setOnCheckedChangeListener { _, checkedId ->
+                        value = radioGroup.findViewById<MaterialRadioButton>(checkedId)?.text
                     }
 
                     radioGroup
@@ -158,10 +165,11 @@ class VenusListCheckMaterial3 : LinearLayout {
             enablePositiveBtn = true,
             positiveBlock = { dialogInterface: DialogInterface, i: Int ->
                 configRadioGroup?.let { radioGroup ->
-                    val index = radioGroup.checkedRadioButtonId
-                    val entry = entries?.get(index)
+                    val radioButtonId = radioGroup.checkedRadioButtonId
+                    val entry = value
+                    val index = entries?.indexOf(entry) ?: 0
                     val entryValue = entryValues?.get(index)
-                    dialogConfirmClickListener?.onClick(index, entry, entryValue)
+                    dialogConfirmClickListener?.onClick(radioButtonId, index, entry, entryValue)
 
                     // 更改summary
                     summary.text = entry ?: "null"
@@ -187,7 +195,23 @@ class VenusListCheckMaterial3 : LinearLayout {
         entryValues = map.values.toTypedArray()
     }
 
+    /**
+     * 设置单选按钮的id生成器
+     */
+    fun setRadioButtonIdGenerator(generator: RadioButtonIdGenerator) {
+        this.radioButtonIdGenerator = generator
+    }
+
     fun interface DialogConfirmClickListener {
-        fun onClick(id: Int, entry: CharSequence?, entryValue: CharSequence?)
+        fun onClick(radioButtonId: Int, index:Int, entry: CharSequence?, entryValue: CharSequence?)
+    }
+
+    fun interface RadioButtonIdGenerator {
+        /**
+         * - [Int] -> [entries]遍历时的索引
+         * - [Array] -> [entries]
+         * - [Array] -> [entryValues]
+         */
+        fun get(id: Int, entries: Array<CharSequence>?, entryValues: Array<CharSequence>?): Int
     }
 }
