@@ -135,7 +135,7 @@ class ProcessListHookKt(
     private fun generateSimpleLmkAdjHandler(): OomScoreAdjHandler = object : OomScoreAdjHandler(
         highPrioritySubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
         minAdj = normalAppAdjStartUseSimpleLmk,
-        maxAdj = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
+        maxAdj = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ - 1,
         adjConvertDivisor = ADJ_CONVERT_DIVISOR,
         minImportAppAdj = importSystemAppAdjStartUseSimpleLmk,
         maxImportAppAdj = importSystemAppAdjEndUseSimpleLmk
