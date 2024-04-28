@@ -42,6 +42,10 @@ import com.venus.backgroundopt.utils.showProgressBarViewForAction
  * @author XingC
  * @date 2023/9/27
  */
+@Deprecated(
+    message = "默认使用Material3设计风格",
+    replaceWith = ReplaceWith("ShowAllInstalledAppsActivityMaterial3")
+)
 class ShowAllInstalledAppsActivity : BaseActivity() {
     override fun initToolBar(): Toolbar? {
         return UiUtils.getToolbar(this, R.id.toolbarLeftTitleToolbar, titleStr = "已安装应用")

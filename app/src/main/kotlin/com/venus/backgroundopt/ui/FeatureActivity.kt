@@ -26,6 +26,10 @@ import com.venus.backgroundopt.utils.UiUtils
  * @author XingC
  * @date 2023/11/3
  */
+@Deprecated(
+    message = "默认使用Material3设计风格",
+    replaceWith = ReplaceWith("FeatureActivityMaterial3")
+)
 class FeatureActivity : BaseActivity() {
     override fun getContentView(): Int {
         return R.layout.activity_feature

@@ -36,10 +36,10 @@
             android:name="xposedsharedprefs"
             android:value="true" />
 
-        <activity
-            android:name=".ui.MainActivity"
-            android:exported="true">
-        </activity>
+<!--        <activity-->
+<!--            android:name=".ui.MainActivity"-->
+<!--            android:exported="true">-->
+<!--        </activity>-->
 
         <activity
             android:name=".ui.MainActivityMaterial3"
@@ -50,57 +50,57 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".ui.SettingsActivity"
-            android:exported="true" />
+<!--        <activity-->
+<!--            android:name=".ui.SettingsActivity"-->
+<!--            android:exported="true" />-->
 
         <activity
             android:name=".ui.SettingsActivityMaterial3"
             android:exported="true" />
 
-        <activity
-            android:name=".ui.AboutAppActivity"
-            android:exported="true" />
+<!--        <activity-->
+<!--            android:name=".ui.AboutAppActivity"-->
+<!--            android:exported="true" />-->
 
         <activity
             android:name=".ui.AboutAppActivityMaterial3"
             android:exported="true" />
 
-        <activity
-            android:name=".ui.FeatureActivity"
-            android:exported="true" />
+<!--        <activity-->
+<!--            android:name=".ui.FeatureActivity"-->
+<!--            android:exported="true" />-->
 
         <activity
             android:name=".ui.FeatureActivityMaterial3"
             android:exported="true" />
 
-        <activity
-            android:name=".ui.ShowBackgroundTasksActivity"
-            android:exported="true" />
+<!--        <activity-->
+<!--            android:name=".ui.ShowBackgroundTasksActivity"-->
+<!--            android:exported="true" />-->
 
         <activity
             android:name=".ui.ShowBackgroundTasksActivityMaterial3"
             android:exported="true" />
 
-        <activity
-            android:name=".ui.ShowAppCompactListActivity"
-            android:exported="true" />
+<!--        <activity-->
+<!--            android:name=".ui.ShowAppCompactListActivity"-->
+<!--            android:exported="true" />-->
 
         <activity
             android:name=".ui.ShowAppCompactListActivityMaterial3"
             android:exported="true" />
 
-        <activity
-            android:name=".ui.ShowAllInstalledAppsActivity"
-            android:exported="true" />
+<!--        <activity-->
+<!--            android:name=".ui.ShowAllInstalledAppsActivity"-->
+<!--            android:exported="true" />-->
 
         <activity
             android:name=".ui.ShowAllInstalledAppsActivityMaterial3"
             android:exported="true" />
 
-        <activity
-            android:name=".ui.ConfigureAppProcessActivity"
-            android:exported="true" />
+<!--        <activity-->
+<!--            android:name=".ui.ConfigureAppProcessActivity"-->
+<!--            android:exported="true" />-->
 
         <activity
             android:name=".ui.ConfigureAppProcessActivityMaterial3"

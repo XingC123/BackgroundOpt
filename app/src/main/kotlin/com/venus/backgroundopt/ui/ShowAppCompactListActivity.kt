@@ -31,6 +31,10 @@ import com.venus.backgroundopt.utils.setIntentData
  * @author XingC
  * @date 2023/9/25
  */
+@Deprecated(
+    message = "默认使用Material3设计风格",
+    replaceWith = ReplaceWith("ShowAppCompactListActivityMaterial3")
+)
 class ShowAppCompactListActivity : ShowInfoFromAppItemActivity() {
     override fun getShowInfoAdapter(
         appItems: List<AppItem>,

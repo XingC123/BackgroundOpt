@@ -50,6 +50,10 @@ import com.venus.backgroundopt.utils.preference.prefValue
 import com.venus.backgroundopt.utils.showProgressBarViewForAction
 import kotlin.reflect.KMutableProperty0
 
+@Deprecated(
+    message = "默认使用Material3设计风格",
+    replaceWith = ReplaceWith("ConfigureAppProcessActivityMaterial3")
+)
 class ConfigureAppProcessActivity : BaseActivity() {
     private lateinit var appItem: AppItem
 

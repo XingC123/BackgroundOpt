@@ -34,6 +34,10 @@ import com.venus.backgroundopt.utils.message.sendMessage
  * @author XingC
  * @date 2023/9/23
  */
+@Deprecated(
+    message = "默认使用Material3设计风格",
+    replaceWith = ReplaceWith("ShowBackgroundTasksActivityMaterial3")
+)
 class ShowBackgroundTasksActivity : ShowInfoFromAppItemActivity() {
     override fun getShowInfoAdapter(
         appItems: List<AppItem>,
