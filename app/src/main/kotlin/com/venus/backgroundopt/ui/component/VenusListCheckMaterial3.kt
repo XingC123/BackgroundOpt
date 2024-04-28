@@ -179,6 +179,14 @@ class VenusListCheckMaterial3 : LinearLayout {
         dialogConfirmClickListener = listener
     }
 
+    /**
+     * 从[map]中提取[entries]和[entryValues]
+     */
+    fun setEntriesAndValue(map: Map<String, String>) {
+        entries = map.keys.toTypedArray()
+        entryValues = map.values.toTypedArray()
+    }
+
     fun interface DialogConfirmClickListener {
         fun onClick(id: Int, entry: CharSequence?, entryValue: CharSequence?)
     }
