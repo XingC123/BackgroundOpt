@@ -71,6 +71,24 @@ class DefaultApplicationChangeHook(
                             )
                         }
                     }
+
+                    RoleManager.ROLE_SMS -> {
+                        handleOnAddRoleHolder(param = param) { _, packageName, _, _ ->
+                            runningInfo.setDefaultPackageName(
+                                DefaultApplicationManager.DEFAULT_APP_SMS,
+                                packageName
+                            )
+                        }
+                    }
+
+                    RoleManager.ROLE_DIALER -> {
+                        handleOnAddRoleHolder(param = param) { _, packageName, _, _ ->
+                            runningInfo.setDefaultPackageName(
+                                DefaultApplicationManager.DEFAULT_APP_DIALER,
+                                packageName
+                            )
+                        }
+                    }
                 }
             }
         }

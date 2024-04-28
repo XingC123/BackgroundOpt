@@ -140,6 +140,12 @@ class DefaultApplicationManager {
         // 输入法
         const val DEFAULT_APP_INPUT_METHOD = "INPUT_METHOD"
 
+        // 短信
+        const val DEFAULT_APP_SMS = "SMS"
+
+        // 拨号
+        const val DEFAULT_APP_DIALER = "DIALER"
+
         // 默认app的包名
         val defaultAppPkgNameSet = HashSet<String?>(8)
 

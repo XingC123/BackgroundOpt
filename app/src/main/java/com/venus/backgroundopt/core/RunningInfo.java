@@ -708,7 +708,15 @@ public class RunningInfo implements ILogger {
                     new DefaultApplicationPkgNameInitializer()
                             .setKey(DefaultApplicationManager.DEFAULT_APP_INPUT_METHOD)
                             .setTag("输入法")
-                            .setPkgNameGetter(packageManagerService::getDefaultInputMethod)
+                            .setPkgNameGetter(packageManagerService::getDefaultInputMethod),
+                    new DefaultApplicationPkgNameInitializer()
+                            .setKey(DefaultApplicationManager.DEFAULT_APP_DIALER)
+                            .setTag("通讯录与拨号")
+                            .setPkgNameGetter(packageManagerService::getDefaultDialer),
+                    new DefaultApplicationPkgNameInitializer()
+                            .setKey(DefaultApplicationManager.DEFAULT_APP_SMS)
+                            .setTag("短信")
+                            .setPkgNameGetter(packageManagerService::getDefaultSms)
             ).forEach(initializer -> {
                 defaultApplicationManager.initDefaultApplicationNode(
                         initializer.key,

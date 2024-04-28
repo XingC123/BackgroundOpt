@@ -63,9 +63,11 @@ public interface MethodConstants {
     String startBootstrapServices = "startBootstrapServices";
     String main = "main";
     String getRoleHoldersAsUser = "getRoleHoldersAsUser";
+    String getRoleHolder = "getRoleHolder";
     String getDefaultAppProvider = "getDefaultAppProvider";
     String getDefaultHome = "getDefaultHome";
     String getDefaultBrowser = "getDefaultBrowser";
+    String getDefaultDialer = "getDefaultDialer";
     String configureSystemServerDexReporter = "configureSystemServerDexReporter";
     String isFirstBoot = "isFirstBoot";
     String readProcLines = "readProcLines";
