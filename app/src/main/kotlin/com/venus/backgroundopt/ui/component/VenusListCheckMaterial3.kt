@@ -56,6 +56,7 @@ class VenusListCheckMaterial3 : LinearLayout {
     var defaultValue: CharSequence? = null
         set(value) {
             field = value
+            this.value = value
 
             summary.text = value ?: "null"
         }
@@ -169,12 +170,11 @@ class VenusListCheckMaterial3 : LinearLayout {
                     val entry = value
                     val index = entries?.indexOf(entry) ?: 0
                     val entryValue = entryValues?.get(index)
-                    dialogConfirmClickListener?.onClick(radioButtonId, index, entry, entryValue)
 
                     // 更改summary
                     summary.text = entry ?: "null"
 
-                    value = entry
+                    dialogConfirmClickListener?.onClick(radioButtonId, index, entry, entryValue)
 
                     dialogInterface.dismiss()
                 }
