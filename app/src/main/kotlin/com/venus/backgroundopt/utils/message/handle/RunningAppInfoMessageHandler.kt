@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
                     
- package com.venus.backgroundopt.utils.message.handle
+package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.utils.message.MessageHandler
@@ -35,7 +35,9 @@ class RunningAppInfoMessageHandler : MessageHandler {
         value: String?
     ) {
         createResponse(param, value) { uid: Int ->
-            runningInfo.getRunningAppInfo(uid)
+            runningInfo.runningAppInfos.find {
+                it.uid == uid
+            }
         }
     }
 }
