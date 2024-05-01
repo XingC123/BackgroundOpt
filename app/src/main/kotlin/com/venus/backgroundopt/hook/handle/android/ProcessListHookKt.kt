@@ -384,25 +384,25 @@ class ProcessListHookKt(
                         appOptimizePolicy = appOptimizePolicy,
                         curAdj = curRawAdj
                     ) {
+                        if (process.fixedOomAdjScore != ProcessRecord.DEFAULT_MAIN_ADJ) {
+                            process.fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
+
+                            when (oomMode) {
+                                OomWorkModePref.MODE_STRICT,
+                                    /*|| oomMode == OomWorkModePref.MODE_NEGATIVE, */
+                                OomWorkModePref.MODE_BALANCE_PLUS -> {
+                                    process.setDefaultMaxAdj()
+                                }
+
+                                else -> {}
+                            }
+                        }
                         oomAdjHandler.computeFinalAdj(
                             oomScoreAdj = curRawAdj,
                             processRecord = process,
                             appInfo = appInfo,
                             mainProcess = mainProcess
                         )
-                    }
-                    if (process.fixedOomAdjScore != ProcessRecord.DEFAULT_MAIN_ADJ) {
-                        process.fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
-
-                        when (oomMode) {
-                            OomWorkModePref.MODE_STRICT,
-                                /*|| oomMode == OomWorkModePref.MODE_NEGATIVE, */
-                            OomWorkModePref.MODE_BALANCE_PLUS -> {
-                                process.setDefaultMaxAdj()
-                            }
-
-                            else -> {}
-                        }
                     }
                 }
             } else {    // 普通子进程
