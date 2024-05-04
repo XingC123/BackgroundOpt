@@ -693,10 +693,10 @@ public class RunningInfo implements ILogger {
     public void initActiveDefaultAppPackageName() {
         if (packageManagerService != null) {
             List.of(
-                    new DefaultApplicationPkgNameInitializer()
+                    /*new DefaultApplicationPkgNameInitializer()
                             .setKey(DefaultApplicationManager.DEFAULT_APP_BROWSER)
                             .setTag("浏览器")
-                            .setPkgNameGetter(packageManagerService::getDefaultBrowser),
+                            .setPkgNameGetter(packageManagerService::getDefaultBrowser),*/
                     new DefaultApplicationPkgNameInitializer()
                             .setKey(DefaultApplicationManager.DEFAULT_APP_HOME)
                             .setTag("桌面")
