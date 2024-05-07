@@ -32,7 +32,6 @@ import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.FindAppResult;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
-import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerShellCommand;
 import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
 import com.venus.backgroundopt.hook.handle.android.entity.PackageManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
@@ -857,20 +856,5 @@ public class RunningInfo implements ILogger {
 
     public void setPackageManagerService(PackageManagerService packageManagerService) {
         this.packageManagerService = packageManagerService;
-    }
-
-    /* *************************************************************************
-     *                                                                         *
-     * ActivityManagerShellCommand                                             *
-     *                                                                         *
-     **************************************************************************/
-    private ActivityManagerShellCommand activityManagerShellCommand;
-
-    public ActivityManagerShellCommand getActivityManagerShellCommand() {
-        return activityManagerShellCommand;
-    }
-
-    public void setActivityManagerShellCommand(ActivityManagerShellCommand activityManagerShellCommand) {
-        this.activityManagerShellCommand = activityManagerShellCommand;
     }
 }
