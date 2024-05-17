@@ -93,7 +93,7 @@ class AppCompactManager2(
                         oomAdjustLevel = oomAdjustLevel,
                     )
                 }
-            }, /*cachedAppOptimizer.mFreezerDebounceTimeout*/ 10 * 1000, TimeUnit.MILLISECONDS)
+            }, /*cachedAppOptimizer.mFreezerDebounceTimeout*/ COMPACT_TASK_DELAY, TimeUnit.MILLISECONDS)
         }
     }
 
@@ -216,6 +216,10 @@ class AppCompactManager2(
         } else {
             ProcessCompactResultCode.problem
         }
+    }
+
+    companion object {
+        const val COMPACT_TASK_DELAY = 10L * 1000
     }
 }
 
