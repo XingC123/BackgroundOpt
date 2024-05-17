@@ -99,6 +99,11 @@ class AppCompactManager2(
         curOomScoreAdj: Int,
         oomAdjustLevel: Int
     ) {
+        // app处于前台时不进行压缩
+        if (processRecord.appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
+            return
+        }
+
         // 检验合法性
         if (!processRecord.isValid(runningInfo)) {
             return
