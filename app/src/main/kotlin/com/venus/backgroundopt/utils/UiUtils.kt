@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.utils
+
+package com.venus.backgroundopt.utils
 
 import android.app.Activity
 import android.content.Context
@@ -125,7 +125,12 @@ object UiUtils {
      */
     @JvmOverloads
     fun createDialog(context: Context, viewResId: Int, cancelable: Boolean = true): AlertDialog {
-        return createDialog(context, viewResId, {}, cancelable)
+        return createDialog(
+            context = context,
+            viewResId = viewResId,
+            viewBlock = {},
+            cancelable = cancelable
+        )
     }
 
     /**
@@ -133,6 +138,8 @@ object UiUtils {
      * @param context Context 当前上下文
      * @param viewResId Int 布局文件资源id
      * @param viewBlock Function1<View, Unit> 要对布局文件创建的[View]执行的操作
+     * @param titleResId 对话框标题的内容的资源文件id
+     * @param titleStr 对话框的标题内容
      * @param cancelable Boolean 点击空白处是否可以取消对话框
      * @param enableNegativeBtn Boolean 启用返回按钮
      * @param negativeBtnText String 返回按钮文字
@@ -147,6 +154,8 @@ object UiUtils {
         context: Context,
         viewResId: Int,
         viewBlock: View.() -> Unit,
+        titleResId: Int? = null,
+        titleStr: String? = null,
         cancelable: Boolean = true,
         enableNegativeBtn: Boolean = false,
         negativeBtnText: String = "放弃",
@@ -159,8 +168,11 @@ object UiUtils {
             dialogInterface.dismiss()
         },
     ): AlertDialog {
-        return MaterialAlertDialogBuilder(context)
-            .setCancelable(cancelable)
+        val builder = MaterialAlertDialogBuilder(context)
+        builder.setCancelable(cancelable)
+        titleResId?.let { builder.setTitle(it) } ?: titleStr?.let { builder.setTitle(it) }
+
+        return builder
             .setView(context.getView(viewResId).apply { viewBlock(this) })
             .setNegativeBtn(context, enableNegativeBtn, negativeBtnText, negativeBlock)
             .setPositiveBtn(context, enablePositiveBtn, positiveBtnText, positiveBlock)
@@ -170,6 +182,8 @@ object UiUtils {
     @JvmOverloads
     fun createDialog(
         context: Context,
+        titleResId: Int? = null,
+        titleStr: String? = null,
         text: String,
         cancelable: Boolean = true,
         enableNegativeBtn: Boolean = false,
@@ -189,6 +203,8 @@ object UiUtils {
             viewBlock = {
                 findViewById<TextView>(R.id.contentCommonDialogText)?.text = text
             },
+            titleResId = titleResId,
+            titleStr = titleStr,
             cancelable,
             enableNegativeBtn,
             negativeBtnText,
