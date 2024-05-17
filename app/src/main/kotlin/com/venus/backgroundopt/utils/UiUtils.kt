@@ -260,6 +260,17 @@ object UiUtils {
                     logStr = "showProgressBarViewForAction: 进度条事件执行出错",
                     t = it
                 )
+                (context as Activity).runOnUiThread {
+                    createDialog(
+                        context = context,
+                        titleResId = null,
+                        titleStr = "加载出错",
+                        text = "错误信息: ${it.stackTraceToString()}",
+                        cancelable = cancelable,
+                        enableNegativeBtn = enableNegativeBtn,
+                        negativeBtnText = negativeBtnText,
+                    ).show()
+                }
             }
             dialog.dismiss()
         }
