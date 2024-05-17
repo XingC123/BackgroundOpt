@@ -50,8 +50,6 @@ class ShowAllInstalledAppsAdapter3(
         var itemInstalledAppsShouldHandleMainProcAdjFlagText: TextView
         var itemInstalledAppsMainProcessAdjManagePolicy: TextView
 
-        var hadSetClickedListener: Boolean = false
-
         init {
             appIcon = itemView.findViewById(R.id.appIconImageView)
             appName = itemView.findViewById(R.id.appNameText)
@@ -118,17 +116,15 @@ class ShowAllInstalledAppsAdapter3(
             AppItem.AppConfiguredEnum.MainProcessAdjManagePolicy
         )
 
-        if (!holder.hadSetClickedListener) {
-            holder.itemView.setOnClickListener { view ->
-                view.context.also { context ->
-                    context.startActivity(
-                        Intent(
-                            context,
-                            ConfigureAppProcessActivityMaterial3::class.java
-                        ).apply {
-                            setTmpData(appItem)
-                        })
-                }
+        holder.itemView.setOnClickListener { view ->
+            view.context.also { context ->
+                context.startActivity(
+                    Intent(
+                        context,
+                        ConfigureAppProcessActivityMaterial3::class.java
+                    ).apply {
+                        setTmpData(appItem)
+                    })
             }
         }
     }
