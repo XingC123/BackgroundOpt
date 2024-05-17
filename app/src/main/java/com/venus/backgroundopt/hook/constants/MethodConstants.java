@@ -163,6 +163,7 @@ public interface MethodConstants {
     String getLastStateTime = "getLastStateTime";
     String modifyRawOomAdj = "modifyRawOomAdj";
     String updateUseTieredCachedAdj = "updateUseTieredCachedAdj";
+    String writeLmkd = "writeLmkd";
 
     /**
      * miui

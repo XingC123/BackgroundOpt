@@ -30,7 +30,10 @@ import com.venus.backgroundopt.annotation.AndroidObject;
 import com.venus.backgroundopt.annotation.UsageComment;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.FindAppResult;
+import com.venus.backgroundopt.hook.base.IHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
+import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt;
+import com.venus.backgroundopt.hook.handle.android.ProcessListHookKtKt;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
 import com.venus.backgroundopt.hook.handle.android.entity.PackageManagerService;
@@ -647,6 +650,24 @@ public class RunningInfo implements ILogger {
         // 启动后台工作
         processManager.appIdle(appInfo);
 //        processManager.setAppToBackgroundProcessGroup(appInfo);
+
+        // 默认对高优先级子进程设置adj
+        ProcessListHookKt hookInstance = IHook.getHookInstance(ProcessListHookKt.class);
+        if (hookInstance != null) {
+            int adj = hookInstance.getOomAdjHandler().computeHighPrioritySubProcessAdj(0);
+            getRunningProcesses().stream()
+                    .filter(processRecord -> !processRecord.getMainProcess())
+                    .filter(processRecord -> processRecord.getUserId() == appInfo.getUserId()
+                            && Objects.equals(processRecord.packageName, appInfo.getPackageName()))
+                    .filter(ProcessListHookKtKt::isHighPrioritySubProcess)
+                    .forEach(processRecord -> {
+                        activityManagerService.getProcessList().writeLmkd(
+                                processRecord.getPid(),
+                                processRecord.getUid(),
+                                adj
+                        );
+                    });
+        }
 
         appInfo.setSwitchEventHandled(true);
     }

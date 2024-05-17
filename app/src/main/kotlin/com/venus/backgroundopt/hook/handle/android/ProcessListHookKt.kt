@@ -113,7 +113,7 @@ class ProcessListHookKt(
      * oom adj处理器                                                            *
      *                                                                         *
      **************************************************************************/
-    private val oomAdjHandler = when (HookCommonProperties.oomWorkModePref.oomMode) {
+    val oomAdjHandler = when (HookCommonProperties.oomWorkModePref.oomMode) {
         OomWorkModePref.MODE_NEGATIVE -> object : OomScoreAdjHandler() {
             override fun computeFinalAdj(
                 oomScoreAdj: Int,
@@ -573,7 +573,7 @@ class OomAdjustLevel {
 /**
  * oom_score_adj的处理器
  */
-internal open class OomScoreAdjHandler {
+open class OomScoreAdjHandler {
     var maxAllowedOomScoreAdj = ProcessList.UNKNOWN_ADJ - 1
 
     // 默认的主进程adj

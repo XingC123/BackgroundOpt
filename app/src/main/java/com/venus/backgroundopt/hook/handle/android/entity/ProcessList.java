@@ -14,18 +14,22 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.handle.android.entity;
 
+package com.venus.backgroundopt.hook.handle.android.entity;
+
+import com.venus.backgroundopt.annotation.AndroidMethod;
 import com.venus.backgroundopt.annotation.AndroidObject;
 import com.venus.backgroundopt.annotation.AndroidObjectField;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.ApplicationIdentity;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
+import com.venus.backgroundopt.hook.constants.MethodConstants;
+import com.venus.backgroundopt.utils.XposedUtilsKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 import com.venus.backgroundopt.utils.reference.ObjectReference;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
@@ -183,6 +187,40 @@ public class ProcessList implements ILogger {
     @AndroidObjectField(objectClassPath = ClassConstants.ProcessList, fieldName = "SCHED_GROUP_TOP_APP_BOUND")
     public static final int SCHED_GROUP_TOP_APP_BOUND = 4;
 
+    // Low Memory Killer Daemon command codes.
+    // These must be kept in sync with lmk_cmd definitions in lmkd.h
+    //
+    // LMK_TARGET <minfree> <minkillprio> ... (up to 6 pairs)
+    // LMK_PROCPRIO <pid> <uid> <prio>
+    // LMK_PROCREMOVE <pid>
+    // LMK_PROCPURGE
+    // LMK_GETKILLCNT
+    // LMK_SUBSCRIBE
+    // LMK_PROCKILL
+    // LMK_UPDATE_PROPS
+    // LMK_KILL_OCCURRED
+    // LMK_STATE_CHANGED
+    @AndroidObjectField
+    static final byte LMK_TARGET = 0;
+    @AndroidObjectField
+    static final byte LMK_PROCPRIO = 1;
+    @AndroidObjectField
+    static final byte LMK_PROCREMOVE = 2;
+    @AndroidObjectField
+    static final byte LMK_PROCPURGE = 3;
+    @AndroidObjectField
+    static final byte LMK_GETKILLCNT = 4;
+    @AndroidObjectField
+    static final byte LMK_SUBSCRIBE = 5;
+    @AndroidObjectField
+    static final byte LMK_PROCKILL = 6; // Note: this is an unsolicited command
+    @AndroidObjectField
+    static final byte LMK_UPDATE_PROPS = 7;
+    @AndroidObjectField
+    static final byte LMK_KILL_OCCURRED = 8; // Msg to subscribed clients on kill occurred event
+    @AndroidObjectField
+    static final byte LMK_STATE_CHANGED = 9; // Msg to subscribed clients on state changed
+
     @AndroidObject(classPath = ClassConstants.ProcessList)
     private final Object processList;
     // 系统进程列表
@@ -324,5 +362,26 @@ public class ProcessList implements ILogger {
                 .ifPresent(process -> processRecord.set(new ProcessRecord(activityManagerService, processRecord)));
 
         return processRecord.get();
+    }
+
+    @AndroidMethod
+    @SuppressWarnings("all")
+    public boolean writeLmkd(ByteBuffer buf, ByteBuffer repl) {
+        return (boolean) XposedUtilsKt.callMethod(
+                processList,
+                MethodConstants.writeLmkd,
+                buf,
+                repl
+        );
+    }
+
+    @SuppressWarnings("all")
+    public boolean writeLmkd(int pid, int uid, int adj) {
+        ByteBuffer buf = ByteBuffer.allocate(4 * 4);
+        buf.putInt(LMK_PROCPRIO);
+        buf.putInt(pid);
+        buf.putInt(uid);
+        buf.putInt(adj);
+        return writeLmkd(buf, null);
     }
 }
