@@ -59,7 +59,10 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
     override fun setOnMenuItemClickListener(menuItem: MenuItem) {
         when (menuItem.itemId) {
             R.id.installerAppToolbarHelpMenuItem -> {
-                UiUtils.createDialog(this, R.layout.content_installed_app_toolbar_help).show()
+                UiUtils.createDialog(
+                    context = this,
+                    viewResId = R.layout.content_installed_app_toolbar_help
+                ).show()
             }
         }
     }

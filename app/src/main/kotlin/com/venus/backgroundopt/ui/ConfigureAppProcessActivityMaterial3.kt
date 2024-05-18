@@ -69,7 +69,8 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
         when (menuItem.itemId) {
             R.id.configureAppProcAcitivityToolBarHelpMenuItem -> {
                 UiUtils.createDialog(
-                    this, R.layout.content_configure_app_proc_toolbar_help
+                    context = this,
+                    viewResId = R.layout.content_configure_app_proc_toolbar_help
                 ).show()
             }
         }

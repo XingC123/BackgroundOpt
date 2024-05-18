@@ -117,24 +117,6 @@ fun <E : View> Activity.findViewById(resId: Int, enable: Boolean = true): E? {
 object UiUtils {
     /**
      * 创建对话框
-     *
-     * @param context 当前上下文
-     * @param viewResId 布局文件资源id
-     * @param cancelable 对话框是否可以取消
-     * @return [AlertDialog]
-     */
-    @JvmOverloads
-    fun createDialog(context: Context, viewResId: Int, cancelable: Boolean = true): AlertDialog {
-        return createDialog(
-            context = context,
-            viewResId = viewResId,
-            viewBlock = {},
-            cancelable = cancelable
-        )
-    }
-
-    /**
-     * 创建对话框
      * @param context Context 当前上下文
      * @param viewResId Int 布局文件资源id
      * @param viewBlock Function1<View, Unit> 要对布局文件创建的[View]执行的操作
@@ -152,8 +134,10 @@ object UiUtils {
     @JvmOverloads
     fun createDialog(
         context: Context,
-        viewResId: Int,
-        viewBlock: View.() -> Unit,
+        text: String? = null,
+        viewResId: Int? = null,
+        viewBlock: (View.() -> Unit)? = null,
+        useDialogPreferredPaddingHorizontal: Boolean = true,
         titleResId: Int? = null,
         titleStr: String? = null,
         cancelable: Boolean = true,
@@ -169,50 +153,53 @@ object UiUtils {
         },
     ): AlertDialog {
         val builder = MaterialAlertDialogBuilder(context)
-        builder.setCancelable(cancelable)
         titleResId?.let { builder.setTitle(it) } ?: titleStr?.let { builder.setTitle(it) }
 
+        // 默认的对话框布局
+        if (viewResId == null) {
+            // 设置文本内容
+            text?.let { builder.setMessage(it) }
+        } else {
+            val view = context.getView(viewResId)
+            // 通用对话框布局
+            if (viewResId == R.layout.content_common_dailog_view) {
+                // 设置文本内容
+                text?.let {
+                    view.findViewById<TextView>(R.id.contentCommonDialogText)?.text = text
+                }
+            }
+            // 使用主题定义的对话框水平内边距
+            useDialogPreferredPaddingHorizontal.ifTrue {
+                val outValue = TypedValue()
+                val theme = context.theme
+                theme.resolveAttribute(
+                    android.R.attr.dialogPreferredPadding,
+                    outValue,
+                    true
+                )
+                val dialogPreferredPadding = view.resources.getDimensionPixelSize(
+                    outValue.resourceId
+                )
+                val originalPaddingTop = view.paddingTop
+                val originalPaddingBottom = view.paddingBottom
+                view.setPadding(
+                    dialogPreferredPadding,
+                    originalPaddingTop,
+                    dialogPreferredPadding,
+                    originalPaddingBottom
+                )
+            }
+            // 应用对view的自定义操作
+            viewBlock?.invoke(view)
+
+            builder.setView(view)
+        }
+
         return builder
-            .setView(context.getView(viewResId).apply { viewBlock(this) })
+            .setCancelable(cancelable)
             .setNegativeBtn(context, enableNegativeBtn, negativeBtnText, negativeBlock)
             .setPositiveBtn(context, enablePositiveBtn, positiveBtnText, positiveBlock)
             .create()
-    }
-
-    @JvmOverloads
-    fun createDialog(
-        context: Context,
-        titleResId: Int? = null,
-        titleStr: String? = null,
-        text: String,
-        cancelable: Boolean = true,
-        enableNegativeBtn: Boolean = false,
-        negativeBtnText: String = "放弃",
-        negativeBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
-            dialogInterface.dismiss()
-        },
-        enablePositiveBtn: Boolean = false,
-        positiveBtnText: String = "确认",
-        positiveBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
-            dialogInterface.dismiss()
-        },
-    ): AlertDialog {
-        return createDialog(
-            context,
-            viewResId = R.layout.content_common_dailog_view,
-            viewBlock = {
-                findViewById<TextView>(R.id.contentCommonDialogText)?.text = text
-            },
-            titleResId = titleResId,
-            titleStr = titleStr,
-            cancelable,
-            enableNegativeBtn,
-            negativeBtnText,
-            negativeBlock,
-            enablePositiveBtn,
-            positiveBtnText,
-            positiveBlock
-        )
     }
 
     @JvmStatic

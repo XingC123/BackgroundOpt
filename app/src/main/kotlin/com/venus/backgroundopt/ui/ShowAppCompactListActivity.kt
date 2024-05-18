@@ -68,7 +68,8 @@ class ShowAppCompactListActivity : ShowInfoFromAppItemActivity() {
         when (menuItem.itemId) {
             R.id.showAppCompactLisToolBarHelpMenuItem -> {
                 UiUtils.createDialog(
-                    this, R.layout.content_show_app_compact_list_toolbar_help
+                    context = this,
+                    viewResId = R.layout.content_show_app_compact_list_toolbar_help
                 ).show()
             }
         }
