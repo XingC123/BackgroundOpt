@@ -49,6 +49,8 @@ class AppCompactListMessageHandler : MessageHandler {
                 .onEach {
                     // 设置真实oom_adj_score
                     it.curAdj = it.getCurAdjNative()
+                    // 设置资源占用大小
+                    it.rssInBytes = it.getCurRssInBytes()
                 }
                 .toList()
         }

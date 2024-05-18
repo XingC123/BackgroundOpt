@@ -190,4 +190,10 @@
     <string name="itemInstalledAppsMainProcessAdjManagePolicy" translatable="false">主进程ADJ管理策略</string>
     <string name="configureAppProcessMainProcAdjManagePolicyText" translatable="false">主进程ADJ管理策略</string>
     <string name="configureAppProcessMainProcAdjManagePolicyDefault" translatable="false">拥有界面</string>
+    <string name="processInfoDialogPackageNameTip">package name:</string>
+    <string name="processInfoDialogPidTip" translatable="false">Pid:</string>
+    <string name="processInfoDialogUidTip" translatable="false">Uid:</string>
+    <string name="processInfoDialogRssTip" translatable="false">Rss:</string>
+    <string name="processInfoDialogOriginalAdjTip">Original adj:</string>
+    <string name="processInfoDialogCurAdjTip">Current adj:</string>
 </resources>
