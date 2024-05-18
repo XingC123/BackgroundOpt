@@ -42,7 +42,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:divider="@drawable/item_space_vertical"
-            android:showDividers="middle">
+            android:showDividers="middle"
+            android:shrinkColumns="1">
 
             <TableRow
                 android:layout_width="match_parent"
@@ -60,6 +61,7 @@
                     android:id="@+id/packageNameText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:paddingRight="5sp"
                     android:text="TextView"
                     android:textIsSelectable="true" />
             </TableRow>
