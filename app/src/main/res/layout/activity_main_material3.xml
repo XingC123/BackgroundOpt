@@ -169,7 +169,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
                     android:enabled="true"
-                    android:text="@string/getRunningAppInfoBtn" />
+                    android:text="@string/getRunningAppInfoBtn"
+                    android:visibility="gone" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/getTargetAppGroupBtn"
