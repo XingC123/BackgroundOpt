@@ -71,7 +71,7 @@
     <string name="configAppProcessFgMemTrimDisableRadio">禁用</string>
     <string name="settingsAppWebviewProcessProtect">保护app创建的webview</string>
     <string name="settingsUiTitle">界面</string>
-    <string name="processInfoDialogPackageNameTip">"包名: "</string>
-    <string name="processInfoDialogOriginalAdjTip">"原始Adj: "</string>
-    <string name="processInfoDialogCurAdjTip">"当前Adj: "</string>
+    <string name="processInfoDialogPackageNameTip">包名:</string>
+    <string name="processInfoDialogOriginalAdjTip">原始Adj:</string>
+    <string name="processInfoDialogCurAdjTip">当前Adj:</string>
 </resources>
