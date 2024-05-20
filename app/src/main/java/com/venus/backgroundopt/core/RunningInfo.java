@@ -656,9 +656,8 @@ public class RunningInfo implements ILogger {
         if (hookInstance != null) {
             int adj = hookInstance.getOomAdjHandler().computeHighPrioritySubProcessAdj(0);
             getRunningProcesses().stream()
+                    .filter(processRecord -> processRecord.appInfo == appInfo)
                     .filter(processRecord -> !processRecord.getMainProcess())
-                    .filter(processRecord -> processRecord.getUserId() == appInfo.getUserId()
-                            && Objects.equals(processRecord.packageName, appInfo.getPackageName()))
                     .filter(ProcessListHookKtKt::isHighPrioritySubProcess)
                     .forEach(processRecord -> {
                         activityManagerService.getProcessList().writeLmkd(
