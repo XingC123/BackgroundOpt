@@ -44,6 +44,7 @@ import com.venus.backgroundopt.hook.handle.android.RecentTasksHook;
 import com.venus.backgroundopt.hook.handle.android.ServiceManagerHook;
 import com.venus.backgroundopt.hook.handle.android.SystemPropertiesHook;
 import com.venus.backgroundopt.hook.handle.android.WindowProcessControllerHook;
+import com.venus.backgroundopt.hook.handle.android.function.CleanUpRemovedTaskHook;
 import com.venus.backgroundopt.hook.handle.android.function.DefaultApplicationChangeHook;
 
 import java.util.HashMap;
@@ -138,6 +139,8 @@ public class AndroidHookHandler extends PackageHook {
         new WindowProcessControllerHook(classLoader, runningInfo);
 
         new DefaultApplicationChangeHook(classLoader, runningInfo);
+
+        new CleanUpRemovedTaskHook(classLoader, runningInfo);
     }
 
     private void initSystemProp() {

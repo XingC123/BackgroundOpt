@@ -15,19 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.venus.backgroundopt.hook.handle.android
-
-import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.hook.base.IHook
+package com.venus.backgroundopt.hook.constants;
 
 /**
  * @author XingC
- * @date 2024/3/8
+ * @date 2024/5/23
  */
-class ActivityTaskSupervisorHook(
-    classLoader: ClassLoader?,
-    runningInfo: RunningInfo?
-) : IHook(classLoader, runningInfo) {
-    override fun hook() {
-    }
+public interface HookTagConstants {
+    String CleanUpRemovedTask = "CleanUpRemovedTask";
 }
