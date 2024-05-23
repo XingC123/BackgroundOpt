@@ -18,6 +18,7 @@
 package com.venus.backgroundopt.utils
 
 import com.venus.backgroundopt.hook.base.HookPoint
+import com.venus.backgroundopt.hook.base.IHook
 import com.venus.backgroundopt.utils.log.logError
 import com.venus.backgroundopt.utils.log.logInfo
 import de.robv.android.xposed.XC_MethodHook
@@ -235,10 +236,20 @@ private fun String.normalHook(
     classLoader: ClassLoader,
     methodName: String?,
     methodHook: XC_MethodHook,
+    tag: String? = null,
     vararg paramTypes: Any?
 ) {
     hookImpl(this, methodName) {
-        XposedHelpers.findAndHookMethod(this, classLoader, methodName, *paramTypes, methodHook)
+        val unhook = XposedHelpers.findAndHookMethod(
+            this,
+            classLoader,
+            methodName,
+            *paramTypes,
+            methodHook
+        )
+        tag?.let {
+            IHook.addMethodHookPoint(tag, unhook)
+        }
     }
 }
 
@@ -247,10 +258,11 @@ fun String.hookAllMethods(
     methodHook: XC_MethodHook,
     methodName: String?,
     methodType: HookPoint.MethodType = HookPoint.MethodType.Member,
+    tag: String? = null,
 ) {
     hookImpl(this, methodName) {
         val clazz = XposedHelpers.findClass(this, classLoader)
-        if (methodType == HookPoint.MethodType.Constructor) {
+        val unhookSet = if (methodType == HookPoint.MethodType.Constructor) {
             XposedBridge.hookAllConstructors(clazz, methodHook)
         } else {
             XposedBridge.hookAllMethods(
@@ -259,6 +271,7 @@ fun String.hookAllMethods(
                 methodHook
             )
         }
+        tag?.let { IHook.addMethodHookPoint(tag, unhookSet) }
     }
 }
 
@@ -266,14 +279,27 @@ private fun String.hookMethod(
     classLoader: ClassLoader,
     methodName: String?,
     methodHook: XC_MethodHook,
+    tag: String? = null,
     hookAllMethod: Boolean = false,
     methodType: HookPoint.MethodType = HookPoint.MethodType.Member,
     vararg paramTypes: Any?
 ) {
     if (hookAllMethod) {
-        hookAllMethods(classLoader, methodHook, methodName, methodType)
+        hookAllMethods(
+            classLoader = classLoader,
+            methodHook = methodHook,
+            methodName = methodName,
+            methodType = methodType,
+            tag = tag
+        )
     } else {
-        normalHook(classLoader, methodName, methodHook, *paramTypes)
+        normalHook(
+            classLoader = classLoader,
+            methodName = methodName,
+            methodHook = methodHook,
+            tag = tag,
+            paramTypes = paramTypes
+        )
     }
 }
 
@@ -281,25 +307,34 @@ fun String.beforeHook(
     classLoader: ClassLoader,
     methodName: String?,
     enable: Boolean = true,
+    tag: String? = null,
     hookAllMethod: Boolean = false,
     methodType: HookPoint.MethodType = HookPoint.MethodType.Member,
     vararg paramTypes: Any?,
     block: (MethodHookParam) -> Unit
 ): String {
     if (enable) {
-        hookMethod(classLoader, methodName, object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                super.beforeHookedMethod(param)
-                runCatchThrowable(catchBlock = {
-                    logError(
-                        logStr = "beforeHook执行出错.class: ${this@beforeHook}, methodName: ${methodName}",
-                        t = it
-                    )
-                }) {
-                    block(param)
+        hookMethod(
+            classLoader = classLoader,
+            methodName = methodName,
+            methodHook = object : XC_MethodHook() {
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    super.beforeHookedMethod(param)
+                    runCatchThrowable(catchBlock = {
+                        logError(
+                            logStr = "beforeHook执行出错.class: ${this@beforeHook}, methodName: ${methodName}",
+                            t = it
+                        )
+                    }) {
+                        block(param)
+                    }
                 }
-            }
-        }, hookAllMethod, methodType, *paramTypes)
+            },
+            tag = tag,
+            hookAllMethod = hookAllMethod,
+            methodType = methodType,
+            paramTypes = paramTypes
+        )
     }
     return this
 }
@@ -308,25 +343,34 @@ fun String.afterHook(
     classLoader: ClassLoader,
     methodName: String?,
     enable: Boolean = true,
+    tag: String? = null,
     hookAllMethod: Boolean = false,
     methodType: HookPoint.MethodType = HookPoint.MethodType.Member,
     vararg paramTypes: Any?,
     block: (MethodHookParam) -> Unit
 ): String {
     if (enable) {
-        hookMethod(classLoader, methodName, object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                super.afterHookedMethod(param)
-                runCatchThrowable(catchBlock = {
-                    logError(
-                        logStr = "beforeHook执行出错.class: ${this@afterHook}, methodName: ${methodName}",
-                        t = it
-                    )
-                }) {
-                    block(param)
+        hookMethod(
+            classLoader = classLoader,
+            methodName = methodName,
+            methodHook = object : XC_MethodHook() {
+                override fun afterHookedMethod(param: MethodHookParam) {
+                    super.afterHookedMethod(param)
+                    runCatchThrowable(catchBlock = {
+                        logError(
+                            logStr = "beforeHook执行出错.class: ${this@afterHook}, methodName: ${methodName}",
+                            t = it
+                        )
+                    }) {
+                        block(param)
+                    }
                 }
-            }
-        }, hookAllMethod, methodType, *paramTypes)
+            },
+            tag = tag,
+            hookAllMethod = hookAllMethod,
+            methodType = methodType,
+            paramTypes = paramTypes
+        )
     }
     return this
 }
@@ -335,17 +379,26 @@ fun String.replaceHook(
     classLoader: ClassLoader,
     methodName: String?,
     enable: Boolean = true,
+    tag: String? = null,
     hookAllMethod: Boolean = false,
     methodType: HookPoint.MethodType = HookPoint.MethodType.Member,
     vararg paramTypes: Any?,
     block: (MethodHookParam) -> Any?
 ): String {
     if (enable) {
-        hookMethod(classLoader, methodName, object : XC_MethodReplacement() {
-            override fun replaceHookedMethod(param: MethodHookParam): Any? {
-                return block(param)
-            }
-        }, hookAllMethod, methodType, *paramTypes)
+        hookMethod(
+            classLoader = classLoader,
+            methodName = methodName,
+            methodHook = object : XC_MethodReplacement() {
+                override fun replaceHookedMethod(param: MethodHookParam): Any? {
+                    return block(param)
+                }
+            },
+            tag = tag,
+            hookAllMethod = hookAllMethod,
+            methodType = methodType,
+            paramTypes = paramTypes
+        )
     }
     return this
 }
@@ -353,17 +406,19 @@ fun String.replaceHook(
 fun String.beforeConstructorHook(
     classLoader: ClassLoader,
     enable: Boolean = true,
+    tag: String? = null,
     hookAllMethod: Boolean = false,
     vararg paramTypes: Any?,
     block: (MethodHookParam) -> Unit
 ): String {
     beforeHook(
-        classLoader,
-        this.substring(this.lastIndexOf(".") + 1),
-        enable,
-        hookAllMethod,
-        HookPoint.MethodType.Constructor,
-        *paramTypes,
+        classLoader = classLoader,
+        methodName = this.substring(this.lastIndexOf(".") + 1),
+        enable = enable,
+        tag = tag,
+        hookAllMethod = hookAllMethod,
+        methodType = HookPoint.MethodType.Constructor,
+        paramTypes = paramTypes,
         block = block
     )
     return this
@@ -372,17 +427,19 @@ fun String.beforeConstructorHook(
 fun String.afterConstructorHook(
     classLoader: ClassLoader,
     enable: Boolean = true,
+    tag: String? = null,
     hookAllMethod: Boolean = false,
     vararg paramTypes: Any?,
     block: (MethodHookParam) -> Unit
 ): String {
     afterHook(
-        classLoader,
-        this.substring(this.lastIndexOf(".") + 1),
-        enable,
-        hookAllMethod,
-        HookPoint.MethodType.Constructor,
-        *paramTypes,
+        classLoader = classLoader,
+        methodName = this.substring(this.lastIndexOf(".") + 1),
+        enable = enable,
+        tag = tag,
+        hookAllMethod = hookAllMethod,
+        methodType = HookPoint.MethodType.Constructor,
+        paramTypes = paramTypes,
         block = block
     )
     return this
