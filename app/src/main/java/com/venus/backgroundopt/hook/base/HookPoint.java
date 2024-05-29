@@ -131,9 +131,9 @@ public class HookPoint implements ILogger {
                 }
             }
 
-            if (!dontPrintLogHookList.contains(hookClassName + "." + hookMethodName)) {
+            /*if (!dontPrintLogHookList.contains(hookClassName + "." + hookMethodName)) {
                 getLogger().info("[" + hookClassName + "." + hookMethodName + "]hook成功");
-            }
+            }*/
         } catch (Throwable t) {
             if (!dontPrintLogHookList.contains(hookClassName + "." + hookMethodName)) {
                 getLogger().error("[" + hookClassName + "." + hookMethodName + "]hook失败", t);

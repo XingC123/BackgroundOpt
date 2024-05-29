@@ -222,9 +222,9 @@ fun <R> Class<*>.callStaticMethod(
 private fun String.hookImpl(className: String, methodName: String?, block: () -> Unit) {
     try {
         block()
-        if (!HookPoint.dontPrintLogHookList.contains("${className}.${methodName}")) {
+        /*if (!HookPoint.dontPrintLogHookList.contains("${className}.${methodName}")) {
             logInfo(logStr = "[${this}.${methodName}]hook成功")
-        }
+        }*/
     } catch (t: Throwable) {
         if (!HookPoint.dontPrintLogHookList.contains("${className}.${methodName}")) {
             logError(logStr = "[${this}.${methodName}]hook失败", t = t)
