@@ -218,30 +218,31 @@ class MessageSender {
 val messageSender = MessageSender()
 
 // 已注册的消息处理器
-@JvmField
-val registeredMessageHandler = mapOf(
-    MessageKeyConstants.getRunningAppInfo to RunningAppInfoMessageHandler(),
-    MessageKeyConstants.getTargetAppGroup to TargetAppGroupMessageHandler(),
-    MessageKeyConstants.getBackgroundTasks to BackgroundTasksMessageHandler(),
-    MessageKeyConstants.getAppCompactList to AppCompactListMessageHandler(),
-    MessageKeyConstants.subProcessOomConfigChange to SubProcessOomConfigChangeMessageHandler(),
-    MessageKeyConstants.getInstalledApps to GetInstalledPackagesMessageHandler(),
-    MessageKeyConstants.autoStopCompactTask to AutoStopCompactTaskMessageHandler(),
-    MessageKeyConstants.enableForegroundProcTrimMemPolicy to EnableForegroundProcTrimMemPolicyHandler(),
-    MessageKeyConstants.foregroundProcTrimMemPolicy to ForegroundProcTrimMemPolicyHandler(),
-    MessageKeyConstants.appOptimizePolicy to AppOptimizePolicyMessageHandler(),
-    MessageKeyConstants.appWebviewProcessProtect to AppWebviewProcessProtectMessageHandler(),
-    MessageKeyConstants.enableSimpleLmk to SimpleLmkMessageHandler(),
-    MessageKeyConstants.enableGlobalOomScore to GlobalOomScoreMessageHandler(),
-    MessageKeyConstants.globalOomScoreEffectiveScope to GlobalOomScoreEffectiveScopeMessageHandler(),
-    MessageKeyConstants.globalOomScoreValue to GlobalOomScoreValueMessageHandler(),
+val registeredMessageHandler by lazy {
+    mapOf(
+        MessageKeyConstants.getRunningAppInfo to RunningAppInfoMessageHandler(),
+        MessageKeyConstants.getTargetAppGroup to TargetAppGroupMessageHandler(),
+        MessageKeyConstants.getBackgroundTasks to BackgroundTasksMessageHandler(),
+        MessageKeyConstants.getAppCompactList to AppCompactListMessageHandler(),
+        MessageKeyConstants.subProcessOomConfigChange to SubProcessOomConfigChangeMessageHandler(),
+        MessageKeyConstants.getInstalledApps to GetInstalledPackagesMessageHandler(),
+        MessageKeyConstants.autoStopCompactTask to AutoStopCompactTaskMessageHandler(),
+        MessageKeyConstants.enableForegroundProcTrimMemPolicy to EnableForegroundProcTrimMemPolicyHandler(),
+        MessageKeyConstants.foregroundProcTrimMemPolicy to ForegroundProcTrimMemPolicyHandler(),
+        MessageKeyConstants.appOptimizePolicy to AppOptimizePolicyMessageHandler(),
+        MessageKeyConstants.appWebviewProcessProtect to AppWebviewProcessProtectMessageHandler(),
+        MessageKeyConstants.enableSimpleLmk to SimpleLmkMessageHandler(),
+        MessageKeyConstants.enableGlobalOomScore to GlobalOomScoreMessageHandler(),
+        MessageKeyConstants.globalOomScoreEffectiveScope to GlobalOomScoreEffectiveScopeMessageHandler(),
+        MessageKeyConstants.globalOomScoreValue to GlobalOomScoreValueMessageHandler(),
 //    MessageKeyConstants.getTrimMemoryOptThreshold to GetTrimMemoryOptThresholdMessageHandler(),
-    MessageKeyConstants.getHomePageModuleInfo to HomePageModuleInfoMessageHandler(),
-    MessageKeyConstants.killAfterRemoveTask to KillAfterRemoveTaskMessageHandler(),
-    MessageKeyConstants.moduleRunning to ModuleRunningMessageHandler(),
-    MessageKeyConstants.getManagedAdjDefaultApps to GetManagedAdjDefaultAppsMessageHandler(),
-    MessageKeyConstants.KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY to KeepMainProcessAliveHasActivityMessageHandler(),
-)
+        MessageKeyConstants.getHomePageModuleInfo to HomePageModuleInfoMessageHandler(),
+        MessageKeyConstants.killAfterRemoveTask to KillAfterRemoveTaskMessageHandler(),
+        MessageKeyConstants.moduleRunning to ModuleRunningMessageHandler(),
+        MessageKeyConstants.getManagedAdjDefaultApps to GetManagedAdjDefaultAppsMessageHandler(),
+        MessageKeyConstants.KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY to KeepMainProcessAliveHasActivityMessageHandler(),
+    )
+}
 
 // json传输的载体
 data class Message(
