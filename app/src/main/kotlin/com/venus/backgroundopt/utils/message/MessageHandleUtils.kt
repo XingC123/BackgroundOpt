@@ -17,18 +17,17 @@
 
 package com.venus.backgroundopt.utils.message
 
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import com.alibaba.fastjson2.JSON
 import com.alibaba.fastjson2.JSONObject
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt
-import com.venus.backgroundopt.utils.log.logDebug
-import com.venus.backgroundopt.utils.log.logDebugAndroid
+import com.venus.backgroundopt.manager.message.SocketModuleMessageHandler
+import com.venus.backgroundopt.utils.JsonUtils
 import com.venus.backgroundopt.utils.log.logError
 import com.venus.backgroundopt.utils.log.logErrorAndroid
-import com.venus.backgroundopt.utils.log.logWarnAndroid
+import com.venus.backgroundopt.utils.log.logInfoAndroid
 import com.venus.backgroundopt.utils.message.handle.AppCompactListMessageHandler
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler
 import com.venus.backgroundopt.utils.message.handle.AppWebviewProcessProtectMessageHandler
@@ -49,7 +48,14 @@ import com.venus.backgroundopt.utils.message.handle.RunningAppInfoMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SimpleLmkMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMessageHandler
 import com.venus.backgroundopt.utils.message.handle.TargetAppGroupMessageHandler
+import com.venus.backgroundopt.utils.runCatchThrowable
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
+import java.io.Serializable
+import java.net.InetAddress
+import java.net.Socket
+import java.util.concurrent.Executors
 
 /**
  * ui与模块主进程通信工具类
@@ -64,8 +70,152 @@ const val NULL_FLAG = "NULL_FLAG"
 
 const val CUR_CLASS_PREFIX = "com.venus.backgroundopt.utils.message.MessageHandleUtils."
 
+/* *************************************************************************
+ *                                                                         *
+ * 消息发送器                                                                *
+ *                                                                         *
+ **************************************************************************/
+/**
+ * 消息发送器接口
+ */
+interface IMessageSender {
+    /**
+     * 以指定的key[key] ([MessageKeyConstants])发送消息[value], 得到可空的字符串
+     */
+    fun send(key: String, value: Any = ""): String?
+
+    /**
+     * 以指定的key[key] ([MessageKeyConstants])发送消息[value], 并将响应的字符串转换为指定格式[E]
+     */
+    fun <E> sendAndParse(type: Class<E>, key: String, value: Any = ""): E? {
+        return parseObject(
+            type = type,
+            jsonStr = send(
+                key = key,
+                value = value
+            )
+        )
+    }
+
+    companion object {
+        /**
+         * 从json字符串[jsonStr]转换得到[E]的对象
+         */
+        @JvmStatic
+        fun <E> parseObject(jsonStr: String?, type: Class<E>): E? {
+            return jsonStr?.let {
+                runCatchThrowable {
+                    JsonUtils.parseObject(jsonStr, type)
+                }
+            }
+        }
+
+        /**
+         * 使用默认的消息发送实现
+         *
+         * @param context Context
+         * @param key String
+         * @param value Any
+         * @return E?
+         */
+        @JvmStatic
+        inline fun <reified E> sendDefault(context: Context, key: String, value: Any = ""): E? {
+            val string = context.startService(Intent().apply {
+                `package` = BuildConfig.APPLICATION_ID
+                action = JsonUtils.toJsonString(
+                    Message(
+                        key = key,
+                        value = JsonUtils.toJsonString(value)
+                    )
+                )
+                type = Message.TYPE
+            })?.packageName
+            return parseObject(
+                jsonStr = string,
+                type = E::class.java
+            )
+        }
+    }
+}
+
+class DefaultMessageSender(
+    private val context: Context,
+) : IMessageSender {
+    override fun send(key: String, value: Any): String? {
+        return IMessageSender.sendDefault(
+            context = context,
+            key = key,
+            value = value
+        )
+    }
+}
+
+class SocketMessageSender(
+    val socketPort: Int,
+) : IMessageSender {
+    override fun send(key: String, value: Any): String? {
+        val socket = Socket(InetAddress.getLocalHost(), socketPort)
+        val objectOutputStream = ObjectOutputStream(socket.getOutputStream())
+        // 发送消息
+        objectOutputStream.writeObject(
+            Message(
+                key = key,
+                value = JsonUtils.toJsonString(value)
+            )
+        )
+        // 获取返回值
+        val objectInputStream = ObjectInputStream(socket.getInputStream())
+        val responseStr = objectInputStream.readObject() as String?
+
+        objectInputStream.close()
+        objectOutputStream.close()
+        socket.close()
+
+        return responseStr
+    }
+}
+
+/**
+ * 消息发送器
+ */
+class MessageSender {
+    private lateinit var sender: IMessageSender
+    private val executor = Executors.newSingleThreadExecutor()
+
+    fun init(context: Context, socketPort: Int) {
+        executor.execute {
+            // 支持socket传输
+            if (SocketModuleMessageHandler.isPortValid(socketPort)) {
+                logInfoAndroid("Socket通信~")
+                sender = SocketMessageSender(socketPort = socketPort)
+            } else {
+                logInfoAndroid("传统通信~")
+                sender = DefaultMessageSender(context = context)
+            }
+        }
+    }
+
+    /**
+     * 发送消息
+     *
+     * [sender]的不同会调用不同的通信方式
+     * @param key String
+     * @param value Any
+     * @return ComponentName?
+     */
+    fun send(key: String, value: Any = ""): String? = sender.send(key = key, value = value)
+
+    fun <E> send(type: Class<E>, key: String, value: Any = ""): E? {
+        return sender.sendAndParse(
+            type = type,
+            key = key,
+            value = value
+        )
+    }
+}
+
 @JvmField
-val nullComponentName = ComponentName(NULL_DATA, NULL_FLAG)
+val messageSender = MessageSender()
 
 // 已注册的消息处理器
 @JvmField
@@ -94,7 +244,15 @@ val registeredMessageHandler = mapOf(
 )
 
 // json传输的载体
-data class Message<T>(var v: T?) : MessageFlag
+data class Message(
+    var value: String?,
+    var key: String? = null
+) : MessageFlag, Serializable {
+    companion object {
+        private const val serialVersionUID: Long = 1L
+        const val TYPE = "backgroundopt.message"
+    }
+}
 
 /* *************************************************************************
  *                                                                         *
@@ -110,28 +268,7 @@ data class Message<T>(var v: T?) : MessageFlag
  * @return 响应的信息
  */
 fun sendMessage(context: Context, key: String, value: Any = ""): String? {
-    context.startService(Intent().apply {
-        `package` = BuildConfig.APPLICATION_ID
-        action = JSON.toJSONString(Message(value))
-        type = key
-    })?.let {
-        if (BuildConfig.DEBUG) {
-            logDebugAndroid(
-                methodName = "${CUR_CLASS_PREFIX}sendMessage",
-                logStr = "客户端收到的原始信息: ${it.packageName}"
-            )
-        }
-        // componentName.packageName被征用为存放返回数据
-        return if (it.packageName == NULL_DATA) null else it.packageName
-    } ?: run {
-        if (BuildConfig.DEBUG) {
-            logWarnAndroid(
-                methodName = "${CUR_CLASS_PREFIX}sendMessage",
-                logStr = "模块主进程回复内容为null, 无法进行转换"
-            )
-        }
-        return null
-    }
+    return messageSender.send(key = key, value = value)
 }
 
 /**
@@ -144,18 +281,11 @@ fun sendMessage(context: Context, key: String, value: Any = ""): String? {
  * @return json转换后的对象
  */
 inline fun <reified E> sendMessage(context: Context, key: String, value: Any = ""): E? {
-    return try {
-        sendMessage(context, key, value)?.let {
-            JSON.parseObject(it, E::class.java)
-        }
-    } catch (t: Throwable) {
-        logErrorAndroid(
-            methodName = "${CUR_CLASS_PREFIX}sendMessage<E>",
-            logStr = "响应消息转换失败",
-            t = t
-        )
-        null
-    }
+    return messageSender.send(
+        type = E::class.java,
+        key = key,
+        value = value
+    )
 }
 
 inline fun <reified E> sendMessageAcceptList(
@@ -225,44 +355,28 @@ inline fun <reified E> createResponse(
     setJsonData: Boolean = false,
     generateData: (value: E) -> Any?
 ) {
-//    if (BuildConfig.DEBUG) {
-    logDebug(
-        methodName = "${CUR_CLASS_PREFIX}createResponse",
-        logStr = "模块进程接收的数据为: $value"
-    )
-//    }
     var errorMsg: String? = null
+    var result: String? = null
     try {
-        param.result = value?.let { v ->
+        value?.let { _ ->
             errorMsg = "Message转换异常"
-            val message = JSON.parseObject(v, Message::class.java)
-            val final = if (message.v is JSONObject) {
-                errorMsg = "Message.v转换异常"
-                JSON.parseObject(message.v.toString(), E::class.java)
-            } else {
-                errorMsg = "Message.v类型转换异常"
-                message.v as? E
-            }
 
-            final?.let { eData ->
+            JSON.parseObject(value, E::class.java)?.let { eData ->
                 errorMsg = "数据处理异常"
                 generateData(eData)?.let { responseObj ->
-                    errorMsg = "组件生成异常"
-                    ComponentName(
-                        if (setJsonData) JSON.toJSONString(responseObj) else responseObj.toString(),
-                        NULL_FLAG
-                    )
-                } ?: nullComponentName
-            } ?: nullComponentName
-        } ?: nullComponentName
+                    result = if (setJsonData)
+                        JSON.toJSONString(responseObj)
+                    else responseObj.toString()
+                }
+            }
+        }
     } catch (t: Throwable) {
         logError(
-            methodName = "${CUR_CLASS_PREFIX}createResponse",
             logStr = "响应对象创建错误。errorMsg: $errorMsg",
             t = t
         )
-        param.result = nullComponentName
     }
+    param.result = result
 }
 
 /**

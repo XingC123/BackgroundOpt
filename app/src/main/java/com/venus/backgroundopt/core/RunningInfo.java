@@ -39,6 +39,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
 import com.venus.backgroundopt.hook.handle.android.entity.PackageManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.manager.application.DefaultApplicationManager;
+import com.venus.backgroundopt.manager.message.ModuleMessageManager;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.reference.PropertyChangeListener;
 import com.venus.backgroundopt.service.ProcessDaemonService;
@@ -876,5 +877,20 @@ public class RunningInfo implements ILogger {
 
     public void setPackageManagerService(PackageManagerService packageManagerService) {
         this.packageManagerService = packageManagerService;
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 模块消息管理器                                                             *
+     *                                                                         *
+     **************************************************************************/
+    private final ModuleMessageManager moduleMessageManager = new ModuleMessageManager(this);
+
+    {
+        moduleMessageManager.start();
+    }
+
+    public ModuleMessageManager getModuleMessageManager() {
+        return moduleMessageManager;
     }
 }

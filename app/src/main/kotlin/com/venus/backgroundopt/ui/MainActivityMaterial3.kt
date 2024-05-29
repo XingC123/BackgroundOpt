@@ -29,9 +29,10 @@ import com.venus.backgroundopt.ui.base.ifVersionIsCompatible
 import com.venus.backgroundopt.ui.widget.QueryInfoDialog
 import com.venus.backgroundopt.utils.findViewById
 import com.venus.backgroundopt.utils.log.ILogger
+import com.venus.backgroundopt.utils.message.IMessageSender
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.HomePageModuleInfoMessage
-import com.venus.backgroundopt.utils.message.sendMessage
+import com.venus.backgroundopt.utils.message.messageSender
 
 
 class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
@@ -76,7 +77,7 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
         if (moduleActive) {
             findViewById<TextView>(R.id.mainActivityModuleActiveText)?.setText(R.string.moduleActive)
             // 获取要展示的信息
-            sendMessage<HomePageModuleInfoMessage>(
+            IMessageSender.sendDefault<HomePageModuleInfoMessage>(
                 context = this,
                 key = MessageKeyConstants.getHomePageModuleInfo,
             )?.let { homePageModuleInfoMessage ->
@@ -84,6 +85,8 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
                     homePageModuleInfoMessage.defaultMaxAdjStr
                 findViewById<TextView>(R.id.trim_mem_opt_threshold)?.text =
                     homePageModuleInfoMessage.minOptimizeRssInMBytesStr
+
+                messageSender.init(this, homePageModuleInfoMessage.socketPort)
             }
         }
 

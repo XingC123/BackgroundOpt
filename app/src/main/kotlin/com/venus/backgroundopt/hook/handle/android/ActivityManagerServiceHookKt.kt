@@ -20,7 +20,6 @@ package com.venus.backgroundopt.hook.handle.android
 import android.app.usage.UsageEvents
 import android.content.ComponentName
 import android.content.Intent
-import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
@@ -29,7 +28,6 @@ import com.venus.backgroundopt.hook.base.generateMatchedMethodHookPoint
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
-import com.venus.backgroundopt.utils.message.registeredMessageHandler
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
@@ -195,14 +193,6 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
      * ui消息监听
      */
     private fun handleStartService(param: MethodHookParam) {
-        val dataIntent = param.args[1] as Intent
-        if (dataIntent.`package` != BuildConfig.APPLICATION_ID) {
-            return
-        }
-
-        val key = dataIntent.type ?: return       // 此次请求的key
-        val value = dataIntent.action   // 请求的值
-
-        registeredMessageHandler[key]?.handle(runningInfo, param, value)
+        runningInfo.moduleMessageManager.baseModuleMessageHandler.handleMessage(param)
     }
 }
