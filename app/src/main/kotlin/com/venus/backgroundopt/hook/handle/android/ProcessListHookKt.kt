@@ -114,6 +114,11 @@ class ProcessListHookKt(
      *                                                                         *
      **************************************************************************/
     val oomAdjHandler = when (HookCommonProperties.oomWorkModePref.oomMode) {
+        /*
+         * 严格模式所有adj始终为0
+         * (24.5.29)宽容模式在后续处理时, 并不会应用此oomAdjHandler的逻辑
+         */
+        OomWorkModePref.MODE_STRICT,
         OomWorkModePref.MODE_NEGATIVE -> object : OomScoreAdjHandler() {
             override fun computeFinalAdj(
                 oomScoreAdj: Int,

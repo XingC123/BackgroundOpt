@@ -70,7 +70,7 @@ public interface PreferenceDefaultValue {
      * OOM工作模式                                                               *
      *                                                                         *
      **************************************************************************/
-    int oomWorkMode = OomWorkModePref.MODE_STRICT;
+    int oomWorkMode = OomWorkModePref.MODE_STRICT_SECONDARY;
 
     /* *************************************************************************
      *                                                                         *

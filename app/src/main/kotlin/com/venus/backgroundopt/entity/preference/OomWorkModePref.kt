@@ -35,6 +35,13 @@ class OomWorkModePref() {
         const val MODE_STRICT = 1
 
         /**
+         * 次严格模式
+         *
+         * maxAdj = 见[ProcessRecord.defaultMaxAdj], defaultAdj = 见[ProcessRecord.DEFAULT_MAIN_ADJ]。进程始终处于Foreground
+         */
+        const val MODE_STRICT_SECONDARY = 5
+
+        /**
          * 宽松模式
          *
          *  maxAdj = 见[ProcessRecord.defaultMaxAdj], defaultAdj = 0。进程可以进入Background

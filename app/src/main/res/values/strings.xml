@@ -71,11 +71,12 @@
         <b>1. 当前功能：</b>
         \n\t\t1) 进程保活(基于LMK)。所有调整了adj的模块都与本模块冲突，除非它关于adj的设置可以关闭。
         \n\t\t\t\t以下说明基于2024.4.17版本(所有模式在前台时，adj均为0)：
-        \n\t\t\t\ta. 严格模式：此模式下，主进程oom_score_adj会始终处于1，且限制其最大oom_score_adj为100
-        \n\t\t\t\tb. 平衡模式：此模式下，主进程oom_score_adj会始终处于1，但不限制其最大oom_score_adj
-        \n\t\t\t\tc. 平衡模式+：此模式下，主进程oom_score_adj会始终处于1，且限制其最大oom_score_adj为100(同于严格模式)
-        \n\t\t\t\td. 宽容模式：此模式下，主进程oom_score_adj交由系统调节，不限制其最大oom_score_adj
-        \n\t\t\t\te. 除非在开启全局oom且作用范围选择"所有进程"，否则模块不会对oom_score_adj小于0的任何进程进行调整。也就是说，模块调整的oom分数是大于等于0的。
+        \n\t\t\t\ta. 严格模式：此模式下，所有高优先级进程的oom_score_adj会始终处于0，且限制其主进程最大oom_score_adj为50，高优先级子进程最大oom_score_adj为100
+        \n\t\t\t\tb. 次严格模式：此模式下，主进程oom_score_adj会始终处于1，高优先级子进程为51，且限制其主进程最大oom_score_adj为50，高优先级子进程最大oom_score_adj为100
+        \n\t\t\t\tc. 平衡模式：此模式下，主进程oom_score_adj会始终处于1，但不限制其最大oom_score_adj
+        \n\t\t\t\td. 平衡模式+：此模式下，主进程oom_score_adj会始终处于1，且限制其最大oom_score_adj为100(同于严格模式)
+        \n\t\t\t\te. 宽容模式：此模式下，主进程oom_score_adj交由系统调节，不限制其最大oom_score_adj
+        \n\t\t\t\tf. 除非在开启全局oom且作用范围选择"所有进程"，否则模块不会对oom_score_adj小于0的任何进程进行调整。也就是说，模块调整的oom分数是大于等于0的。
 
         \n\t\t2) 内存回收：向应用发送虚假信息，假装可用内存已不足，促使其进行资源释放。
         \n\t\t\t\ta. 设置页面的<u><i>“前台进程内存回收策略”</i></u><b>越往下代表当前可用内存越紧张</b>。
