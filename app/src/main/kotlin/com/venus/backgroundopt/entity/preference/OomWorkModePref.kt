@@ -14,8 +14,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.entity.preference
+
+package com.venus.backgroundopt.entity.preference
+
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 
 /**
  * OOM工作模式的配置对应的实体
@@ -28,14 +30,14 @@ class OomWorkModePref() {
         /**
          * 严格模式
          *
-         * maxAdj = 100, defaultAdj = 0。进程始终处于Foreground
+         * maxAdj = 见[ProcessRecord.defaultMaxAdj], defaultAdj = 见[ProcessRecord.DEFAULT_MAIN_ADJ]。进程始终处于Foreground
          */
         const val MODE_STRICT = 1
 
         /**
          * 宽松模式
          *
-         * maxAdj = 700, defaultAdj = 0。进程可以进入Background
+         *  maxAdj = 见[ProcessRecord.defaultMaxAdj], defaultAdj = 0。进程可以进入Background
          */
         const val MODE_NEGATIVE = 2
 
@@ -49,7 +51,7 @@ class OomWorkModePref() {
         /**
          * 平衡模式
          *
-         * maxAdj = 严格模式, defaultAdj = 0。进程可以进入Background
+         *  maxAdj = 见[ProcessRecord.defaultMaxAdj], defaultAdj = 见[ProcessRecord.DEFAULT_MAIN_ADJ]。进程可以进入Background
          */
         const val MODE_BALANCE_PLUS = 4
 
