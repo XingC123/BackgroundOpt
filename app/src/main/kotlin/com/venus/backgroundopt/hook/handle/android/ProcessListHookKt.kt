@@ -184,8 +184,10 @@ class ProcessListHookKt(
                 ),
                 Int::class.javaPrimitiveType,   // pid
                 Int::class.javaPrimitiveType,   // uid
-                Int::class.javaPrimitiveType    // oom_adj_score
-            ),
+                Int::class.javaPrimitiveType,    // oom_adj_score
+                // 三星设备这里会多一个int型参数
+                // 所以索性直接hook名为此的所有方法
+            ).setHookAllMatchedMethod(true),
             /*generateMatchedMethodHookPoint(
                 true,
                 ClassConstants.ProcessList,
