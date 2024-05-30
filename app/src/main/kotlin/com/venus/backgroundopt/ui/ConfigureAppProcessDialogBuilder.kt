@@ -18,6 +18,7 @@
 package com.venus.backgroundopt.ui
 
 import android.content.Context
+import android.content.DialogInterface
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
@@ -29,7 +30,7 @@ import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy.SubProcessOomPolicyEnum
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
-import com.venus.backgroundopt.utils.getView
+import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMessageHandler
 import com.venus.backgroundopt.utils.message.messageSender
@@ -51,16 +52,20 @@ object ConfigureAppProcessDialogBuilder {
         subProcessOomPolicyMap: MutableMap<String, SubProcessOomPolicy>,
         appItem: AppItem
     ): AlertDialog {
-        return AlertDialog.Builder(context)
-            .setCancelable(true)
-            .setView(context.getView(R.layout.dialog_sub_process_policy_choose).apply {
-                val curPolicy = subProcessOomPolicy.policyEnum
+        // 获取按钮
+        val defaultBtnId = R.id.subProcessOomPolicyDialogDefaultBtn
+        val mainProcessBtnId = R.id.subProcessOomPolicyDialogMainProcessBtn
 
-                // 获取按钮
-                val defaultBtnId = R.id.subProcessOomPolicyDialogDefaultBtn
-                val mainProcessBtnId = R.id.subProcessOomPolicyDialogMainProcessBtn
+        // 若用户点击单选按钮, 则更新此值
+        var checkedRadioButtonId: Int = Int.MIN_VALUE
 
-                // 选中当前配置对应的按钮
+        return UiUtils.createDialog(
+            context = context,
+            cancelable = false,
+            titleStr = "子进程配置策略",
+            viewResId = R.layout.dialog_sub_process_policy_choose,
+            viewBlock = {
+                // 初始化单选按钮的选择状态
                 when (subProcessOomPolicy.policyEnum) {
                     SubProcessOomPolicyEnum.DEFAULT -> findViewById<RadioButton>(
                         defaultBtnId
@@ -73,69 +78,82 @@ object ConfigureAppProcessDialogBuilder {
 
                 // 设置点击事件
                 findViewById<RadioGroup>(R.id.subProcessOomPolicyDialogRadioGroup).setOnCheckedChangeListener { _, checkedBtnResId ->
-                    when (checkedBtnResId) {
-                        defaultBtnId -> {
-                            if (curPolicy != SubProcessOomPolicyEnum.DEFAULT) {
-                                subProcessOomPolicy.policyEnum = SubProcessOomPolicyEnum.DEFAULT
+                    checkedRadioButtonId = checkedBtnResId
+                }
+            },
+            enableNegativeBtn = true,
+            enablePositiveBtn = true,
+            positiveBlock = positiveBlock@{ dialogInterface: DialogInterface, _: Int ->
+                if (checkedRadioButtonId == Int.MIN_VALUE) {
+                    dialogInterface.dismiss()
+                    return@positiveBlock
+                }
 
-                                subProcessOomPolicyMap.remove(processName)
+                val curPolicy = subProcessOomPolicy.policyEnum
+                when (checkedRadioButtonId) {
+                    defaultBtnId -> {
+                        if (curPolicy != SubProcessOomPolicyEnum.DEFAULT) {
+                            subProcessOomPolicy.policyEnum = SubProcessOomPolicyEnum.DEFAULT
 
-                                // 删除原有配置
-                                context.prefEdit(SUB_PROCESS_OOM_POLICY, commit = true) {
-                                    if (CommonProperties.subProcessDefaultUpgradeSet.contains(
-                                            processName
-                                        )
-                                    ) {
-                                        // 白名单进程则覆盖设置
-                                        putObject(processName, subProcessOomPolicy)
-                                    } else {
-                                        remove(processName)
-                                    }
+                            subProcessOomPolicyMap.remove(processName)
+
+                            // 删除原有配置
+                            context.prefEdit(SUB_PROCESS_OOM_POLICY, commit = true) {
+                                if (CommonProperties.subProcessDefaultUpgradeSet.contains(
+                                        processName
+                                    )
+                                ) {
+                                    // 白名单进程则覆盖设置
+                                    putObject(processName, subProcessOomPolicy)
+                                } else {
+                                    remove(processName)
                                 }
-                            }
-                        }
-
-                        mainProcessBtnId -> {
-                            if (curPolicy != SubProcessOomPolicyEnum.MAIN_PROCESS) {
-                                subProcessOomPolicyMap[processName] = subProcessOomPolicy
-                                context.prefPut(
-                                    SUB_PROCESS_OOM_POLICY,
-                                    commit = true,
-                                    processName,
-                                    subProcessOomPolicy.apply {
-                                        policyEnum =
-                                            SubProcessOomPolicyEnum.MAIN_PROCESS
-                                    })
                             }
                         }
                     }
 
-                    // 更新tag的显示
-                    appItem.appConfiguredEnumSet.apply {
-                        subProcessOomPolicyMap.values.find {
-                            it.policyEnum != SubProcessOomPolicyEnum.DEFAULT
-                        }?.let {
-                            add(AppConfiguredEnum.SubProcessOomPolicy)
-                        } ?: remove(AppConfiguredEnum.SubProcessOomPolicy)
-                    }
-
-                    // 修改外显的配置名称
-                    applyConfigNameTextView.text = subProcessOomPolicy.policyEnum.configName
-
-                    // 向模块主进程发送消息
-                    messageSender.autoDetectUseThread {
-                        sendMessage<SubProcessOomConfigChangeMessageHandler.SubProcessOomConfigChangeMessage>(
-                            context,
-                            MessageKeyConstants.subProcessOomConfigChange,
-                            SubProcessOomConfigChangeMessageHandler.SubProcessOomConfigChangeMessage()
-                                .apply {
-                                    this.processName = processName
-                                    this.subProcessOomPolicy = subProcessOomPolicy
-                                }
-                        )
+                    mainProcessBtnId -> {
+                        if (curPolicy != SubProcessOomPolicyEnum.MAIN_PROCESS) {
+                            subProcessOomPolicyMap[processName] = subProcessOomPolicy
+                            context.prefPut(
+                                SUB_PROCESS_OOM_POLICY,
+                                commit = true,
+                                processName,
+                                subProcessOomPolicy.apply {
+                                    policyEnum =
+                                        SubProcessOomPolicyEnum.MAIN_PROCESS
+                                })
+                        }
                     }
                 }
-            })
-            .create()
+
+                // 更新tag的显示
+                appItem.appConfiguredEnumSet.apply {
+                    subProcessOomPolicyMap.values.find {
+                        it.policyEnum != SubProcessOomPolicyEnum.DEFAULT
+                    }?.let {
+                        add(AppConfiguredEnum.SubProcessOomPolicy)
+                    } ?: remove(AppConfiguredEnum.SubProcessOomPolicy)
+                }
+
+                // 修改外显的配置名称
+                applyConfigNameTextView.text = subProcessOomPolicy.policyEnum.configName
+
+                // 向模块主进程发送消息
+                messageSender.autoDetectUseThread {
+                    sendMessage<SubProcessOomConfigChangeMessageHandler.SubProcessOomConfigChangeMessage>(
+                        context,
+                        MessageKeyConstants.subProcessOomConfigChange,
+                        SubProcessOomConfigChangeMessageHandler.SubProcessOomConfigChangeMessage()
+                            .apply {
+                                this.processName = processName
+                                this.subProcessOomPolicy = subProcessOomPolicy
+                            }
+                    )
+                }
+
+                dialogInterface.dismiss()
+            }
+        )
     }
 }
