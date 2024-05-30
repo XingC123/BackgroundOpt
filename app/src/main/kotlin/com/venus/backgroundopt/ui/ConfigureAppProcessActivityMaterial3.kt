@@ -31,6 +31,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
+import com.venus.backgroundopt.entity.AppItem.AppConfiguredEnum
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
@@ -123,21 +124,35 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
 
                     // 事件监听
                     group.setOnCheckedChangeListener { _, checkedId ->
+                        var showConfigTag = false
                         when (findViewById<RadioButton>(checkedId).id) {
                             buttonIdArr[0] -> {
                                 policy.set(null)
+                                showConfigTag = false
                             }
 
                             buttonIdArr[1] -> {
                                 policy.set(true)
+                                showConfigTag = true
                             }
 
                             buttonIdArr[2] -> {
                                 policy.set(false)
+                                showConfigTag = true
                             }
 
                             else -> {
                                 policy.set(null)
+                                showConfigTag = false
+                            }
+                        }
+
+                        // 更新tag的显示
+                        appItem.appConfiguredEnumSet.apply {
+                            if (showConfigTag) {
+                                appItem.appConfiguredEnumSet.add(AppConfiguredEnum.AppOptimizePolicy)
+                            } else {
+                                appItem.appConfiguredEnumSet.remove(AppConfiguredEnum.AppOptimizePolicy)
                             }
                         }
 
@@ -239,6 +254,15 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                     // 写入数据到对象
                     appOptimizePolicy.enableCustomMainProcessOomScore = isChecked
 
+                    // 更新tag显示
+                    appItem.appConfiguredEnumSet.apply {
+                        if (isChecked) {
+                            add(AppConfiguredEnum.CustomMainProcessOomScore)
+                        } else {
+                            remove(AppConfiguredEnum.CustomMainProcessOomScore)
+                        }
+                    }
+
                     appOptimizePolicySaveAction(appOptimizePolicy)
 
                     // 输入框禁用与启用
@@ -311,6 +335,15 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                     appOptimizePolicy.mainProcessAdjManagePolicy =
                         MainProcessAdjManagePolicy.valueOf(policyName)
 
+                    // 更新tag的显示
+                    appItem.appConfiguredEnumSet.apply {
+                        if (appOptimizePolicy.mainProcessAdjManagePolicy == MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_DEFAULT) {
+                            remove(AppConfiguredEnum.MainProcessAdjManagePolicy)
+                        } else {
+                            add(AppConfiguredEnum.MainProcessAdjManagePolicy)
+                        }
+                    }
+
                     appOptimizePolicySaveAction(appOptimizePolicy) {
                         runOnUiThread {
                             listCheck.defaultValue = it.defaultMainProcessAdjManagePolicyUiText
@@ -324,7 +357,7 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
         PackageUtils.getAppProcesses(this, appItem)
 
         // 获取本地配置
-        val subProcessOomPolicyList = arrayListOf<SubProcessOomPolicy>()
+        val subProcessOomPolicyMap = HashMap<String, SubProcessOomPolicy>()
         val iterator = appItem.processes.iterator()
         var processName: String
         while (iterator.hasNext()) {
@@ -334,21 +367,25 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                 iterator.remove()
                 continue
             }
-            subProcessOomPolicyList.add(
-                prefValue<SubProcessOomPolicy>(SUB_PROCESS_OOM_POLICY, processName) ?: run {
-                    // 不存在
-                    SubProcessOomPolicy().apply {
-                        // 当前进程是否在默认白名单
-                        if (CommonProperties.subProcessDefaultUpgradeSet.contains(processName)) {
-                            this.policyEnum =
-                                SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
 
-                            // 保存到本地
-                            prefPut(SUB_PROCESS_OOM_POLICY, commit = true, processName, this)
-                        }
+            val subProcessOomPolicy = prefValue<SubProcessOomPolicy>(
+                SUB_PROCESS_OOM_POLICY,
+                processName
+            ) ?: run {
+                // 不存在
+                SubProcessOomPolicy().apply {
+                    // 当前进程是否在默认白名单
+                    if (CommonProperties.subProcessDefaultUpgradeSet.contains(processName)) {
+                        this.policyEnum =
+                            SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
+
+                        // 保存到本地
+                        prefPut(SUB_PROCESS_OOM_POLICY, commit = true, processName, this)
                     }
                 }
-            )
+            }
+
+            subProcessOomPolicyMap[processName] = subProcessOomPolicy
         }
 
         // 设置view
@@ -358,8 +395,11 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                     LinearLayoutManager(this@ConfigureAppProcessActivityMaterial3).apply {
                         orientation = LinearLayoutManager.VERTICAL
                     }
-                adapter =
-                    ConfigureAppProcessAdapter(appItem.processes.toList(), subProcessOomPolicyList)
+                adapter = ConfigureAppProcessAdapter(
+                    appItem = appItem,
+                    processes = appItem.processes.toList(),
+                    subProcessOomPolicyMap = subProcessOomPolicyMap
+                )
             }
         }
     }

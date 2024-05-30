@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.ui
+
+package com.venus.backgroundopt.ui
 
 import android.content.Context
 import android.widget.RadioButton
@@ -23,12 +23,16 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.venus.backgroundopt.R
+import com.venus.backgroundopt.entity.AppItem
+import com.venus.backgroundopt.entity.AppItem.AppConfiguredEnum
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
+import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy.SubProcessOomPolicyEnum
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.utils.getView
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMessageHandler
+import com.venus.backgroundopt.utils.message.messageSender
 import com.venus.backgroundopt.utils.message.sendMessage
 import com.venus.backgroundopt.utils.preference.prefEdit
 import com.venus.backgroundopt.utils.preference.prefPut
@@ -43,7 +47,9 @@ object ConfigureAppProcessDialogBuilder {
         context: Context,
         applyConfigNameTextView: TextView,
         processName: String,
-        subProcessOomPolicy: SubProcessOomPolicy
+        subProcessOomPolicy: SubProcessOomPolicy,
+        subProcessOomPolicyMap: MutableMap<String, SubProcessOomPolicy>,
+        appItem: AppItem
     ): AlertDialog {
         return AlertDialog.Builder(context)
             .setCancelable(true)
@@ -56,11 +62,11 @@ object ConfigureAppProcessDialogBuilder {
 
                 // 选中当前配置对应的按钮
                 when (subProcessOomPolicy.policyEnum) {
-                    SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT -> findViewById<RadioButton>(
+                    SubProcessOomPolicyEnum.DEFAULT -> findViewById<RadioButton>(
                         defaultBtnId
                     ).isChecked = true
 
-                    SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS -> findViewById<RadioButton>(
+                    SubProcessOomPolicyEnum.MAIN_PROCESS -> findViewById<RadioButton>(
                         mainProcessBtnId
                     ).isChecked = true
                 }
@@ -69,9 +75,11 @@ object ConfigureAppProcessDialogBuilder {
                 findViewById<RadioGroup>(R.id.subProcessOomPolicyDialogRadioGroup).setOnCheckedChangeListener { _, checkedBtnResId ->
                     when (checkedBtnResId) {
                         defaultBtnId -> {
-                            if (curPolicy != SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT) {
-                                subProcessOomPolicy.policyEnum =
-                                    SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT
+                            if (curPolicy != SubProcessOomPolicyEnum.DEFAULT) {
+                                subProcessOomPolicy.policyEnum = SubProcessOomPolicyEnum.DEFAULT
+
+                                subProcessOomPolicyMap.remove(processName)
+
                                 // 删除原有配置
                                 context.prefEdit(SUB_PROCESS_OOM_POLICY, commit = true) {
                                     if (CommonProperties.subProcessDefaultUpgradeSet.contains(
@@ -88,32 +96,44 @@ object ConfigureAppProcessDialogBuilder {
                         }
 
                         mainProcessBtnId -> {
-                            if (curPolicy != SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS) {
+                            if (curPolicy != SubProcessOomPolicyEnum.MAIN_PROCESS) {
+                                subProcessOomPolicyMap[processName] = subProcessOomPolicy
                                 context.prefPut(
                                     SUB_PROCESS_OOM_POLICY,
                                     commit = true,
                                     processName,
                                     subProcessOomPolicy.apply {
                                         policyEnum =
-                                            SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
+                                            SubProcessOomPolicyEnum.MAIN_PROCESS
                                     })
                             }
                         }
+                    }
+
+                    // 更新tag的显示
+                    appItem.appConfiguredEnumSet.apply {
+                        subProcessOomPolicyMap.values.find {
+                            it.policyEnum != SubProcessOomPolicyEnum.DEFAULT
+                        }?.let {
+                            add(AppConfiguredEnum.SubProcessOomPolicy)
+                        } ?: remove(AppConfiguredEnum.SubProcessOomPolicy)
                     }
 
                     // 修改外显的配置名称
                     applyConfigNameTextView.text = subProcessOomPolicy.policyEnum.configName
 
                     // 向模块主进程发送消息
-                    sendMessage<SubProcessOomConfigChangeMessageHandler.SubProcessOomConfigChangeMessage>(
-                        context,
-                        MessageKeyConstants.subProcessOomConfigChange,
-                        SubProcessOomConfigChangeMessageHandler.SubProcessOomConfigChangeMessage()
-                            .apply {
-                                this.processName = processName
-                                this.subProcessOomPolicy = subProcessOomPolicy
-                            }
-                    )
+                    messageSender.autoDetectUseThread {
+                        sendMessage<SubProcessOomConfigChangeMessageHandler.SubProcessOomConfigChangeMessage>(
+                            context,
+                            MessageKeyConstants.subProcessOomConfigChange,
+                            SubProcessOomConfigChangeMessageHandler.SubProcessOomConfigChangeMessage()
+                                .apply {
+                                    this.processName = processName
+                                    this.subProcessOomPolicy = subProcessOomPolicy
+                                }
+                        )
+                    }
                 }
             })
             .create()

@@ -181,7 +181,7 @@ class SocketMessageSender(
  */
 class MessageSender {
     private lateinit var sender: IMessageSender
-    private val executor = Executors.newSingleThreadExecutor()
+    private val executor = Executors.newFixedThreadPool(3)
 
     fun init(context: Context, socketPort: Int) {
         executor.execute {
@@ -212,6 +212,21 @@ class MessageSender {
             key = key,
             value = value
         )
+    }
+
+    /**
+     * 根据[sender]的类型决定是否启用独立的线程来执行[block]
+     */
+    fun autoDetectUseThread(block: () -> Unit) {
+        when (sender) {
+            is SocketMessageSender -> {
+                executor.execute(block)
+            }
+            is DefaultMessageSender -> {
+                block()
+            }
+            else -> {}
+        }
     }
 }
 

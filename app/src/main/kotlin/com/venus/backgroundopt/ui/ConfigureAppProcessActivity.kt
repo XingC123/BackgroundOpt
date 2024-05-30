@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.ui
+
+package com.venus.backgroundopt.ui
 
 import android.content.Context
 import android.os.Bundle
@@ -266,7 +266,7 @@ class ConfigureAppProcessActivity : BaseActivity() {
         PackageUtils.getAppProcesses(this, appItem)
 
         // 获取本地配置
-        val subProcessOomPolicyList = arrayListOf<SubProcessOomPolicy>()
+        val subProcessOomPolicyMap = HashMap<String, SubProcessOomPolicy>()
         val iterator = appItem.processes.iterator()
         var processName: String
         while (iterator.hasNext()) {
@@ -276,21 +276,25 @@ class ConfigureAppProcessActivity : BaseActivity() {
                 iterator.remove()
                 continue
             }
-            subProcessOomPolicyList.add(
-                prefValue<SubProcessOomPolicy>(SUB_PROCESS_OOM_POLICY, processName) ?: run {
-                    // 不存在
-                    SubProcessOomPolicy().apply {
-                        // 当前进程是否在默认白名单
-                        if (CommonProperties.subProcessDefaultUpgradeSet.contains(processName)) {
-                            this.policyEnum =
-                                SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
 
-                            // 保存到本地
-                            prefPut(SUB_PROCESS_OOM_POLICY, commit = true, processName, this)
-                        }
+            val subProcessOomPolicy = prefValue<SubProcessOomPolicy>(
+                SUB_PROCESS_OOM_POLICY,
+                processName
+            ) ?: run {
+                // 不存在
+                SubProcessOomPolicy().apply {
+                    // 当前进程是否在默认白名单
+                    if (CommonProperties.subProcessDefaultUpgradeSet.contains(processName)) {
+                        this.policyEnum =
+                            SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
+
+                        // 保存到本地
+                        prefPut(SUB_PROCESS_OOM_POLICY, commit = true, processName, this)
                     }
                 }
-            )
+            }
+
+            subProcessOomPolicyMap[processName] = subProcessOomPolicy
         }
 
         // 设置view
@@ -299,8 +303,11 @@ class ConfigureAppProcessActivity : BaseActivity() {
                 layoutManager = LinearLayoutManager(this@ConfigureAppProcessActivity).apply {
                     orientation = LinearLayoutManager.VERTICAL
                 }
-                adapter =
-                    ConfigureAppProcessAdapter(appItem.processes.toList(), subProcessOomPolicyList)
+                adapter = ConfigureAppProcessAdapter(
+                    appItem = appItem,
+                    processes = appItem.processes.toList(),
+                    subProcessOomPolicyMap = subProcessOomPolicyMap
+                )
             }
         }
     }

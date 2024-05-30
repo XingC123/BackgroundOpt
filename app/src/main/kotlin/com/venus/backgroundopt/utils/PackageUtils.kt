@@ -25,16 +25,8 @@ import android.graphics.drawable.Drawable
 import android.os.Build
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
-import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
-import com.venus.backgroundopt.environment.PreferenceDefaultValue
-import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
-import com.venus.backgroundopt.ui.ConfigureAppProcessActivity
 import com.venus.backgroundopt.utils.log.logErrorAndroid
-import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
-import com.venus.backgroundopt.utils.preference.prefAll
-import java.text.Collator
-import java.util.Locale
 
 /**
  * @author XingC
@@ -177,114 +169,12 @@ object PackageUtils {
     fun getInstalledPackages(
         context: Context,
         filter: ((PackageInfo) -> Boolean)? = null
-    ): List<AppItem> {
+    ): MutableList<AppItem> {
         val packageManager = context.packageManager
         val packageInfos = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             packageManager.getInstalledPackages(PackageManager.PackageInfoFlags.of(PACKAGE_INFO_FLAG.toLong()))
         } else {
             packageManager.getInstalledPackages(PACKAGE_INFO_FLAG)
-        }
-
-        // 获取配置, 以app是否设置过做附加排序
-        val subProcessOomPolicyMap =
-            context.prefAll<SubProcessOomPolicy>(PreferenceNameConstants.SUB_PROCESS_OOM_POLICY)
-        val appOptimizePolicies =
-            context.prefAll<AppOptimizePolicy>(PreferenceNameConstants.APP_OPTIMIZE_POLICY)
-
-        fun hasConfiguredApp(appItem: AppItem): Boolean {
-            val packageName = appItem.packageName
-            // app是否启用优化
-            var hasConfiguredAppOptimizePolicy = false
-            // 自定义oom
-            var hasConfiguredMainProcessCustomOomScore = false
-            // 管理系统app的主进程的adj
-            var hasConfiguredShouldHandleMainProcAdj = false
-            // 主进程ADJ管理策略
-            var hasConfiguredMainProcessAdjManagePolicy = false
-            appOptimizePolicies[packageName]?.let { appOptimizePolicy ->
-                if (appOptimizePolicy.disableForegroundTrimMem != null ||
-                    appOptimizePolicy.disableBackgroundTrimMem != null ||
-                    appOptimizePolicy.disableBackgroundGc != null
-                ) {
-                    // 正在使用旧版配置
-                    // 保存新版参数
-                    ConfigureAppProcessActivity.saveAppMemoryOptimize(appOptimizePolicy, context)
-                }
-
-                if (appOptimizePolicy.enableForegroundTrimMem == !PreferenceDefaultValue.enableForegroundTrimMem ||
-                    appOptimizePolicy.enableBackgroundTrimMem == !PreferenceDefaultValue.enableBackgroundTrimMem ||
-                    appOptimizePolicy.enableBackgroundGc == !PreferenceDefaultValue.enableBackgroundGc
-                ) {
-                    appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.AppOptimizePolicy)
-                    hasConfiguredAppOptimizePolicy = true
-                }
-
-                if (appOptimizePolicy.enableCustomMainProcessOomScore) {
-                    appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.CustomMainProcessOomScore)
-                    hasConfiguredMainProcessCustomOomScore = true
-                }
-
-                // 系统app 且 允许管理oom adj
-                /*if (appOptimizePolicy.shouldHandleAdj == true) {
-                    appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.ShouldHandleMainProcAdj)
-                    hasConfiguredShouldHandleMainProcAdj = true
-                }*/
-
-                // 主进程ADJ管理策略
-                if (appOptimizePolicy.mainProcessAdjManagePolicy != AppOptimizePolicy.MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_DEFAULT) {
-                    appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.MainProcessAdjManagePolicy)
-                    hasConfiguredMainProcessAdjManagePolicy = true
-                }
-            }
-
-            // 是否配置过子进程oom策略
-            var hasConfiguredSubProcessOomPolicy = false
-            subProcessOomPolicyMap.forEach { (subProcessName, subProcessOomPolicy) ->
-                if (subProcessName.contains(packageName)) {
-                    if (subProcessOomPolicy.policyEnum != SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT) {
-                        appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.SubProcessOomPolicy)
-                        hasConfiguredSubProcessOomPolicy = true
-                        return@forEach
-                    }
-                }
-            }
-            return hasConfiguredAppOptimizePolicy or
-                    hasConfiguredMainProcessCustomOomScore or
-                    hasConfiguredShouldHandleMainProcAdj or
-                    hasConfiguredMainProcessAdjManagePolicy or
-                    hasConfiguredSubProcessOomPolicy
-        }
-
-        // 排序器
-        val appNameComparator = object : Comparator<AppItem> {
-            val chinaCollator = Collator.getInstance(Locale.CHINA)
-            fun isEnglish(char: Char): Boolean {
-                return char in 'a'..'z' || char in 'A'..'z'
-            }
-
-            /**
-             * 最终排序为: 前: 所有英文的app名字。后: 所有中文的app名字
-             */
-            override fun compare(o1: AppItem, o2: AppItem): Int {
-                val firstAppName = o1.appName
-                val secondAppName = o2.appName
-                // 只判断app名字的第一个字符(英文: 首字母。中文: 第一个字)
-                val isFirstNameEnglish = isEnglish(firstAppName[0])
-                val isSecondNameEnglish = isEnglish(secondAppName[0])
-                if (isFirstNameEnglish) {
-                    if (isSecondNameEnglish) {
-                        // 都是英文
-                        return o1.appName.lowercase().compareTo(o2.appName.lowercase())
-                    }
-                    // 第一个是英文, 第二个是中文。
-                    return -1
-                } else if (!isSecondNameEnglish) {
-                    // 两个都是中文
-                    return chinaCollator.compare(firstAppName, secondAppName)
-                }
-
-                return 1
-            }
         }
 
         return packageInfos.asSequence()
@@ -304,16 +194,7 @@ object PackageUtils {
                     systemApp = ActivityManagerService.isImportantSystemApp(applicationInfo)
                 }
             }
-            .sortedWith(
-                Comparator.comparing(::hasConfiguredApp)
-                    .thenComparator { appItem1, appItem2 ->
-                        appNameComparator.compare(
-                            appItem2,
-                            appItem1
-                        )
-                    }
-                    .reversed())
-            .toList()
+            .toMutableList()
     }
 
     fun getInstalledPackages(
