@@ -32,14 +32,14 @@ class OomWorkModePref() {
          *
          * maxAdj = 见[ProcessRecord.defaultMaxAdj], defaultAdj = 见[ProcessRecord.DEFAULT_MAIN_ADJ]。进程始终处于Foreground
          */
-        const val MODE_STRICT = 1
+        const val MODE_STRICT = 5
 
         /**
          * 次严格模式
          *
          * maxAdj = 见[ProcessRecord.defaultMaxAdj], defaultAdj = 见[ProcessRecord.DEFAULT_MAIN_ADJ]。进程始终处于Foreground
          */
-        const val MODE_STRICT_SECONDARY = 5
+        const val MODE_STRICT_SECONDARY = 1
 
         /**
          * 宽松模式
