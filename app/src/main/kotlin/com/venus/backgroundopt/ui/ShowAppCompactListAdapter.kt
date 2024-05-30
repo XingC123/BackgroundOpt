@@ -17,6 +17,7 @@
 
 package com.venus.backgroundopt.ui
 
+import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -31,7 +32,10 @@ import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemViewHolder
  * @author XingC
  * @date 2023/9/25
  */
-class ShowAppCompactListAdapter(items: List<AppItem>) : ShowProcessInfoFromAppItemAdapter(items) {
+class ShowAppCompactListAdapter(
+    activity: Activity,
+    items: List<AppItem>
+) : ShowProcessInfoFromAppItemAdapter(activity,items) {
     override fun getText1Content(appItem: AppItem): String {
         return appItem.processName ?: appItem.packageName
     }

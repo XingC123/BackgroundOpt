@@ -46,5 +46,6 @@ interface MessageKeyConstants {
         const val moduleRunning = "moduleRunning"
         const val getManagedAdjDefaultApps = "getManagedAdjDefaultApps"
         const val KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY = "KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY"
+        const val getProcessRunningInfo = "getProcessRunningInfo"
     }
 }

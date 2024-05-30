@@ -17,6 +17,7 @@
 
 package com.venus.backgroundopt.ui
 
+import android.app.Activity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,6 +29,10 @@ import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemViewHolder
 import com.venus.backgroundopt.utils.UiUtils
+import com.venus.backgroundopt.utils.message.MessageKeyConstants
+import com.venus.backgroundopt.utils.message.handle.ProcessRunningInfoMessageHandler.ProcessRunningInfo
+import com.venus.backgroundopt.utils.message.messageSender
+import com.venus.backgroundopt.utils.showProgressBarViewForAction
 
 /**
  * 尽可能使从[AppItem]中展示信息变得更容易
@@ -36,6 +41,7 @@ import com.venus.backgroundopt.utils.UiUtils
  * @date 2023/9/25
  */
 abstract class ShowProcessInfoFromAppItemAdapter(
+    protected open val activity: Activity,
     protected open val items: List<AppItem>
 ) : ShowInfoFromAppItemAdapter() {
     /* *************************************************************************
@@ -118,30 +124,47 @@ abstract class ShowProcessInfoFromAppItemAdapter(
 
     private fun setItemOnClickListener(view: View, appItem: AppItem) {
         view.setOnClickListener {
-            UiUtils.createDialog(
-                context = view.context,
-                viewResId = R.layout.content_process_info_dialog,
-                viewBlock = {
-                    // 设置app名字
-                    findViewById<TextView>(R.id.appNameText)?.text = appItem.appName
-                    // 设置进程名
-                    findViewById<TextView>(R.id.processNameText)?.text = appItem.processName
-                    // 设置包名
-                    findViewById<TextView>(R.id.packageNameText)?.text = appItem.packageName
-                    // 设置pid
-                    findViewById<TextView>(R.id.pidText)?.text = appItem.pid.toString()
-                    // 设置uid
-                    findViewById<TextView>(R.id.uidText)?.text = appItem.uid.toString()
-                    // 设置资源占用大小
-                    findViewById<TextView>(R.id.rssText)?.text = BaseProcessInfoKt.getRssUiText(appItem.rssInBytes)
-                    // 设置原始adj
-                    findViewById<TextView>(R.id.originalAdjText)?.text = appItem.oomAdjScore.toString()
-                    // 设置当前adj
-                    findViewById<TextView>(R.id.curAdjText)?.text = appItem.curAdj.toString()
-                },
-                titleStr = "进程信息",
-                enablePositiveBtn = true
-            ).show()
+            view.context.showProgressBarViewForAction(text = "正在获取...") {
+                val processRunningInfo = messageSender.send(
+                    type = ProcessRunningInfo::class.java,
+                    key = MessageKeyConstants.getProcessRunningInfo,
+                    value = appItem.pid
+                ) ?: ProcessRunningInfo.singleton
+                appItem.rssInBytes = processRunningInfo.rssInBytes
+                appItem.curAdj = processRunningInfo.adj
+                appItem.oomAdjScore = processRunningInfo.originalAdj
+
+                activity.runOnUiThread {
+                    UiUtils.createDialog(
+                        context = view.context,
+                        viewResId = R.layout.content_process_info_dialog,
+                        viewBlock = {
+                            // 设置app名字
+                            findViewById<TextView>(R.id.appNameText)?.text = appItem.appName
+                            // 设置进程名
+                            findViewById<TextView>(R.id.processNameText)?.text = appItem.processName
+                            // 设置包名
+                            findViewById<TextView>(R.id.packageNameText)?.text = appItem.packageName
+                            // 设置pid
+                            findViewById<TextView>(R.id.pidText)?.text = appItem.pid.toString()
+                            // 设置uid
+                            findViewById<TextView>(R.id.uidText)?.text = appItem.uid.toString()
+                            // 设置资源占用大小
+                            findViewById<TextView>(
+                                R.id.rssText
+                            )?.text = BaseProcessInfoKt.getRssUiText(appItem.rssInBytes)
+                            // 设置原始adj
+                            findViewById<TextView>(
+                                R.id.originalAdjText
+                            )?.text = appItem.oomAdjScore.toString()
+                            // 设置当前adj
+                            findViewById<TextView>(R.id.curAdjText)?.text = appItem.curAdj.toString()
+                        },
+                        titleStr = "进程信息",
+                        enablePositiveBtn = true
+                    ).show()
+                }
+            }
         }
     }
 

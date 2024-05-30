@@ -40,7 +40,7 @@ class ShowAppCompactListActivity : ShowInfoFromAppItemActivity() {
         appItems: List<AppItem>,
         vararg others: Any?
     ): ShowProcessInfoFromAppItemAdapter {
-        return ShowAppCompactListAdapter(appItems)
+        return ShowAppCompactListAdapter(this, appItems)
     }
 
     override fun init() {

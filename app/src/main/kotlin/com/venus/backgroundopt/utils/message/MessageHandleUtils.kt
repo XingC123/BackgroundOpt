@@ -44,6 +44,7 @@ import com.venus.backgroundopt.utils.message.handle.HomePageModuleInfoMessageHan
 import com.venus.backgroundopt.utils.message.handle.KeepMainProcessAliveHasActivityMessageHandler
 import com.venus.backgroundopt.utils.message.handle.KillAfterRemoveTaskMessageHandler
 import com.venus.backgroundopt.utils.message.handle.ModuleRunningMessageHandler
+import com.venus.backgroundopt.utils.message.handle.ProcessRunningInfoMessageHandler
 import com.venus.backgroundopt.utils.message.handle.RunningAppInfoMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SimpleLmkMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMessageHandler
@@ -241,6 +242,7 @@ val registeredMessageHandler by lazy {
         MessageKeyConstants.moduleRunning to ModuleRunningMessageHandler(),
         MessageKeyConstants.getManagedAdjDefaultApps to GetManagedAdjDefaultAppsMessageHandler(),
         MessageKeyConstants.KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY to KeepMainProcessAliveHasActivityMessageHandler(),
+        MessageKeyConstants.getProcessRunningInfo to ProcessRunningInfoMessageHandler(),
     )
 }
 

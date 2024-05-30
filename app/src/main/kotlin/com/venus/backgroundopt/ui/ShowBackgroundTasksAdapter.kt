@@ -17,6 +17,7 @@
                     
 package com.venus.backgroundopt.ui
 
+import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -32,9 +33,10 @@ import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandle
  * @date 2023/9/23
  */
 class ShowBackgroundTasksAdapter(
+    activity: Activity,
     override val items: List<AppItem>,
     private val backgroundTaskMessage: BackgroundTasksMessageHandler.BackgroundTaskMessage
-) : ShowProcessInfoFromAppItemAdapter(items) {
+) : ShowProcessInfoFromAppItemAdapter(activity, items) {
     private var enableForegroundProcTrimMem = false
     private var enableBackgroundProcTrimMem = false
 

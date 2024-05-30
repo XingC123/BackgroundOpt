@@ -35,7 +35,7 @@ class ShowAppCompactListActivityMaterial3 : ShowInfoFromAppItemActivityMaterial3
         appItems: List<AppItem>,
         vararg others: Any?
     ): ShowProcessInfoFromAppItemAdapter {
-        return ShowAppCompactListAdapter(appItems)
+        return ShowAppCompactListAdapter(this, appItems)
     }
 
     override fun getRecyclerViewResId(): Int {

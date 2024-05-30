@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.ui
+
+package com.venus.backgroundopt.ui
 
 import com.alibaba.fastjson2.JSON
 import com.venus.backgroundopt.R
@@ -38,7 +38,7 @@ class ShowBackgroundTasksActivityMaterial3 : ShowInfoFromAppItemActivityMaterial
         appItems: List<AppItem>,
         vararg others: Any?
     ): ShowProcessInfoFromAppItemAdapter {
-        return ShowBackgroundTasksAdapter(appItems, others[0] as BackgroundTaskMessage)
+        return ShowBackgroundTasksAdapter(this, appItems, others[0] as BackgroundTaskMessage)
     }
 
     override fun getRecyclerViewResId(): Int {

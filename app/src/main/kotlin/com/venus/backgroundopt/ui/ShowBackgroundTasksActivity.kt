@@ -43,7 +43,7 @@ class ShowBackgroundTasksActivity : ShowInfoFromAppItemActivity() {
         appItems: List<AppItem>,
         vararg others: Any?
     ): ShowProcessInfoFromAppItemAdapter {
-        return ShowBackgroundTasksAdapter(appItems, others[0] as BackgroundTaskMessage)
+        return ShowBackgroundTasksAdapter(this, appItems, others[0] as BackgroundTaskMessage)
     }
 
     override fun initToolBar(): Toolbar? {
