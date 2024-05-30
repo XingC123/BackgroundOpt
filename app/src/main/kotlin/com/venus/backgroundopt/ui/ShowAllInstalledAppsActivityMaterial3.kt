@@ -29,7 +29,6 @@ import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
-import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
 import com.venus.backgroundopt.ui.style.RecycleViewItemSpaceDecoration
@@ -38,10 +37,7 @@ import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.ifTrue
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
-import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
 import com.venus.backgroundopt.utils.preference.prefAll
-import com.venus.backgroundopt.utils.preference.prefBoolean
-import com.venus.backgroundopt.utils.preference.prefString
 import com.venus.backgroundopt.utils.showProgressBarViewForAction
 import java.text.Collator
 import java.util.Locale
@@ -126,26 +122,6 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
                     .filter
                     .filter(it.toString())
             }
-        }
-
-        /*val appItems = PackageUtils.getInstalledPackages(this) { packageInfo ->
-            !ActivityManagerService.isImportantSystemApp(packageInfo.applicationInfo)
-                    || PackageUtils.isHasActivity(packageInfo)
-        }*/
-        val isEnabledGlobalOomScore = prefBoolean(
-            name = PreferenceNameConstants.MAIN_SETTINGS,
-            key = PreferenceKeyConstants.GLOBAL_OOM_SCORE,
-        )
-        val globalOomScoreEffectiveScopeEnum = try {
-            GlobalOomScoreEffectiveScopeEnum.valueOf(
-                prefString(
-                    name = PreferenceNameConstants.MAIN_SETTINGS,
-                    key = PreferenceKeyConstants.GLOBAL_OOM_SCORE_EFFECTIVE_SCOPE,
-                    defaultValue = PreferenceDefaultValue.globalOomScoreEffectiveScopeName
-                )!!
-            )
-        } catch (t: Throwable) {
-            null
         }
 
         // 获取已安装app
