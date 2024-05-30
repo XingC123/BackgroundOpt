@@ -339,9 +339,16 @@ class ProcessListHookKt(
         // 是否修改方法参数中的oom_score_adj
         var doHookOriginalAdj = true
 
-        val curRawAdj = process.processStateRecord.processStateRecord.callMethod<Int>(
-            methodName = MethodConstants.getCurRawAdj
-        )
+        val oomMode = HookCommonProperties.oomWorkModePref.oomMode
+        val isNegativeMode = oomMode == OomWorkModePref.MODE_NEGATIVE
+        val curRawAdj = if (isNegativeMode) {
+            param.args[2] as Int
+        } else {
+            process.processStateRecord.processStateRecord.callMethod<Int>(
+                methodName = MethodConstants.getCurRawAdj
+            )
+        }
+
         // 最终要被系统设置的oom分数
         var finalApplyOomScoreAdj = curRawAdj
         val globalOomScoreEffectiveScopeEnum = globalOomScorePolicy.globalOomScoreEffectiveScope
@@ -380,10 +387,9 @@ class ProcessListHookKt(
             }
         } else if (isUserSpaceAdj) {
             if (isHighPriorityProcess) {
-                val oomMode = HookCommonProperties.oomWorkModePref.oomMode
                 if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
                     finalApplyOomScoreAdj = ProcessRecord.DEFAULT_MAIN_ADJ
-                } else if (HookCommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE) {
+                } else if (isNegativeMode) {
                     doHookOriginalAdj = false
                 } else {
                     finalApplyOomScoreAdj = applyHighPriorityProcessFinalAdj(
