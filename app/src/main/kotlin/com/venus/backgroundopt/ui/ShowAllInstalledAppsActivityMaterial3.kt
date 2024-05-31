@@ -265,18 +265,18 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
 
         // 是否配置过子进程oom策略
         var hasConfiguredSubProcessOomPolicy = false
-        subProcessOomPolicyMap.forEach { (subProcessName, subProcessOomPolicy) ->
+        for ((subProcessName, subProcessOomPolicy) in subProcessOomPolicyMap.entries) {
             if (subProcessName.contains(packageName)) {
                 if (subProcessOomPolicy.policyEnum != SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT) {
                     appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.SubProcessOomPolicy)
                     hasConfiguredSubProcessOomPolicy = true
-                    return@forEach
+                    break
                 }
             }
         }
-        return hasConfiguredAppOptimizePolicy or
-                hasConfiguredMainProcessCustomOomScore or
-                hasConfiguredMainProcessAdjManagePolicy or
+        return hasConfiguredAppOptimizePolicy ||
+                hasConfiguredMainProcessCustomOomScore ||
+                hasConfiguredMainProcessAdjManagePolicy ||
                 hasConfiguredSubProcessOomPolicy
     }
 }
