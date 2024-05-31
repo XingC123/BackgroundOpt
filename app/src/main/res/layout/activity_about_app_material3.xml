@@ -98,41 +98,67 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/textView6"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/aboutAppProjectPathTipText"
-                        android:textSize="20sp" />
-
-                    <TextView
-                        android:id="@+id/aboutAppProjectPathText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:autoLink="web"
-                        android:text="@string/aboutAppProjectPathText"
-                        android:textIsSelectable="true" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    android:divider="@drawable/item_space_vertical_component"
+                    android:orientation="vertical"
+                    android:showDividers="middle">
 
-                    <TextView
-                        android:id="@+id/aboutAppThanksTip"
+                    <com.google.android.material.card.MaterialCardView
+                        style="@style/OutlinedCardView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/aboutAppThanksTip"
-                        android:textSize="20sp" />
+                        app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/aboutAppThanksRecyclerView"
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="@dimen/layout_content_space_horizontal"
+                            android:layout_marginVertical="@dimen/layout_content_space_vertical"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/textView6"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/aboutAppProjectPathTipText"
+                                android:textSize="20sp" />
+
+                            <TextView
+                                android:id="@+id/aboutAppProjectPathText"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:autoLink="web"
+                                android:text="@string/aboutAppProjectPathText"
+                                android:textIsSelectable="true" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        style="@style/OutlinedCardView"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
+                        android:layout_height="wrap_content"
+                        app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="@dimen/layout_content_space_horizontal"
+                            android:layout_marginVertical="@dimen/layout_content_space_vertical"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/aboutAppThanksTip"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/aboutAppThanksTip"
+                                android:textSize="20sp" />
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/aboutAppThanksRecyclerView"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
