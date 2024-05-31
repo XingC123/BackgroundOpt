@@ -11,11 +11,13 @@
         <item>Magisk模块: QQ微信负优化(author: @key)的内存回收功能的思路</item>
         <item>Don-t-Kill</item>
         <item>NoActive-UI</item>
+        <item>RecyclerView滑动动画</item>
     </string-array>
     <string-array name="about_app_thanks_url">
         <item>https://gitee.com/keytoolazy/mapdepot</item>
         <item>https://github.com/UISSD/Don-t-Kill</item>
         <item>https://github.com/myflavor/NoActive-UI</item>
+        <item>https://blog.csdn.net/weixin_47592544/article/details/124089281</item>
     </string-array>
 
     <!--前台进程内存回收策略-->

@@ -29,6 +29,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
+import com.venus.backgroundopt.ui.base.RecyclerViewAdapter
 import com.venus.backgroundopt.utils.StringUtils
 import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.setTmpData
@@ -41,7 +42,7 @@ import kotlin.reflect.KMutableProperty0
  */
 class ShowAllInstalledAppsAdapter3(
     private val appItems: List<AppItem>
-) : RecyclerView.Adapter<ShowAllInstalledAppsAdapter3.ShowAllInstalledAppsViewHolder>(),
+) : RecyclerViewAdapter<ShowAllInstalledAppsAdapter3.ShowAllInstalledAppsViewHolder>(),
     Filterable {
     class ShowAllInstalledAppsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var appIcon: ImageView

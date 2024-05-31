@@ -17,7 +17,6 @@
 
 package com.venus.backgroundopt.ui.base
 
-import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.entity.AppItem
 
 /**
@@ -26,4 +25,4 @@ import com.venus.backgroundopt.entity.AppItem
  * @author XingC
  * @date 2024/4/24
  */
-abstract class ShowInfoFromAppItemAdapter : RecyclerView.Adapter<ShowInfoFromAppItemViewHolder>()
+abstract class ShowInfoFromAppItemAdapter : RecyclerViewAdapter<ShowInfoFromAppItemViewHolder>()
