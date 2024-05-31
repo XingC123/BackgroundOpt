@@ -6,4 +6,8 @@
     <dimen name="content_space">10dp</dimen>
     <!--元素边距-->
     <dimen name="item_space">5dp</dimen>
+
+    <!--布局与内容之间的边距-->
+    <dimen name="layout_content_space_horizontal">10dp</dimen>
+    <dimen name="layout_content_space_vertical">5dp</dimen>
 </resources>
