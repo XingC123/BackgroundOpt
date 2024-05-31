@@ -52,7 +52,7 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
     lateinit var appOptimizePolicies: MutableMap<String, AppOptimizePolicy>
 
     private lateinit var appItems: MutableList<AppItem>
-    private var isAppItemsReady: Boolean = false
+    private var isAllowedRefreshInstalledAppsUi: Boolean = false
 
     private lateinit var appItemsRecyclerViewAdapter: ShowAllInstalledAppsAdapter3
 
@@ -67,12 +67,13 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
     override fun onResume() {
         super.onResume()
 
-        isAppItemsReady.ifTrue {
+        isAllowedRefreshInstalledAppsUi.ifTrue {
             showProgressBarViewForAction(text = "布局更新中...") {
                 sortAppList()
                 runOnUiThread {
-                    appItemsRecyclerViewAdapter.notifyDataSetChanged()
+                    appItemsRecyclerViewAdapter.refreshInstalledAppsListUI()
                 }
+                isAllowedRefreshInstalledAppsUi = false
             }
         }
     }
@@ -128,7 +129,7 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
         appItems = PackageUtils.getInstalledPackages(
             context = this,
             filter = null,
-        ).also { isAppItemsReady = true }
+        ).also { isAllowedRefreshInstalledAppsUi = true }
         // 排序
         sortAppList()
 
@@ -138,7 +139,9 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
                     LinearLayoutManager(this@ShowAllInstalledAppsActivityMaterial3).apply {
                         orientation = LinearLayoutManager.VERTICAL
                     }
-                adapter = ShowAllInstalledAppsAdapter3(appItems).also {
+                adapter = ShowAllInstalledAppsAdapter3(appItems).apply {
+                    isAllowedRefreshInstalledAppsUiProperty = ::isAllowedRefreshInstalledAppsUi
+                }.also {
                     appItemsRecyclerViewAdapter = it
                 }
                 addItemDecoration(RecycleViewItemSpaceDecoration(context))
