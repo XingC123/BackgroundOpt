@@ -129,7 +129,7 @@
     <!-- MaterialCardView -->
     <style name="OutlinedCardView" parent="Widget.Material3.CardView.Outlined">
         <!--边框颜色-->
-        <item name="strokeColor">@color/tengZi</item>
+        <item name="strokeColor">?attr/colorOutline</item>
     </style>
 
     <!--自动换行的水平布局-->
