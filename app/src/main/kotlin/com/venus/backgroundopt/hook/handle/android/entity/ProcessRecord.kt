@@ -18,16 +18,17 @@
 package com.venus.backgroundopt.hook.handle.android.entity
 
 import android.content.pm.ApplicationInfo
+import android.os.Build
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.BuildConfig
+import com.venus.backgroundopt.annotation.AndroidMethod
 import com.venus.backgroundopt.annotation.AndroidObject
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
-import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
@@ -74,6 +75,9 @@ class ProcessRecord(
         // 默认的最大adj
         var defaultMaxAdj = ProcessList.UNKNOWN_ADJ
 
+        // 高优先级子进程的最大adj
+        var HIGH_PRIORITY_SUB_PROC_DEFAULT_MAX_ADJ = ProcessList.UNKNOWN_ADJ
+
         @JvmField
         var defaultMaxAdjStr = "null"
 
@@ -95,9 +99,11 @@ class ProcessRecord(
 
         init {
             // 根据配置文件决定defaultMaxAdj
-            val oomMode = CommonProperties.oomWorkModePref.oomMode
+            val oomMode = HookCommonProperties.oomWorkModePref.oomMode
             defaultMaxAdj = when (oomMode) {
-                OomWorkModePref.MODE_STRICT -> ProcessList.VISIBLE_APP_ADJ
+                OomWorkModePref.MODE_STRICT,
+                OomWorkModePref.MODE_STRICT_SECONDARY,
+                OomWorkModePref.MODE_BALANCE_PLUS -> ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
                 // OomWorkModePref.MODE_NEGATIVE -> ProcessList.HEAVY_WEIGHT_APP_ADJ
                 else -> ProcessList.UNKNOWN_ADJ
             }
@@ -105,6 +111,14 @@ class ProcessRecord(
                 if (defaultMaxAdj == ProcessList.UNKNOWN_ADJ) "系统默认" else defaultMaxAdj
             }"
             logInfo(logStr = "最大oom_score_adj: $defaultMaxAdjStr")
+
+            // 高优先级子进程
+            HIGH_PRIORITY_SUB_PROC_DEFAULT_MAX_ADJ = when (oomMode) {
+                OomWorkModePref.MODE_STRICT,
+                OomWorkModePref.MODE_STRICT_SECONDARY,
+                OomWorkModePref.MODE_BALANCE_PLUS -> ProcessList.VISIBLE_APP_ADJ
+                else -> ProcessList.UNKNOWN_ADJ
+            }
 
             // 计算最小的、要进行优化的资源占用的值
             RunningInfo.getInstance().memInfoReader?.let { memInfoReader ->
@@ -316,6 +330,80 @@ class ProcessRecord(
             }
         }
 
+        @JvmStatic
+        fun getProcessCachedOptimizerRecord(
+            processRecord: Any
+        ): Any? = processRecord.getObjectFieldValue(FieldConstants.mOptRecord)
+
+        @JvmStatic
+        fun getProcessStateRecord(
+            processRecord: Any
+        ): Any = processRecord.getObjectFieldValue(FieldConstants.mState)!!
+
+        @JvmStatic
+        @AndroidMethod
+        fun isKilledByAm(processRecord: Any): Boolean = processRecord.callMethod<Boolean>(
+            methodName = MethodConstants.isKilledByAm
+        )
+
+        @JvmStatic
+        @AndroidMethod
+        fun getThread(processRecord: Any): Any? = processRecord.callMethod(
+            methodName = MethodConstants.getThread
+        )
+
+        @JvmStatic
+        @AndroidMethod
+        fun isPendingFinishAttach(processRecord: Any): Boolean = processRecord.callMethod<Boolean>(
+            methodName = MethodConstants.isPendingFinishAttach
+        )
+
+        @JvmStatic
+        fun getProcessServiceRecord(processRecord: Any): Any = processRecord.getObjectFieldValue(
+            fieldName = FieldConstants.mServices
+        )!!
+
+        @JvmStatic
+        fun isIsolated(processRecord: Any): Boolean = processRecord.getBooleanFieldValue(
+            fieldName = FieldConstants.isolated
+        )
+
+        @JvmStatic
+        @AndroidMethod
+        fun getIsolatedEntryPoint(processRecord: Any): Any? = processRecord.callMethod(
+            methodName = MethodConstants.getIsolatedEntryPoint
+        )
+
+        @JvmStatic
+        @AndroidMethod
+        fun killLocked(
+            processRecord: Any,
+            reason: String,
+            reasonCode: Int,
+            subReason: Int,
+            noisy: Boolean
+        ) {
+            processRecord.callMethod(
+                methodName = MethodConstants.killLocked,
+                reason,
+                reasonCode,
+                subReason,
+                noisy
+            )
+        }
+
+        @JvmStatic
+        @AndroidObject(since = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+        fun isSdkSandbox(processRecord: Any): Boolean = processRecord.getBooleanFieldValue(
+            fieldName = FieldConstants.isSdkSandbox
+        )
+
+        @JvmStatic
+        @AndroidMethod
+        fun getActiveInstrumentation(processRecord: Any): Any? = processRecord.callMethod(
+            methodName = MethodConstants.getActiveInstrumentation
+        )
+
         /**
          * 进程的int值消费者
          */
@@ -396,7 +484,7 @@ class ProcessRecord(
         webviewProcess = isWebviewProc(processRecord)
         webviewProcessProbable = isWebviewProcProbable(processRecord)
         processStateRecord =
-            ProcessStateRecord(processRecord.getObjectFieldValue(FieldConstants.mState))
+            ProcessStateRecord(getProcessStateRecord(processRecord = processRecord))
     }
 
     constructor(
@@ -416,7 +504,11 @@ class ProcessRecord(
      */
     @JSONField(serialize = false)
     fun setDefaultMaxAdj() {
-        setMaxAdj(defaultMaxAdj)
+        if (mainProcess) {
+            setMaxAdj(defaultMaxAdj)
+        } else {
+            setMaxAdj(HIGH_PRIORITY_SUB_PROC_DEFAULT_MAX_ADJ)
+        }
     }
 
     /**
@@ -501,7 +593,7 @@ class ProcessRecord(
     fun scheduleTrimMemory(level: Int): Boolean {
 //        XposedHelpers.callMethod(mThread, MethodConstants.scheduleTrimMemory, level);
         val thread: Any? = try {
-            originalInstance.callMethod(MethodConstants.getThread)
+            getThread(originalInstance)
         } catch (ignore: Throwable) {
             null
         }

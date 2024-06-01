@@ -43,5 +43,9 @@ interface MessageKeyConstants {
         const val getTrimMemoryOptThreshold = "getTrimMemoryOptThreshold"
         const val getHomePageModuleInfo = "getHomePageModuleInfo"
         const val killAfterRemoveTask = "killAfterRemoveTask"
+        const val moduleRunning = "moduleRunning"
+        const val getManagedAdjDefaultApps = "getManagedAdjDefaultApps"
+        const val KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY = "KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY"
+        const val getProcessRunningInfo = "getProcessRunningInfo"
     }
 }

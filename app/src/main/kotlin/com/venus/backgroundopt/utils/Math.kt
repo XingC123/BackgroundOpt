@@ -14,16 +14,30 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.handle.android.entity;
 
-import com.venus.backgroundopt.hook.constants.ClassConstants;
+package com.venus.backgroundopt.utils
+
+import kotlin.math.max
+import kotlin.math.min
 
 /**
- * 封装了 {@link ClassConstants#ActivityManagerShellCommand}
- *
  * @author XingC
- * @date 2023/7/13
+ * @date 2024/4/17
  */
-public class ActivityManagerShellCommand {
-}
+
+/**
+ * 获取受区间约束的值
+ *
+ * 即: min <= x <= max
+ * @param x Int 要判断的值
+ * @param min Int 可取的最小值
+ * @param max Int 可取的最大值
+ * @return Int 最终的值
+ */
+fun clamp(x: Int, min: Int, max: Int): Int = min(max(x, min), max)
+
+fun clamp(x: Long, min: Long, max: Long): Long = min(max(x, min), max)
+
+fun clamp(x: Float, min: Float, max: Float): Float = min(max(x, min), max)
+
+fun clamp(x: Double, min: Double, max: Double): Double = min(max(x, min), max)

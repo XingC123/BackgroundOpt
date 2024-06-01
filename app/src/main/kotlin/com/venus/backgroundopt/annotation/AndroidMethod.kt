@@ -14,9 +14,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.annotation
 
+package com.venus.backgroundopt.annotation
+
+import android.os.Build
 import kotlin.reflect.KClass
 
 /**
@@ -31,4 +32,5 @@ annotation class AndroidMethod(
     val classPath: String = "",
     val clazz: KClass<*> = Any::class,
     val methodName: String = "",
+    val since: Int = Build.VERSION_CODES.S,
 )

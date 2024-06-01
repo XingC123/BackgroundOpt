@@ -20,7 +20,7 @@
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
@@ -49,10 +49,10 @@ class SubProcessOomConfigChangeMessageHandler : MessageHandler {
         ) { subProcessOomConfigChangeMessage ->
             // 移除或添加oom策略。在下次调整进程oom_adj_score时生效
             if (subProcessOomConfigChangeMessage.subProcessOomPolicy.policyEnum != SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT) {
-                CommonProperties.subProcessOomPolicyMap[subProcessOomConfigChangeMessage.processName] =
+                HookCommonProperties.subProcessOomPolicyMap[subProcessOomConfigChangeMessage.processName] =
                     subProcessOomConfigChangeMessage.subProcessOomPolicy
             } else {
-                CommonProperties.subProcessOomPolicyMap.remove(subProcessOomConfigChangeMessage.processName)
+                HookCommonProperties.subProcessOomPolicyMap.remove(subProcessOomConfigChangeMessage.processName)
             }
 
             if (BuildConfig.DEBUG) {

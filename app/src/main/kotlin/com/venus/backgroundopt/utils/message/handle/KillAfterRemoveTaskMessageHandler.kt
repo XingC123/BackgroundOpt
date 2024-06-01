@@ -1,7 +1,7 @@
 package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponseWithNullData
 import de.robv.android.xposed.XC_MethodHook
@@ -20,7 +20,7 @@ class KillAfterRemoveTaskMessageHandler : MessageHandler {
             param = param,
             value = value
         ) { isEnabled ->
-            CommonProperties.enableKillAfterRemoveTask.value = isEnabled
+            HookCommonProperties.enableKillAfterRemoveTask.value = isEnabled
         }
     }
 }

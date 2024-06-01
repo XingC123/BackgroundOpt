@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.ui
+
+package com.venus.backgroundopt.ui
 
 import android.view.LayoutInflater
 import android.view.View
@@ -24,6 +24,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
+import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 
 /**
@@ -31,8 +32,9 @@ import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
  * @date 2023/9/27
  */
 class ConfigureAppProcessAdapter(
+    private val appItem: AppItem,
     private val processes: List<String>,
-    private val subProcessOomPolicyList: List<SubProcessOomPolicy>
+    private val subProcessOomPolicyMap: MutableMap<String, SubProcessOomPolicy>
 ) :
     RecyclerView.Adapter<ConfigureAppProcessAdapter.ConfigureAppProcessViewHolder>() {
     class ConfigureAppProcessViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -43,17 +45,22 @@ class ConfigureAppProcessAdapter(
             itemView.findViewById(R.id.appProcessConfigureItemApplyConfigureNameText)
         }
 
+        lateinit var appItem: AppItem
         lateinit var processName: String
         lateinit var subProcessOomPolicy: SubProcessOomPolicy
+        lateinit var subProcessOomPolicyMap: MutableMap<String, SubProcessOomPolicy>
 
         init {
-            itemView.findViewById<Button>(R.id.appProcessConfigureItemSelectConfigBtn)
-                ?.setOnClickListener { _ ->
+            itemView.findViewById<Button>(
+                R.id.appProcessConfigureItemSelectConfigBtn
+            )?.setOnClickListener { _ ->
                     ConfigureAppProcessDialogBuilder.createDialog(
                         itemView.context,
                         applyConfigNameTextView,
                         processName,
-                        subProcessOomPolicy
+                        subProcessOomPolicy,
+                        subProcessOomPolicyMap,
+                        appItem
                     ).show()
                 }
         }
@@ -78,8 +85,10 @@ class ConfigureAppProcessAdapter(
         holder.processNameTextView.text = processName
         holder.processName = processName
         // 显示策略的名字
-        val subProcessOomPolicy = subProcessOomPolicyList[position]
+        val subProcessOomPolicy = subProcessOomPolicyMap[processName]!!
         holder.applyConfigNameTextView.text = subProcessOomPolicy.policyEnum.configName
         holder.subProcessOomPolicy = subProcessOomPolicy
+        holder.subProcessOomPolicyMap = subProcessOomPolicyMap
+        holder.appItem = appItem
     }
 }

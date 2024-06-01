@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.constants;
+
+package com.venus.backgroundopt.hook.constants;
 
 /**
  * @author XingC
@@ -96,4 +96,16 @@ public interface FieldConstants {
     String mOwner = "mOwner";
     String ASSISTANT = "ASSISTANT";
     String DEFAULT_INPUT_METHOD = "DEFAULT_INPUT_METHOD";
+    String mAdjSeq = "mAdjSeq";
+    String mServices = "mServices";
+    String isolated = "isolated";
+    String mAppProfiler = "mAppProfiler";
+    String mService = "mService";
+    String isSdkSandbox = "isSdkSandbox";
+    String PER_USER_RANGE = "PER_USER_RANGE";
+    String USER_SYSTEM = "USER_SYSTEM";
+    String MU_ENABLED = "MU_ENABLED";
+    String mConstants = "mConstants";
+    String USE_TIERED_CACHED_ADJ = "USE_TIERED_CACHED_ADJ";
+    String TIERED_CACHED_ADJ_DECAY_TIME = "TIERED_CACHED_ADJ_DECAY_TIME";
 }

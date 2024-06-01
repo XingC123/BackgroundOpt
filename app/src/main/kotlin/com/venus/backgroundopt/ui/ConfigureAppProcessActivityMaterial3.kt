@@ -20,7 +20,6 @@ package com.venus.backgroundopt.ui
 import android.content.Context
 import android.os.Bundle
 import android.view.MenuItem
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -32,18 +31,24 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
+import com.venus.backgroundopt.entity.AppItem.AppConfiguredEnum
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
+import com.venus.backgroundopt.ui.component.VenusListCheckMaterial3
+import com.venus.backgroundopt.ui.component.VenusSwitchMaterial3
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.StringUtils
 import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.getTmpData
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy.MainProcessAdjManagePolicy
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicyMessage
 import com.venus.backgroundopt.utils.message.sendMessage
 import com.venus.backgroundopt.utils.preference.prefPut
 import com.venus.backgroundopt.utils.preference.prefValue
@@ -65,7 +70,8 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
         when (menuItem.itemId) {
             R.id.configureAppProcAcitivityToolBarHelpMenuItem -> {
                 UiUtils.createDialog(
-                    this, R.layout.content_configure_app_proc_toolbar_help
+                    context = this,
+                    viewResId = R.layout.content_configure_app_proc_toolbar_help
                 ).show()
             }
         }
@@ -78,6 +84,13 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
 
     private fun init() {
         appItem = getTmpData() as AppItem
+
+        /*
+            app优化策略
+         */
+        val curPackageName = appItem.packageName
+        // 获取本地配置
+        val appOptimizePolicy = getAppOptimizePolicy(curPackageName)
 
         // 设置基本数据
         runOnUiThread {
@@ -93,20 +106,6 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
             }
             findViewById<TextView>(R.id.configureAppProcessVersionCodeText)?.let {
                 it.text = appItem.longVersionCode.toString()
-            }
-        }
-
-        runOnUiThread {
-            /*
-                app优化策略
-             */
-            val curPackageName = appItem.packageName
-            // 获取本地配置
-            val appOptimizePolicy = prefValue<AppOptimizePolicy>(
-                PreferenceNameConstants.APP_OPTIMIZE_POLICY,
-                curPackageName
-            ) ?: AppOptimizePolicy().apply {
-                this.packageName = curPackageName
             }
 
             fun initAppMemoryOptimizeRadioGroup(
@@ -125,21 +124,35 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
 
                     // 事件监听
                     group.setOnCheckedChangeListener { _, checkedId ->
+                        var showConfigTag = false
                         when (findViewById<RadioButton>(checkedId).id) {
                             buttonIdArr[0] -> {
                                 policy.set(null)
+                                showConfigTag = false
                             }
 
                             buttonIdArr[1] -> {
                                 policy.set(true)
+                                showConfigTag = true
                             }
 
                             buttonIdArr[2] -> {
                                 policy.set(false)
+                                showConfigTag = true
                             }
 
                             else -> {
                                 policy.set(null)
+                                showConfigTag = false
+                            }
+                        }
+
+                        // 更新tag的显示
+                        appItem.appConfiguredEnumSet.apply {
+                            if (showConfigTag) {
+                                appItem.appConfiguredEnumSet.add(AppConfiguredEnum.AppOptimizePolicy)
+                            } else {
+                                appItem.appConfiguredEnumSet.remove(AppConfiguredEnum.AppOptimizePolicy)
                             }
                         }
 
@@ -241,6 +254,15 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                     // 写入数据到对象
                     appOptimizePolicy.enableCustomMainProcessOomScore = isChecked
 
+                    // 更新tag显示
+                    appItem.appConfiguredEnumSet.apply {
+                        if (isChecked) {
+                            add(AppConfiguredEnum.CustomMainProcessOomScore)
+                        } else {
+                            remove(AppConfiguredEnum.CustomMainProcessOomScore)
+                        }
+                    }
+
                     appOptimizePolicySaveAction(appOptimizePolicy)
 
                     // 输入框禁用与启用
@@ -251,21 +273,82 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
             /*
                 是否被模块纳入管理
              */
-            findViewById<SwitchCompat>(R.id.configureAppProcessShouldHandleMainProcAdjSwitch)?.let { switch ->
-                switch.visibility = if (appItem.systemApp) {    // 只有系统app才可以设置
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
-
+            findViewById<VenusSwitchMaterial3>(R.id.configureAppProcessShouldHandleMainProcAdjSwitch)?.let { switch ->
                 // 初始状态
-                if (appOptimizePolicy.shouldHandleAdj == true) {
-                    switch.isChecked = true
-                }
+                switch.isChecked = appOptimizePolicy.shouldHandleAdj
+                    ?: appOptimizePolicy.shouldHandleAdjUiState
 
                 switch.setOnCheckedChangeListener { _, isChecked ->
-                    appOptimizePolicy.shouldHandleAdj = if (isChecked) true else null
+                    appOptimizePolicy.shouldHandleAdj = isChecked
                     appOptimizePolicySaveAction(appOptimizePolicy)
+                }
+
+                switch.setButtonOnClickedListener {
+                    appOptimizePolicy.shouldHandleAdj = null
+                    appOptimizePolicySaveAction(appOptimizePolicy) {
+                        runOnUiThread { switch.isChecked = it.shouldHandleAdjUiState }
+                    }
+                }
+            }
+
+            // 拥有界面时临时保活主进程
+            findViewById<VenusSwitchMaterial3>(R.id.configureAppProcessKeepMainProcessAliveHasActivitySwitch)?.let { switch ->
+                fun setSwitchChecked(appOptimizePolicy: AppOptimizePolicy) {
+                    switch.isChecked = appOptimizePolicy.keepMainProcessAliveHasActivity
+                        ?: PreferenceDefaultValue.keepMainProcessAliveHasActivity
+                }
+                // 初始状态
+                setSwitchChecked(appOptimizePolicy)
+
+                switch.setOnCheckedChangeListener { _, isChecked ->
+                    appOptimizePolicy.keepMainProcessAliveHasActivity = isChecked
+                    appOptimizePolicySaveAction(appOptimizePolicy)
+                }
+
+                switch.setButtonOnClickedListener {
+                    appOptimizePolicy.keepMainProcessAliveHasActivity = null
+                    setSwitchChecked(appOptimizePolicy)
+                    appOptimizePolicySaveAction(appOptimizePolicy)
+                }
+            }
+
+            /*
+             * 管理主进程adj的条件
+             */
+            findViewById<VenusListCheckMaterial3>(R.id.manage_main_process_adj_venus_list_check)?.let { listCheck ->
+                fun getMapFromMainProcessAdjManagePolicy(): Map<String, String> {
+                    return HashMap<String, String>(MainProcessAdjManagePolicy.entries.size).apply {
+                        MainProcessAdjManagePolicy.entries.forEach { policy ->
+                            put(policy.uiText, policy.name)
+                        }
+                    }
+                }
+                // 界面显示与值的映射
+                val map = getMapFromMainProcessAdjManagePolicy()
+                listCheck.setEntriesAndValue(map)
+
+                // 默认值
+                listCheck.defaultValue = appOptimizePolicy.defaultMainProcessAdjManagePolicyUiText
+
+                listCheck.setDialogConfirmClickListener { _: Int, _: Int, _: CharSequence?, entryValue: CharSequence? ->
+                    val policyName = entryValue?.toString() ?: return@setDialogConfirmClickListener
+                    appOptimizePolicy.mainProcessAdjManagePolicy =
+                        MainProcessAdjManagePolicy.valueOf(policyName)
+
+                    // 更新tag的显示
+                    appItem.appConfiguredEnumSet.apply {
+                        if (appOptimizePolicy.mainProcessAdjManagePolicy == MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_DEFAULT) {
+                            remove(AppConfiguredEnum.MainProcessAdjManagePolicy)
+                        } else {
+                            add(AppConfiguredEnum.MainProcessAdjManagePolicy)
+                        }
+                    }
+
+                    appOptimizePolicySaveAction(appOptimizePolicy) {
+                        runOnUiThread {
+                            listCheck.defaultValue = it.defaultMainProcessAdjManagePolicyUiText
+                        }
+                    }
                 }
             }
         }
@@ -274,7 +357,7 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
         PackageUtils.getAppProcesses(this, appItem)
 
         // 获取本地配置
-        val subProcessOomPolicyList = arrayListOf<SubProcessOomPolicy>()
+        val subProcessOomPolicyMap = HashMap<String, SubProcessOomPolicy>()
         val iterator = appItem.processes.iterator()
         var processName: String
         while (iterator.hasNext()) {
@@ -284,21 +367,25 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                 iterator.remove()
                 continue
             }
-            subProcessOomPolicyList.add(
-                prefValue<SubProcessOomPolicy>(SUB_PROCESS_OOM_POLICY, processName) ?: run {
-                    // 不存在
-                    SubProcessOomPolicy().apply {
-                        // 当前进程是否在默认白名单
-                        if (CommonProperties.subProcessDefaultUpgradeSet.contains(processName)) {
-                            this.policyEnum =
-                                SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
 
-                            // 保存到本地
-                            prefPut(SUB_PROCESS_OOM_POLICY, commit = true, processName, this)
-                        }
+            val subProcessOomPolicy = prefValue<SubProcessOomPolicy>(
+                SUB_PROCESS_OOM_POLICY,
+                processName
+            ) ?: run {
+                // 不存在
+                SubProcessOomPolicy().apply {
+                    // 当前进程是否在默认白名单
+                    if (CommonProperties.subProcessDefaultUpgradeSet.contains(processName)) {
+                        this.policyEnum =
+                            SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
+
+                        // 保存到本地
+                        prefPut(SUB_PROCESS_OOM_POLICY, commit = true, processName, this)
                     }
                 }
-            )
+            }
+
+            subProcessOomPolicyMap[processName] = subProcessOomPolicy
         }
 
         // 设置view
@@ -308,19 +395,48 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                     LinearLayoutManager(this@ConfigureAppProcessActivityMaterial3).apply {
                         orientation = LinearLayoutManager.VERTICAL
                     }
-                adapter =
-                    ConfigureAppProcessAdapter(appItem.processes.toList(), subProcessOomPolicyList)
+                adapter = ConfigureAppProcessAdapter(
+                    appItem = appItem,
+                    processes = appItem.processes.toList(),
+                    subProcessOomPolicyMap = subProcessOomPolicyMap
+                )
             }
         }
     }
 
-    private fun appOptimizePolicySaveAction(appOptimizePolicy: AppOptimizePolicy) {
+    private fun appOptimizePolicySaveAction(
+        appOptimizePolicy: AppOptimizePolicy,
+        block: ((AppOptimizePolicy) -> Unit)? = null
+    ) {
         // 保存到本地
         saveAppMemoryOptimize(appOptimizePolicy, this)
         // 通知模块进程
         showProgressBarViewForAction("正在设置") {
-            sendMessage(this, MessageKeyConstants.appOptimizePolicy, appOptimizePolicy)
+            val returnAppOptimizePolicy = sendMessage<AppOptimizePolicy>(
+                context = this,
+                key = MessageKeyConstants.appOptimizePolicy,
+                value = AppOptimizePolicyMessage().apply {
+                    value = appOptimizePolicy
+                    uid = appItem.uid
+                    packageName = appItem.packageName
+                    messageType = AppOptimizePolicyMessage.MSG_SAVE
+                }
+            )
+            returnAppOptimizePolicy?.let { block?.invoke(it) }
         }
+    }
+
+    private fun getAppOptimizePolicy(packageName: String): AppOptimizePolicy {
+        return sendMessage<AppOptimizePolicy>(
+            context = this,
+            key = MessageKeyConstants.appOptimizePolicy,
+            AppOptimizePolicyMessage().apply {
+                this.uid = appItem.uid
+                this.packageName = packageName
+
+                messageType = AppOptimizePolicyMessage.MSG_CREATE_OR_GET
+            }
+        )!!
     }
 
     companion object {

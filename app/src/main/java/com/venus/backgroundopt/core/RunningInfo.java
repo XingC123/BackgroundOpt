@@ -30,13 +30,16 @@ import com.venus.backgroundopt.annotation.AndroidObject;
 import com.venus.backgroundopt.annotation.UsageComment;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.FindAppResult;
+import com.venus.backgroundopt.hook.base.IHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
+import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt;
+import com.venus.backgroundopt.hook.handle.android.ProcessListHookKtKt;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
-import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerShellCommand;
 import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
 import com.venus.backgroundopt.hook.handle.android.entity.PackageManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.manager.application.DefaultApplicationManager;
+import com.venus.backgroundopt.manager.message.ModuleMessageManager;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.reference.PropertyChangeListener;
 import com.venus.backgroundopt.service.ProcessDaemonService;
@@ -417,6 +420,9 @@ public class RunningInfo implements ILogger {
 
         // 移除进程记录
         removeRunningProcess(pid);
+        // 移除内存压缩文件流的缓存
+        activityManagerService.getOomAdjuster().getCachedAppOptimizer().removeCompactOutputStreams(pid);
+
         if (isMainProcess) {
             removeRunningApp(appInfo);
         } else {
@@ -532,6 +538,8 @@ public class RunningInfo implements ILogger {
                     consumer = doNothing;
                 }
                 handleActuallyActivityEventChange(appInfo, () -> {
+                    appInfo.activityActive(componentName);
+
                     consumer.accept(appInfo);
                     updateAppSwitchState(/*event, */componentName, appInfo);
                 }, throwable -> getLogger().error("ACTIVITY_RESUMED处理出错", throwable));
@@ -550,6 +558,10 @@ public class RunningInfo implements ILogger {
                         }, throwable -> getLogger().error("ACTIVITY_STOPPED处理出错", throwable));
                     }
                 }
+            }
+
+            case ActivityManagerServiceHookKt.ACTIVITY_DESTROYED -> {
+                appInfo.activityDie(componentName);
             }
 
             default -> {
@@ -640,6 +652,23 @@ public class RunningInfo implements ILogger {
         processManager.appIdle(appInfo);
 //        processManager.setAppToBackgroundProcessGroup(appInfo);
 
+        // 默认对高优先级子进程设置adj
+        ProcessListHookKt hookInstance = IHook.getHookInstance(ProcessListHookKt.class);
+        if (hookInstance != null) {
+            int adj = hookInstance.getOomAdjHandler().computeHighPrioritySubProcessAdj(0);
+            getRunningProcesses().stream()
+                    .filter(processRecord -> processRecord.appInfo == appInfo)
+                    .filter(processRecord -> !processRecord.getMainProcess())
+                    .filter(ProcessListHookKtKt::isHighPrioritySubProcess)
+                    .forEach(processRecord -> {
+                        activityManagerService.getProcessList().writeLmkd(
+                                processRecord.getPid(),
+                                processRecord.getUid(),
+                                adj
+                        );
+                    });
+        }
+
         appInfo.setSwitchEventHandled(true);
     }
 
@@ -656,6 +685,10 @@ public class RunningInfo implements ILogger {
 
     public String getDefaultPackageName(String key) {
         return defaultApplicationManager.getDefaultPackageName(key);
+    }
+
+    public Collection<String> getAllDefaultPackageNames() {
+        return defaultApplicationManager.getAllPkgNames();
     }
 
     @Deprecated
@@ -680,10 +713,10 @@ public class RunningInfo implements ILogger {
     public void initActiveDefaultAppPackageName() {
         if (packageManagerService != null) {
             List.of(
-                    new DefaultApplicationPkgNameInitializer()
+                    /*new DefaultApplicationPkgNameInitializer()
                             .setKey(DefaultApplicationManager.DEFAULT_APP_BROWSER)
                             .setTag("浏览器")
-                            .setPkgNameGetter(packageManagerService::getDefaultBrowser),
+                            .setPkgNameGetter(packageManagerService::getDefaultBrowser),*/
                     new DefaultApplicationPkgNameInitializer()
                             .setKey(DefaultApplicationManager.DEFAULT_APP_HOME)
                             .setTag("桌面")
@@ -695,7 +728,15 @@ public class RunningInfo implements ILogger {
                     new DefaultApplicationPkgNameInitializer()
                             .setKey(DefaultApplicationManager.DEFAULT_APP_INPUT_METHOD)
                             .setTag("输入法")
-                            .setPkgNameGetter(packageManagerService::getDefaultInputMethod)
+                            .setPkgNameGetter(packageManagerService::getDefaultInputMethod),
+                    new DefaultApplicationPkgNameInitializer()
+                            .setKey(DefaultApplicationManager.DEFAULT_APP_DIALER)
+                            .setTag("通讯录与拨号")
+                            .setPkgNameGetter(packageManagerService::getDefaultDialer),
+                    new DefaultApplicationPkgNameInitializer()
+                            .setKey(DefaultApplicationManager.DEFAULT_APP_SMS)
+                            .setTag("短信")
+                            .setPkgNameGetter(packageManagerService::getDefaultSms)
             ).forEach(initializer -> {
                 defaultApplicationManager.initDefaultApplicationNode(
                         initializer.key,
@@ -733,23 +774,18 @@ public class RunningInfo implements ILogger {
 
     private PropertyChangeListener<String> generateDefaultApplicationChangeListener(String tag) {
         return (oldValue, newValue) -> {
-            String newPkgName = DefaultApplicationManager.getDefaultPkgNameFromUriStr(newValue);
-            if (Objects.equals(oldValue, newPkgName)) {
-                return;
-            }
             runningApps.values().stream()
-                    .filter(AppInfo::isImportSystemApp)
-                    .filter(appInfo -> Objects.equals(appInfo.getPackageName(), oldValue) || Objects.equals(appInfo.getPackageName(), newPkgName))
+                    // .filter(AppInfo::isImportSystemApp)
+                    .filter(appInfo -> Objects.equals(appInfo.getPackageName(), oldValue) || Objects.equals(appInfo.getPackageName(), newValue))
                     .forEach(appInfo -> {
                         if (Objects.equals(appInfo.getPackageName(), oldValue)) {
-                            // 将原应用恢复默认策略
-                            appInfo.shouldHandleAdj = AppInfo.handleAdjDependOnAppOptimizePolicy;
+                            appInfo.setShouldHandleAdj();
                         } else {
                             // 设置当前app
                             appInfo.shouldHandleAdj = AppInfo.handleAdjAlways;
                         }
                     });
-            getLogger().info("更换的" + tag + "包名为: " + newPkgName);
+            getLogger().info("更换的" + tag + "包名为: " + newValue);
         };
     }
 
@@ -845,16 +881,16 @@ public class RunningInfo implements ILogger {
 
     /* *************************************************************************
      *                                                                         *
-     * ActivityManagerShellCommand                                             *
+     * 模块消息管理器                                                             *
      *                                                                         *
      **************************************************************************/
-    private ActivityManagerShellCommand activityManagerShellCommand;
+    private final ModuleMessageManager moduleMessageManager = new ModuleMessageManager(this);
 
-    public ActivityManagerShellCommand getActivityManagerShellCommand() {
-        return activityManagerShellCommand;
+    {
+        moduleMessageManager.start();
     }
 
-    public void setActivityManagerShellCommand(ActivityManagerShellCommand activityManagerShellCommand) {
-        this.activityManagerShellCommand = activityManagerShellCommand;
+    public ModuleMessageManager getModuleMessageManager() {
+        return moduleMessageManager;
     }
 }

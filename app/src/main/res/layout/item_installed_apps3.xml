@@ -17,7 +17,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:id="@+id/installedAppItemAppIcon"
+            android:id="@+id/appIconImageView"
             android:layout_width="52dp"
             android:layout_height="52dp"
             android:layout_weight="0"
@@ -30,7 +30,7 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/installedAppItemAppNameText"
+                android:id="@+id/appNameText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -85,6 +85,17 @@
                     android:paddingHorizontal="@dimen/padding_horizontal_if_use_border"
                     android:paddingVertical="@dimen/padding_vertical_if_use_border"
                     android:text="@string/itemInstalledAppsShouldHandleMainProcAdjFlagText"
+                    android:textColor="@color/shanChui" />
+
+                <TextView
+                    android:id="@+id/itemInstalledAppsMainProcessAdjManagePolicy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:background="@drawable/border"
+                    android:paddingHorizontal="@dimen/padding_horizontal_if_use_border"
+                    android:paddingVertical="@dimen/padding_vertical_if_use_border"
+                    android:text="@string/itemInstalledAppsMainProcessAdjManagePolicy"
                     android:textColor="@color/shanChui" />
             </com.venus.backgroundopt.ui.base.LineFeedLayout>
         </LinearLayout>

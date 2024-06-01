@@ -14,13 +14,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.utils
+
+package com.venus.backgroundopt.utils
 
 import android.app.Activity
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.res.TypedArray
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -115,22 +117,11 @@ fun <E : View> Activity.findViewById(resId: Int, enable: Boolean = true): E? {
 object UiUtils {
     /**
      * 创建对话框
-     *
-     * @param context 当前上下文
-     * @param viewResId 布局文件资源id
-     * @param cancelable 对话框是否可以取消
-     * @return [AlertDialog]
-     */
-    @JvmOverloads
-    fun createDialog(context: Context, viewResId: Int, cancelable: Boolean = true): AlertDialog {
-        return createDialog(context, viewResId, {}, cancelable)
-    }
-
-    /**
-     * 创建对话框
      * @param context Context 当前上下文
      * @param viewResId Int 布局文件资源id
      * @param viewBlock Function1<View, Unit> 要对布局文件创建的[View]执行的操作
+     * @param titleResId 对话框标题的内容的资源文件id
+     * @param titleStr 对话框的标题内容
      * @param cancelable Boolean 点击空白处是否可以取消对话框
      * @param enableNegativeBtn Boolean 启用返回按钮
      * @param negativeBtnText String 返回按钮文字
@@ -143,8 +134,12 @@ object UiUtils {
     @JvmOverloads
     fun createDialog(
         context: Context,
-        viewResId: Int,
-        viewBlock: View.() -> Unit,
+        text: String? = null,
+        viewResId: Int? = null,
+        viewBlock: (View.() -> Unit)? = null,
+        useDialogPreferredPaddingHorizontal: Boolean = true,
+        titleResId: Int? = null,
+        titleStr: String? = null,
         cancelable: Boolean = true,
         enableNegativeBtn: Boolean = false,
         negativeBtnText: String = "放弃",
@@ -157,44 +152,54 @@ object UiUtils {
             dialogInterface.dismiss()
         },
     ): AlertDialog {
-        return MaterialAlertDialogBuilder(context)
+        val builder = MaterialAlertDialogBuilder(context)
+        titleResId?.let { builder.setTitle(it) } ?: titleStr?.let { builder.setTitle(it) }
+
+        // 默认的对话框布局
+        if (viewResId == null) {
+            // 设置文本内容
+            text?.let { builder.setMessage(it) }
+        } else {
+            val view = context.getView(viewResId)
+            // 通用对话框布局
+            if (viewResId == R.layout.content_common_dailog_view) {
+                // 设置文本内容
+                text?.let {
+                    view.findViewById<TextView>(R.id.contentCommonDialogText)?.text = text
+                }
+            }
+            // 使用主题定义的对话框水平内边距
+            useDialogPreferredPaddingHorizontal.ifTrue {
+                val outValue = TypedValue()
+                val theme = context.theme
+                theme.resolveAttribute(
+                    android.R.attr.dialogPreferredPadding,
+                    outValue,
+                    true
+                )
+                val dialogPreferredPadding = view.resources.getDimensionPixelSize(
+                    outValue.resourceId
+                )
+                val originalPaddingTop = view.paddingTop
+                val originalPaddingBottom = view.paddingBottom
+                view.setPadding(
+                    dialogPreferredPadding,
+                    originalPaddingTop,
+                    dialogPreferredPadding,
+                    originalPaddingBottom
+                )
+            }
+            // 应用对view的自定义操作
+            viewBlock?.invoke(view)
+
+            builder.setView(view)
+        }
+
+        return builder
             .setCancelable(cancelable)
-            .setView(context.getView(viewResId).apply { viewBlock(this) })
             .setNegativeBtn(context, enableNegativeBtn, negativeBtnText, negativeBlock)
             .setPositiveBtn(context, enablePositiveBtn, positiveBtnText, positiveBlock)
             .create()
-    }
-
-    @JvmOverloads
-    fun createDialog(
-        context: Context,
-        text: String,
-        cancelable: Boolean = true,
-        enableNegativeBtn: Boolean = false,
-        negativeBtnText: String = "放弃",
-        negativeBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
-            dialogInterface.dismiss()
-        },
-        enablePositiveBtn: Boolean = false,
-        positiveBtnText: String = "确认",
-        positiveBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
-            dialogInterface.dismiss()
-        },
-    ): AlertDialog {
-        return createDialog(
-            context,
-            viewResId = R.layout.content_common_dailog_view,
-            viewBlock = {
-                findViewById<TextView>(R.id.contentCommonDialogText)?.text = text
-            },
-            cancelable,
-            enableNegativeBtn,
-            negativeBtnText,
-            negativeBlock,
-            enablePositiveBtn,
-            positiveBtnText,
-            positiveBlock
-        )
     }
 
     @JvmStatic
@@ -242,6 +247,17 @@ object UiUtils {
                     logStr = "showProgressBarViewForAction: 进度条事件执行出错",
                     t = it
                 )
+                (context as Activity).runOnUiThread {
+                    createDialog(
+                        context = context,
+                        titleResId = null,
+                        titleStr = "加载出错",
+                        text = "错误信息: ${it.stackTraceToString()}",
+                        cancelable = cancelable,
+                        enableNegativeBtn = enableNegativeBtn,
+                        negativeBtnText = negativeBtnText,
+                    ).show()
+                }
             }
             dialog.dismiss()
         }
@@ -352,7 +368,7 @@ inline fun AlertDialog.Builder.setPositiveBtn(
     }
 ): AlertDialog.Builder {
     if (enablePositiveBtn) {
-        setNegativeButton(positiveBtnText) { dialogInterface, i ->
+        setPositiveButton(positiveBtnText) { dialogInterface, i ->
             block(dialogInterface, i)
         }
     }
@@ -374,4 +390,13 @@ fun Context.showProgressBarViewForAction(
         negativeBtnText,
         action
     )
+}
+
+/* *************************************************************************
+ *                                                                         *
+ * 文本                                                                     *
+ *                                                                         *
+ **************************************************************************/
+fun TextView.setTextSizeSP(typedArray: TypedArray, index: Int, defValue: Float = 16f) {
+    setTextSize(TypedValue.COMPLEX_UNIT_SP, typedArray.getDimension(index, defValue))
 }

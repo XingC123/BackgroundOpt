@@ -22,7 +22,6 @@ import com.alibaba.fastjson2.JSON
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemActivity
-import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandler.BackgroundTaskMessage
@@ -35,12 +34,16 @@ import com.venus.backgroundopt.utils.message.sendMessage
  * @author XingC
  * @date 2023/9/23
  */
+@Deprecated(
+    message = "默认使用Material3设计风格",
+    replaceWith = ReplaceWith("ShowBackgroundTasksActivityMaterial3")
+)
 class ShowBackgroundTasksActivity : ShowInfoFromAppItemActivity() {
     override fun getShowInfoAdapter(
         appItems: List<AppItem>,
         vararg others: Any?
-    ): ShowInfoFromAppItemAdapter {
-        return ShowBackgroundTasksAdapter(appItems, others[0] as BackgroundTaskMessage)
+    ): ShowProcessInfoFromAppItemAdapter {
+        return ShowBackgroundTasksAdapter(this, appItems, others[0] as BackgroundTaskMessage)
     }
 
     override fun initToolBar(): Toolbar? {

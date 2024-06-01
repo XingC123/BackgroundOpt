@@ -22,7 +22,7 @@ import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.AppInfo
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.afterHookAction
@@ -34,8 +34,11 @@ import com.venus.backgroundopt.hook.handle.android.entity.ActivityManager
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.callMethod
+import com.venus.backgroundopt.utils.clamp
 import com.venus.backgroundopt.utils.getBooleanFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
+import com.venus.backgroundopt.utils.ifTrue
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
 import com.venus.backgroundopt.utils.message.handle.getCustomMainProcessOomScore
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -80,8 +83,7 @@ class ProcessListHookKt(
         ).toInt()
 
         // 第一等级的app的adj的起始值
-//        const val normalAppAdjStartUseSimpleLmk = importSystemAppAdjEndUseSimpleLmk + 1
-        const val normalAppAdjStartUseSimpleLmk = minSimpleLmkOomScore + 1
+        const val normalAppAdjStartUseSimpleLmk = importSystemAppAdjEndUseSimpleLmk + 1
 
         /**
          * 严格模式
@@ -102,6 +104,8 @@ class ProcessListHookKt(
          **************************************************************************/
         const val normalMinAdj = /*-100*/ 1
         const val importAppMinAdj = /*-200*/1
+        const val ADJ_CONVERT_DIVISOR =
+            ProcessList.UNKNOWN_ADJ / ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
     }
 
     /* *************************************************************************
@@ -109,7 +113,12 @@ class ProcessListHookKt(
      * oom adj处理器                                                            *
      *                                                                         *
      **************************************************************************/
-    private val oomAdjHandler = when (CommonProperties.oomWorkModePref.oomMode) {
+    val oomAdjHandler = when (HookCommonProperties.oomWorkModePref.oomMode) {
+        /*
+         * 严格模式所有adj始终为0
+         * (24.5.29)宽容模式在后续处理时, 并不会应用此oomAdjHandler的逻辑
+         */
+        OomWorkModePref.MODE_STRICT,
         OomWorkModePref.MODE_NEGATIVE -> object : OomScoreAdjHandler() {
             override fun computeFinalAdj(
                 oomScoreAdj: Int,
@@ -129,8 +138,10 @@ class ProcessListHookKt(
     }
 
     private fun generateSimpleLmkAdjHandler(): OomScoreAdjHandler = object : OomScoreAdjHandler(
-        minAdj = normalMinAdj,
-        maxAdj = normalMinAdj + ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
+        highPrioritySubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
+        minAdj = normalAppAdjStartUseSimpleLmk,
+        maxAdj = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ - 1,
+        adjConvertDivisor = ADJ_CONVERT_DIVISOR,
         minImportAppAdj = importSystemAppAdjStartUseSimpleLmk,
         maxImportAppAdj = importSystemAppAdjEndUseSimpleLmk
     ) {
@@ -149,13 +160,13 @@ class ProcessListHookKt(
                 }
             }
         }
-    }.apply {
-        highPrioritySubProcessAdjOffset = maxAndMinAdjDifference
     }
 
     private fun generateStrictModeAdjHandler(): OomScoreAdjHandler = object : OomScoreAdjHandler(
+        highPrioritySubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ,
         minAdj = normalMinAdj,
         maxAdj = normalMinAdj + ProcessList.FOREGROUND_APP_ADJ,
+        adjConvertDivisor = ADJ_CONVERT_DIVISOR,
         minImportAppAdj = importAppMinAdj,
         maxImportAppAdj = normalMinAdj
     ) {
@@ -166,8 +177,6 @@ class ProcessListHookKt(
         override fun computeImportAppAdj(oomScoreAdj: Int): Int {
             return minImportAppAdj
         }
-    }.apply {
-        highPrioritySubProcessAdjOffset = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ + 1
     }
 
     override fun getHookPoint(): Array<HookPoint> {
@@ -180,8 +189,10 @@ class ProcessListHookKt(
                 ),
                 Int::class.javaPrimitiveType,   // pid
                 Int::class.javaPrimitiveType,   // uid
-                Int::class.javaPrimitiveType    // oom_adj_score
-            ),
+                Int::class.javaPrimitiveType,    // oom_adj_score
+                // 三星设备这里会多一个int型参数
+                // 所以索性直接hook名为此的所有方法
+            ).setHookAllMatchedMethod(true),
             /*generateMatchedMethodHookPoint(
                 true,
                 ClassConstants.ProcessList,
@@ -240,7 +251,54 @@ class ProcessListHookKt(
     private fun getMainProcessOomScoreAdjNonNull(oomScoreAdj: Int?): Int =
         oomScoreAdj ?: ProcessRecord.DEFAULT_MAIN_ADJ
 
-    private fun useSimpleLmk(): Boolean = CommonProperties.useSimpleLmk()
+    private fun useSimpleLmk(): Boolean = HookCommonProperties.useSimpleLmk
+
+    /**
+     * 应用最终要被应用的adj
+     *
+     * 当不满足一些条件时, [block]不会被执行
+     * @param appInfo AppInfo app信息
+     * @param appOptimizePolicy AppOptimizePolicy? app优化配置
+     * @param block Function0<Unit> 在此方法内, 完成对adj的赋值
+     */
+    private inline fun applyHighPriorityProcessFinalAdj(
+        appInfo: AppInfo,
+        appOptimizePolicy: AppOptimizePolicy?,
+        curAdj: Int,
+        shouldNotHandleAdjBlock: (Int) -> Int = {
+            if (appInfo.isImportSystemApp) {
+                curAdj
+            } else {
+                max(it, ProcessRecord.SUB_PROC_ADJ)
+            }
+        },
+        block: (Int) -> Int
+    ): Int {
+        return when (appInfo.shouldHandleAdj) {
+            AppInfo.handleAdjAlways -> block(curAdj)
+            AppInfo.handleAdjNever -> curAdj
+            AppInfo.handleAdjIfHasActivity -> {
+                if (appInfo.shouldHandleAdj()) {
+                    block(curAdj)
+                } else {
+                    computeHighPriorityProcessAdjNotHasActivity(appInfo, curAdj)
+                }
+            }
+
+            else -> computeHighPriorityProcessAdjNotHasActivity(appInfo, curAdj)
+        }
+    }
+
+    private fun computeHighPriorityProcessAdjNotHasActivity(
+        appInfo: AppInfo,
+        curAdj: Int
+    ): Int {
+        return /*if (appInfo.isImportSystemApp) {
+            curAdj
+        } else {
+            max(curAdj, ProcessRecord.SUB_PROC_ADJ)
+        }*/ max(curAdj, ProcessRecord.SUB_PROC_ADJ)
+    }
 
     private fun handleSetOomAdj(param: MethodHookParam) {
         val pid = param.args[0] as Int
@@ -248,11 +306,19 @@ class ProcessListHookKt(
         val process = runningInfo.getRunningProcess(pid) ?: return
         val appInfo = process.appInfo
 
-        val globalOomScorePolicy = CommonProperties.globalOomScorePolicy.value
+        val globalOomScorePolicy = HookCommonProperties.globalOomScorePolicy.value
         if (!globalOomScorePolicy.enabled) {
             // 若app未进入后台, 则不进行设置
-            if (appInfo.appGroupEnum !in processedAppGroup) {
+            /*if (appInfo.appGroupEnum !in processedAppGroup) {
                 return
+            }*/
+            // 使用when分支而不是for循环
+            when (appInfo.appGroupEnum) {
+                AppGroupEnum.NONE, AppGroupEnum.ACTIVE, AppGroupEnum.IDLE -> {
+                    // 将会被处理
+                }
+
+                else -> return
             }
         }
 
@@ -273,25 +339,36 @@ class ProcessListHookKt(
         // 是否修改方法参数中的oom_score_adj
         var doHookOriginalAdj = true
 
-        val curRawAdj = process.processStateRecord.processStateRecord.callMethod<Int>(
-            methodName = MethodConstants.getCurRawAdj
-        )
+        val oomMode = HookCommonProperties.oomWorkModePref.oomMode
+        val isNegativeMode = oomMode == OomWorkModePref.MODE_NEGATIVE
+        val curRawAdj = if (isNegativeMode) {
+            param.args[2] as Int
+        } else {
+            process.processStateRecord.processStateRecord.callMethod<Int>(
+                methodName = MethodConstants.getCurRawAdj
+            )
+        }
+
         // 最终要被系统设置的oom分数
         var finalApplyOomScoreAdj = curRawAdj
         val globalOomScoreEffectiveScopeEnum = globalOomScorePolicy.globalOomScoreEffectiveScope
-        val isHighPriorityProcess = process.isHighPriorityProcess().also {
-            if (it) {
-                oomAdjustLevel = OomAdjustLevel.FIRST
-            }
+        val isHighPriorityProcess = process.isHighPriorityProcess().ifTrue {
+            oomAdjustLevel = OomAdjustLevel.FIRST
         }
         val isUserSpaceAdj = curRawAdj >= 0
 
-        val appOptimizePolicy = CommonProperties.appOptimizePolicyMap[process.packageName]
+        val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[process.packageName]
         val possibleAdj = appOptimizePolicy.getCustomMainProcessOomScore()
 
         if (possibleAdj != null && isHighPriorityProcess) {    // 进程独立配置优先于任何情况
-            finalApplyOomScoreAdj = possibleAdj
-            process.clearProcessUnexpectedState()
+            finalApplyOomScoreAdj = applyHighPriorityProcessFinalAdj(
+                appInfo = appInfo,
+                appOptimizePolicy = appOptimizePolicy,
+                curAdj = curRawAdj,
+            ) {
+                process.clearProcessUnexpectedState()
+                possibleAdj
+            }
         } else if (globalOomScorePolicy.enabled
             && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL
                     || isHighPriorityProcess && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS_ANY || isUserSpaceAdj)
@@ -300,33 +377,46 @@ class ProcessListHookKt(
         ) {
             // 逻辑概要:
             // 开启全局oom && (作用域 == ALL || isHighPriorityProcess && (作用域 == MAIN_PROC_ANY || isUserSpaceAdj) || /* 普通子进程 或 !isUserSpaceAdj */ isUserSpaceAdj && 作用域 == MAIN_AND_SUB_PROC)
-            finalApplyOomScoreAdj = globalOomScorePolicy.customGlobalOomScore
-            process.clearProcessUnexpectedState()
+            finalApplyOomScoreAdj = applyHighPriorityProcessFinalAdj(
+                appInfo = appInfo,
+                appOptimizePolicy = appOptimizePolicy,
+                curAdj = curRawAdj,
+            ) {
+                process.clearProcessUnexpectedState()
+                globalOomScorePolicy.customGlobalOomScore
+            }
         } else if (isUserSpaceAdj) {
             if (isHighPriorityProcess) {
-                if (appInfo.shouldHandleAdj()) {
-                    val oomMode = CommonProperties.oomWorkModePref.oomMode
-                    if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
-                        finalApplyOomScoreAdj = ProcessRecord.DEFAULT_MAIN_ADJ
-                    } else if (CommonProperties.oomWorkModePref.oomMode == OomWorkModePref.MODE_NEGATIVE) {
-                        doHookOriginalAdj = false
-                    } else {
-                        finalApplyOomScoreAdj = oomAdjHandler.computeFinalAdj(
+                if (appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
+                    finalApplyOomScoreAdj = ProcessRecord.DEFAULT_MAIN_ADJ
+                } else if (isNegativeMode) {
+                    doHookOriginalAdj = false
+                } else {
+                    finalApplyOomScoreAdj = applyHighPriorityProcessFinalAdj(
+                        appInfo = appInfo,
+                        appOptimizePolicy = appOptimizePolicy,
+                        curAdj = curRawAdj
+                    ) {
+                        if (process.fixedOomAdjScore != ProcessRecord.DEFAULT_MAIN_ADJ) {
+                            process.fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
+
+                            when (oomMode) {
+                                OomWorkModePref.MODE_STRICT,
+                                    /*|| oomMode == OomWorkModePref.MODE_NEGATIVE, */
+                                OomWorkModePref.MODE_BALANCE_PLUS -> {
+                                    process.setDefaultMaxAdj()
+                                }
+
+                                else -> {}
+                            }
+                        }
+                        oomAdjHandler.computeFinalAdj(
                             oomScoreAdj = curRawAdj,
                             processRecord = process,
                             appInfo = appInfo,
                             mainProcess = mainProcess
                         )
-                        if (process.fixedOomAdjScore != ProcessRecord.DEFAULT_MAIN_ADJ) {
-                            process.fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
-
-                            if (oomMode == OomWorkModePref.MODE_STRICT /*|| oomMode == OomWorkModePref.MODE_NEGATIVE*/) {
-                                process.setDefaultMaxAdj()
-                            }
-                        }
                     }
-                } else {
-                    doHookOriginalAdj = false
                 }
             } else {    // 普通子进程
                 finalApplyOomScoreAdj = computeSubprocessFinalOomScore(
@@ -334,6 +424,8 @@ class ProcessListHookKt(
                     oomScoreAdj = curRawAdj
                 )
             }
+        } else {
+            doHookOriginalAdj = false
         }
 
         if (doHookOriginalAdj) {
@@ -494,7 +586,7 @@ class OomAdjustLevel {
 /**
  * oom_score_adj的处理器
  */
-internal open class OomScoreAdjHandler {
+open class OomScoreAdjHandler {
     var maxAllowedOomScoreAdj = ProcessList.UNKNOWN_ADJ - 1
 
     // 默认的主进程adj
@@ -514,17 +606,22 @@ internal open class OomScoreAdjHandler {
         highPrioritySubProcessAdjOffset: Int = 1,
         minAdj: Int = 0,
         maxAdj: Int = minAdj,
-        minImportAppAdj: Int = 0,
-        maxImportAppAdj: Int = minAdj,
+        adjConvertDivisor: Int = 1,
+        minImportAppAdj: Int = minAdj,
+        maxImportAppAdj: Int = maxAdj,
+        importAppAdjConvertDivisor: Int = adjConvertDivisor
+
     ) {
         this.defaultMainAdj = defaultMainAdj
         this.highPrioritySubProcessAdjOffset = highPrioritySubProcessAdjOffset
+
         this.minAdj = minAdj
         this.maxAdj = maxAdj
+        this.adjConvertDivisor = adjConvertDivisor
+
         this.minImportAppAdj = minImportAppAdj
         this.maxImportAppAdj = maxImportAppAdj
-
-        updateValue()
+        this.importAppAdjConvertDivisor = importAppAdjConvertDivisor
     }
 
     /* *************************************************************************
@@ -533,34 +630,23 @@ internal open class OomScoreAdjHandler {
      *                                                                         *
      **************************************************************************/
     var minAdj = 0
-        set(value) {
-            field = value
-            updateAdjConvertDivisor()
-        }
     var maxAdj = minAdj
-        set(value) {
-            field = value
-            updateAdjConvertDivisor()
-        }
-    var startAdj = minAdj + 1
-    var maxAndMinAdjDifference = max(maxAdj - minAdj, 1)
     var adjConvertDivisor = 1
-
-    private fun updateAdjConvertDivisor() {
-        maxAndMinAdjDifference = computeMaxAndMinAdjDifference(
-            maxAdj = maxAdj,
-            minAdj = minAdj
-        )
-        adjConvertDivisor = computeAdjConvertDivisor()
-    }
-
-    open fun computeAdjConvertDivisor(): Int {
-        return maxAllowedOomScoreAdj / maxAndMinAdjDifference
-    }
 
     open fun computeAdj(oomScoreAdj: Int): Int {
         return oomScoreAdjMap.computeIfAbsent(oomScoreAdj) { _ ->
-            max((oomScoreAdj / adjConvertDivisor) + minAdj, startAdj)
+            clamp(oomScoreAdj / adjConvertDivisor, minAdj, maxAdj)
+        }
+    }
+
+    /**
+     * 计算高优先级子进程的adj
+     * @param oomScoreAdj Int 当前系统的adj
+     * @return Int 计算后的子进程adj
+     */
+    open fun computeHighPrioritySubProcessAdj(oomScoreAdj: Int): Int {
+        return subProcessOomScoreAdjMap.computeIfAbsent(oomScoreAdj) { _ ->
+            computeAdj(oomScoreAdj = oomScoreAdj) + highPrioritySubProcessAdjOffset
         }
     }
 
@@ -570,34 +656,12 @@ internal open class OomScoreAdjHandler {
      *                                                                         *
      **************************************************************************/
     var minImportAppAdj = 0
-        set(value) {
-            field = value
-            updateImportAppAdjConvertDivisor()
-        }
     var maxImportAppAdj = minAdj
-        set(value) {
-            field = value
-            updateImportAppAdjConvertDivisor()
-        }
-    var importAppStartAdj = minImportAppAdj + 1
-    var maxAndMinImportAppAdjDifference = max(maxImportAppAdj - minImportAppAdj, 1)
     var importAppAdjConvertDivisor = 1
-
-    private fun updateImportAppAdjConvertDivisor() {
-        maxAndMinImportAppAdjDifference = computeMaxAndMinAdjDifference(
-            maxAdj = maxImportAppAdj,
-            minAdj = minImportAppAdj
-        )
-        importAppAdjConvertDivisor = computeImportAppAdjConvertDivisor()
-    }
-
-    open fun computeImportAppAdjConvertDivisor(): Int {
-        return maxAllowedOomScoreAdj / maxAndMinImportAppAdjDifference
-    }
 
     open fun computeImportAppAdj(oomScoreAdj: Int): Int {
         return importAppOomScoreAdjMap.computeIfAbsent(oomScoreAdj) { _ ->
-            max((oomScoreAdj / importAppAdjConvertDivisor) + minImportAppAdj, importAppStartAdj)
+            clamp(oomScoreAdj / importAppAdjConvertDivisor, minImportAppAdj, maxImportAppAdj)
         }
     }
 
@@ -613,14 +677,6 @@ internal open class OomScoreAdjHandler {
      * @return Int
      */
     open fun computeMaxAndMinAdjDifference(maxAdj: Int, minAdj: Int): Int = max(maxAdj - minAdj, 1)
-
-    /**
-     * 部分字段修改后需要额外对部分变量进行更新
-     */
-    fun updateValue() {
-        startAdj = minAdj + 1
-        importAppStartAdj = minImportAppAdj + 1
-    }
 
     /**
      * 计算最终的分数
@@ -646,12 +702,13 @@ internal open class OomScoreAdjHandler {
                 computeAdj(oomScoreAdj = oomScoreAdj)
             }
         } else {    // 子进程
-            computeAdj(oomScoreAdj = oomScoreAdj) + highPrioritySubProcessAdjOffset
+            computeHighPrioritySubProcessAdj(oomScoreAdj = oomScoreAdj)
         }
     }
 
     companion object {
         val oomScoreAdjMap = ConcurrentHashMap<Int, Int>(8)
+        val subProcessOomScoreAdjMap = ConcurrentHashMap<Int, Int>(8)
         val importAppOomScoreAdjMap = ConcurrentHashMap<Int, Int>(8)
     }
 }
@@ -662,7 +719,7 @@ internal open class OomScoreAdjHandler {
  * @return Boolean 升级 -> true
  */
 fun ProcessRecord.isUpgradeSubProcessLevel(): Boolean {
-    return CommonProperties.subProcessOomPolicyMap[this.processName]?.let {
+    return HookCommonProperties.subProcessOomPolicyMap[this.processName]?.let {
         it.policyEnum == SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
     } ?: false
 }
@@ -673,7 +730,7 @@ fun ProcessRecord.isUpgradeSubProcessLevel(): Boolean {
  * @return Boolean 需要处理 -> true
  */
 fun ProcessRecord.isNeedHandleWebviewProcess(): Boolean {
-    return CommonProperties.enableWebviewProcessProtect.value
+    return HookCommonProperties.enableWebviewProcessProtect.value
             && this.webviewProcessProbable
             && this.originalInstance.getObjectFieldValue(
         fieldName = FieldConstants.mWindowProcessController

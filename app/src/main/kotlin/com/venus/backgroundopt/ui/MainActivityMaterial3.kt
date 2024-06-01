@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- package com.venus.backgroundopt.ui
+package com.venus.backgroundopt.ui
 
 import android.content.Intent
 import android.os.Bundle
@@ -25,12 +25,14 @@ import android.widget.TextView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
+import com.venus.backgroundopt.ui.base.ifVersionIsCompatible
 import com.venus.backgroundopt.ui.widget.QueryInfoDialog
 import com.venus.backgroundopt.utils.findViewById
 import com.venus.backgroundopt.utils.log.ILogger
+import com.venus.backgroundopt.utils.message.IMessageSender
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.HomePageModuleInfoMessage
-import com.venus.backgroundopt.utils.message.sendMessage
+import com.venus.backgroundopt.utils.message.messageSender
 
 
 class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
@@ -75,7 +77,7 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
         if (moduleActive) {
             findViewById<TextView>(R.id.mainActivityModuleActiveText)?.setText(R.string.moduleActive)
             // 获取要展示的信息
-            sendMessage<HomePageModuleInfoMessage>(
+            IMessageSender.sendDefault<HomePageModuleInfoMessage>(
                 context = this,
                 key = MessageKeyConstants.getHomePageModuleInfo,
             )?.let { homePageModuleInfoMessage ->
@@ -83,6 +85,8 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
                     homePageModuleInfoMessage.defaultMaxAdjStr
                 findViewById<TextView>(R.id.trim_mem_opt_threshold)?.text =
                     homePageModuleInfoMessage.minOptimizeRssInMBytesStr
+
+                messageSender.init(this, homePageModuleInfoMessage.socketPort)
             }
         }
 
@@ -108,11 +112,27 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
             startActivity(Intent(this, ShowAppCompactListActivityMaterial3::class.java))
         }
 
+        // 被管理adj的默认app
+        findViewById<Button>(
+            resId = R.id.getManageAdjDefalutAppsBtn,
+            enable = moduleActive
+        )?.setOnClickListener { _ ->
+            ifVersionIsCompatible(targetVersionCode = 201) {
+                runOnUiThread {
+                    startActivity(Intent(this, ShowManagedAdjDefaultAppsActivityMaterial3::class.java))
+                }
+            }
+        }
+
         // 转去设置应用进程页面
         findViewById<Button>(
             R.id.gotoConfigureAppProcessActivityBtn, moduleActive
         )?.setOnClickListener { _ ->
-            startActivity(Intent(this, ShowAllInstalledAppsActivityMaterial3::class.java))
+            ifVersionIsCompatible(targetVersionCode = 201) {
+                runOnUiThread {
+                    startActivity(Intent(this, ShowAllInstalledAppsActivityMaterial3::class.java))
+                }
+            }
         }
     }
 }

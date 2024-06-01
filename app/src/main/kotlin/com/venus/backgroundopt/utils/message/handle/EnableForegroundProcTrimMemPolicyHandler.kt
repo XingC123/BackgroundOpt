@@ -18,7 +18,7 @@
  package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
 import de.robv.android.xposed.XC_MethodHook
@@ -36,7 +36,7 @@ class EnableForegroundProcTrimMemPolicyHandler : MessageHandler {
         value: String?
     ) {
         createResponse<Boolean>(param, value) { isEnable ->
-            CommonProperties.foregroundProcTrimMemPolicy.value.isEnabled = isEnable
+            HookCommonProperties.foregroundProcTrimMemPolicy.value.isEnabled = isEnable
             runningInfo.processManager.configureForegroundTrimCheckTask(isEnable)
         }
     }

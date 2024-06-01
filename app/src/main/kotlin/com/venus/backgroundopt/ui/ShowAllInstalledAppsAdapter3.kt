@@ -29,9 +29,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
+import com.venus.backgroundopt.ui.base.RecyclerViewAdapter
 import com.venus.backgroundopt.utils.StringUtils
 import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.setTmpData
+import kotlin.math.max
+import kotlin.reflect.KMutableProperty0
 
 /**
  * @author XingC
@@ -39,7 +42,7 @@ import com.venus.backgroundopt.utils.setTmpData
  */
 class ShowAllInstalledAppsAdapter3(
     private val appItems: List<AppItem>
-) : RecyclerView.Adapter<ShowAllInstalledAppsAdapter3.ShowAllInstalledAppsViewHolder>(),
+) : RecyclerViewAdapter<ShowAllInstalledAppsAdapter3.ShowAllInstalledAppsViewHolder>(),
     Filterable {
     class ShowAllInstalledAppsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var appIcon: ImageView
@@ -48,12 +51,11 @@ class ShowAllInstalledAppsAdapter3(
         var itemInstalledAppsCustomMainProcOomScoreFlagText: TextView
         var itemInstalledAppsOomPolicyFlagText: TextView
         var itemInstalledAppsShouldHandleMainProcAdjFlagText: TextView
-
-        var hadSetClickedListener: Boolean = false
+        var itemInstalledAppsMainProcessAdjManagePolicy: TextView
 
         init {
-            appIcon = itemView.findViewById(R.id.installedAppItemAppIcon)
-            appName = itemView.findViewById(R.id.installedAppItemAppNameText)
+            appIcon = itemView.findViewById(R.id.appIconImageView)
+            appName = itemView.findViewById(R.id.appNameText)
             itemInstalledAppsMemTrimFlagText =
                 itemView.findViewById(R.id.itemInstalledAppsMemTrimFlagText)
             itemInstalledAppsCustomMainProcOomScoreFlagText =
@@ -62,7 +64,50 @@ class ShowAllInstalledAppsAdapter3(
                 itemView.findViewById(R.id.itemInstalledAppsOomPolicyFlagText)
             itemInstalledAppsShouldHandleMainProcAdjFlagText =
                 itemView.findViewById(R.id.itemInstalledAppsShouldHandleMainProcAdjFlagText)
+            itemInstalledAppsMainProcessAdjManagePolicy =
+                itemView.findViewById(R.id.itemInstalledAppsMainProcessAdjManagePolicy)
         }
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 已安装app列表的刷新                                                        *
+     *                                                                         *
+     **************************************************************************/
+    lateinit var isAllowedRefreshInstalledAppsUiProperty: KMutableProperty0<Boolean>
+    /*
+     * 辅助列表刷新
+     * 用以在点击appItem进入配置页又返回后, 界面中item位置刷新时控制刷新元素个数
+     */
+    // 该appItem进入配置页时的索引
+    private var indexBeforeConfiguredAppItem = appItems.size - 1
+
+    // 进入配置页的appItem
+    private var lastConfiguredAppItem: AppItem = appItems.last()
+
+    private val appItemListNeedRefreshItemCount: Int
+        get() {
+            val index = appItems.indexOf(lastConfiguredAppItem)
+            return max(index, indexBeforeConfiguredAppItem) + 1
+        }
+
+    /**
+     * 更新 刷新[AppItem]组成的[RecyclerView]的items所需要的参数
+     * @param index Int 进入配置页前的[AppItem]的索引
+     * @param appItem AppItem 进入配置页的[AppItem]
+     */
+    private fun updateAppItemListRefreshParam(index: Int, appItem: AppItem) {
+        indexBeforeConfiguredAppItem = index
+        lastConfiguredAppItem = appItem
+
+        isAllowedRefreshInstalledAppsUiProperty.set(true)
+    }
+
+    /**
+     * 刷新已安装app列表的ui界面
+     */
+    fun refreshInstalledAppsListUI() {
+        notifyItemRangeChanged(0, appItemListNeedRefreshItemCount)
     }
 
     /* *************************************************************************
@@ -109,18 +154,26 @@ class ShowAllInstalledAppsAdapter3(
             appItem,
             AppItem.AppConfiguredEnum.ShouldHandleMainProcAdj
         )
+        setAppFlagTextVisible(
+            holder.itemInstalledAppsMainProcessAdjManagePolicy,
+            appItem,
+            AppItem.AppConfiguredEnum.MainProcessAdjManagePolicy
+        )
 
-        if (!holder.hadSetClickedListener) {
-            holder.itemView.setOnClickListener { view ->
-                view.context.also { context ->
-                    context.startActivity(
-                        Intent(
-                            context,
-                            ConfigureAppProcessActivityMaterial3::class.java
-                        ).apply {
-                            setTmpData(appItem)
-                        })
-                }
+        holder.itemView.setOnClickListener { view ->
+            view.context.also { context ->
+                context.startActivity(
+                    Intent(
+                        context,
+                        ConfigureAppProcessActivityMaterial3::class.java
+                    ).apply {
+                        setTmpData(appItem)
+                    }
+                )
+                updateAppItemListRefreshParam(
+                    index = position,
+                    appItem = appItem
+                )
             }
         }
     }

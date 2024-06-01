@@ -14,9 +14,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.ui
 
+package com.venus.backgroundopt.ui
+
+import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -25,13 +26,16 @@ import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.manager.process.AbstractAppOptimizeManager.AppOptimizeEnum
 import com.venus.backgroundopt.manager.process.ProcessCompactResultCode
-import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
+import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemViewHolder
 
 /**
  * @author XingC
  * @date 2023/9/25
  */
-class ShowAppCompactListAdapter(items: List<AppItem>) : ShowInfoFromAppItemAdapter(items) {
+class ShowAppCompactListAdapter(
+    activity: Activity,
+    items: List<AppItem>
+) : ShowProcessInfoFromAppItemAdapter(activity,items) {
     override fun getText1Content(appItem: AppItem): String {
         return appItem.processName ?: appItem.packageName
     }
@@ -52,14 +56,14 @@ class ShowAppCompactListAdapter(items: List<AppItem>) : ShowInfoFromAppItemAdapt
         return R.string.appItemTipProcessName
     }
 
-    override fun getViewHolder(view: View): ShowInfoFromAppItemViewHolder {
+    override fun getViewHolder(view: View): ShowProcessInfoFromAppItemViewHolder {
         return ShowAppCompactListViewHolder(view)
     }
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): ShowInfoFromAppItemViewHolder {
+    ): ShowProcessInfoFromAppItemViewHolder {
         return super.onCreateViewHolder(parent, viewType).apply {
             itemView.findViewById<LinearLayout>(R.id.appItemAppOptimizePolicyLayout)?.let {
                 it.visibility = View.GONE
@@ -99,7 +103,8 @@ class ShowAppCompactListAdapter(items: List<AppItem>) : ShowInfoFromAppItemAdapt
         }
     }
 
-    class ShowAppCompactListViewHolder(itemView: View) : ShowInfoFromAppItemViewHolder(itemView) {
+    class ShowAppCompactListViewHolder(itemView: View) :
+        ShowProcessInfoFromAppItemViewHolder(itemView) {
         var appItemLastProcessingResultText: TextView
 
         init {

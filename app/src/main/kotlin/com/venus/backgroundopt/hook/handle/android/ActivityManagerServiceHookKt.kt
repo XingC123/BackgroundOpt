@@ -14,24 +14,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.handle.android
+
+package com.venus.backgroundopt.hook.handle.android
 
 import android.app.usage.UsageEvents
 import android.content.ComponentName
 import android.content.Intent
-import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.MethodHook
 import com.venus.backgroundopt.hook.base.action.beforeHookAction
 import com.venus.backgroundopt.hook.base.generateMatchedMethodHookPoint
 import com.venus.backgroundopt.hook.constants.ClassConstants
-import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
-import com.venus.backgroundopt.utils.getStaticIntFieldValue
-import com.venus.backgroundopt.utils.message.registeredMessageHandler
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
@@ -45,9 +41,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
         const val ACTIVITY_PAUSED = UsageEvents.Event.ACTIVITY_PAUSED
         const val ACTIVITY_STOPPED = UsageEvents.Event.ACTIVITY_STOPPED
 
-        @JvmField
-        val ACTIVITY_DESTROYED =
-            UsageEvents.Event::class.java.getStaticIntFieldValue(FieldConstants.ACTIVITY_DESTROYED)
+        const val ACTIVITY_DESTROYED = 24
     }
 
     override fun getHookPoint(): Array<HookPoint> {
@@ -146,17 +140,22 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
         val args = param.args
 
         // 获取切换事件
-        val event = args[2] as Int
-        if (event !in handleEvents) {
+        // val event = args[2] as Int
+        /*if (event !in handleEvents) {
             return
+        }*/
+        when (val event = args[2] as Int) {
+            ACTIVITY_RESUMED, ACTIVITY_STOPPED, ACTIVITY_DESTROYED -> {
+                // 本次事件包名
+                val componentName = (args[0] as? ComponentName) ?: return
+                // 本次事件用户
+                val userId = args[1] as Int
+
+                runningInfo.handleActivityEventChange(event, userId, componentName)
+            }
+
+            else -> return
         }
-
-        // 本次事件包名
-        val componentName = (args[0] as? ComponentName) ?: return
-        // 本次事件用户
-        val userId = args[1] as Int
-
-        runningInfo.handleActivityEventChange(event, userId, componentName)
     }
 
     /* *************************************************************************
@@ -194,14 +193,6 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
      * ui消息监听
      */
     private fun handleStartService(param: MethodHookParam) {
-        val dataIntent = param.args[1] as Intent
-        if (dataIntent.`package` != BuildConfig.APPLICATION_ID) {
-            return
-        }
-
-        val key = dataIntent.type ?: return       // 此次请求的key
-        val value = dataIntent.action   // 请求的值
-
-        registeredMessageHandler[key]?.handle(runningInfo, param, value)
+        runningInfo.moduleMessageManager.baseModuleMessageHandler.handleMessage(param)
     }
 }

@@ -70,11 +70,13 @@
     <string name="activityFeatureFeatureIntroductionText" translatable="false">
         <b>1. 当前功能：</b>
         \n\t\t1) 进程保活(基于LMK)。所有调整了adj的模块都与本模块冲突，除非它关于adj的设置可以关闭。
-        \n\t\t\t\t以下说明基于2024.2.21版本：
-        \n\t\t\t\ta. 严格模式：此模式下，主进程oom_score_adj会始终处于0，且限制其最大oom_score_adj为100
-        \n\t\t\t\tb. 平衡模式：此模式下，主进程oom_score_adj会始终处于0，但不限制其最大oom_score_adj
-        \n\t\t\t\tc. 宽容模式：此模式下，主进程oom_score_adj交由系统调节，且限制其最大oom_score_adj为400
-        \n\t\t\t\td. 除非在开启全局oom且作用范围选择"所有进程"，否则模块不会对oom_score_adj小于0的任何进程进行调整。也就是说，模块调整的oom分数是大于等于0的。
+        \n\t\t\t\t以下说明基于2024.4.17版本(所有模式在前台时，adj均为0)：
+        \n\t\t\t\ta. 严格模式：此模式下，所有高优先级进程的oom_score_adj会始终处于0，且限制其主进程最大oom_score_adj为50，高优先级子进程最大oom_score_adj为100
+        \n\t\t\t\tb. 次严格模式：此模式下，主进程oom_score_adj会始终处于1，高优先级子进程为51，且限制其主进程最大oom_score_adj为50，高优先级子进程最大oom_score_adj为100
+        \n\t\t\t\tc. 平衡模式：此模式下，主进程oom_score_adj会始终处于1，但不限制其最大oom_score_adj
+        \n\t\t\t\td. 平衡模式+：此模式下，主进程oom_score_adj会始终处于1，最大oom_score_adj限制逻辑同于严格模式
+        \n\t\t\t\te. 宽容模式：此模式下，主进程oom_score_adj交由系统调节，不限制其最大oom_score_adj
+        \n\t\t\t\tf. 除非在开启全局oom且作用范围选择"所有进程"，否则模块不会对oom_score_adj小于0的任何进程进行调整。也就是说，模块调整的oom分数是大于等于0的。
 
         \n\t\t2) 内存回收：向应用发送虚假信息，假装可用内存已不足，促使其进行资源释放。
         \n\t\t\t\ta. 设置页面的<u><i>“前台进程内存回收策略”</i></u><b>越往下代表当前可用内存越紧张</b>。
@@ -112,6 +114,14 @@
         \n\t\t13) 截至2024.3.26(模块2.3_vc199)，app配置页的“管理Adj”功能生效条件：
         \n\t\t\t\ta. 系统计算的oom_score_adj&gt;0。
         \n\t\t\t\tb. 未使用“自定义主进程OOM”(即：本功能并不会影响“自定义主进程OOM”，其优先级仍然最高)或全局OOM。
+
+        \n\t\t14) app配置页-主进程adj管理策略：
+        \n\t\t\t\ta. 该配置旨在应用adj调整的最终阶段进行判定。
+        \n\t\t\t\tb. 在adj调整基本规则生满足的前提下(详见“补充说明12”)，只有符合本功能所选项的情况下，adj调整才最终生效。
+        \n\t\t\t\tc. 策略说明(2024.4.28，模块2.5_vc201版本)：
+        \n\t\t\t\t\t\t① 从不：模块不对adj进行干预。
+        \n\t\t\t\t\t\t② 拥有界面：后台含有界面时，模块会对其进行“保活”。不含界面时，模块会将其视为子进程级别处理adj。
+        \n\t\t\t\t\t\t③ 强制：无论如何都进行adj调整。
 
 
         \n\n<b>3. 其他问题</b>
@@ -173,4 +183,18 @@
     <string name="settingsUiTitle">UI</string>
     <string name="settingsDynamicThemePrefText" translatable="false">动态取色</string>
     <string name="settingsDynamicThemePrefSummary" translatable="false">切换需重启app生效</string>
+    <string name="getManagedAdjDefalutAppsBtn" translatable="false">获取被管理ADJ的默认app</string>
+    <string name="showManagedAdjDefaultAppsToolBarText" translatable="false">被管理ADJ的默认应用</string>
+    <string name="settingsBackgroundProcTrimMemEnablePrefText" translatable="false">启用后台进程内存回收</string>
+    <string name="settingsKeepMainProcessAliveHasActivity" translatable="false">临时保活有界面的app的主进程</string>
+    <string name="configureAppProcessKeepMainProcessAliveHasActivityText" translatable="false">有界面时临时保活主进程</string>
+    <string name="itemInstalledAppsMainProcessAdjManagePolicy" translatable="false">主进程ADJ管理策略</string>
+    <string name="configureAppProcessMainProcAdjManagePolicyText" translatable="false">主进程ADJ管理策略</string>
+    <string name="configureAppProcessMainProcAdjManagePolicyDefault" translatable="false">拥有界面</string>
+    <string name="processInfoDialogPackageNameTip">package name:</string>
+    <string name="processInfoDialogPidTip" translatable="false">Pid:</string>
+    <string name="processInfoDialogUidTip" translatable="false">Uid:</string>
+    <string name="processInfoDialogRssTip" translatable="false">Rss:</string>
+    <string name="processInfoDialogOriginalAdjTip">Original adj:</string>
+    <string name="processInfoDialogCurAdjTip">Current adj:</string>
 </resources>

@@ -21,7 +21,7 @@ import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.annotation.UsageComment
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.entity.AppInfo
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.hook.handle.android.entity.isValid
@@ -58,7 +58,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     }
 
     // 是否启用"压缩成功则移除进程" + "无内存压缩任务则关闭轮循"
-    var autoStopCompactTask = CommonProperties.getAutoStopCompactTaskPreferenceValue()
+    var autoStopCompactTask = HookCommonProperties.getAutoStopCompactTaskPreferenceValue()
         set(value) {
             field = value
 
@@ -107,7 +107,7 @@ class AppCompactManager(// 封装的CachedAppOptimizer
     private fun startCompactTask() {
         compactScheduledFuture = executor.scheduleWithFixedDelay({
             var compactCount = 0
-            val upgradeSubProcessNames = CommonProperties.getUpgradeSubProcessNames()
+            val upgradeSubProcessNames = HookCommonProperties.getUpgradeSubProcessNames()
             compactProcesses.forEach { process ->
                 // 检验合法性
                 if (!process.isValid(runningInfo)) {

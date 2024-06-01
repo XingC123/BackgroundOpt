@@ -17,6 +17,7 @@
 
 package com.venus.backgroundopt.hook.handle.android.entity
 
+import android.app.role.RoleManager
 import com.venus.backgroundopt.annotation.AndroidObject
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
@@ -55,6 +56,25 @@ class PackageManagerService(
         return runCatchThrowable(defaultValue = null) {
             mDefaultAppProvider?.callMethod<String?>(
                 methodName = MethodConstants.getDefaultBrowser,
+                0
+            )
+        }
+    }
+
+    fun getDefaultDialer(): String? {
+        return runCatchThrowable(defaultValue = null) {
+            mDefaultAppProvider?.callMethod<String?>(
+                methodName = MethodConstants.getDefaultDialer,
+                0
+            )
+        }
+    }
+
+    fun getDefaultSms(): String? {
+        return runCatchThrowable(defaultValue = null) {
+            mDefaultAppProvider?.callMethod<String?>(
+                methodName = MethodConstants.getRoleHolder,
+                RoleManager.ROLE_SMS,
                 0
             )
         }

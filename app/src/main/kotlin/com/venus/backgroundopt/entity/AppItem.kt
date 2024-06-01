@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.entity
+
+package com.venus.backgroundopt.entity
 
 import android.content.pm.PackageInfo
 import android.graphics.drawable.Drawable
@@ -57,6 +57,9 @@ class AppItem @JSONCreator constructor() : MessageFlag {
     @JSONField(serialize = false)
     var curAdj: Int = Int.MIN_VALUE
 
+    @JSONField(serialize = false)
+    var rssInBytes: Long = Long.MIN_VALUE
+
     // 清单文件中注册的所有进程
     @JSONField(serialize = false)
     lateinit var processes: MutableSet<String>
@@ -96,11 +99,12 @@ class AppItem @JSONCreator constructor() : MessageFlag {
      * 用于已安装app列表                                                          *
      *                                                                         *
      **************************************************************************/
-    enum class AppConfiguredEnum(val displayName:String) {
+    enum class AppConfiguredEnum(val displayName: String) {
         AppOptimizePolicy("App内存优化策略"),
         SubProcessOomPolicy("OOM策略"),
         CustomMainProcessOomScore("自定义主进程OOM"),
         ShouldHandleMainProcAdj("管理主进程Adj"),
+        MainProcessAdjManagePolicy("主进程ADJ管理策略"),
     }
 
     @get:JSONField(serialize = false)

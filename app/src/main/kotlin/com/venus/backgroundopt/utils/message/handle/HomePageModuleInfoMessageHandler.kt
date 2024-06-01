@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.utils.message.handle
+
+package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
@@ -42,6 +42,7 @@ class HomePageModuleInfoMessageHandler : MessageHandler {
             HomePageModuleInfoMessage().apply {
                 defaultMaxAdjStr = ProcessRecord.defaultMaxAdjStr
                 minOptimizeRssInMBytesStr = ProcessRecord.minOptimizeRssInMBytesStr
+                socketPort = runningInfo.moduleMessageManager.socketPort
             }
         }
     }
@@ -50,4 +51,5 @@ class HomePageModuleInfoMessageHandler : MessageHandler {
 class HomePageModuleInfoMessage : IMessage {
     var defaultMaxAdjStr: String? = null
     var minOptimizeRssInMBytesStr: String? = null
+    var socketPort: Int = Int.MIN_VALUE
 }

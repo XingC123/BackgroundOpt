@@ -63,9 +63,11 @@ public interface MethodConstants {
     String startBootstrapServices = "startBootstrapServices";
     String main = "main";
     String getRoleHoldersAsUser = "getRoleHoldersAsUser";
+    String getRoleHolder = "getRoleHolder";
     String getDefaultAppProvider = "getDefaultAppProvider";
     String getDefaultHome = "getDefaultHome";
     String getDefaultBrowser = "getDefaultBrowser";
+    String getDefaultDialer = "getDefaultDialer";
     String configureSystemServerDexReporter = "configureSystemServerDexReporter";
     String isFirstBoot = "isFirstBoot";
     String readProcLines = "readProcLines";
@@ -147,6 +149,21 @@ public interface MethodConstants {
     String putStringForUser = "putStringForUser";
     String setCurProcState = "setCurProcState";
     String getCurProcState = "getCurProcState";
+    String getCompletedAdjSeq = "getCompletedAdjSeq";
+    String isPendingFinishAttach = "isPendingFinishAttach";
+    String getIsolatedEntryPoint = "getIsolatedEntryPoint";
+    String numberOfRunningServices = "numberOfRunningServices";
+    String isSdkSandbox = "isSdkSandbox";
+    String getActiveInstrumentation = "getActiveInstrumentation";
+    String updateAppUidRecLSP = "updateAppUidRecLSP";
+    String getLruProcessesLOSP = "getLruProcessesLOSP";
+    String getUserId = "getUserId";
+    String assignCachedAdjIfNecessary = "assignCachedAdjIfNecessary";
+    String isFreezeExempt = "isFreezeExempt";
+    String getLastStateTime = "getLastStateTime";
+    String modifyRawOomAdj = "modifyRawOomAdj";
+    String updateUseTieredCachedAdj = "updateUseTieredCachedAdj";
+    String writeLmkd = "writeLmkd";
 
     /**
      * miui

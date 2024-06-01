@@ -18,7 +18,7 @@
  package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
 import de.robv.android.xposed.XC_MethodHook
@@ -37,7 +37,7 @@ class SimpleLmkMessageHandler : MessageHandler {
             param = param,
             value = value
         ) { isEnabled ->
-            CommonProperties.enableSimpleLmk.value = isEnabled
+            HookCommonProperties.enableSimpleLmk.value = isEnabled
             null
         }
     }

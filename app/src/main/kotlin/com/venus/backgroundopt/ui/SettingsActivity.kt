@@ -29,6 +29,10 @@ import com.venus.backgroundopt.utils.UiUtils
  * @author XingC
  * @date 2023/10/16
  */
+@Deprecated(
+    message = "默认使用Material3设计风格",
+    replaceWith = ReplaceWith("SettingsActivityMaterial3")
+)
 class SettingsActivity : PreferenceActivity() {
     private lateinit var allPreference: AllPreference
 

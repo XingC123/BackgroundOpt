@@ -44,7 +44,7 @@ object PreferencesUtil {
     fun getPref(path: String): XSharedPreferences? {
         val pref = XSharedPreferences(BuildConfig.APPLICATION_ID, path)
         return if (pref.file.canRead()) pref else {
-            XposedBridge.log("${BuildConfig.APPLICATION_ID}: 配置文件不可读!文件: $path")
+            XposedBridge.log("${BuildConfig.APPLICATION_ID}: 配置文件不可读(将使用默认配置)!文件: $path")
             null
         }
     }

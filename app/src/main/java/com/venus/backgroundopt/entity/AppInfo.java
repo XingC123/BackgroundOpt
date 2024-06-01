@@ -26,26 +26,29 @@ import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.core.RunningInfo;
-import com.venus.backgroundopt.environment.CommonProperties;
+import com.venus.backgroundopt.environment.hook.HookCommonProperties;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.manager.application.DefaultApplicationManager;
 import com.venus.backgroundopt.utils.concurrent.lock.LockFlag;
 import com.venus.backgroundopt.utils.log.ILogger;
-import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler;
+import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 /**
  * app信息
@@ -75,9 +78,7 @@ public class AppInfo implements ILogger, LockFlag {
         this.findAppResult = findAppResult;
         this.runningInfo = runningInfo;
 
-        if (findAppResult.getImportantSystemApp() && !DefaultApplicationManager.isDefaultAppPkgName(packageName)) {
-            this.shouldHandleAdj = AppInfo.handleAdjDependOnAppOptimizePolicy;
-        }
+        setShouldHandleAdj();
     }
 
     /* *************************************************************************
@@ -88,6 +89,10 @@ public class AppInfo implements ILogger, LockFlag {
     @SuppressWarnings("all")    // 别显示未final啦, 烦死辣
     private RunningInfo runningInfo;
     private volatile ProcessRecord mProcessRecord;   // 主进程记录
+
+    // 当前app被模块检测到的activity的ComponentName
+    @SuppressWarnings("all")
+    private Set<ComponentName> activities = Collections.newSetFromMap(new ConcurrentHashMap<>(4));
 
     private final AtomicInteger appSwitchEvent = new AtomicInteger(Integer.MIN_VALUE); // app切换事件
 
@@ -126,22 +131,47 @@ public class AppInfo implements ILogger, LockFlag {
         componentNameAtomicReference.set(componentName);
     }
 
+    public void activityActive(@NonNull ComponentName componentName) {
+        activities.add(componentName);
+    }
+
+    public void activityDie(@NonNull ComponentName componentName) {
+        activities.remove(componentName);
+    }
+
+    public int getAppShowingActivityCount() {
+        return activities.size();
+    }
+
+    public boolean hasActivity() {
+        return getAppShowingActivityCount() >= 1;
+    }
+
     /* *************************************************************************
      *                                                                         *
      * adj处理                                                                  *
      *                                                                         *
      **************************************************************************/
-    public static final Function<AppInfo, Boolean> handleAdjDependOnAppOptimizePolicy = appInfo -> {
-        AppOptimizePolicyMessageHandler.AppOptimizePolicy appOptimizePolicy = CommonProperties.INSTANCE.getAppOptimizePolicyMap().get(appInfo.packageName);
+    @Deprecated
+    public static final BiFunction<AppInfo, AppOptimizePolicy, Boolean> handleAdjDependOnAppOptimizePolicy = (appInfo, appOptimizePolicy) -> {
         if (appOptimizePolicy == null) {
-            return false;
+            return appInfo.hasActivity();
         }
-        return Boolean.TRUE.equals(appOptimizePolicy.getShouldHandleAdj());
+        return switch (appOptimizePolicy.getMainProcessAdjManagePolicy()) {
+            case MAIN_PROC_ADJ_MANAGE_ALWAYS -> true;
+            case MAIN_PROC_ADJ_MANAGE_HAS_ACTIVITY -> appInfo.hasActivity();
+            case MAIN_PROC_ADJ_MANAGE_NEVER -> false;
+            default -> appInfo.hasActivity();
+        };
     };
 
-    public static final Function<AppInfo, Boolean> handleAdjAlways = appInfo -> true;
+    public static final BiFunction<AppInfo, AppOptimizePolicy, Boolean> handleAdjAlways = (appInfo, appOptimizePolicy) -> true;
 
-    public volatile Function<AppInfo, Boolean> shouldHandleAdj = AppInfo.handleAdjAlways;
+    public static final BiFunction<AppInfo, AppOptimizePolicy, Boolean> handleAdjNever = (appInfo, appOptimizePolicy) -> false;
+
+    public static final BiFunction<AppInfo, AppOptimizePolicy, Boolean> handleAdjIfHasActivity = (appInfo, appOptimizePolicy) -> appInfo.hasActivity();
+
+    public volatile BiFunction<AppInfo, AppOptimizePolicy, Boolean> shouldHandleAdj = AppInfo.handleAdjIfHasActivity;
 
     /**
      * 应用是否需要管理adj
@@ -149,7 +179,48 @@ public class AppInfo implements ILogger, LockFlag {
      * @return 需要 -> true
      */
     public boolean shouldHandleAdj() {
-        return shouldHandleAdj.apply(this);
+        return shouldHandleAdj.apply(
+                this,
+                HookCommonProperties.INSTANCE.getAppOptimizePolicyMap().get(packageName)
+        );
+    }
+
+    public boolean shouldHandleAdj(AppOptimizePolicy appOptimizePolicy) {
+        return shouldHandleAdj.apply(this, appOptimizePolicy);
+    }
+
+    public void setShouldHandleAdj() {
+        setShouldHandleAdj(HookCommonProperties.INSTANCE.getAppOptimizePolicyMap().get(packageName));
+    }
+
+    public void setShouldHandleAdj(@Nullable AppOptimizePolicy appOptimizePolicy) {
+        if (appOptimizePolicy == null) {
+            this.shouldHandleAdj = handleAdjIfHasActivity;
+        }
+        // 已配置app优化策略
+        else {
+            this.shouldHandleAdj = switch (appOptimizePolicy.getMainProcessAdjManagePolicy()) {
+                case MAIN_PROC_ADJ_MANAGE_NEVER -> handleAdjNever;
+                case MAIN_PROC_ADJ_MANAGE_ALWAYS -> handleAdjAlways;
+                case MAIN_PROC_ADJ_MANAGE_HAS_ACTIVITY -> handleAdjIfHasActivity;
+                // 容错
+                default -> handleAdjIfHasActivity;
+            };
+        }
+
+        // 默认应用, 始终处理adj
+        // 即便已配置过app优化策略
+        if (DefaultApplicationManager.isDefaultAppPkgName(packageName)) {
+            this.shouldHandleAdj = handleAdjAlways;
+        }
+
+        // 如果现在是永不处理
+        if (this.shouldHandleAdj == AppInfo.handleAdjNever) {
+            runningInfo.getRunningProcesses().stream()
+                    // 按包名匹配(处理应用分身情况)
+                    .filter(processRecord -> Objects.equals(processRecord.getPackageName(), packageName))
+                    .forEach(ProcessRecord::resetMaxAdj);
+        }
     }
 
     /* *************************************************************************

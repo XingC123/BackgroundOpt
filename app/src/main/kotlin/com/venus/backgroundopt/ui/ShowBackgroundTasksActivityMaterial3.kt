@@ -14,14 +14,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.ui
+
+package com.venus.backgroundopt.ui
 
 import com.alibaba.fastjson2.JSON
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemActivityMaterial3
-import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandler.BackgroundTaskMessage
@@ -38,8 +37,8 @@ class ShowBackgroundTasksActivityMaterial3 : ShowInfoFromAppItemActivityMaterial
     override fun getShowInfoAdapter(
         appItems: List<AppItem>,
         vararg others: Any?
-    ): ShowInfoFromAppItemAdapter {
-        return ShowBackgroundTasksAdapter(appItems, others[0] as BackgroundTaskMessage)
+    ): ShowProcessInfoFromAppItemAdapter {
+        return ShowBackgroundTasksAdapter(this, appItems, others[0] as BackgroundTaskMessage)
     }
 
     override fun getRecyclerViewResId(): Int {

@@ -15,9 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
                     
- package com.venus.backgroundopt.ui
+package com.venus.backgroundopt.ui
 
-import android.util.TypedValue
+import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -25,7 +25,7 @@ import android.widget.TextView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
-import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
+import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemViewHolder
 import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandler
 
 /**
@@ -33,10 +33,12 @@ import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandle
  * @date 2023/9/23
  */
 class ShowBackgroundTasksAdapter(
+    activity: Activity,
     override val items: List<AppItem>,
     private val backgroundTaskMessage: BackgroundTasksMessageHandler.BackgroundTaskMessage
-) : ShowInfoFromAppItemAdapter(items) {
+) : ShowProcessInfoFromAppItemAdapter(activity, items) {
     private var enableForegroundProcTrimMem = false
+    private var enableBackgroundProcTrimMem = false
 
     override fun getText1Content(appItem: AppItem): String {
         return ""
@@ -58,14 +60,14 @@ class ShowBackgroundTasksAdapter(
         return R.string.appItemTipProcessName
     }
 
-    override fun getViewHolder(view: View): ShowInfoFromAppItemViewHolder {
+    override fun getViewHolder(view: View): ShowProcessInfoFromAppItemViewHolder {
         return ShowBackgroundTasksViewHolder(view)
     }
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): ShowInfoFromAppItemViewHolder {
+    ): ShowProcessInfoFromAppItemViewHolder {
         return super.onCreateViewHolder(parent, viewType).apply {
             // 上次运行结果
             itemView.findViewById<LinearLayout>(R.id.appItemLastProcessingResultLayout)?.let {
@@ -74,6 +76,9 @@ class ShowBackgroundTasksAdapter(
             // 设置前台可见性
             enableForegroundProcTrimMem =
                 PreferenceDefaultValue.isEnableForegroundTrimMem(this.itemView.context)
+            // 设置后台可见性
+            enableBackgroundProcTrimMem =
+                PreferenceDefaultValue.isEnableBackgroundTrimMem(this.itemView.context)
         }
     }
 
@@ -108,10 +113,14 @@ class ShowBackgroundTasksAdapter(
                 enablePolicyForegroundTrim
             )
         }
-        setAppOptimizePolicyTextVisible(
-            viewHolder.appItemBackgroundTrimMemText,
-            enablePolicyBackgroundTrim
-        )
+        if (!enableBackgroundProcTrimMem) {
+            setAppOptimizePolicyTextVisible(viewHolder.appItemBackgroundTrimMemText, false)
+        } else {
+            setAppOptimizePolicyTextVisible(
+                viewHolder.appItemBackgroundTrimMemText,
+                enablePolicyBackgroundTrim
+            )
+        }
         setAppOptimizePolicyTextVisible(
             viewHolder.appItemBackgroundGcText,
             enablePolicyBackgroundGc
@@ -126,7 +135,7 @@ class ShowBackgroundTasksAdapter(
         }
     }
 
-    class ShowBackgroundTasksViewHolder(itemView: View) : ShowInfoFromAppItemViewHolder(itemView) {
+    class ShowBackgroundTasksViewHolder(itemView: View) : ShowProcessInfoFromAppItemViewHolder(itemView) {
         val appItemTipText1: TextView
 
         val appItemForegroundTrimMemText: TextView

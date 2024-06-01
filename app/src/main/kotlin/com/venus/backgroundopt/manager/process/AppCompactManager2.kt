@@ -21,7 +21,7 @@ import android.os.SystemClock
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.entity.preference.OomWorkModePref
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.CachedAppOptimizer
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
@@ -49,7 +49,7 @@ class AppCompactManager2(
         removeOnCancelPolicy = true
     }
 
-    private val isSpecialOomWorkMode = CommonProperties.oomWorkModePref.oomMode.run {
+    private val isSpecialOomWorkMode = HookCommonProperties.oomWorkModePref.oomMode.run {
         this == OomWorkModePref.MODE_STRICT || this == OomWorkModePref.MODE_NEGATIVE
     }
 
@@ -79,22 +79,18 @@ class AppCompactManager2(
             return
         }
 
-        compactProcessMap.compute(processRecord) { _, lastScheduledFuture ->
-            lastScheduledFuture?.cancel(true)
-
-            executor.schedule({
-                runCatchThrowable(catchBlock = {
-                    logger.error("压缩进程任务出错", it)
-                }) {
-                    compactProcessImpl(
-                        processRecord = processRecord,
-                        lastOomScoreAdj = lastOomScoreAdj,
-                        curOomScoreAdj = curOomScoreAdj,
-                        oomAdjustLevel = oomAdjustLevel,
-                    )
-                }
-            }, /*cachedAppOptimizer.mFreezerDebounceTimeout*/ 10 * 1000, TimeUnit.MILLISECONDS)
-        }
+        compactProcessMap[processRecord] = executor.schedule({
+            runCatchThrowable(catchBlock = {
+                logger.error("压缩进程任务出错", it)
+            }) {
+                compactProcessImpl(
+                    processRecord = processRecord,
+                    lastOomScoreAdj = lastOomScoreAdj,
+                    curOomScoreAdj = curOomScoreAdj,
+                    oomAdjustLevel = oomAdjustLevel,
+                )
+            }
+        }, /*cachedAppOptimizer.mFreezerDebounceTimeout*/ COMPACT_TASK_DELAY, TimeUnit.MILLISECONDS)
     }
 
     private fun compactProcessImpl(
@@ -103,6 +99,11 @@ class AppCompactManager2(
         curOomScoreAdj: Int,
         oomAdjustLevel: Int
     ) {
+        // app处于前台时不进行压缩
+        if (processRecord.appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
+            return
+        }
+
         // 检验合法性
         if (!processRecord.isValid(runningInfo)) {
             return
@@ -216,6 +217,10 @@ class AppCompactManager2(
         } else {
             ProcessCompactResultCode.problem
         }
+    }
+
+    companion object {
+        const val COMPACT_TASK_DELAY = 10L * 1000
     }
 }
 
