@@ -129,7 +129,7 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
         appItems = PackageUtils.getInstalledPackages(
             context = this,
             filter = null,
-        ).also { isAllowedRefreshInstalledAppsUi = true }
+        )
         // 排序
         sortAppList()
 
