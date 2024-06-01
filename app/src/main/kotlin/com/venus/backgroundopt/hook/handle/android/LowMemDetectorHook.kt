@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.hook.handle.android
+
+package com.venus.backgroundopt.hook.handle.android
 
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.base.IHook
@@ -24,10 +24,9 @@ import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.utils.afterConstructorHook
 import com.venus.backgroundopt.utils.afterHook
-import com.venus.backgroundopt.utils.beforeHook
+import com.venus.backgroundopt.utils.replaceHook
 import com.venus.backgroundopt.utils.setBooleanFieldValue
 import com.venus.backgroundopt.utils.setIntFieldValue
-import java.util.concurrent.TimeUnit
 
 /**
  * @author XingC
@@ -37,12 +36,10 @@ class LowMemDetectorHook(
     classLoader: ClassLoader,
     runningInfo: RunningInfo
 ) : IHook(classLoader, runningInfo) {
+    @Volatile
+    var lowMemDetectorInstance: Any? = null
+
     override fun hook() {
-        // com.android.internal.app.procstats.ProcessStats.ADJ_MEM_FACTOR_NORMAL
-        val ADJ_MEM_FACTOR_NORMAL = 0
-
-        var lowMemDetectorInstance: Any? = null
-
         // 设置LowMemDetector中部分参数
         fun setLowMemDetectorParam() {
             lowMemDetectorInstance?.let { instance ->
@@ -59,15 +56,17 @@ class LowMemDetectorHook(
             setLowMemDetectorParam()
         }
 
-        ClassConstants.LowMemDetector.beforeHook(
+        ClassConstants.LowMemDetector.replaceHook(
             classLoader = classLoader,
-            methodName = MethodConstants.getMemFactor
-        ) { it.result = ADJ_MEM_FACTOR_NORMAL }
+            methodName = MethodConstants.getMemFactor,
+            hookAllMethod = true,
+        ) { ADJ_MEM_FACTOR_NORMAL }
 
-        ClassConstants.LowMemDetector.beforeHook(
+        ClassConstants.LowMemDetector.replaceHook(
             classLoader = classLoader,
-            methodName = MethodConstants.isAvailable
-        ) { it.result = true }
+            methodName = MethodConstants.isAvailable,
+            hookAllMethod = true,
+        ) { true }
 
         // 禁止psi检查
         // 此方式会造成锁屏下持续唤醒
@@ -102,5 +101,10 @@ class LowMemDetectorHook(
         ) {
             setLowMemDetectorParam()
         }
+    }
+
+    companion object {
+        // com.android.internal.app.procstats.ProcessStats.ADJ_MEM_FACTOR_NORMAL
+        const val ADJ_MEM_FACTOR_NORMAL = 0
     }
 }

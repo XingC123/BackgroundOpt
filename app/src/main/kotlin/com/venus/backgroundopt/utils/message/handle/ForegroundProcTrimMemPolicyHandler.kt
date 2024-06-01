@@ -18,7 +18,7 @@
  package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.hook.handle.android.entity.ComponentCallbacks2
 import com.venus.backgroundopt.utils.message.MessageFlag
@@ -42,7 +42,7 @@ class ForegroundProcTrimMemPolicyHandler : MessageHandler {
             val enumName = pair.second
             try {
                 val policyEnum = ForegroundProcTrimMemLevelEnum.valueOf(enumName)
-                CommonProperties.foregroundProcTrimMemPolicy.value.foregroundProcTrimMemLevelEnum =
+                HookCommonProperties.foregroundProcTrimMemPolicy.value.foregroundProcTrimMemLevelEnum =
                     policyEnum
                 logger.info("前台进程内存紧张策略修改为: ${policyEnum.uiName}")
             } catch (t: Throwable) {

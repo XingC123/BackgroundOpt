@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
+
  package com.venus.backgroundopt.ui
 
 import android.os.Bundle
@@ -42,6 +42,10 @@ import com.venus.backgroundopt.utils.showProgressBarViewForAction
  * @author XingC
  * @date 2023/9/27
  */
+@Deprecated(
+    message = "默认使用Material3设计风格",
+    replaceWith = ReplaceWith("ShowAllInstalledAppsActivityMaterial3")
+)
 class ShowAllInstalledAppsActivity : BaseActivity() {
     override fun initToolBar(): Toolbar? {
         return UiUtils.getToolbar(this, R.id.toolbarLeftTitleToolbar, titleStr = "已安装应用")
@@ -66,7 +70,10 @@ class ShowAllInstalledAppsActivity : BaseActivity() {
     override fun setOnMenuItemClickListener(menuItem: MenuItem) {
         when (menuItem.itemId) {
             R.id.installerAppToolbarHelpMenuItem -> {
-                UiUtils.createDialog(this, R.layout.content_installed_app_toolbar_help).show()
+                UiUtils.createDialog(
+                    context = this,
+                    viewResId = R.layout.content_installed_app_toolbar_help
+                ).show()
             }
         }
     }

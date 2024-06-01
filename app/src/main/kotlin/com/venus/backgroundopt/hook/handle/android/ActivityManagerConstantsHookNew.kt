@@ -1,12 +1,18 @@
 package com.venus.backgroundopt.hook.handle.android
 
+import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.base.IHook
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
+import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerConstants
+import com.venus.backgroundopt.utils.SystemUtils
 import com.venus.backgroundopt.utils.afterConstructorHook
+import com.venus.backgroundopt.utils.afterHook
 import com.venus.backgroundopt.utils.beforeHook
+import com.venus.backgroundopt.utils.getBooleanFieldValue
+import com.venus.backgroundopt.utils.getLongFieldValue
 import com.venus.backgroundopt.utils.setIntFieldValue
 
 /**
@@ -87,5 +93,25 @@ class ActivityManagerConstantsHookNew(
         ) { param ->
             param.result = null
         }*/
+        ClassConstants.ActivityManagerConstants.afterHook(
+            enable = SystemUtils.isUOrHigher,
+            classLoader = classLoader,
+            methodName = MethodConstants.updateUseTieredCachedAdj
+        ) { param ->
+            val activityManagerConstants = param.thisObject
+            ActivityManagerConstants.USE_TIERED_CACHED_ADJ =
+                activityManagerConstants.getBooleanFieldValue(
+                    fieldName = FieldConstants.USE_TIERED_CACHED_ADJ
+                )
+            ActivityManagerConstants.TIERED_CACHED_ADJ_DECAY_TIME =
+                activityManagerConstants.getLongFieldValue(
+                    fieldName = FieldConstants.TIERED_CACHED_ADJ_DECAY_TIME
+                )
+
+            if (BuildConfig.DEBUG) {
+                logger.info("USE_TIERED_CACHED_ADJ: ${ActivityManagerConstants.USE_TIERED_CACHED_ADJ}")
+                logger.info("TIERED_CACHED_ADJ_DECAY_TIME: ${ActivityManagerConstants.TIERED_CACHED_ADJ_DECAY_TIME}")
+            }
+        }
     }
 }

@@ -17,6 +17,7 @@
                     
  package com.venus.backgroundopt.annotation
 
+import android.os.Build
 import kotlin.reflect.KClass
 
 /**
@@ -40,4 +41,5 @@ annotation class AndroidObjectField(
     val fieldTypeClassPath: String = "",
     // 字段的类型
     val fieldTypeClazz: KClass<*> = Any::class,
+    val since: Int = Build.VERSION_CODES.S,
 )

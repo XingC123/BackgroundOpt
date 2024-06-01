@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
                     
- package com.venus.backgroundopt.hook.base;
+package com.venus.backgroundopt.hook.base;
 
 import androidx.annotation.NonNull;
 
@@ -54,6 +54,8 @@ public class HookPoint implements ILogger {
 
     private final String className;
     private final String methodName;
+
+    private String tag;
 
     private boolean hookAllMatchedMethod = false;
 
@@ -110,22 +112,28 @@ public class HookPoint implements ILogger {
                 XposedHelpers.findAndHookConstructor(hookClassName, classLoader, this.getFinalArgs(hookAction));
             } else {
                 if (hookAllMatchedMethod) {
-                    XposedBridge.hookAllMethods(
+                    Set<XC_MethodHook.Unhook> unhookSet = XposedBridge.hookAllMethods(
                             XposedHelpers.findClass(hookClassName, classLoader),
                             hookMethodName,
                             this.getFinalXCMethodHook(hookAction)
                     );
+                    if (tag != null) {
+                        IHook.addMethodHookPoint(tag, unhookSet);
+                    }
                 } else {
-                    XposedHelpers.findAndHookMethod(
+                    XC_MethodHook.Unhook unhook = XposedHelpers.findAndHookMethod(
                             hookClassName, classLoader, hookMethodName,
                             this.getFinalArgs(hookAction)
                     );
+                    if (tag != null) {
+                        IHook.addMethodHookPoint(tag, unhook);
+                    }
                 }
             }
 
-            if (!dontPrintLogHookList.contains(hookClassName + "." + hookMethodName)) {
+            /*if (!dontPrintLogHookList.contains(hookClassName + "." + hookMethodName)) {
                 getLogger().info("[" + hookClassName + "." + hookMethodName + "]hook成功");
-            }
+            }*/
         } catch (Throwable t) {
             if (!dontPrintLogHookList.contains(hookClassName + "." + hookMethodName)) {
                 getLogger().error("[" + hookClassName + "." + hookMethodName + "]hook失败", t);
@@ -200,6 +208,15 @@ public class HookPoint implements ILogger {
 
     public HookPoint setHookAllMatchedMethod(boolean hookAllMatchedMethod) {
         this.hookAllMatchedMethod = hookAllMatchedMethod;
+        return this;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public HookPoint setTag(String tag) {
+        this.tag = tag;
         return this;
     }
 }

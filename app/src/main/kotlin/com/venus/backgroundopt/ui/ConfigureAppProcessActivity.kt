@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.ui
+
+package com.venus.backgroundopt.ui
 
 import android.content.Context
 import android.os.Bundle
@@ -50,6 +50,10 @@ import com.venus.backgroundopt.utils.preference.prefValue
 import com.venus.backgroundopt.utils.showProgressBarViewForAction
 import kotlin.reflect.KMutableProperty0
 
+@Deprecated(
+    message = "默认使用Material3设计风格",
+    replaceWith = ReplaceWith("ConfigureAppProcessActivityMaterial3")
+)
 class ConfigureAppProcessActivity : BaseActivity() {
     private lateinit var appItem: AppItem
 
@@ -73,7 +77,8 @@ class ConfigureAppProcessActivity : BaseActivity() {
         when (menuItem.itemId) {
             R.id.configureAppProcAcitivityToolBarHelpMenuItem -> {
                 UiUtils.createDialog(
-                    this, R.layout.content_configure_app_proc_toolbar_help
+                    context = this,
+                    viewResId = R.layout.content_configure_app_proc_toolbar_help
                 ).show()
             }
         }
@@ -261,7 +266,7 @@ class ConfigureAppProcessActivity : BaseActivity() {
         PackageUtils.getAppProcesses(this, appItem)
 
         // 获取本地配置
-        val subProcessOomPolicyList = arrayListOf<SubProcessOomPolicy>()
+        val subProcessOomPolicyMap = HashMap<String, SubProcessOomPolicy>()
         val iterator = appItem.processes.iterator()
         var processName: String
         while (iterator.hasNext()) {
@@ -271,21 +276,25 @@ class ConfigureAppProcessActivity : BaseActivity() {
                 iterator.remove()
                 continue
             }
-            subProcessOomPolicyList.add(
-                prefValue<SubProcessOomPolicy>(SUB_PROCESS_OOM_POLICY, processName) ?: run {
-                    // 不存在
-                    SubProcessOomPolicy().apply {
-                        // 当前进程是否在默认白名单
-                        if (CommonProperties.subProcessDefaultUpgradeSet.contains(processName)) {
-                            this.policyEnum =
-                                SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
 
-                            // 保存到本地
-                            prefPut(SUB_PROCESS_OOM_POLICY, commit = true, processName, this)
-                        }
+            val subProcessOomPolicy = prefValue<SubProcessOomPolicy>(
+                SUB_PROCESS_OOM_POLICY,
+                processName
+            ) ?: run {
+                // 不存在
+                SubProcessOomPolicy().apply {
+                    // 当前进程是否在默认白名单
+                    if (CommonProperties.subProcessDefaultUpgradeSet.contains(processName)) {
+                        this.policyEnum =
+                            SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
+
+                        // 保存到本地
+                        prefPut(SUB_PROCESS_OOM_POLICY, commit = true, processName, this)
                     }
                 }
-            )
+            }
+
+            subProcessOomPolicyMap[processName] = subProcessOomPolicy
         }
 
         // 设置view
@@ -294,8 +303,11 @@ class ConfigureAppProcessActivity : BaseActivity() {
                 layoutManager = LinearLayoutManager(this@ConfigureAppProcessActivity).apply {
                     orientation = LinearLayoutManager.VERTICAL
                 }
-                adapter =
-                    ConfigureAppProcessAdapter(appItem.processes.toList(), subProcessOomPolicyList)
+                adapter = ConfigureAppProcessAdapter(
+                    appItem = appItem,
+                    processes = appItem.processes.toList(),
+                    subProcessOomPolicyMap = subProcessOomPolicyMap
+                )
             }
         }
     }

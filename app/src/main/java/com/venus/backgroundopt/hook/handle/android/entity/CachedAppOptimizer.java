@@ -26,8 +26,14 @@ import com.venus.backgroundopt.hook.constants.FieldConstants;
 import com.venus.backgroundopt.hook.constants.MethodConstants;
 import com.venus.backgroundopt.utils.log.ILogger;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import de.robv.android.xposed.XposedHelpers;
 
@@ -203,17 +209,74 @@ public class CachedAppOptimizer implements ILogger, IAndroidEntity {
         }
     }
 
-    public boolean compactProcessForce(int pid, int compactionFlags) {
-        String path = "/proc/" + pid + "/reclaim";
-        String action = switch (compactionFlags) {
-            case COMPACT_ACTION_FILE -> "file";
-            default -> "all";
-        };
-        try (FileOutputStream fos = new FileOutputStream(path)) {
-            fos.write(action.getBytes(StandardCharsets.UTF_8));
-            return true;
-        } catch (Throwable throwable) {
-            return false;
+    /**
+     * 缓存的内存压缩的文件流 <br>
+     * 进程的内存压缩不止一次执行, 缓存以提高性能 <br>
+     * 初次使用时创建, 进程移除时进行关闭。
+     */
+    private final Map<Integer, FileOutputStream> compactOutputStreamMap = new ConcurrentHashMap<>();
+    /**
+     * 向内存压缩节点写入的值的字节流 <br>
+     * 以便在使用时不需要重复性的进行 字符->字节数组 的转换
+     */
+    private final List<byte[]> compactActions = new ArrayList<>(2) {
+        /**
+         * 获取压缩行为的字节数组
+         * @param action 压缩行为的具体str
+         * @return 以UTF-8转换后的字节数组
+         */
+        private byte[] getActionBytes(String action) {
+            return action.getBytes(StandardCharsets.UTF_8);
         }
+
+        {
+            // 使用的时候按照索引取出bytes[]
+            add(getActionBytes("all"));
+            add(getActionBytes("file"));
+        }
+    };
+
+    /**
+     * 移除缓存的内存压缩文件流
+     * @param pid 缓存的文件流以pid为标识
+     */
+    public void removeCompactOutputStreams(int pid) {
+        FileOutputStream fos = compactOutputStreamMap.remove(pid);
+        if (fos != null) {
+            try {
+                fos.close();
+            } catch (IOException ignore) {
+            }
+        }
+    }
+
+    /**
+     * 强制内存压缩
+     * @param pid   要压缩的进程的pid
+     * @param compactionFlags 压缩的标识({@link #COMPACT_ACTION_FULL})
+     * @return 写入了节点 -> true
+     */
+    public boolean compactProcessForce(int pid, int compactionFlags) {
+        FileOutputStream fos = compactOutputStreamMap.computeIfAbsent(pid, key -> {
+            try {
+                String path = "/proc/" + pid + "/reclaim";
+                return new FileOutputStream(path);
+            } catch (FileNotFoundException e) {
+                return null;
+            }
+        });
+        if (fos != null) {
+            try {
+                int index = switch (compactionFlags) {
+                    case COMPACT_ACTION_FILE -> 1;
+                    default -> 0;
+                };
+                byte[] actionBytes = compactActions.get(index);
+                fos.write(actionBytes);
+                return true;
+            } catch (Throwable ignore) {
+            }
+        }
+        return false;
     }
 }

@@ -31,7 +31,10 @@ import com.venus.backgroundopt.utils.findViewById
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 
-
+@Deprecated(
+    message = "默认使用Material3设计风格",
+    replaceWith = ReplaceWith("MainActivityMaterial3")
+)
 class MainActivity : BaseActivity(), ILogger {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

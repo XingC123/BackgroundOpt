@@ -22,7 +22,6 @@ import androidx.appcompat.widget.Toolbar
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemActivity
-import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
 import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.sendMessage
@@ -32,12 +31,16 @@ import com.venus.backgroundopt.utils.setIntentData
  * @author XingC
  * @date 2023/9/25
  */
+@Deprecated(
+    message = "默认使用Material3设计风格",
+    replaceWith = ReplaceWith("ShowAppCompactListActivityMaterial3")
+)
 class ShowAppCompactListActivity : ShowInfoFromAppItemActivity() {
     override fun getShowInfoAdapter(
         appItems: List<AppItem>,
         vararg others: Any?
-    ): ShowInfoFromAppItemAdapter {
-        return ShowAppCompactListAdapter(appItems)
+    ): ShowProcessInfoFromAppItemAdapter {
+        return ShowAppCompactListAdapter(this, appItems)
     }
 
     override fun init() {
@@ -65,7 +68,8 @@ class ShowAppCompactListActivity : ShowInfoFromAppItemActivity() {
         when (menuItem.itemId) {
             R.id.showAppCompactLisToolBarHelpMenuItem -> {
                 UiUtils.createDialog(
-                    this, R.layout.content_show_app_compact_list_toolbar_help
+                    context = this,
+                    viewResId = R.layout.content_show_app_compact_list_toolbar_help
                 ).show()
             }
         }

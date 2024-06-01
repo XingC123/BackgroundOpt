@@ -15,15 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
                     
- package com.venus.backgroundopt.ui
+package com.venus.backgroundopt.ui
 
 import android.view.MenuItem
-import androidx.appcompat.widget.Toolbar
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
-import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemActivity
 import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemActivityMaterial3
-import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemAdapter
 import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.sendMessage
@@ -37,8 +34,8 @@ class ShowAppCompactListActivityMaterial3 : ShowInfoFromAppItemActivityMaterial3
     override fun getShowInfoAdapter(
         appItems: List<AppItem>,
         vararg others: Any?
-    ): ShowInfoFromAppItemAdapter {
-        return ShowAppCompactListAdapter(appItems)
+    ): ShowProcessInfoFromAppItemAdapter {
+        return ShowAppCompactListAdapter(this, appItems)
     }
 
     override fun getRecyclerViewResId(): Int {

@@ -17,7 +17,6 @@
 
 package com.venus.backgroundopt.hook.handle.android
 
-import android.os.IBinder
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.hook.base.IHook
 import com.venus.backgroundopt.hook.constants.ClassConstants
@@ -41,7 +40,14 @@ class ServiceManagerHook(
             hookAllMethod = true
         ) { param ->
             val name = param.args[0] as String
-            val service = param.args[1] as IBinder
+            /*
+             * 此方法有多个重载方法,
+             * public static void addService(String name, Class type)
+             * public static void addService(String name, IServiceCreator creator)
+             * public static void addService(String name, IBinder service)等
+             * 因此对第二个参数直接强转可能会导致ClassCastException
+             */
+            // val service = param.args[1] as IBinder
 
             when (name) {
                 ServiceConstants.role -> newThreadTask(runningInfo::initActiveDefaultAppPackageName)

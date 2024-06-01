@@ -4,4 +4,31 @@
         <attr name="horizontalSpacing" format="dimension"/>
         <attr name="verticalSpacing" format="dimension"/>
     </declare-styleable>
+
+    <declare-styleable name="VenusSwitchMaterial3">
+        <!--switch-->
+        <attr name="switchText" format="string" />
+        <attr name="switchTextOn" format="string" />
+        <attr name="switchTextOff" format="string" />
+        <attr name="switchChecked" format="boolean" />
+        <attr name="switchTextSize" format="dimension" />
+        <!--button-->
+        <attr name="buttonText" format="string" />
+        <attr name="buttonIcon" format="reference" />
+        <attr name="buttonTextSize" format="dimension" />
+        <attr name="buttonVisible" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="VenusListCheckMaterial3">
+        <!--title-->
+        <attr name="title" format="string" />
+        <attr name="titleTextSize" format="dimension" />
+        <!--summary-->
+        <attr name="summary" format="string" />
+        <attr name="summaryTextSize" format="dimension" />
+        <!--选项列表-->
+        <attr name="entries" format="reference" />
+        <attr name="entryValues" format="reference" />
+        <attr name="defaultValue" format="string|boolean|integer|reference|float"/>
+    </declare-styleable>
 </resources>

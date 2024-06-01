@@ -78,6 +78,12 @@ class DefaultApplicationManager {
 
     fun getDefaultPackageName(key: String): String? = defaultAppPkgNameMap[key]?.value
 
+    fun getAllPkgNames(): Collection<String> {
+        return defaultAppPkgNameMap.values.map { defaultApplicationNode ->
+            defaultApplicationNode.value ?: ""
+        }
+    }
+
     /* *************************************************************************
      *                                                                         *
      * 默认包名的包装节点                                                          *
@@ -87,6 +93,12 @@ class DefaultApplicationManager {
         @Volatile
         var value: String? = null
             set(value) {
+                // 处理传入的包名
+                val newPackageName = getDefaultPkgNameFromUriStr(value)
+                if (field == newPackageName) {
+                    return
+                }
+
                 // 执行监听
                 valueChangeListeners.values.forEach { propertyChangeListener ->
                     propertyChangeListener.change(field, value)
@@ -128,6 +140,12 @@ class DefaultApplicationManager {
         // 输入法
         const val DEFAULT_APP_INPUT_METHOD = "INPUT_METHOD"
 
+        // 短信
+        const val DEFAULT_APP_SMS = "SMS"
+
+        // 拨号
+        const val DEFAULT_APP_DIALER = "DIALER"
+
         // 默认app的包名
         val defaultAppPkgNameSet = HashSet<String?>(8)
 
@@ -147,15 +165,18 @@ class DefaultApplicationManager {
          */
         @JvmStatic
         fun getDefaultPkgNameFromSettings(key: String?): String? {
+            return getDefaultPkgNameFromUriStr(uriStr = getDefaultPkgNameFromSettingsDirectly(key))
+        }
+
+        @JvmStatic
+        fun getDefaultPkgNameFromSettingsDirectly(key: String?): String? {
             if (key == null) {
                 return null
             }
 
-            return getDefaultPkgNameFromUriStr(
-                uriStr = Settings.Secure.getString(
-                    RunningInfo.getInstance().activityManagerService.context.contentResolver,
-                    key
-                )
+            return Settings.Secure.getString(
+                RunningInfo.getInstance().activityManagerService.context.contentResolver,
+                key
             )
         }
 

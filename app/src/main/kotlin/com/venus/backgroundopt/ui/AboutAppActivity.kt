@@ -30,6 +30,10 @@ import com.venus.backgroundopt.ui.base.BaseActivity
  * @author XingC
  * @date 2023/10/1
  */
+@Deprecated(
+    message = "默认使用Material3设计风格",
+    replaceWith = ReplaceWith("AboutAppActivityMaterial3")
+)
 class AboutAppActivity : BaseActivity() {
     override fun getContentView(): Int {
         return R.layout.activity_about_app

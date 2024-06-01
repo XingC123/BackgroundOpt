@@ -40,6 +40,9 @@ open class BaseProcessInfoKt(
     // 当前oom
     var curAdj: Int = Int.MIN_VALUE
 
+    // 资源占用
+    var rssInBytes: Long = Long.MIN_VALUE
+
     /**
      * 修正过的oomAdjScore。
      * 即本模块为了优化后台而对进程的oomAdjScore修改的值
@@ -88,5 +91,31 @@ open class BaseProcessInfoKt(
         result = 31 * result + pid
         result = 31 * result + userId
         return result
+    }
+
+    companion object {
+        /**
+         * 获取用于ui显示的资源占用大小
+         * @param rssInBytes Long 以Bytes为单位的资源占用大小
+         * @return String ui最终显示的资源占用大小
+         */
+        @JvmStatic
+        fun getRssUiText(rssInBytes: Long): String {
+            val rssInKBytes = rssInBytes / 1024
+            if (rssInKBytes < 1024) {
+                if (rssInKBytes < 0) {
+                    return "UNKNOWN"
+                }
+                return "${rssInKBytes} KB"
+            }
+
+            val rssInMBytes = rssInKBytes / 1024
+            if (rssInMBytes < 1024) {
+                return "${rssInMBytes} MB"
+            }
+
+            val rssInGBytes = rssInMBytes / 1024
+            return "${rssInGBytes} GB"
+        }
     }
 }

@@ -14,14 +14,21 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.ui.base
+
+package com.venus.backgroundopt.ui.base
 
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.utils.UiUtils
+import com.venus.backgroundopt.utils.message.MessageKeyConstants
+import com.venus.backgroundopt.utils.message.handle.ModuleRunningMessageHandler.ModuleRunningMessage
+import com.venus.backgroundopt.utils.message.sendMessage
+import com.venus.backgroundopt.utils.runCatchThrowable
+import com.venus.backgroundopt.utils.showProgressBarViewForAction
 
 /**
  * @author XingC
@@ -92,5 +99,71 @@ abstract class BaseActivity : AppCompatActivity() {
     class ToolBarBuilder {
         lateinit var title: String
         var resId: Int = Int.MIN_VALUE
+    }
+}
+
+fun BaseActivity.sendMessage(key: String, value: Any = ""): String? {
+    return sendMessage(this, key, value)
+}
+
+inline fun <reified E> BaseActivity.sendMessage(key: String, value: Any = ""): E? {
+    return sendMessage<E>(this, key, value)
+}
+
+/**
+ * 检查模块后端是否运行
+ * @receiver BaseActivity
+ * @return Boolean 正在运行 -> true
+ */
+fun BaseActivity.isModuleRunning(): Boolean {
+    // 如果模块未启动, 这里就是正常的调用消息通知借用的方法
+    return runCatchThrowable(defaultValue = false) {
+        sendMessage<ModuleRunningMessage>(
+            context = this,
+            key = MessageKeyConstants.moduleRunning,
+            value = ModuleRunningMessage().apply {
+                messageType = ModuleRunningMessage.MODULE_RUNNING
+            }
+        )!!.value as Boolean
+    }!!
+}
+
+/**
+ * 比较模块后端的版本和[targetVersionCode], 如果符合要求, 则执行[compatibleBlock]。不符合则执行[incompatibleBlock]
+ * @receiver BaseActivity
+ */
+inline fun BaseActivity.ifVersionIsCompatible(
+    targetVersionCode: Int,
+    crossinline incompatibleBlock: (BaseActivity) -> Unit = {
+        runOnUiThread {
+            UiUtils.createDialog(
+                context = this,
+                text = "app与模块版本不匹配, 请重启后再试",
+                enablePositiveBtn = true
+            ).show()
+        }
+    },
+    crossinline compatibleBlock: (BaseActivity) -> Unit
+) {
+    // 检查版本是否匹配
+    showProgressBarViewForAction(text = "版本校验中...") {
+        val versionCode = CommonProperties.moduleVersionCode ?: run {
+            val returnVersionCode = sendMessage<ModuleRunningMessage>(
+                key = MessageKeyConstants.moduleRunning,
+                value = ModuleRunningMessage().apply {
+                    messageType = ModuleRunningMessage.MODULE_VERSION_CODE
+                }
+            )?.value as? Int ?: Int.MIN_VALUE
+            CommonProperties.moduleVersionCode = returnVersionCode
+
+            returnVersionCode
+        }
+
+        if (versionCode < targetVersionCode) {
+            incompatibleBlock(this)
+            return@showProgressBarViewForAction
+        }
+
+        compatibleBlock(this)
     }
 }

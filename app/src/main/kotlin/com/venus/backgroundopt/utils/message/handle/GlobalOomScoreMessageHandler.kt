@@ -18,7 +18,7 @@
 package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.core.RunningInfo
-import com.venus.backgroundopt.environment.CommonProperties
+import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
@@ -39,7 +39,7 @@ class GlobalOomScoreMessageHandler : MessageHandler {
             param = param,
             value = value
         ) { globalOomScorePolicy: GlobalOomScorePolicy ->
-            CommonProperties.globalOomScorePolicy.value = globalOomScorePolicy
+            HookCommonProperties.globalOomScorePolicy.value = globalOomScorePolicy
             logger.info("切换全局oom策略。$globalOomScorePolicy")
             null
         }

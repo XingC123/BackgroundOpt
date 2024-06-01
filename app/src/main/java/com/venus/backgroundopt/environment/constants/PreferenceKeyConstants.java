@@ -24,6 +24,7 @@
 public interface PreferenceKeyConstants {
     String AUTO_STOP_COMPACT_TASK = "pref_key_autoStopCompactTask";
     String ENABLE_FOREGROUND_PROC_TRIM_MEM_POLICY = "pref_key_enable_foreground_proc_trim_mem_policy";
+    String ENABLE_BACKGROUND_PROC_TRIM_MEM_POLICY = "pref_key_enable_background_proc_trim_mem_policy";
     String FOREGROUND_PROC_TRIM_MEM_POLICY = "pref_key_foreground_proc_trim_mem_policy";
     String OOM_WORK_MODE = "pref_key_oom_work_mode";
     String STRICT_OOM_MODE = "pref_key_strict_oom_mode";
@@ -34,4 +35,5 @@ public interface PreferenceKeyConstants {
     String GLOBAL_OOM_SCORE_VALUE = "pref_key_global_oom_score_value";
     String KILL_AFTER_REMOVE_TASK = "pref_key_kill_after_remove_task";
     String DYNAMIC_THEME = "pref_key_dynamic_theme";
+    String KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY = "pref_key_keep_main_process_alive_has_activity";
 }

@@ -19,6 +19,7 @@ package com.venus.backgroundopt.hook.handle.android.entity;
 
 import androidx.annotation.NonNull;
 
+import com.venus.backgroundopt.annotation.AndroidMethod;
 import com.venus.backgroundopt.annotation.AndroidObject;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.constants.FieldConstants;
@@ -80,7 +81,7 @@ public class ProcessStateRecord {
     }
 
     public int getCurAdj() {
-        return XposedUtilsKt.getIntFieldValue(processStateRecord, MethodConstants.getCurAdj);
+        return getCurAdj(processStateRecord);
     }
 
     public void setSetAdj(int setAdj) {
@@ -88,7 +89,17 @@ public class ProcessStateRecord {
     }
 
     public int getSetAdj() {
-        return XposedUtilsKt.getIntFieldValue(processStateRecord, MethodConstants.getSetAdj);
+        return getSetAdj(processStateRecord);
+    }
+
+    @AndroidMethod(classPath = ClassConstants.ProcessStateRecord)
+    public int getCurRawAdj() {
+        return getCurRawAdj(processStateRecord);
+    }
+
+    @AndroidMethod(classPath = ClassConstants.ProcessStateRecord)
+    public void setCurRawAdj(int curRawAdj) {
+        setCurRawAdj(processStateRecord, curRawAdj);
     }
 
     public boolean hasForegroundActivities() {
@@ -119,11 +130,45 @@ public class ProcessStateRecord {
         return (int) XposedUtilsKt.callMethod(processStateRecord, MethodConstants.getCurProcState);
     }
 
+    @AndroidMethod(classPath = ClassConstants.ProcessStateRecord)
+    public long getLastStateTime() {
+        return getLastStateTime(processStateRecord);
+    }
+
+    @AndroidMethod(classPath = ClassConstants.ProcessStateRecord)
+    public static int getCurAdj(@NonNull @AndroidObject Object instance) {
+        return (int) XposedUtilsKt.callMethod(instance, MethodConstants.getCurAdj);
+    }
+
     public static void setCurAdj(@NonNull @AndroidObject Object instance, int curAdj) {
         XposedUtilsKt.callMethod(instance, MethodConstants.setCurAdj, curAdj);
     }
 
+    @AndroidMethod(classPath = ClassConstants.ProcessStateRecord)
+    public static int getSetAdj(@NonNull @AndroidObject Object instance) {
+        return (int) XposedUtilsKt.callMethod(instance, MethodConstants.getSetAdj);
+    }
+
     public static void setSetAdj(@NonNull @AndroidObject Object instance, int setAdj) {
         XposedUtilsKt.callMethod(instance, MethodConstants.setSetAdj, setAdj);
+    }
+
+    @AndroidMethod(classPath = ClassConstants.ProcessStateRecord)
+    public static int getCurRawAdj(@NonNull @AndroidObject Object instance) {
+        return (int) XposedUtilsKt.callMethod(instance, MethodConstants.getCurRawAdj);
+    }
+
+    @AndroidMethod(classPath = ClassConstants.ProcessStateRecord)
+    public static void setCurRawAdj(@NonNull @AndroidObject Object instance, int curRawAdj) {
+        XposedUtilsKt.callMethod(instance, MethodConstants.setCurRawAdj, curRawAdj);
+    }
+
+    public static int getCompletedAdjSeq(@NonNull @AndroidObject Object instance) {
+        return (int) XposedUtilsKt.callMethod(instance, MethodConstants.getCompletedAdjSeq);
+    }
+
+    @AndroidMethod(classPath = ClassConstants.ProcessStateRecord)
+    public static long getLastStateTime(@NonNull @AndroidObject Object instance) {
+        return (long) XposedUtilsKt.callMethod(instance, MethodConstants.getLastStateTime);
     }
 }
