@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.ui.base
+
+package com.venus.backgroundopt.ui.base
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -26,7 +26,9 @@ import androidx.preference.PreferenceFragmentCompat
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
+import com.venus.backgroundopt.utils.ifTrue
 import com.venus.backgroundopt.utils.preference.pref
+import com.venus.backgroundopt.utils.runCatchThrowable
 import com.venus.backgroundopt.utils.showProgressBarViewForAction
 
 /**
@@ -58,11 +60,22 @@ open class BasePreferenceFragment<T : Activity> : PreferenceFragmentCompat() {
                 }
     }
 
-    fun preferenceChangeAction(text: String = "正在设置...", action: () -> Unit) {
+    fun preferenceChangeAction(
+        text: String = "正在设置...",
+        throwException: Boolean = false,
+        action: () -> Unit
+    ) {
         requireContext().showProgressBarViewForAction(
             text,
-            enableNegativeBtn = false,
-            action = action
-        )
+            enableNegativeBtn = false
+        ) {
+            runCatchThrowable(catchBlock = { throwable ->
+                throwException.ifTrue {
+                    throw throwable
+                }
+            }) {
+                action()
+            }
+        }
     }
 }
