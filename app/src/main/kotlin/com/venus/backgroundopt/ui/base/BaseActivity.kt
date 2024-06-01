@@ -148,12 +148,14 @@ inline fun BaseActivity.ifVersionIsCompatible(
     // 检查版本是否匹配
     showProgressBarViewForAction(text = "版本校验中...") {
         val versionCode = CommonProperties.moduleVersionCode ?: run {
-            val returnVersionCode = sendMessage<ModuleRunningMessage>(
-                key = MessageKeyConstants.moduleRunning,
-                value = ModuleRunningMessage().apply {
-                    messageType = ModuleRunningMessage.MODULE_VERSION_CODE
-                }
-            )?.value as? Int ?: Int.MIN_VALUE
+            val returnVersionCode = runCatchThrowable {
+                sendMessage<ModuleRunningMessage>(
+                    key = MessageKeyConstants.moduleRunning,
+                    value = ModuleRunningMessage().apply {
+                        messageType = ModuleRunningMessage.MODULE_VERSION_CODE
+                    }
+                )
+            }?.value as? Int ?: Int.MIN_VALUE
             CommonProperties.moduleVersionCode = returnVersionCode
 
             returnVersionCode
