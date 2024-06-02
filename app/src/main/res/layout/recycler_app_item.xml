@@ -75,13 +75,15 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="0"
                         android:text="@string/appItemTipText2"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/appItemText2"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0" />
+                        android:layout_weight="0"
+                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -96,13 +98,15 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="0"
                         android:text="@string/appItemTipText3"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/appItemText3"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0" />
+                        android:layout_weight="0"
+                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -116,13 +120,15 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="0"
                         android:text="@string/appItemTipText4"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/appItemText4"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1" />
+                        android:layout_weight="1"
+                        android:textSize="12sp" />
                 </LinearLayout>
 
             </LinearLayout>
