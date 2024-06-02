@@ -14,14 +14,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.ui.base
+
+package com.venus.backgroundopt.ui.base
 
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import com.venus.backgroundopt.R
+import com.venus.backgroundopt.utils.ifTrue
 
 /**
  * 自动换行横向布局
@@ -97,25 +98,31 @@ class LineFeedLayout : LinearLayout {
             //'容器控件当前行剩下的空间'
             var remainWidth = width
             //'遍历所有子控件并用自动换行的方式累加其高度'
-            (0 until childCount).map { getChildAt(it) }.forEach { child ->
-                val lp = child.layoutParams as MarginLayoutParams
-                //'当前行已满，在新的一行放置子控件'
-                if (isNewLine(lp, child, remainWidth, horizontalGap)) {
-                    remainWidth = width - child.measuredWidth
-                    //'容器控件新增一行的高度'
-                    height += (lp.topMargin + lp.bottomMargin + child.measuredHeight + verticalGap)
-                } else {  //'当前行未满，在当前行右侧放置子控件'
-                    //'消耗当前行剩余宽度'
-                    remainWidth -= child.measuredWidth
-                    // XingC: 当前元素可视性不是GONE的时候才更新值
-                    if (child.visibility != View.GONE && height == 0) {
-                        height =
-                            (lp.topMargin + lp.bottomMargin + child.measuredHeight + verticalGap)
+            (0 until childCount).asSequence()
+                .map { getChildAt(it) }
+                .forEach { child ->
+                    // XingC: 当前元素可视性不是GONE的时候才计算值
+                    (child.visibility == View.GONE).ifTrue {
+                        return@forEach
                     }
+
+                    val lp = child.layoutParams as MarginLayoutParams
+                    //'当前行已满，在新的一行放置子控件'
+                    if (isNewLine(lp, child, remainWidth, horizontalGap)) {
+                        remainWidth = width - child.measuredWidth
+                        //'容器控件新增一行的高度'
+                        height += (lp.topMargin + lp.bottomMargin + child.measuredHeight + verticalGap)
+                    } else {  //'当前行未满，在当前行右侧放置子控件'
+                        //'消耗当前行剩余宽度'
+                        remainWidth -= child.measuredWidth
+                        if (height == 0) {
+                            height =
+                                (lp.topMargin + lp.bottomMargin + child.measuredHeight + verticalGap)
+                        }
+                    }
+                    //将子控件的左右边距和间隙也考虑在内
+                    remainWidth -= (lp.leftMargin + lp.rightMargin + horizontalGap)
                 }
-                //将子控件的左右边距和间隙也考虑在内
-                remainWidth -= (lp.leftMargin + lp.rightMargin + horizontalGap)
-            }
         }
         //'控件测量的终点，即容器控件的宽高已确定'
         setMeasuredDimension(width, height)
@@ -143,33 +150,37 @@ class LineFeedLayout : LinearLayout {
         //'上一行底部的纵坐标（相对于容器控件上边界的距离）'
         var lastBottom = 0
         //'遍历所有子控件以确定它们相对于容器控件的位置'
-        (0 until childCount).map { getChildAt(it) }.forEach { child ->
-            val lp = child.layoutParams as MarginLayoutParams
-            //'新起一行'
-            if (isNewLine(lp, child, r - l - left, horizontalGap)) {
-                left = -lp.leftMargin
-                //'更新当前纵坐标'
-                top = lastBottom
-                //'上一行底部纵坐标置0，表示需要重新被赋值'
-                lastBottom = 0
-            }
-            //'子控件左边界'
-            val childLeft = left + lp.leftMargin
-            //'子控件上边界'
-            val childTop = top + lp.topMargin
-            //'确定子控件上下左右边界相对于父控件左上角的距离'
-            child.layout(
-                childLeft,
-                childTop,
-                childLeft + child.measuredWidth,
-                childTop + child.measuredHeight
-            )
-            //'更新上一行底部纵坐标'
-            if (lastBottom == 0) lastBottom = child.bottom + lp.bottomMargin + verticalGap
-            // XingC: 当前元素可视性不是GONE的时候才更新值
-            if (child.visibility != View.GONE) {
+        val width = r - l
+        (0 until childCount).asSequence()
+            .map { getChildAt(it) }
+            .forEach { child ->
+                // XingC: 当前元素可视性不是GONE的时候才计算值
+                (child.visibility == View.GONE).ifTrue {
+                    return@forEach
+                }
+                val lp = child.layoutParams as MarginLayoutParams
+                //'新起一行'
+                if (isNewLine(lp, child, width - left, horizontalGap)) {
+                    left = -lp.leftMargin
+                    //'更新当前纵坐标'
+                    top = lastBottom
+                    //'上一行底部纵坐标置0，表示需要重新被赋值'
+                    lastBottom = 0
+                }
+                //'子控件左边界'
+                val childLeft = left + lp.leftMargin
+                //'子控件上边界'
+                val childTop = top + lp.topMargin
+                //'确定子控件上下左右边界相对于父控件左上角的距离'
+                child.layout(
+                    childLeft,
+                    childTop,
+                    childLeft + child.measuredWidth,
+                    childTop + child.measuredHeight
+                )
+                //'更新上一行底部纵坐标'
+                if (lastBottom == 0) lastBottom = child.bottom + lp.bottomMargin + verticalGap
                 left += child.measuredWidth + lp.leftMargin + lp.rightMargin + horizontalGap
             }
-        }
     }
 }
