@@ -30,9 +30,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginHorizontal="@dimen/content_space"
         android:orientation="vertical"
-        android:paddingHorizontal="@dimen/content_space"
-        android:paddingVertical="@dimen/content_space"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <androidx.recyclerview.widget.RecyclerView

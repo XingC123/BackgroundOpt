@@ -30,6 +30,7 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginHorizontal="@dimen/content_space"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -37,8 +38,6 @@
             android:layout_height="match_parent"
             android:divider="@drawable/item_space_vertical_component"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/content_space"
-            android:paddingVertical="@dimen/content_space"
             android:showDividers="middle">
 
             <LinearLayout
