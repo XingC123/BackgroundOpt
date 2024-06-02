@@ -43,7 +43,8 @@
             android:id="@+id/showAppCompactListRecyclerViewTipText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/showAppCompactListRecyclerViewTipText" />
+            android:text="@string/showAppCompactListRecyclerViewTipText"
+            android:visibility="gone" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/showAppCompactListRecyclerView"
