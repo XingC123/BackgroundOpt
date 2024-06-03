@@ -77,7 +77,7 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
         if (moduleActive) {
             findViewById<TextView>(R.id.mainActivityModuleActiveText)?.setText(R.string.moduleActive)
             // 获取要展示的信息
-            var socketPort: Int = Int.MIN_VALUE
+            var socketPort: Int? = null
             var socketPortText: TextView? = null
             IMessageSender.sendDefault<HomePageModuleInfoMessage>(
                 context = this,

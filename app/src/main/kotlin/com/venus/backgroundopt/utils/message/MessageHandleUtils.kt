@@ -192,13 +192,13 @@ class MessageSender {
 
     fun init(
         context: Context,
-        socketPort: Int,
+        socketPort: Int?,
         socketPortText: TextView?
     ) {
         executor.execute {
             var socketPortStr = "null"
             // 支持socket传输
-            if (socketPort == Int.MIN_VALUE) {
+            if (socketPort == null) {
                 logWarnAndroid("无任何消息实现~")
                 sender = NoImplMessageSender()
             } else if (SocketModuleMessageHandler.isPortValid(socketPort)) {
