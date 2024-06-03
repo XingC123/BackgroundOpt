@@ -197,4 +197,5 @@
     <string name="processInfoDialogRssTip" translatable="false">Rss:</string>
     <string name="processInfoDialogOriginalAdjTip">Original adj:</string>
     <string name="processInfoDialogCurAdjTip">Current adj:</string>
+    <string name="main_activity_socket_port" translatable="false">通信端口:</string>
 </resources>

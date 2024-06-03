@@ -17,8 +17,10 @@
 
 package com.venus.backgroundopt.utils.message
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.widget.TextView
 import com.alibaba.fastjson2.JSON
 import com.alibaba.fastjson2.JSONObject
 import com.venus.backgroundopt.BuildConfig
@@ -188,8 +190,13 @@ class MessageSender {
     private lateinit var sender: IMessageSender
     private val executor = Executors.newFixedThreadPool(3)
 
-    fun init(context: Context, socketPort: Int) {
+    fun init(
+        context: Context,
+        socketPort: Int,
+        socketPortText: TextView?
+    ) {
         executor.execute {
+            var socketPortStr = "null"
             // 支持socket传输
             if (socketPort == Int.MIN_VALUE) {
                 logWarnAndroid("无任何消息实现~")
@@ -197,9 +204,15 @@ class MessageSender {
             } else if (SocketModuleMessageHandler.isPortValid(socketPort)) {
                 logInfoAndroid("Socket通信~")
                 sender = SocketMessageSender(socketPort = socketPort)
+                socketPortStr = socketPort.toString()
             } else {
                 logInfoAndroid("传统通信~")
                 sender = DefaultMessageSender(context = context)
+                socketPortStr = "其他实现"
+            }
+
+            (context as? Activity)?.runOnUiThread {
+                socketPortText?.text = socketPortStr
             }
         }
     }
