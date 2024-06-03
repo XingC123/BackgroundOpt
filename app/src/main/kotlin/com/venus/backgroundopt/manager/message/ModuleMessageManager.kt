@@ -94,7 +94,11 @@ class SocketModuleMessageHandler(
     private val executor = Executors.newFixedThreadPool(3)
     val socket: ServerSocket? = initSocket()
     val port: Int
-        get() = socket?.localPort ?: Int.MIN_VALUE
+        get() = if (socket != null && !socket.isClosed) {
+            socket.localPort
+        } else {
+            Int.MIN_VALUE
+        }
 
     private fun initSocket(): ServerSocket? {
         var socket: ServerSocket? = null
