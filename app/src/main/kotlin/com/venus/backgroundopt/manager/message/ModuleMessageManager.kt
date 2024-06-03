@@ -102,13 +102,13 @@ class SocketModuleMessageHandler(
 
     private fun initSocket(): ServerSocket? {
         var socket: ServerSocket? = null
-        var curPort = 45555
+        var curPort = 11011
         do {
             runCatchThrowable {
                 socket = ServerSocket(curPort)
             }
             ++curPort
-        } while (socket == null && curPort <= 65535)
+        } while (socket == null && curPort <= 49152)
         return socket
     }
 
