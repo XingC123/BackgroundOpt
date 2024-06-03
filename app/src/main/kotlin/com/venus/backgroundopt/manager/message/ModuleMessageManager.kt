@@ -33,6 +33,7 @@ import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
+import java.net.InetAddress
 import java.net.ServerSocket
 import java.util.concurrent.Executors
 
@@ -92,7 +93,7 @@ class SocketModuleMessageHandler(
     override val runningInfo: RunningInfo
 ) : ModuleMessageHandler {
     private val executor = Executors.newFixedThreadPool(3)
-    val socket: ServerSocket? = initSocket()
+    private val socket: ServerSocket? = initSocket()
     val port: Int
         get() = if (socket != null && !socket.isClosed) {
             socket.localPort
@@ -103,9 +104,10 @@ class SocketModuleMessageHandler(
     private fun initSocket(): ServerSocket? {
         var socket: ServerSocket? = null
         var curPort = 11011
+        val localHost = InetAddress.getLocalHost()
         do {
             runCatchThrowable {
-                socket = ServerSocket(curPort)
+                socket = ServerSocket(curPort, 50, localHost)
             }
             ++curPort
         } while (socket == null && curPort <= 49152)
