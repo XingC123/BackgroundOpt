@@ -129,4 +129,11 @@ public interface PreferenceDefaultValue {
      *                                                                         *
      **************************************************************************/
     MainProcessAdjManagePolicy mainProcessAdjManagePolicy = MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_HAS_ACTIVITY;
+
+    /* *************************************************************************
+     *                                                                         *
+     * 次级消息发送器                                                             *
+     *                                                                         *
+     **************************************************************************/
+    boolean enableSecondaryMessageSender = false;
 }

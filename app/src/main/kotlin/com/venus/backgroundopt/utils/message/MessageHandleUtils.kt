@@ -24,6 +24,9 @@ import android.widget.TextView
 import com.alibaba.fastjson2.JSON
 import com.alibaba.fastjson2.JSONObject
 import com.venus.backgroundopt.BuildConfig
+import com.venus.backgroundopt.environment.PreferenceDefaultValue
+import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
+import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt
 import com.venus.backgroundopt.manager.message.SocketModuleMessageHandler
 import com.venus.backgroundopt.utils.JsonUtils
@@ -52,6 +55,7 @@ import com.venus.backgroundopt.utils.message.handle.RunningAppInfoMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SimpleLmkMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMessageHandler
 import com.venus.backgroundopt.utils.message.handle.TargetAppGroupMessageHandler
+import com.venus.backgroundopt.utils.preference.prefBoolean
 import com.venus.backgroundopt.utils.runCatchThrowable
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import java.io.ObjectInputStream
@@ -197,11 +201,22 @@ class MessageSender {
     ) {
         executor.execute {
             var socketPortStr = "null"
-            // 支持socket传输
-            if (socketPort == null) {
+
+            val enableSecondaryMessageSender = context.prefBoolean(
+                name = PreferenceNameConstants.MAIN_SETTINGS,
+                key = PreferenceKeyConstants.SECONDARY_MESSAGE_SENDER,
+                defaultValue = PreferenceDefaultValue.enableSecondaryMessageSender
+            )
+            if (enableSecondaryMessageSender) {
+                logInfoAndroid("传统通信~")
+                sender = DefaultMessageSender(context = context)
+                socketPortStr = "次级消息发送器"
+            } else if (socketPort == null) {
                 logWarnAndroid("无任何消息实现~")
                 sender = NoImplMessageSender()
-            } else if (SocketModuleMessageHandler.isPortValid(socketPort)) {
+            }
+            // 支持socket传输
+            else if (SocketModuleMessageHandler.isPortValid(socketPort)) {
                 logInfoAndroid("Socket通信~")
                 sender = SocketMessageSender(socketPort = socketPort)
                 socketPortStr = socketPort.toString()

@@ -135,5 +135,11 @@
             app:iconSpaceReserved="false"
             app:key="@string/pref_key_global_oom_score_value"
             app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="@string/pref_key_secondary_message_sender"
+            android:title="@string/settingsSecondaryMessageSender"
+            app:iconSpaceReserved="false"
+            app:summary="@string/settingsSecondaryMessageSenderSummary" />
     </PreferenceCategory>
 </PreferenceScreen>
