@@ -77,6 +77,7 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
         if (moduleActive) {
             findViewById<TextView>(R.id.mainActivityModuleActiveText)?.setText(R.string.moduleActive)
             // 获取要展示的信息
+            var socketPort:Int = Int.MIN_VALUE
             IMessageSender.sendDefault<HomePageModuleInfoMessage>(
                 context = this,
                 key = MessageKeyConstants.getHomePageModuleInfo,
@@ -85,9 +86,9 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
                     homePageModuleInfoMessage.defaultMaxAdjStr
                 findViewById<TextView>(R.id.trim_mem_opt_threshold)?.text =
                     homePageModuleInfoMessage.minOptimizeRssInMBytesStr
-
-                messageSender.init(this, homePageModuleInfoMessage.socketPort)
+                socketPort = homePageModuleInfoMessage.socketPort
             }
+            messageSender.init(this, socketPort)
         }
 
         // 查询运行中app的信息

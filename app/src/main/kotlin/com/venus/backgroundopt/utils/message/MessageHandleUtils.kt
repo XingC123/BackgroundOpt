@@ -28,6 +28,7 @@ import com.venus.backgroundopt.utils.JsonUtils
 import com.venus.backgroundopt.utils.log.logError
 import com.venus.backgroundopt.utils.log.logErrorAndroid
 import com.venus.backgroundopt.utils.log.logInfoAndroid
+import com.venus.backgroundopt.utils.log.logWarnAndroid
 import com.venus.backgroundopt.utils.message.handle.AppCompactListMessageHandler
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler
 import com.venus.backgroundopt.utils.message.handle.AppWebviewProcessProtectMessageHandler
@@ -139,6 +140,10 @@ interface IMessageSender {
     }
 }
 
+class NoImplMessageSender : IMessageSender {
+    override fun send(key: String, value: Any): String? = null
+}
+
 class DefaultMessageSender(
     private val context: Context,
 ) : IMessageSender {
@@ -186,7 +191,10 @@ class MessageSender {
     fun init(context: Context, socketPort: Int) {
         executor.execute {
             // 支持socket传输
-            if (SocketModuleMessageHandler.isPortValid(socketPort)) {
+            if (socketPort == Int.MIN_VALUE) {
+                logWarnAndroid("无任何消息实现~")
+                sender = NoImplMessageSender()
+            } else if (SocketModuleMessageHandler.isPortValid(socketPort)) {
                 logInfoAndroid("Socket通信~")
                 sender = SocketMessageSender(socketPort = socketPort)
             } else {
@@ -222,9 +230,11 @@ class MessageSender {
             is SocketMessageSender -> {
                 executor.execute(block)
             }
+
             is DefaultMessageSender -> {
                 block()
             }
+
             else -> {}
         }
     }
