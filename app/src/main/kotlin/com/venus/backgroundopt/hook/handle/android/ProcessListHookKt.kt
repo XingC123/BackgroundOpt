@@ -40,6 +40,7 @@ import com.venus.backgroundopt.utils.getObjectFieldValue
 import com.venus.backgroundopt.utils.ifTrue
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
+import com.venus.backgroundopt.utils.message.handle.GlobalOomScorePolicy
 import com.venus.backgroundopt.utils.message.handle.getCustomMainProcessOomScore
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import java.util.concurrent.ConcurrentHashMap
@@ -300,6 +301,32 @@ class ProcessListHookKt(
         }*/ max(curAdj, ProcessRecord.SUB_PROC_ADJ)
     }
 
+    /**
+     * 全局oom分数处理器
+     */
+    @Volatile
+    private var globalOomScoreAdjHandler: GlobalOomScoreAdjHandler = run {
+        val globalOomScorePolicy = HookCommonProperties.globalOomScorePolicy
+        val adjHandler = getGlobalOomScoreAdjHandler(globalOomScorePolicy.value)
+
+        globalOomScorePolicy.addListener(GlobalOomScoreAdjHandler.PROPERTY_LISTENER_KEY) { _, newValue ->
+            globalOomScoreAdjHandler = getGlobalOomScoreAdjHandler(newValue)
+        }
+
+        adjHandler
+    }
+
+    private fun getGlobalOomScoreAdjHandler(
+        globalOomScorePolicy: GlobalOomScorePolicy
+    ): GlobalOomScoreAdjHandler {
+        return when (globalOomScorePolicy.globalOomScoreEffectiveScope) {
+            GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS -> MainProcessGlobalOomScoreAdjHandler()
+            GlobalOomScoreEffectiveScopeEnum.MAIN_AND_SUB_PROCESS -> MainAndSubProcessGlobalOomScoreAdjHandler()
+            GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS_ANY -> MainProcessAnyGlobalOomScoreAdjHandler()
+            GlobalOomScoreEffectiveScopeEnum.ALL -> AllGlobalOomScoreAdjHandler()
+        }
+    }
+
     private fun handleSetOomAdj(param: MethodHookParam) {
         val pid = param.args[0] as Int
         // 获取当前进程对象
@@ -351,7 +378,6 @@ class ProcessListHookKt(
 
         // 最终要被系统设置的oom分数
         var finalApplyOomScoreAdj = curRawAdj
-        val globalOomScoreEffectiveScopeEnum = globalOomScorePolicy.globalOomScoreEffectiveScope
         val isHighPriorityProcess = process.isHighPriorityProcess().ifTrue {
             oomAdjustLevel = OomAdjustLevel.FIRST
         }
@@ -370,13 +396,12 @@ class ProcessListHookKt(
                 possibleAdj
             }
         } else if (globalOomScorePolicy.enabled
-            && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.ALL
-                    || isHighPriorityProcess && (globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS_ANY || isUserSpaceAdj)
-                    || isUserSpaceAdj && globalOomScoreEffectiveScopeEnum == GlobalOomScoreEffectiveScopeEnum.MAIN_AND_SUB_PROCESS
-                    )
+            && globalOomScoreAdjHandler.isShouldHandle(
+                isMainProcess = mainProcess,
+                isUserSpaceAdj = isUserSpaceAdj,
+                isHighPriorityProcess = isHighPriorityProcess
+            )
         ) {
-            // 逻辑概要:
-            // 开启全局oom && (作用域 == ALL || isHighPriorityProcess && (作用域 == MAIN_PROC_ANY || isUserSpaceAdj) || /* 普通子进程 或 !isUserSpaceAdj */ isUserSpaceAdj && 作用域 == MAIN_AND_SUB_PROC)
             finalApplyOomScoreAdj = applyHighPriorityProcessFinalAdj(
                 appInfo = appInfo,
                 appOptimizePolicy = appOptimizePolicy,
@@ -563,6 +588,61 @@ class ProcessListHookKt(
         val userId = ProcessRecord.getUserId(proc)
         val packageName = ProcessRecord.getPkgName(proc)
         runningInfo.startProcess(proc, uid, userId, packageName, pid)
+    }
+}
+
+/**
+ * 全局OOM ADJ处理器接口
+ */
+interface GlobalOomScoreAdjHandler {
+    fun isShouldHandle(
+        isUserSpaceAdj: Boolean,
+        isMainProcess: Boolean,
+        isHighPriorityProcess: Boolean
+    ): Boolean
+
+    companion object {
+        const val PROPERTY_LISTENER_KEY = "GlobalOomScoreAdjHandler"
+    }
+}
+
+class MainProcessGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler {
+    override fun isShouldHandle(
+        isUserSpaceAdj: Boolean,
+        isMainProcess: Boolean,
+        isHighPriorityProcess: Boolean
+    ): Boolean {
+        return isMainProcess
+    }
+}
+
+class AllGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler {
+    override fun isShouldHandle(
+        isUserSpaceAdj: Boolean,
+        isMainProcess: Boolean,
+        isHighPriorityProcess: Boolean
+    ): Boolean {
+        return true
+    }
+}
+
+class MainProcessAnyGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler {
+    override fun isShouldHandle(
+        isUserSpaceAdj: Boolean,
+        isMainProcess: Boolean,
+        isHighPriorityProcess: Boolean
+    ): Boolean {
+        return isHighPriorityProcess && isUserSpaceAdj
+    }
+}
+
+class MainAndSubProcessGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler {
+    override fun isShouldHandle(
+        isUserSpaceAdj: Boolean,
+        isMainProcess: Boolean,
+        isHighPriorityProcess: Boolean
+    ): Boolean {
+        return isUserSpaceAdj
     }
 }
 
