@@ -78,6 +78,9 @@ class ProcessRecord(
         // 高优先级子进程的最大adj
         var HIGH_PRIORITY_SUB_PROC_DEFAULT_MAX_ADJ = ProcessList.UNKNOWN_ADJ
 
+        // 是否设置默认最大adj
+        var isNeedSetDefaultMaxAdj = false
+
         @JvmField
         var defaultMaxAdjStr = "null"
 
@@ -99,11 +102,16 @@ class ProcessRecord(
 
         init {
             // 根据配置文件决定defaultMaxAdj
-            val oomMode = HookCommonProperties.oomWorkModePref.oomMode
-            defaultMaxAdj = when (oomMode) {
+            when (HookCommonProperties.oomWorkModePref.oomMode) {
                 OomWorkModePref.MODE_STRICT,
                 OomWorkModePref.MODE_STRICT_SECONDARY,
-                OomWorkModePref.MODE_BALANCE_PLUS -> ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
+                OomWorkModePref.MODE_BALANCE_PLUS -> {
+                    isNeedSetDefaultMaxAdj = true
+
+                    defaultMaxAdj = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
+                    // 高优先级子进程
+                    HIGH_PRIORITY_SUB_PROC_DEFAULT_MAX_ADJ = ProcessList.VISIBLE_APP_ADJ
+                }
                 // OomWorkModePref.MODE_NEGATIVE -> ProcessList.HEAVY_WEIGHT_APP_ADJ
                 else -> ProcessList.UNKNOWN_ADJ
             }
@@ -111,14 +119,6 @@ class ProcessRecord(
                 if (defaultMaxAdj == ProcessList.UNKNOWN_ADJ) "系统默认" else defaultMaxAdj
             }"
             logInfo(logStr = "最大oom_score_adj: $defaultMaxAdjStr")
-
-            // 高优先级子进程
-            HIGH_PRIORITY_SUB_PROC_DEFAULT_MAX_ADJ = when (oomMode) {
-                OomWorkModePref.MODE_STRICT,
-                OomWorkModePref.MODE_STRICT_SECONDARY,
-                OomWorkModePref.MODE_BALANCE_PLUS -> ProcessList.VISIBLE_APP_ADJ
-                else -> ProcessList.UNKNOWN_ADJ
-            }
 
             // 计算最小的、要进行优化的资源占用的值
             RunningInfo.getInstance().memInfoReader?.let { memInfoReader ->
