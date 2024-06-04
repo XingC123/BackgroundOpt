@@ -27,7 +27,6 @@ import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.HookTagConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManager
-import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.ApplicationExitInfo
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.utils.SystemUtils
@@ -121,7 +120,7 @@ class CleanUpRemovedTaskHook(
             val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[appInfo.packageName]
             val globalOomScorePolicy = HookCommonProperties.globalOomScorePolicy.value
 
-            if (appOptimizePolicy != null && appOptimizePolicy.enableCustomMainProcessOomScore) {
+            if (appOptimizePolicy?.enableCustomMainProcessOomScore == true) {
                 // 自定义主进程会优先于全局oom。
                 // 因此此处只要不需要处理, 那会由系统解决
                 if (appOptimizePolicy.customMainProcessOomScore <= ProcessList.PERSISTENT_PROC_ADJ) {
@@ -216,36 +215,33 @@ class CleanUpRemovedTaskHook(
         @JvmStatic
         fun killProcessesForRemovedTask() {
             val set = removedTaskWindowProcessControllerSet
-            if (set.isNotEmpty()) {
-                synchronized(ActivityManagerService.activityManagerServiceClazz) {
-                    set.forEach { windowProcessController ->
-                        windowProcessController.getObjectFieldValue(
-                            fieldName = FieldConstants.mOwner
-                        )?.let inner@{ processRecord ->
-                            val mReceivers = processRecord.getObjectFieldValue(
-                                fieldName = FieldConstants.mReceivers
-                            ) ?: return@inner
-                            val numberOfCurReceivers =
-                                mReceivers.callMethod(methodName = MethodConstants.numberOfCurReceivers)
-                            // 这里舍弃了安卓对windowProcessController的另一个判断
-                            if (numberOfCurReceivers == 0) {
-                                processRecord.callMethod(
-                                    methodName = MethodConstants.killLocked,
-                                    "remove task",
-                                    ApplicationExitInfo.REASON_USER_REQUESTED,
-                                    ApplicationExitInfo.SUBREASON_REMOVE_TASK,
-                                    true
-                                )
-                            } else {
-                                processRecord.callMethod(
-                                    methodName = MethodConstants.setWaitingToKill,
-                                    "remove task"
-                                )
-                            }
-                        }
-                        set.remove(windowProcessController)
+            set.forEach { windowProcessController ->
+                windowProcessController.getObjectFieldValue(
+                    fieldName = FieldConstants.mOwner
+                )?.let inner@{ processRecord ->
+                    val mReceivers = processRecord.getObjectFieldValue(
+                        fieldName = FieldConstants.mReceivers
+                    ) ?: return@inner
+                    val numberOfCurReceivers = mReceivers.callMethod(
+                        methodName = MethodConstants.numberOfCurReceivers
+                    )
+                    // 这里舍弃了安卓对windowProcessController的另一个判断
+                    if (numberOfCurReceivers == 0) {
+                        processRecord.callMethod(
+                            methodName = MethodConstants.killLocked,
+                            "remove task",
+                            ApplicationExitInfo.REASON_USER_REQUESTED,
+                            ApplicationExitInfo.SUBREASON_REMOVE_TASK,
+                            true
+                        )
+                    } else {
+                        processRecord.callMethod(
+                            methodName = MethodConstants.setWaitingToKill,
+                            "remove task"
+                        )
                     }
                 }
+                set.remove(windowProcessController)
             }
         }
     }
