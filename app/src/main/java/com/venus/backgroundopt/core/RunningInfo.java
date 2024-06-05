@@ -37,6 +37,7 @@ import com.venus.backgroundopt.hook.handle.android.ProcessListHookKtKt;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
 import com.venus.backgroundopt.hook.handle.android.entity.PackageManagerService;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.manager.application.DefaultApplicationManager;
 import com.venus.backgroundopt.manager.message.ModuleMessageManager;
@@ -661,7 +662,7 @@ public class RunningInfo implements ILogger {
                     .filter(processRecord -> !processRecord.getMainProcess())
                     .filter(ProcessListHookKtKt::isHighPrioritySubProcess)
                     .forEach(processRecord -> {
-                        activityManagerService.getProcessList().writeLmkd(
+                        ProcessList.writeLmkd(
                                 processRecord.getPid(),
                                 processRecord.getUid(),
                                 adj

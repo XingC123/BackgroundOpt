@@ -17,9 +17,12 @@
 
 package com.venus.backgroundopt.hook.handle.android.entity;
 
+import androidx.annotation.NonNull;
+
 import com.venus.backgroundopt.annotation.AndroidMethod;
 import com.venus.backgroundopt.annotation.AndroidObject;
 import com.venus.backgroundopt.annotation.AndroidObjectField;
+import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.ApplicationIdentity;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
@@ -221,6 +224,21 @@ public class ProcessList implements ILogger {
     @AndroidObjectField
     static final byte LMK_STATE_CHANGED = 9; // Msg to subscribed clients on state changed
 
+    private static final Class<?> processListClazz;
+
+    @NonNull
+    public static Class<?> getProcessListClazz() {
+        return processListClazz;
+    }
+
+    static {
+        ClassLoader classLoader = RunningInfo.getInstance().getClassLoader();
+        processListClazz = XposedUtilsKt.findClass(
+                ClassConstants.ProcessList,
+                classLoader
+        );
+    }
+
     @AndroidObject(classPath = ClassConstants.ProcessList)
     private final Object processList;
     // 系统进程列表
@@ -364,19 +382,21 @@ public class ProcessList implements ILogger {
         return processRecord.get();
     }
 
+    private static final Class<?>[] writeLmkdParamTypes = new Class[]{ByteBuffer.class, ByteBuffer.class};
+
     @AndroidMethod
     @SuppressWarnings("all")
-    public boolean writeLmkd(ByteBuffer buf, ByteBuffer repl) {
-        return (boolean) XposedUtilsKt.callMethod(
-                processList,
+    public static boolean writeLmkd(ByteBuffer buf, ByteBuffer repl) {
+        return (boolean) XposedUtilsKt.callStaticMethod(
+                processListClazz,
                 MethodConstants.writeLmkd,
+                writeLmkdParamTypes,
                 buf,
                 repl
         );
     }
 
-    @SuppressWarnings("all")
-    public boolean writeLmkd(int pid, int uid, int adj) {
+    public static boolean writeLmkd(int pid, int uid, int adj) {
         ByteBuffer buf = ByteBuffer.allocate(4 * 4);
         buf.putInt(LMK_PROCPRIO);
         buf.putInt(pid);

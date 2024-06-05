@@ -448,7 +448,12 @@ class ProcessListHookKt(
         }
 
         if (doHookOriginalAdj) {
-            param.args[2] = finalApplyOomScoreAdj
+            param.result = null
+            ProcessList.writeLmkd(
+                pid,
+                process.uid,
+                finalApplyOomScoreAdj
+            )
         }
 
         // 记录本次系统计算的分数
