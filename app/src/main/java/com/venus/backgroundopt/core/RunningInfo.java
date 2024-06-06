@@ -286,7 +286,7 @@ public class RunningInfo implements ILogger {
 
         String packageName = appInfo.getPackageName();
         if (packageName == null) {
-            getLogger().warn("kill: 包名为空");
+            getLogger().warn("kill: 包名为空(uid: " + appInfo.getUid() + ")");
             return;
         }
 
