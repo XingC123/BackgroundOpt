@@ -44,8 +44,6 @@ import com.venus.backgroundopt.manager.message.ModuleMessageManager;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.reference.PropertyChangeListener;
 import com.venus.backgroundopt.service.ProcessDaemonService;
-import com.venus.backgroundopt.utils.ThrowableUtilsKt;
-import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.io.IOException;
@@ -292,17 +290,9 @@ public class RunningInfo implements ILogger {
             return;
         }
 
-        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
-            getLogger().error(
-                    "杀死app(packageName: " + packageName + ", userId: " + appInfo.getUserId() + ")出现错误",
-                    throwable
-            );
-            return null;
-        }, () -> {
-            /*ConcurrentUtilsKt.lock(appInfo, () -> {*/
+        try {
             // 从运行列表移除
             AppInfo remove = runningApps.remove(getRunningAppIdentifier(appInfo.getUserId(), packageName));
-
             if (remove != null) {
                 // 从待处理列表中移除
                 activeAppGroup.remove(appInfo);
@@ -322,10 +312,12 @@ public class RunningInfo implements ILogger {
                     getLogger().warn("kill: 未找到移除项 -> userId: " + appInfo.getUserId() + ", packageName: " + packageName);
                 }
             }
-                /*return null;
-            });*/
-            return null;
-        });
+        } catch (Throwable throwable) {
+            getLogger().error(
+                    "杀死app(packageName: " + packageName + ", userId: " + appInfo.getUserId() + ")出现错误",
+                    throwable
+            );
+        }
     }
 
     public void forceStopRunningApp(@NonNull AppInfo appInfo) {
@@ -333,19 +325,11 @@ public class RunningInfo implements ILogger {
         if (packageName == null) {
             return;
         }
-        ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
-            /*ConcurrentUtilsKt.lock(appInfo, () -> {*/
-            ThrowableUtilsKt.runCatchThrowable(null, throwable -> {
-                getLogger().error("强制停止app出错(uid: " + appInfo.getUid() + ", packageName: " + packageName + ")", throwable);
-                return null;
-            }, null, () -> {
-                activityManagerService.forceStopPackage(packageName, appInfo.getUserId());
-                return null;
-            });
-                /*return null;
-            });*/
-            return null;
-        });
+        try {
+            activityManagerService.forceStopPackage(packageName, appInfo.getUserId());
+        } catch (Throwable throwable) {
+            getLogger().error("强制停止app出错(uid: " + appInfo.getUid() + ", packageName: " + packageName + ")", throwable);
+        }
     }
 
     /* *************************************************************************
