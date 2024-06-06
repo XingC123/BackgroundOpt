@@ -38,7 +38,10 @@ class GlobalOomScoreValueMessageHandler : MessageHandler {
             value = value
         ) { score ->
             if (GlobalOomScorePolicy.isCustomGlobalOomScoreIllegal(score)) {
-                HookCommonProperties.globalOomScorePolicy.value.customGlobalOomScore = score
+                val old = HookCommonProperties.globalOomScorePolicy.value
+                HookCommonProperties.globalOomScorePolicy.value = old.apply {
+                    customGlobalOomScore = score
+                }
                 logger.info("全局oom分数切换为: $score")
             } else {
                 logger.warn("不合法的全局OOM分数: ${score}")

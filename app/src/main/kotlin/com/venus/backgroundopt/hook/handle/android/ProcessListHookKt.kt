@@ -38,6 +38,7 @@ import com.venus.backgroundopt.utils.clamp
 import com.venus.backgroundopt.utils.getBooleanFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
 import com.venus.backgroundopt.utils.ifTrue
+import com.venus.backgroundopt.utils.log.logInfo
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScorePolicy
@@ -319,6 +320,9 @@ class ProcessListHookKt(
     private fun getGlobalOomScoreAdjHandler(
         globalOomScorePolicy: GlobalOomScorePolicy
     ): GlobalOomScoreAdjHandler {
+        if (!globalOomScorePolicy.enabled) {
+            return DisabledGlobalOomScoreAdjHandler()
+        }
         return when (globalOomScorePolicy.globalOomScoreEffectiveScope) {
             GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS -> MainProcessGlobalOomScoreAdjHandler()
             GlobalOomScoreEffectiveScopeEnum.MAIN_AND_SUB_PROCESS -> MainAndSubProcessGlobalOomScoreAdjHandler()
@@ -395,8 +399,7 @@ class ProcessListHookKt(
                 process.clearProcessUnexpectedState()
                 possibleAdj
             }
-        } else if (globalOomScorePolicy.enabled
-            && globalOomScoreAdjHandler.isShouldHandle(
+        } else if (globalOomScoreAdjHandler.isShouldHandle(
                 isMainProcess = mainProcess,
                 isUserSpaceAdj = isUserSpaceAdj,
                 isHighPriorityProcess = isHighPriorityProcess
@@ -599,19 +602,39 @@ class ProcessListHookKt(
 /**
  * 全局OOM ADJ处理器接口
  */
-interface GlobalOomScoreAdjHandler {
-    fun isShouldHandle(
+abstract class GlobalOomScoreAdjHandler {
+    init {
+        logTag()?.let { tag ->
+            logInfo("全局OOM处理器: ${tag}")
+        }
+    }
+
+    abstract fun isShouldHandle(
         isUserSpaceAdj: Boolean,
         isMainProcess: Boolean,
         isHighPriorityProcess: Boolean
     ): Boolean
+
+    open fun logTag(): String? = null
 
     companion object {
         const val PROPERTY_LISTENER_KEY = "GlobalOomScoreAdjHandler"
     }
 }
 
-class MainProcessGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler {
+class DisabledGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler() {
+    override fun isShouldHandle(
+        isUserSpaceAdj: Boolean,
+        isMainProcess: Boolean,
+        isHighPriorityProcess: Boolean
+    ): Boolean {
+        return false
+    }
+
+    override fun logTag(): String = "禁用"
+}
+
+class MainProcessGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler() {
     override fun isShouldHandle(
         isUserSpaceAdj: Boolean,
         isMainProcess: Boolean,
@@ -619,9 +642,11 @@ class MainProcessGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler {
     ): Boolean {
         return isMainProcess
     }
+
+    override fun logTag(): String = GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS.uiName
 }
 
-class AllGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler {
+class AllGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler() {
     override fun isShouldHandle(
         isUserSpaceAdj: Boolean,
         isMainProcess: Boolean,
@@ -629,9 +654,11 @@ class AllGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler {
     ): Boolean {
         return true
     }
+
+    override fun logTag(): String = GlobalOomScoreEffectiveScopeEnum.ALL.uiName
 }
 
-class MainProcessAnyGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler {
+class MainProcessAnyGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler() {
     override fun isShouldHandle(
         isUserSpaceAdj: Boolean,
         isMainProcess: Boolean,
@@ -639,9 +666,11 @@ class MainProcessAnyGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler {
     ): Boolean {
         return isHighPriorityProcess && isUserSpaceAdj
     }
+
+    override fun logTag(): String = GlobalOomScoreEffectiveScopeEnum.MAIN_PROCESS_ANY.uiName
 }
 
-class MainAndSubProcessGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler {
+class MainAndSubProcessGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler() {
     override fun isShouldHandle(
         isUserSpaceAdj: Boolean,
         isMainProcess: Boolean,
@@ -649,6 +678,8 @@ class MainAndSubProcessGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler {
     ): Boolean {
         return isUserSpaceAdj
     }
+
+    override fun logTag(): String = GlobalOomScoreEffectiveScopeEnum.MAIN_AND_SUB_PROCESS.uiName
 }
 
 /**
