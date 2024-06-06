@@ -396,7 +396,7 @@ class ProcessListHookKt(
                 appOptimizePolicy = appOptimizePolicy,
                 curAdj = curRawAdj,
             ) {
-                process.clearProcessUnexpectedState()
+                // process.clearProcessUnexpectedState()
                 possibleAdj
             }
         } else if (globalOomScoreAdjHandler.isShouldHandle(
@@ -410,7 +410,7 @@ class ProcessListHookKt(
                 appOptimizePolicy = appOptimizePolicy,
                 curAdj = curRawAdj,
             ) {
-                process.clearProcessUnexpectedState()
+                // process.clearProcessUnexpectedState()
                 globalOomScorePolicy.customGlobalOomScore
             }
         } else if (isUserSpaceAdj) {
@@ -521,7 +521,7 @@ class ProcessListHookKt(
         }
 
         return if (mainProcess) {
-            processRecord.clearProcessUnexpectedState()
+            // processRecord.clearProcessUnexpectedState()
             possibleFinalAdj
         } else {
             possibleFinalAdj + simpleLmkMaxAndMinOffset
@@ -803,7 +803,7 @@ open class OomScoreAdjHandler {
         mainProcess: Boolean = processRecord.mainProcess,
     ): Int {
         return if (mainProcess) {
-            processRecord.clearProcessUnexpectedState()
+            // processRecord.clearProcessUnexpectedState()
 
             if (appInfo.isImportSystemApp) {
                 // 严格模式我们设置了maxAdj。因此使用oomScoreAdj不够精确
