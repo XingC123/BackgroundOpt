@@ -337,13 +337,17 @@ class ProcessListHookKt(
         val process = runningInfo.getRunningProcess(pid) ?: return
         val appInfo = process.appInfo
 
+        // app已死亡
+        if (appInfo.appGroupEnum == AppGroupEnum.DEAD) {
+            return
+        }
+
         val globalOomScorePolicy = HookCommonProperties.globalOomScorePolicy.value
         if (!globalOomScorePolicy.enabled) {
             // 若app未进入后台, 则不进行设置
             /*if (appInfo.appGroupEnum !in processedAppGroup) {
                 return
             }*/
-            // 使用when分支而不是for循环
             when (appInfo.appGroupEnum) {
                 AppGroupEnum.NONE, AppGroupEnum.ACTIVE, AppGroupEnum.IDLE -> {
                     // 将会被处理
@@ -353,14 +357,6 @@ class ProcessListHookKt(
             }
         }
 
-        if (appInfo.appGroupEnum == AppGroupEnum.DEAD) {
-            // app已经死亡
-            // 24.3.7的逻辑是: 主进程被移除, 则会移除AppInfo。但是这个移除行为是在线程池完成的。
-            // 因此, 与当前的逻辑是有一个线程安全问题的。
-            // 所以我们在这里再确认下是否AppInfo已经被标记为死亡
-            // 24.3.25更正: 已弃用线程池异步方式, 但进行判断是更严谨的
-            return
-        }
         // 本次要设置的adj
         val adj = param.args[2] as Int
         val mainProcess = process.mainProcess
