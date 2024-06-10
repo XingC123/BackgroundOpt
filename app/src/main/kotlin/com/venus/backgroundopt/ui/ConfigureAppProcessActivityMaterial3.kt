@@ -221,7 +221,13 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                             return@setOnClickListener
                         }
 
-                        appOptimizePolicy.customMainProcessOomScore = oomScore
+                        appOptimizePolicy.apply {
+                            enableCustomMainProcessOomScore = true
+                            customMainProcessOomScore = oomScore
+                        }
+
+                        // 更新tag显示
+                        appItem.appConfiguredEnumSet.add(AppConfiguredEnum.CustomMainProcessOomScore)
 
                         appOptimizePolicySaveAction(appOptimizePolicy)
                     }
@@ -251,19 +257,21 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                 enableInputArea(switch.isChecked)
                 // 监听
                 switch.setOnCheckedChangeListener { _, isChecked ->
-                    // 写入数据到对象
-                    appOptimizePolicy.enableCustomMainProcessOomScore = isChecked
+                    if (isChecked && customMainProcessOomScoreEditText.text.toString().trim().isNotBlank()) {
+                        appOptimizePolicy.enableCustomMainProcessOomScore = true
+                        saveAppMemoryOptimize(appOptimizePolicy = appOptimizePolicy, context = this)
+                    } else {
+                        // 重置值
+                        customMainProcessOomScoreEditText?.text?.clear()
 
-                    // 更新tag显示
-                    appItem.appConfiguredEnumSet.apply {
-                        if (isChecked) {
-                            add(AppConfiguredEnum.CustomMainProcessOomScore)
-                        } else {
-                            remove(AppConfiguredEnum.CustomMainProcessOomScore)
+                        appOptimizePolicy.apply {
+                            enableCustomMainProcessOomScore = false
+                            customMainProcessOomScore = Int.MIN_VALUE
                         }
+                        // 更新tag显示
+                        appItem.appConfiguredEnumSet.remove(AppConfiguredEnum.CustomMainProcessOomScore)
+                        appOptimizePolicySaveAction(appOptimizePolicy)
                     }
-
-                    appOptimizePolicySaveAction(appOptimizePolicy)
 
                     // 输入框禁用与启用
                     enableInputArea(isChecked)
