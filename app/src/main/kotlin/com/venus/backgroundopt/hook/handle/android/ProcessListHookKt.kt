@@ -461,22 +461,12 @@ class ProcessListHookKt(
         // 此时, 若在①中设置了分组, 在②中会再次设置。即: 新打开app需要连续两次appInfo的内存分组迁移, 这是不必要的。
         // 我们的目标是保活以及额外处理, 那么只需在①中将其放入running.runningApps, 在设置oom时就可以被管理。
         // 此时那些没有打开过页面的app就可以被设置内存分组, 相应的进行内存优化处理。
-        if (mainProcess) {
-            /*ConcurrentUtils.execute(runningInfo.activityEventChangeExecutor, { throwable ->
-                logger.error(
-                    "检查App(userId: ${appInfo.userId}, 包名: ${appInfo.packageName}, uid: $uid" +
-                            ")是否需要放置到idle分组出错: ${throwable.message}",
-                    throwable
-                )
-            }) {*/
-            if (appInfo.appGroupEnum == AppGroupEnum.NONE) {
-                runningInfo.handleActivityEventChange(
-                    ActivityManagerServiceHookKt.ACTIVITY_STOPPED,
-                    null,
-                    appInfo
-                )
-                // }
-            }
+        if (appInfo.appGroupEnum == AppGroupEnum.NONE && mainProcess) {
+            runningInfo.handleActivityEventChange(
+                ActivityManagerServiceHookKt.ACTIVITY_STOPPED,
+                null,
+                appInfo
+            )
         }
 
         // 内存压缩
