@@ -144,9 +144,18 @@ public class RunningInfo implements ILogger {
 
     @NonNull
     public FindAppResult getFindAppResult(int userId, String packageName) {
-        return findAppResultMap.computeIfAbsent(
+        return getFindAppResult(
                 getNormalAppKey(userId, packageName),
-                key -> activityManagerService.getFindAppResult(userId, packageName)
+                userId,
+                packageName
+        );
+    }
+
+    @NonNull
+    private FindAppResult getFindAppResult(String key, int userId, String packageName) {
+        return findAppResultMap.computeIfAbsent(
+                key,
+                k -> activityManagerService.getFindAppResult(userId, packageName)
         );
     }
 
@@ -158,10 +167,11 @@ public class RunningInfo implements ILogger {
      * @return key
      */
     public String getNormalAppKey(int userId, String packageName) {
-        if (userId == ActivityManagerService.MAIN_USER) {
-            return packageName;
-        }
-        return userId + ":" + packageName;
+        return getAppKey(userId, packageName);
+    }
+
+    private String getAppKey(int userId, String packageName) {
+        return userId == ActivityManagerService.MAIN_USER ? packageName : userId + ":" + packageName;
     }
 
     /**
@@ -227,7 +237,7 @@ public class RunningInfo implements ILogger {
      */
     @NonNull
     public String getRunningAppIdentifier(int userId, String packageName) {
-        return getNormalAppKey(userId, packageName);
+        return getAppKey(userId, packageName);
     }
 
     /**
@@ -250,6 +260,11 @@ public class RunningInfo implements ILogger {
     @Nullable
     public AppInfo getRunningAppInfo(int userId, String packageName) {
         return runningApps.get(getRunningAppIdentifier(userId, packageName));
+    }
+
+    @Nullable
+    private AppInfo getRunningAppInfo(String key) {
+        return runningApps.get(key);
     }
 
     /**
@@ -467,11 +482,11 @@ public class RunningInfo implements ILogger {
             );
             return null;
         }, () -> {*/
-        FindAppResult findAppResult = getFindAppResult(userId, packageName);
+        String appKey = getAppKey(userId, packageName);
+        FindAppResult findAppResult = getFindAppResult(appKey, userId, packageName);
         AppInfo appInfo;
-        if (findAppResult.getApplicationInfo() == null
-                || (appInfo = getRunningAppInfo(userId, packageName)) == null) {
-            return /*null*/;
+        if ((appInfo = getRunningAppInfo(appKey)) == null || findAppResult.getApplicationInfo() == null) {
+            return;
         }
 
         handleActivityEventChange(event, componentName, appInfo);
