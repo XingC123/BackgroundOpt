@@ -344,6 +344,10 @@ class ProcessListHookKt(
         }
     }
 
+    fun addAdjSetAction(block: () -> Unit) {
+        adjSetActionPool.execute(block)
+    }
+
     fun scheduleAdjSetAction(block: () -> Unit): ScheduledFuture<*> {
         return adjSetActionPool.schedule(block, 5L, TimeUnit.SECONDS)
     }
@@ -382,7 +386,7 @@ class ProcessListHookKt(
         }
 
         param.result = null
-        runningInfo.addActivityEventChangeAction {
+        addAdjSetAction {
             appInfo.lock {
                 handleSetOomAdjLocked(
                     process = process,
