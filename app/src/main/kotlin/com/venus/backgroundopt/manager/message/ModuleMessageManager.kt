@@ -22,6 +22,7 @@ import android.content.Intent
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.utils.JsonUtils
+import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.log.logDebug
 import com.venus.backgroundopt.utils.log.logError
 import com.venus.backgroundopt.utils.log.logInfo
@@ -58,7 +59,7 @@ class ModuleMessageManager(
 /**
  * 模块消息处理器
  */
-interface ModuleMessageHandler {
+interface ModuleMessageHandler : ILogger {
     val runningInfo: RunningInfo
 }
 
@@ -127,12 +128,23 @@ class SocketModuleMessageHandler(
             }.newInstance()
             while (true) {
                 val accept = socket.accept()
-                val objectInputStream = ObjectInputStream(accept.getInputStream())
+                val objectInputStream = runCatchThrowable(finallyBlock = {
+                    runCatchThrowable {
+                        accept.close()
+                    }
+                }, catchBlock = { throwable ->
+                    logger.error("创建消息接收流时发生异常！", throwable)
+                    null
+                }) {
+                    ObjectInputStream(accept.getInputStream())
+                } ?: continue
 
                 executor.execute {
                     runCatchThrowable(finallyBlock = {
-                        objectInputStream.close()
-                        accept.close()
+                        runCatchThrowable {
+                            objectInputStream.close()
+                            accept.close()
+                        }
                     }) {
                         val message = objectInputStream.readObject() as Message
                         if (BuildConfig.DEBUG) {
