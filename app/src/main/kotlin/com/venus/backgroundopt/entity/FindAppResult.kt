@@ -41,5 +41,9 @@ class FindAppResult() {
 }
 
 fun FindAppResult.getOrCreateAppInfo(block: (FindAppResult) -> AppInfo): AppInfo {
-    return appInfo ?: block(this)
+    return (appInfo ?: run {
+        block(this).also { appInfo = it }
+    }).apply {
+        init()
+    }
 }
