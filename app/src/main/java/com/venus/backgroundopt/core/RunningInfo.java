@@ -280,12 +280,15 @@ public class RunningInfo implements ILogger {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("创建新App记录: " + packageName + ", uid: " + uid);
             }
-            return FindAppResultKt.getOrCreateAppInfo(getFindAppResult(userId, packageName), result -> new AppInfo(
-                    userId,
-                    packageName,
-                    result,
-                    this
-            ).setUid(uid));
+            return FindAppResultKt.getOrCreateAppInfo(getFindAppResult(userId, packageName), result -> {
+                return AppInfo.newInstance(
+                        uid,
+                        userId,
+                        packageName,
+                        result,
+                        this
+                );
+            });
         });
     }
 

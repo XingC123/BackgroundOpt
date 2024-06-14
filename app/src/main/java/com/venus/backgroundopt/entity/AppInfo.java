@@ -34,8 +34,11 @@ import com.venus.backgroundopt.utils.concurrent.lock.LockFlag;
 import com.venus.backgroundopt.utils.log.ILogger;
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -68,17 +71,44 @@ public class AppInfo implements ILogger, LockFlag {
      * miui: 99910435 = 用户id+真正uid
      * 安卓13原生: 1010207 = 用户id+真正uid
      */
+    @DontClearField
     private int uid = Integer.MIN_VALUE;
+    @DontClearField
     private String packageName;
+    @DontClearField
     private int userId = Integer.MIN_VALUE;
 
-    public AppInfo(int userId, String packageName, FindAppResult findAppResult, RunningInfo runningInfo) {
+    private AppInfo(int userId, String packageName, FindAppResult findAppResult, RunningInfo runningInfo) {
         this.userId = userId;
         this.packageName = packageName;
         this.findAppResult = findAppResult;
         this.runningInfo = runningInfo;
+    }
+
+    public AppInfo init() {
+        appSwitchEvent.set(Integer.MIN_VALUE);
+        switchEventHandled.set(false);
+        componentNameAtomicReference.set(null);
+        appGroupEnum = AppGroupEnum.NONE;
 
         setShouldHandleAdj();
+
+        return this;
+    }
+
+    public static AppInfo newInstance(
+            int uid,
+            int userId,
+            String packageName,
+            FindAppResult findAppResult,
+            RunningInfo runningInfo
+    ) {
+        return new AppInfo(
+                userId,
+                packageName,
+                findAppResult,
+                runningInfo
+        ).setUid(uid);
     }
 
     /* *************************************************************************
@@ -86,20 +116,24 @@ public class AppInfo implements ILogger, LockFlag {
      * app进程信息                                                               *
      *                                                                         *
      **************************************************************************/
-    @SuppressWarnings("all")    // 别显示未final啦, 烦死辣
-    private RunningInfo runningInfo;
+    @DontClearField
+    private final RunningInfo runningInfo;
     private volatile ProcessRecord mProcessRecord;   // 主进程记录
 
     // 当前app被模块检测到的activity的ComponentName
-    @SuppressWarnings("all")
-    private Set<ComponentName> activities = Collections.newSetFromMap(new ConcurrentHashMap<>(4));
+    @DontClearField(reset = true)
+    private final Set<ComponentName> activities = Collections.newSetFromMap(new ConcurrentHashMap<>(4));
 
+    @DontClearField
     private final AtomicInteger appSwitchEvent = new AtomicInteger(Integer.MIN_VALUE); // app切换事件
 
+    @DontClearField(reset = true)
     private final AtomicBoolean switchEventHandled = new AtomicBoolean(false);    // 切换事件处理完毕
 
+    @DontClearField(reset = true)
     private final AtomicReference<ComponentName> componentNameAtomicReference = new AtomicReference<>(null);
 
+    @DontClearField
     private FindAppResult findAppResult;
 
     @Nullable
@@ -152,6 +186,7 @@ public class AppInfo implements ILogger, LockFlag {
      * adj处理                                                                  *
      *                                                                         *
      **************************************************************************/
+    @DontClearField
     @Deprecated
     public static final BiFunction<AppInfo, AppOptimizePolicy, Boolean> handleAdjDependOnAppOptimizePolicy = (appInfo, appOptimizePolicy) -> {
         if (appOptimizePolicy == null) {
@@ -165,12 +200,16 @@ public class AppInfo implements ILogger, LockFlag {
         };
     };
 
+    @DontClearField
     public static final BiFunction<AppInfo, AppOptimizePolicy, Boolean> handleAdjAlways = (appInfo, appOptimizePolicy) -> true;
 
+    @DontClearField
     public static final BiFunction<AppInfo, AppOptimizePolicy, Boolean> handleAdjNever = (appInfo, appOptimizePolicy) -> false;
 
+    @DontClearField
     public static final BiFunction<AppInfo, AppOptimizePolicy, Boolean> handleAdjIfHasActivity = (appInfo, appOptimizePolicy) -> appInfo.hasActivity();
 
+    @DontClearField
     public volatile BiFunction<AppInfo, AppOptimizePolicy, Boolean> shouldHandleAdj = AppInfo.handleAdjIfHasActivity;
 
     /**
@@ -228,22 +267,11 @@ public class AppInfo implements ILogger, LockFlag {
      * app进程信息(简单)                                                         *
      *                                                                         *
      **************************************************************************/
-
     // 当前app在本模块内的内存分组
+    @DontClearField
     private volatile AppGroupEnum appGroupEnum = AppGroupEnum.NONE;
 
     public void setAppGroupEnum(AppGroupEnum appGroupEnum) {
-//        synchronized (appGroupSetLock) {
-//            this.appGroupEnum = appGroupEnum;
-//            // 添加 切后台时所创建的所有进程(当app进入后台后, 新创建的子进程会自动被添加到待压缩列表中)
-//            if (!Objects.equals(runningInfo.getActiveLaunchPackageName(), packageName)) {   // 不是桌面进程
-//                switch (appGroupEnum) {
-//                    case IDLE -> runningInfo.getProcessManager().addCompactProcess(getProcesses());
-//                    case ACTIVE ->  /* 若为第一次打开app, 此时也会执行这里。此时无需考虑是否能移除, 因为还没开始添加(至少也要在app第一次进入后台才会开始添加) */
-//                            runningInfo.getProcessManager().cancelCompactProcess(getProcesses());
-//                }
-//            }
-//        }
         this.appGroupEnum = appGroupEnum;
     }
 
@@ -294,11 +322,15 @@ public class AppInfo implements ILogger, LockFlag {
      * 当前appInfo清理状态                                                       *
      *                                                                         *
      **************************************************************************/
+    @DontClearField
     private static final Field[] fields;
 
     static {
         fields = Arrays.stream(AppInfo.class.getDeclaredFields())
-                .filter(field -> !(field.getType().isPrimitive() || field.getType() == Field[].class || Modifier.isStatic(field.getModifiers())))
+                .filter(field -> {
+                    DontClearField dontClearField = field.getAnnotation(DontClearField.class);
+                    return dontClearField == null || dontClearField.reset();
+                })
                 .peek(field -> field.setAccessible(true))
                 .toArray(Field[]::new);
     }
@@ -308,19 +340,22 @@ public class AppInfo implements ILogger, LockFlag {
      */
     public void clearAppInfo() {
         try {
-            Object obj;
+            Object value;
             for (Field field : fields) {
-                obj = field.get(this);
-                if (obj instanceof Map<?, ?> map) {
-                    map.clear();
-                } else if (obj instanceof Collection<?> collection) {
-                    collection.clear();
-                } else if (obj instanceof AtomicReference<?> ap) {
-                    ap.set(null);
-                }
-
-                if (!(obj instanceof AppGroupEnum || obj instanceof Lock || obj instanceof FindAppResult)) {
+                value = field.get(this);
+                DontClearField dontClearField = field.getAnnotation(DontClearField.class);
+                if (dontClearField == null) {
                     field.set(this, null);
+                } else if (dontClearField.reset()) {
+                    if (value instanceof Map<?, ?> map) {
+                        map.clear();
+                    } else if (value instanceof Collection<?> collection) {
+                        collection.clear();
+                    } else if (value instanceof AtomicBoolean ab) {
+                        ab.set(false);
+                    } else if (value instanceof AtomicReference<?> ap) {
+                        ap.set(null);
+                    }
                 }
             }
         } catch (Throwable t) {
@@ -328,6 +363,16 @@ public class AppInfo implements ILogger, LockFlag {
                 getLogger().error("AppInfo清理失败", t);
             }
         }
+    }
+
+    /**
+     * 该注解用以标识那些不需要被清理的字段
+     */
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    private @interface DontClearField {
+        // 该字段需要被重置
+        boolean reset() default false;
     }
 
     /* *************************************************************************
@@ -417,8 +462,8 @@ public class AppInfo implements ILogger, LockFlag {
      * 类锁                                                                     *
      *                                                                         *
      **************************************************************************/
-    @SuppressWarnings("all")
-    private ReentrantLock lock = new ReentrantLock(true);
+    @DontClearField
+    private final ReentrantLock lock = new ReentrantLock(true);
 
     @NonNull
     @Override
