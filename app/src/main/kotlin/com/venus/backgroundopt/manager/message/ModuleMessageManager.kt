@@ -128,12 +128,11 @@ class SocketModuleMessageHandler(
             }.newInstance()
             while (true) {
                 val accept = socket.accept()
-                val objectInputStream = runCatchThrowable(finallyBlock = {
+                val objectInputStream = runCatchThrowable(catchBlock = { throwable ->
+                    logger.error("创建消息接收流时发生异常！", throwable)
                     runCatchThrowable {
                         accept.close()
                     }
-                }, catchBlock = { throwable ->
-                    logger.error("创建消息接收流时发生异常！", throwable)
                     null
                 }) {
                     ObjectInputStream(accept.getInputStream())
