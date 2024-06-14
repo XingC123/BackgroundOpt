@@ -14,13 +14,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.utils.message.handle
+
+package com.venus.backgroundopt.utils.message.handle
 
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.hook.HookCommonProperties
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
+import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
@@ -47,13 +49,23 @@ class SubProcessOomConfigChangeMessageHandler : MessageHandler {
             param,
             value
         ) { subProcessOomConfigChangeMessage ->
+            val processName = subProcessOomConfigChangeMessage.processName
             // 移除或添加oom策略。在下次调整进程oom_adj_score时生效
             if (subProcessOomConfigChangeMessage.subProcessOomPolicy.policyEnum != SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT) {
-                HookCommonProperties.subProcessOomPolicyMap[subProcessOomConfigChangeMessage.processName] =
+                HookCommonProperties.subProcessOomPolicyMap[processName] =
                     subProcessOomConfigChangeMessage.subProcessOomPolicy
             } else {
-                HookCommonProperties.subProcessOomPolicyMap.remove(subProcessOomConfigChangeMessage.processName)
+                HookCommonProperties.subProcessOomPolicyMap.remove(processName)
             }
+
+            // 是否需要更改进程的adj处理策略
+            val packageName = processName.substring(
+                0, processName.indexOf(PackageUtils.processNameSeparator)
+            )
+            ProcessRecord.resetAdjHandleType(
+                packageName = packageName,
+                processName = processName
+            )
 
             if (BuildConfig.DEBUG) {
                 logger.debug(

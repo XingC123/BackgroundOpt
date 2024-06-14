@@ -27,9 +27,9 @@ import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.annotation.AndroidObject;
-import com.venus.backgroundopt.annotation.UsageComment;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.FindAppResult;
+import com.venus.backgroundopt.entity.FindAppResultKt;
 import com.venus.backgroundopt.hook.base.IHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt;
@@ -44,6 +44,7 @@ import com.venus.backgroundopt.manager.message.ModuleMessageManager;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.reference.PropertyChangeListener;
 import com.venus.backgroundopt.service.ProcessDaemonService;
+import com.venus.backgroundopt.utils.concurrent.ConcurrentUtilsKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.io.IOException;
@@ -59,8 +60,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import de.robv.android.xposed.XC_MethodHook;
 
 /**
  * 运行信息
@@ -281,12 +280,12 @@ public class RunningInfo implements ILogger {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("创建新App记录: " + packageName + ", uid: " + uid);
             }
-            return new AppInfo(
+            return FindAppResultKt.getOrCreateAppInfo(getFindAppResult(userId, packageName), result -> new AppInfo(
                     userId,
                     packageName,
-                    getFindAppResult(userId, packageName),
+                    result,
                     this
-            ).setUid(uid);
+            ).setUid(uid));
         });
     }
 
@@ -457,10 +456,14 @@ public class RunningInfo implements ILogger {
 
     private final Consumer<AppInfo> putIntoActiveAction = this::putIntoActiveAppGroup;
 
-    private final ExecutorService activityEventChangeExecutor = Executors.newFixedThreadPool(4);
+    private final ExecutorService activityEventChangeExecutor = Executors.newFixedThreadPool(6);
 
     public ExecutorService getActivityEventChangeExecutor() {
         return activityEventChangeExecutor;
+    }
+
+    public void addActivityEventChangeAction(Runnable block) {
+        getActivityEventChangeExecutor().execute(block);
     }
 
     /**
@@ -471,17 +474,12 @@ public class RunningInfo implements ILogger {
      * @param componentName 组件
      */
     public void handleActivityEventChange(int event, int userId, @NonNull ComponentName componentName) {
-        handleActivityEventChange(event, userId, componentName.getPackageName(), componentName);
+        addActivityEventChangeAction(() -> {
+            handleActivityEventChange(event, userId, componentName.getPackageName(), componentName);
+        });
     }
 
     public void handleActivityEventChange(int event, int userId, @NonNull String packageName, @Nullable ComponentName componentName) {
-        /*ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
-            getLogger().error(
-                    "处理app切换事件(userId: " + userId + "包名: " + packageName + ", event: " + event + ")错误: " + throwable.getMessage(),
-                    throwable
-            );
-            return null;
-        }, () -> {*/
         String appKey = getAppKey(userId, packageName);
         FindAppResult findAppResult = getFindAppResult(appKey, userId, packageName);
         AppInfo appInfo;
@@ -489,9 +487,10 @@ public class RunningInfo implements ILogger {
             return;
         }
 
-        handleActivityEventChange(event, componentName, appInfo);
-            /*return null;
-        });*/
+        ConcurrentUtilsKt.lock(appInfo, () -> {
+            handleActivityEventChangeLocked(event, componentName, appInfo);
+            return null;
+        });
     }
 
     /**
@@ -517,13 +516,7 @@ public class RunningInfo implements ILogger {
      * @param componentName 当前组件
      * @param appInfo       app
      */
-    @UsageComment(
-            /**
-             * 在目前的逻辑实现下, 仅允许{@link com.venus.backgroundopt.hook.handle.android.ProcessListHookKt#handleSetOomAdj(XC_MethodHook.MethodHookParam)}调用
-            */
-            ""
-    )
-    public void handleActivityEventChange(int event, @Nullable ComponentName componentName, @NonNull AppInfo appInfo) {
+    public void handleActivityEventChangeLocked(int event, @Nullable ComponentName componentName, @NonNull AppInfo appInfo) {
         switch (event) {
             case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
                 Consumer<AppInfo> consumer;
@@ -590,14 +583,14 @@ public class RunningInfo implements ILogger {
     }
 
     private void putIntoActiveAppGroup(@NonNull AppInfo appInfo) {
-        // 重置切换事件处理状态
-        appInfo.setSwitchEventHandled(false);
-
         // 处理当前app
         handleCurApp(appInfo);
 
         activeAppGroup.add(appInfo);
         appInfo.setAppGroupEnum(AppGroupEnum.ACTIVE);
+
+        // 重置切换事件处理状态
+        appInfo.setSwitchEventHandled(false);
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入ActiveGroup");
@@ -610,6 +603,8 @@ public class RunningInfo implements ILogger {
 
         idleAppGroup.add(appInfo);
         appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
+
+        appInfo.setSwitchEventHandled(true);
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + "  被放入IdleGroup");
@@ -656,20 +651,23 @@ public class RunningInfo implements ILogger {
         ProcessListHookKt hookInstance = IHook.getHookInstance(ProcessListHookKt.class);
         if (hookInstance != null) {
             int adj = hookInstance.getOomAdjHandler().computeHighPrioritySubProcessAdj(0);
+            //hookInstance.addAdjSetAction(() -> {
             getRunningProcesses().stream()
                     .filter(processRecord -> processRecord.appInfo == appInfo)
                     .filter(processRecord -> !processRecord.getMainProcess())
                     .filter(ProcessListHookKtKt::isHighPrioritySubProcess)
                     .forEach(processRecord -> {
+                        // hookInstance.addAdjSetAction(processRecord, () -> {
                         ProcessList.writeLmkd(
                                 processRecord.getPid(),
                                 processRecord.getUid(),
                                 adj
                         );
+                        // return null;
+                        // });
                     });
+            //});
         }
-
-        appInfo.setSwitchEventHandled(true);
     }
 
     /* *************************************************************************

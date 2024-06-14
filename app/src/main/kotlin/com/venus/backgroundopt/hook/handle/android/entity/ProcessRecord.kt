@@ -34,6 +34,7 @@ import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_NEWLINE_TERM
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_OUT_LONG
+import com.venus.backgroundopt.hook.handle.android.isHighPriorityProcess
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.callMethod
 import com.venus.backgroundopt.utils.getBooleanFieldValue
@@ -41,7 +42,10 @@ import com.venus.backgroundopt.utils.getIntFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
 import com.venus.backgroundopt.utils.getStringFieldValue
 import com.venus.backgroundopt.utils.log.ILogger
+import com.venus.backgroundopt.utils.log.logDebug
 import com.venus.backgroundopt.utils.log.logInfo
+import com.venus.backgroundopt.utils.message.handle.getCustomMainProcessOomScore
+import com.venus.backgroundopt.utils.nullableFilter
 import com.venus.backgroundopt.utils.runCatchThrowable
 import com.venus.backgroundopt.utils.setIntFieldValue
 import java.math.RoundingMode
@@ -169,6 +173,8 @@ class ProcessRecord(
             if (mainProcess) {
                 this.appInfo.setmProcessRecord(this)
             }
+
+            initAdjHandleType()
         }
 
         /**
@@ -428,6 +434,38 @@ class ProcessRecord(
                 // 执行完本次之后就清除掉设置器
                 process.clearFixedOomScoreAdjSetter()
             }*/
+
+        @JvmStatic
+        fun resetAdjHandleType(
+            packageNameFilter: ((ProcessRecord) -> Boolean)? = null,
+            processNameFilter: ((ProcessRecord) -> Boolean)? = null,
+        ) {
+            val runningInfo = RunningInfo.getInstance()
+            runningInfo.runningProcesses.asSequence()
+                .nullableFilter(packageNameFilter)
+                .nullableFilter(processNameFilter)
+                .forEach { processRecord ->
+                    processRecord.resetAdjHandleType()
+                }
+        }
+
+        @JvmStatic
+        fun resetAdjHandleType(packageName: String, processName: String? = null) {
+            if (BuildConfig.DEBUG) {
+                logDebug("重新计算adj处理策略: packageName: ${packageName}, processName: ${processName}")
+            }
+
+            resetAdjHandleType(
+                packageNameFilter = { processRecord ->
+                    processRecord.packageName == packageName
+                },
+                processNameFilter = processName?.let {
+                    { processRecord ->
+                        processRecord.getFullProcessName() == processName
+                    }
+                }
+            )
+        }
     }
 
     // 反射拿到的安卓的processStateRecord对象
@@ -745,6 +783,43 @@ class ProcessRecord(
 
     @JSONField(serialize = false)
     fun hasWakeLock(): Boolean = wakeLockCount > 0
+
+    /* *************************************************************************
+    *                                                                         *
+    * adj处理方式                                                               *
+    *                                                                         *
+    **************************************************************************/
+    object AdjHandleActionType {
+        const val DO_NOTHING = 0
+        const val CUSTOM_MAIN_PROCESS = 1
+        const val GLOBAL_OOM_ADJ = 2
+        const val OTHER = 3
+    }
+
+    var adjHandleActionType: Int = AdjHandleActionType.OTHER
+
+    private fun initAdjHandleType() {
+        // 高优先级进程
+        if (isHighPriorityProcess()) {
+            // 是否配置自定义主进程
+            val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[packageName]
+            appOptimizePolicy.getCustomMainProcessOomScore()?.let {
+                adjHandleActionType = AdjHandleActionType.CUSTOM_MAIN_PROCESS
+                return
+            }
+            // 是否开启了全局oom
+            if (HookCommonProperties.globalOomScorePolicy.value.enabled) {
+                adjHandleActionType = AdjHandleActionType.GLOBAL_OOM_ADJ
+                return
+            }
+        }
+
+        adjHandleActionType = AdjHandleActionType.OTHER
+    }
+
+    fun resetAdjHandleType() {
+        initAdjHandleType()
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.entity
+
+package com.venus.backgroundopt.entity
 
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
 import com.venus.backgroundopt.hook.handle.android.entity.ApplicationInfo
@@ -28,6 +28,7 @@ class FindAppResult() {
     var importantSystemApp: Boolean = false
     var hasActivity: Boolean = false
     var applicationInfo: ApplicationInfo? = null
+    var appInfo: AppInfo? = null
 
     constructor(applicationInfo: ApplicationInfo?) : this() {
         this.applicationInfo = applicationInfo
@@ -37,4 +38,8 @@ class FindAppResult() {
                 ActivityManagerService.isImportantSystemApp(applicationInfo.applicationInfo)
         }
     }
+}
+
+fun FindAppResult.getOrCreateAppInfo(block: (FindAppResult) -> AppInfo): AppInfo {
+    return appInfo ?: block(this)
 }

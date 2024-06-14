@@ -23,6 +23,7 @@ import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
@@ -62,12 +63,22 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
                 }
 
                 AppOptimizePolicyMessage.MSG_SAVE -> {
-                    val appOptimizePolicy =
-                        parseObjectFromJsonObject<AppOptimizePolicy>(message.value)!!
+                    val appOptimizePolicy = parseObjectFromJsonObject<AppOptimizePolicy>(
+                        message.value
+                    )!!
+                    val old = appOptimizePolicyMap[appOptimizePolicy.packageName]
+
                     appOptimizePolicyMap[appOptimizePolicy.packageName] = appOptimizePolicy
+
                     runningInfo.runningAppInfos.asSequence()
                         .filter { appInfo -> appInfo.packageName == appOptimizePolicy.packageName }
                         .forEach { appInfo -> appInfo.setShouldHandleAdj(appOptimizePolicy) }
+
+                    if (old?.enableCustomMainProcessOomScore != appOptimizePolicy.enableCustomMainProcessOomScore) {
+                        ProcessRecord.resetAdjHandleType(
+                            packageName = packageName
+                        )
+                    }
 
                     initMainProcessAdjManagePolicyUiText(appOptimizePolicy)
                     returnValue = appOptimizePolicy
