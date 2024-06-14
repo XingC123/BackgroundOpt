@@ -14,25 +14,25 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.utils
+
+package com.venus.backgroundopt.utils
 
 /**
  * @author XingC
  * @date 2024/2/26
  */
 @JvmOverloads
-fun <R> runCatchThrowable(
+inline fun <R> runCatchThrowable(
     defaultValue: R? = null,
-    catchBlock: ((Throwable) -> R)? = null,
-    finallyBlock: (() -> Unit)? = null,
+    catchBlock: (Throwable) -> R? = { defaultValue },
+    finallyBlock: () -> Unit = {},
     block: () -> R
 ): R? {
     return try {
         block()
     } catch (t: Throwable) {
-        catchBlock?.invoke(t) ?: defaultValue
+        catchBlock(t)
     } finally {
-        finallyBlock?.let { it() }
+        finallyBlock()
     }
 }
