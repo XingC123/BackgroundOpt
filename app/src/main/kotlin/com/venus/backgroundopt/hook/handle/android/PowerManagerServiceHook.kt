@@ -62,7 +62,7 @@ class PowerManagerServiceHook(
                 return@afterHook
             }
             val lock = param.args[0] as IBinder
-            wakeLockMap.computeIfAbsent(lock) { processRecord.also { it.incrementWakeLockCount() } }
+            wakeLockMap.computeIfAbsent(lock) { processRecord.also { it.incrementWakeLockCountAndChangeAdjHandleActionType() } }
 
             if (BuildConfig.DEBUG) {
                 val flags = param.args[2] as Int
@@ -77,7 +77,7 @@ class PowerManagerServiceHook(
         ) { param ->
             val lock = param.args[0] as IBinder
             wakeLockMap.remove(lock)?.let { processRecord ->
-                processRecord.decrementWakeLockCount()
+                processRecord.decrementWakeLockCountAndChangeAdjHandleActionType()
 
                 if (BuildConfig.DEBUG) {
                     logger.debug("pid: ${processRecord.pid}, packageName: [${processRecord.packageName}], processName: [${processRecord.processName}] 释放唤醒锁")

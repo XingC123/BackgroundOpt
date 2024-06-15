@@ -441,49 +441,20 @@ class ProcessListHookKt(
         val shouldHandleAdj: () -> Boolean = appInfo::shouldHandleAdj
         val adjHandleActionType = process.adjHandleActionType
         //addAdjSetAction(process) {
-        var finalApplyAdj: Int = adjWillSet
-        finalApplyAdj = when (adjHandleActionType) {
-            AdjHandleActionType.CUSTOM_MAIN_PROCESS -> {
-                doCustomMainProcessAdj(
-                    adjWillSet = adjWillSet,
-                    processRecord = process,
-                    adjHandleFunction = adjHandleFunction,
-                    shouldHandleAdj = shouldHandleAdj,
-                    isHighPriorityProcess = isHighPriorityProcess
-                )
-            }
-
-            AdjHandleActionType.GLOBAL_OOM_ADJ -> {
-                doGlobalOomScoreAdj(
-                    globalOomScorePolicy = globalOomScorePolicy,
-                    adj = adj,
-                    adjWillSet = adjWillSet,
-                    isUserSpaceAdj = isUserSpaceAdj,
-                    isNegativeMode = isNegativeMode,
-                    processRecord = process,
-                    adjHandleFunction = adjHandleFunction,
-                    shouldHandleAdj = shouldHandleAdj,
-                    appGroupEnum = appGroupEnum,
-                    mainProcess = mainProcess,
-                    isHighPriorityProcess = isHighPriorityProcess
-                )
-            }
-
-            else -> {
-                doOther(
-                    adj = adj,
-                    adjWillSet = adjWillSet,
-                    isUserSpaceAdj = isUserSpaceAdj,
-                    isNegativeMode = isNegativeMode,
-                    processRecord = process,
-                    adjHandleFunction = adjHandleFunction,
-                    shouldHandleAdj = shouldHandleAdj,
-                    appGroupEnum = appGroupEnum,
-                    mainProcess = mainProcess,
-                    isHighPriorityProcess = isHighPriorityProcess
-                )
-            }
-        }
+        val finalApplyAdj: Int = autoApplyAdjHandleAction(
+            adjHandleActionType = adjHandleActionType,
+            adj = adj,
+            adjWillSet = adjWillSet,
+            isUserSpaceAdj = isUserSpaceAdj,
+            isNegativeMode = isNegativeMode,
+            isHighPriorityProcess = isHighPriorityProcess,
+            mainProcess = mainProcess,
+            process = process,
+            appGroupEnum = appGroupEnum,
+            adjHandleFunction = adjHandleFunction,
+            shouldHandleAdj = shouldHandleAdj,
+            globalOomScorePolicy = globalOomScorePolicy
+        )
 
         applyFinalAdj(
             pid = pid,
@@ -547,6 +518,95 @@ class ProcessListHookKt(
 
     private fun applyFinalAdj(pid: Int, uid: Int, adj: Int) {
         ProcessList.writeLmkd(pid, uid, adj)
+    }
+
+    private fun autoApplyAdjHandleAction(
+        adjHandleActionType: Int,
+        adj: Int,
+        adjWillSet: Int,
+        isUserSpaceAdj: Boolean,
+        isNegativeMode: Boolean,
+        isHighPriorityProcess: Boolean,
+        mainProcess: Boolean,
+        process: ProcessRecord,
+        appGroupEnum: AppGroupEnum,
+        adjHandleFunction: BiFunction<AppInfo, AppOptimizePolicy, Boolean>,
+        shouldHandleAdj: () -> Boolean,
+        globalOomScorePolicy: GlobalOomScorePolicy,
+    ): Int {
+        return when (adjHandleActionType) {
+            AdjHandleActionType.CUSTOM_MAIN_PROCESS -> {
+                doCustomMainProcessAdj(
+                    adjWillSet = adjWillSet,
+                    processRecord = process,
+                    adjHandleFunction = adjHandleFunction,
+                    shouldHandleAdj = shouldHandleAdj,
+                    isHighPriorityProcess = isHighPriorityProcess
+                )
+            }
+
+            AdjHandleActionType.GLOBAL_OOM_ADJ -> {
+                doGlobalOomScoreAdj(
+                    globalOomScorePolicy = globalOomScorePolicy,
+                    adj = adj,
+                    adjWillSet = adjWillSet,
+                    isUserSpaceAdj = isUserSpaceAdj,
+                    isNegativeMode = isNegativeMode,
+                    processRecord = process,
+                    adjHandleFunction = adjHandleFunction,
+                    shouldHandleAdj = shouldHandleAdj,
+                    appGroupEnum = appGroupEnum,
+                    mainProcess = mainProcess,
+                    isHighPriorityProcess = isHighPriorityProcess
+                )
+            }
+
+            AdjHandleActionType.OTHER -> {
+                doOther(
+                    adj = adj,
+                    adjWillSet = adjWillSet,
+                    isUserSpaceAdj = isUserSpaceAdj,
+                    isNegativeMode = isNegativeMode,
+                    processRecord = process,
+                    adjHandleFunction = adjHandleFunction,
+                    shouldHandleAdj = shouldHandleAdj,
+                    appGroupEnum = appGroupEnum,
+                    mainProcess = mainProcess,
+                    isHighPriorityProcess = isHighPriorityProcess
+                )
+            }
+
+            else -> {
+                if (adjHandleActionType in AdjHandleActionType.WAKE_LOCK_ARRAY) {
+                    val mProcAdjHandleActionType =
+                        process.appInfo.getmProcessRecord()?.adjHandleActionType
+
+                    val finalAdjHandleActionType =
+                        /* 防止无限递归导致栈溢出 */
+                        if (mProcAdjHandleActionType != null && mProcAdjHandleActionType !in AdjHandleActionType.WAKE_LOCK_ARRAY) {
+                            mProcAdjHandleActionType
+                        } else {
+                            AdjHandleActionType.OTHER
+                        }
+                    autoApplyAdjHandleAction(
+                        adjHandleActionType = finalAdjHandleActionType,
+                        adj = adj,
+                        adjWillSet = adjWillSet,
+                        isUserSpaceAdj = isUserSpaceAdj,
+                        isNegativeMode = isNegativeMode,
+                        isHighPriorityProcess = isHighPriorityProcess,
+                        mainProcess = mainProcess,
+                        process = process,
+                        appGroupEnum = appGroupEnum,
+                        adjHandleFunction = adjHandleFunction,
+                        shouldHandleAdj = shouldHandleAdj,
+                        globalOomScorePolicy = globalOomScorePolicy
+                    )
+                } else {
+                    adjWillSet
+                }
+            }
+        }
     }
 
     private inline fun doCustomMainProcessAdj(
@@ -1021,14 +1081,18 @@ fun ProcessRecord.isNeedHandleWebviewProcess(): Boolean {
     )?.getBooleanFieldValue(fieldName = FieldConstants.mHasClientActivities) == true
 }
 
+fun ProcessRecord.isHighPrioritySubProcessBasic(): Boolean {
+    return isUpgradeSubProcessLevel()
+            || isNeedHandleWebviewProcess()
+}
+
 /**
  * 是否是高优先级子进程
  * @receiver ProcessRecordKt
  * @return Boolean 高优先级 -> true
  */
 fun ProcessRecord.isHighPrioritySubProcess(): Boolean {
-    return isUpgradeSubProcessLevel()
-            || isNeedHandleWebviewProcess()
+    return isHighPrioritySubProcessBasic()
             || hasWakeLock()
 }
 

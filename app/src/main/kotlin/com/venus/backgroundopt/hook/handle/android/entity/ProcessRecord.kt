@@ -55,6 +55,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.reflect.full.declaredMemberProperties
 
 /**
  * @author XingC
@@ -781,6 +782,24 @@ class ProcessRecord(
         _wakeLockCount.decrementAndGet()
     }
 
+    fun incrementWakeLockCountAndChangeAdjHandleActionType() {
+        incrementWakeLockCount()
+        /*if (!(mainProcess || isHighPrioritySubProcessBasic())) {
+            appInfo.getmProcessRecord()?.adjHandleActionType?.let { adjHandleActionType = it }
+        }*/
+        // adjHandleActionType = (adjHandleActionType shl 4) or AdjHandleActionType.WAKE_LOCK
+        adjHandleActionType = adjHandleActionType xor AdjHandleActionType.WAKE_LOCK
+    }
+
+    fun decrementWakeLockCountAndChangeAdjHandleActionType() {
+        decrementWakeLockCount()
+        /*if (!(mainProcess || isHighPrioritySubProcessBasic())) {
+            adjHandleActionType = AdjHandleActionType.OTHER
+        }*/
+        // adjHandleActionType = adjHandleActionType shr 4
+        adjHandleActionType = adjHandleActionType xor AdjHandleActionType.WAKE_LOCK
+    }
+
     @JSONField(serialize = false)
     fun hasWakeLock(): Boolean = wakeLockCount > 0
 
@@ -794,6 +813,24 @@ class ProcessRecord(
         const val CUSTOM_MAIN_PROCESS = 1
         const val GLOBAL_OOM_ADJ = 2
         const val OTHER = 3
+        const val WAKE_LOCK = 4
+
+        val WAKE_LOCK_ARRAY = run {
+            AdjHandleActionType::class.declaredMemberProperties
+                .filter { it.isConst }
+                // .filter { property -> property != AdjHandleActionType::WAKE_LOCK }
+                .map { property ->
+                    if (property == AdjHandleActionType::WAKE_LOCK) {
+                        WAKE_LOCK
+                    } else {
+                        (property.call() as Int) xor WAKE_LOCK
+                    }
+                }
+                .toIntArray().apply {
+                    distinct()
+                    sort()
+                }
+        }
     }
 
     var adjHandleActionType: Int = AdjHandleActionType.OTHER
