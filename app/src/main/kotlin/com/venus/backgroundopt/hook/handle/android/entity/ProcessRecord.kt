@@ -41,10 +41,11 @@ import com.venus.backgroundopt.utils.getBooleanFieldValue
 import com.venus.backgroundopt.utils.getIntFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
 import com.venus.backgroundopt.utils.getStringFieldValue
+import com.venus.backgroundopt.utils.ifTrue
 import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.log.logDebug
 import com.venus.backgroundopt.utils.log.logInfo
-import com.venus.backgroundopt.utils.message.handle.getCustomMainProcessOomScore
+import com.venus.backgroundopt.utils.message.handle.isCustomMainProcessAdjValid
 import com.venus.backgroundopt.utils.nullableFilter
 import com.venus.backgroundopt.utils.runCatchThrowable
 import com.venus.backgroundopt.utils.setIntFieldValue
@@ -840,7 +841,7 @@ class ProcessRecord(
         if (isHighPriorityProcess()) {
             // 是否配置自定义主进程
             val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[packageName]
-            appOptimizePolicy.getCustomMainProcessOomScore()?.let {
+            appOptimizePolicy.isCustomMainProcessAdjValid().ifTrue {
                 adjHandleActionType = AdjHandleActionType.CUSTOM_MAIN_PROCESS
                 return
             }

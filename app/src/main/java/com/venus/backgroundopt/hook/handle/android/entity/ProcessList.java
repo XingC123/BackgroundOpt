@@ -224,14 +224,14 @@ public class ProcessList implements ILogger {
     @AndroidObjectField
     static final byte LMK_STATE_CHANGED = 9; // Msg to subscribed clients on state changed
 
-    private static final Class<?> processListClazz;
+    private static Class<?> processListClazz;
 
     @NonNull
     public static Class<?> getProcessListClazz() {
         return processListClazz;
     }
 
-    static {
+    public static void initProcessListClazz() {
         ClassLoader classLoader = RunningInfo.getInstance().getClassLoader();
         processListClazz = XposedUtilsKt.findClass(
                 ClassConstants.ProcessList,
@@ -252,6 +252,10 @@ public class ProcessList implements ILogger {
         this.activityManagerService = activityManagerService;
 
         this.processRecordList = (List<?>) XposedHelpers.getObjectField(processList, FieldConstants.mLruProcesses);
+    }
+
+    public static void init() {
+        initProcessListClazz();
     }
 
     @AndroidObjectField
@@ -380,6 +384,10 @@ public class ProcessList implements ILogger {
                 .ifPresent(process -> processRecord.set(new ProcessRecord(activityManagerService, processRecord)));
 
         return processRecord.get();
+    }
+
+    public static boolean isValidAdj(int adj) {
+        return NATIVE_ADJ <= adj && adj < UNKNOWN_ADJ;
     }
 
     private static final Class<?>[] writeLmkdParamTypes = new Class[]{ByteBuffer.class, ByteBuffer.class};

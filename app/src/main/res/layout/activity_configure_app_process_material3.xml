@@ -320,19 +320,56 @@
                             android:orientation="horizontal"
                             android:showDividers="middle">
 
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
+                        </LinearLayout>
 
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/configureAppProcessCustomMainProcessOomScoreEditText"
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:divider="@drawable/item_space_vertical"
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical"
+                            android:showDividers="middle">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:baselineAligned="false"
+                                android:divider="@drawable/item_space_horizontal"
+                                android:orientation="horizontal"
+                                android:showDividers="middle">
+
+                                <com.google.android.material.textfield.TextInputLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:ems="10"
-                                    android:hint="@string/configureAppProcessCustomMainProcessOomScoreTipText"
-                                    android:inputType="number|numberSigned" />
-                            </com.google.android.material.textfield.TextInputLayout>
+                                    android:layout_weight="1"
+                                    android:hint="@string/configureAppProcessCustomMainProcessFgAdjTipText"
+                                    app:helperTextEnabled="true"
+                                    app:helperText="@string/configureAppProcessCustomMainProcessAdjTipText">
+
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/configureAppProcessCustomMainProcessFgAdjEditText"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:ems="10"
+                                        android:inputType="number|numberSigned" />
+                                </com.google.android.material.textfield.TextInputLayout>
+
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:hint="@string/configureAppProcessCustomMainProcessBgAdjTipText"
+                                    app:helperTextEnabled="true"
+                                    app:helperText="@string/configureAppProcessCustomMainProcessAdjTipText">
+
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/configureAppProcessCustomMainProcessBgAdjEditText"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:ems="10"
+                                        android:inputType="number|numberSigned" />
+                                </com.google.android.material.textfield.TextInputLayout>
+                            </LinearLayout>
 
                             <Button
                                 android:id="@+id/configureAppProcessCustomMainProcessOomScoreApplyBtn"

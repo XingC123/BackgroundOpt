@@ -147,7 +147,9 @@
     <string name="settingsOomStrictModeSummary" translatable="false">开启以将主进程的最大adj限制到更低水平</string>
     <string name="settingsOomWorkModePrefText">OOM work mode</string>
     <string name="configureAppProcessCustomMainProcessOomScoreText">Custom main Process oom score</string>
-    <string name="configureAppProcessCustomMainProcessOomScoreTipText" translatable="false">(-1000~1000)</string>
+    <string name="configureAppProcessCustomMainProcessBgAdjTipText" translatable="false">后台Adj</string>
+    <string name="configureAppProcessCustomMainProcessFgAdjTipText" translatable="false">前台Adj</string>
+    <string name="configureAppProcessCustomMainProcessAdjTipText" translatable="false">[-1000, 1000]</string>
     <string name="configureAppProcessCustomMainProcessOomScoreApplyBtn">Apply</string>
     <string name="configureAppProcessForegroundMemoryTrim">Foreground Mem Trim</string>
     <string name="configureAppProcessBackgroundMemoryTrim">Background Mem Trim</string>

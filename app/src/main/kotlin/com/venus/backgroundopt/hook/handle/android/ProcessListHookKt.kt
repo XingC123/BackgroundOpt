@@ -43,7 +43,8 @@ import com.venus.backgroundopt.utils.log.logInfo
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScorePolicy
-import com.venus.backgroundopt.utils.message.handle.getCustomMainProcessOomScore
+import com.venus.backgroundopt.utils.message.handle.getCustomMainProcessBgAdj
+import com.venus.backgroundopt.utils.message.handle.getCustomMainProcessFgAdj
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledFuture
@@ -411,7 +412,8 @@ class ProcessListHookKt(
         }*/
     }
 
-    private fun handleSetOomAdjLocked(
+    @JvmOverloads
+    fun handleSetOomAdjLocked(
         process: ProcessRecord,
         adj: Int,
         globalOomScorePolicy: GlobalOomScorePolicy,
@@ -537,10 +539,15 @@ class ProcessListHookKt(
         return when (adjHandleActionType) {
             AdjHandleActionType.CUSTOM_MAIN_PROCESS -> {
                 doCustomMainProcessAdj(
+                    adj = adj,
                     adjWillSet = adjWillSet,
+                    isUserSpaceAdj = isUserSpaceAdj,
+                    isNegativeMode = isNegativeMode,
                     processRecord = process,
+                    appGroupEnum = appGroupEnum,
                     adjHandleFunction = adjHandleFunction,
                     shouldHandleAdj = shouldHandleAdj,
+                    mainProcess = mainProcess,
                     isHighPriorityProcess = isHighPriorityProcess
                 )
             }
@@ -610,28 +617,44 @@ class ProcessListHookKt(
     }
 
     private inline fun doCustomMainProcessAdj(
+        adj: Int,
         adjWillSet: Int,
+        isUserSpaceAdj: Boolean,
+        isNegativeMode: Boolean,
         processRecord: ProcessRecord,
+        appGroupEnum: AppGroupEnum,
         adjHandleFunction: BiFunction<AppInfo, AppOptimizePolicy, Boolean>,
         shouldHandleAdj: () -> Boolean,
-        isHighPriorityProcess: Boolean = processRecord.isHighPriorityProcess(),
+        mainProcess: Boolean,
+        isHighPriorityProcess: Boolean
     ): Int {
         val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[processRecord.packageName]
-        val possibleAdj = appOptimizePolicy.getCustomMainProcessOomScore()
-
-        if (possibleAdj != null && isHighPriorityProcess) {    // 进程独立配置优先于任何情况
-            val finalApplyAdj = applyHighPriorityProcessFinalAdj(
+        val possibleAdj = when (appGroupEnum) {
+            AppGroupEnum.ACTIVE -> appOptimizePolicy.getCustomMainProcessFgAdj()
+            AppGroupEnum.IDLE -> appOptimizePolicy.getCustomMainProcessBgAdj()
+            else -> null
+        } ?: run {
+            return doOther(
+                adj = adj,
+                adjWillSet = adjWillSet,
+                isUserSpaceAdj = isUserSpaceAdj,
+                isNegativeMode = isNegativeMode,
+                processRecord = processRecord,
+                appGroupEnum = appGroupEnum,
                 adjHandleFunction = adjHandleFunction,
-                curAdj = adjWillSet,
-                shouldHandleAdj = shouldHandleAdj
-            ) {
-                // process.clearProcessUnexpectedState()
-                possibleAdj
-            }
-
-            return finalApplyAdj
+                shouldHandleAdj = shouldHandleAdj,
+                mainProcess = mainProcess,
+                isHighPriorityProcess = isHighPriorityProcess
+            )
         }
-        return adjWillSet
+        return applyHighPriorityProcessFinalAdj(
+            adjHandleFunction = adjHandleFunction,
+            curAdj = adjWillSet,
+            shouldHandleAdj = shouldHandleAdj
+        ) {
+            // process.clearProcessUnexpectedState()
+            possibleAdj
+        }
     }
 
     private inline fun doGlobalOomScoreAdj(

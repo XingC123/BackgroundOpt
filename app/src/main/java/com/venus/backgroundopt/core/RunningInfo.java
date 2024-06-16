@@ -30,6 +30,7 @@ import com.venus.backgroundopt.annotation.AndroidObject;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.FindAppResult;
 import com.venus.backgroundopt.entity.FindAppResultKt;
+import com.venus.backgroundopt.environment.hook.HookCommonProperties;
 import com.venus.backgroundopt.hook.base.IHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt;
@@ -39,6 +40,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
 import com.venus.backgroundopt.hook.handle.android.entity.PackageManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord.AdjHandleActionType;
 import com.venus.backgroundopt.manager.application.DefaultApplicationManager;
 import com.venus.backgroundopt.manager.message.ModuleMessageManager;
 import com.venus.backgroundopt.manager.process.ProcessManager;
@@ -586,11 +588,11 @@ public class RunningInfo implements ILogger {
     }
 
     private void putIntoActiveAppGroup(@NonNull AppInfo appInfo) {
-        // 处理当前app
-        handleCurApp(appInfo);
-
         activeAppGroup.add(appInfo);
         appInfo.setAppGroupEnum(AppGroupEnum.ACTIVE);
+
+        // 处理当前app
+        handleCurApp(appInfo);
 
         // 重置切换事件处理状态
         appInfo.setSwitchEventHandled(false);
@@ -601,11 +603,11 @@ public class RunningInfo implements ILogger {
     }
 
     private void putIntoIdleAppGroup(@NonNull AppInfo appInfo) {
-        // 处理上个app
-        handleLastApp(appInfo);
-
         idleAppGroup.add(appInfo);
         appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
+
+        // 处理上个app
+        handleLastApp(appInfo);
 
         appInfo.setSwitchEventHandled(true);
 
@@ -624,6 +626,20 @@ public class RunningInfo implements ILogger {
 
         // 启动前台工作
         processManager.appActive(appInfo);
+
+        ProcessRecord processRecord = appInfo.getmProcessRecord();
+        if (processRecord != null) {
+            if (processRecord.getAdjHandleActionType() == AdjHandleActionType.CUSTOM_MAIN_PROCESS) {
+                ProcessListHookKt hookInstance = IHook.getHookInstance(ProcessListHookKt.class);
+                if (hookInstance != null) {
+                    hookInstance.handleSetOomAdjLocked(
+                            processRecord,
+                            ProcessList.FOREGROUND_APP_ADJ,
+                            HookCommonProperties.getGlobalOomScorePolicy().getValue()
+                    );
+                }
+            }
+        }
     }
 
     /**

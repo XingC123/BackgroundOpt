@@ -272,6 +272,7 @@ object HookCommonProperties : ILogger {
      * 全局OOM                                                                  *
      *                                                                         *
      **************************************************************************/
+    @JvmStatic
     val globalOomScorePolicy by lazy {
         val isEnabled = PreferencesUtil.getBoolean(
             path = PreferenceNameConstants.MAIN_SETTINGS,
