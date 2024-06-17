@@ -32,6 +32,7 @@ import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.constants.ClassConstants
 import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
+import com.venus.backgroundopt.hook.handle.android.checkAndSetDefaultMaxAdjIfNeed
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_NEWLINE_TERM
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_OUT_LONG
 import com.venus.backgroundopt.hook.handle.android.isHighPriorityProcessByBasicProperty
@@ -176,6 +177,7 @@ class ProcessRecord(
             }
 
             initAdjHandleType()
+            checkAndSetDefaultMaxAdjIfNeed()
         }
 
         /**

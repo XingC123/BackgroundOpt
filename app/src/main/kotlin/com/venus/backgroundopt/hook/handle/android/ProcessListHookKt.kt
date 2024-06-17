@@ -708,13 +708,6 @@ class ProcessListHookKt(
                         adjHandleFunction = adjHandleFunction,
                         shouldHandleAdj = shouldHandleAdj
                     ) {
-                        if (processRecord.fixedOomAdjScore != ProcessRecord.DEFAULT_MAIN_ADJ) {
-                            processRecord.fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
-
-                            if (ProcessRecord.isNeedSetDefaultMaxAdj) {
-                                processRecord.setDefaultMaxAdj()
-                            }
-                        }
                         oomAdjHandler.computeFinalAdj(
                             oomScoreAdj = adjWillSet,
                             processRecord = processRecord,
@@ -1116,5 +1109,15 @@ fun ProcessRecord.clearProcessUnexpectedState() {
         cached = false
         empty = false
         curProcState = ActivityManager.PROCESS_STATE_TOP
+    }
+}
+
+fun ProcessRecord.checkAndSetDefaultMaxAdjIfNeed() {
+    if (fixedOomAdjScore != ProcessRecord.DEFAULT_MAIN_ADJ) {
+        fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
+
+        if (ProcessRecord.isNeedSetDefaultMaxAdj) {
+            setDefaultMaxAdj()
+        }
     }
 }
