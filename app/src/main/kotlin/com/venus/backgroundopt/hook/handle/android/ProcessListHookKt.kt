@@ -51,6 +51,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.function.BiFunction
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * @author XingC
@@ -287,10 +288,13 @@ class ProcessListHookKt(
         }
     }
 
+    private val highPriorityProcessNotHasActivityAdjMap = ConcurrentHashMap<Int, Int>(4)
     private fun computeHighPriorityProcessAdjNotHasActivity(
         curAdj: Int
     ): Int {
-        return max(curAdj, ProcessRecord.SUB_PROC_ADJ)
+        return highPriorityProcessNotHasActivityAdjMap.computeIfAbsent(curAdj) {_->
+            max(min(curAdj, ProcessList.CACHED_APP_MAX_ADJ), ProcessRecord.SUB_PROC_ADJ)
+        }
     }
 
     /**
