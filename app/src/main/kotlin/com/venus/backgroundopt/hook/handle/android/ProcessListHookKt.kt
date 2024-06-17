@@ -38,7 +38,6 @@ import com.venus.backgroundopt.utils.clamp
 import com.venus.backgroundopt.utils.concurrent.lock
 import com.venus.backgroundopt.utils.getBooleanFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
-import com.venus.backgroundopt.utils.ifTrue
 import com.venus.backgroundopt.utils.log.logInfo
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
@@ -434,9 +433,9 @@ class ProcessListHookKt(
             process.processStateRecord.curRawAdj
         }
 
-        val isHighPriorityProcess = process.isHighPriorityProcess().ifTrue {
+        val isHighPriorityProcess = process.isHighPriorityProcess()/*.ifTrue {
             oomAdjustLevel = OomAdjustLevel.FIRST
-        }
+        }*/
         val isUserSpaceAdj = adjWillSet >= 0
 
         val adjHandleFunction = appInfo.shouldHandleAdj
@@ -584,34 +583,7 @@ class ProcessListHookKt(
             }
 
             else -> {
-                if (adjHandleActionType in AdjHandleActionType.WAKE_LOCK_ARRAY) {
-                    val mProcAdjHandleActionType =
-                        process.appInfo.getmProcessRecord()?.adjHandleActionType
-
-                    val finalAdjHandleActionType =
-                        /* 防止无限递归导致栈溢出 */
-                        if (mProcAdjHandleActionType != null && mProcAdjHandleActionType !in AdjHandleActionType.WAKE_LOCK_ARRAY) {
-                            mProcAdjHandleActionType
-                        } else {
-                            AdjHandleActionType.OTHER
-                        }
-                    autoApplyAdjHandleAction(
-                        adjHandleActionType = finalAdjHandleActionType,
-                        adj = adj,
-                        adjWillSet = adjWillSet,
-                        isUserSpaceAdj = isUserSpaceAdj,
-                        isNegativeMode = isNegativeMode,
-                        isHighPriorityProcess = isHighPriorityProcess,
-                        mainProcess = mainProcess,
-                        process = process,
-                        appGroupEnum = appGroupEnum,
-                        adjHandleFunction = adjHandleFunction,
-                        shouldHandleAdj = shouldHandleAdj,
-                        globalOomScorePolicy = globalOomScorePolicy
-                    )
-                } else {
-                    adjWillSet
-                }
+                adjWillSet
             }
         }
     }
@@ -1110,19 +1082,19 @@ fun ProcessRecord.isNeedHandleWebviewProcess(): Boolean {
     )?.getBooleanFieldValue(fieldName = FieldConstants.mHasClientActivities) == true
 }
 
-fun ProcessRecord.isHighPrioritySubProcessBasic(): Boolean {
-    return isUpgradeSubProcessLevel()
-            || isNeedHandleWebviewProcess()
-}
-
 /**
  * 是否是高优先级子进程
  * @receiver ProcessRecordKt
  * @return Boolean 高优先级 -> true
  */
 fun ProcessRecord.isHighPrioritySubProcess(): Boolean {
-    return isHighPrioritySubProcessBasic()
+    return isHighPrioritySubProcessByBasicProperty()
             || hasWakeLock()
+}
+
+fun ProcessRecord.isHighPrioritySubProcessByBasicProperty(): Boolean {
+    return isUpgradeSubProcessLevel()
+            || isNeedHandleWebviewProcess()
 }
 
 /**
@@ -1131,6 +1103,10 @@ fun ProcessRecord.isHighPrioritySubProcess(): Boolean {
  * @return Boolean 高优先级 -> true
  */
 fun ProcessRecord.isHighPriorityProcess(): Boolean = mainProcess || isHighPrioritySubProcess()
+
+fun ProcessRecord.isHighPriorityProcessByBasicProperty(): Boolean {
+    return mainProcess || isHighPrioritySubProcessByBasicProperty()
+}
 
 /**
  * 清除进程非预期的状态记录

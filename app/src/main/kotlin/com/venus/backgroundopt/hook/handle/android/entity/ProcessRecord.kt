@@ -34,7 +34,7 @@ import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_NEWLINE_TERM
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_OUT_LONG
-import com.venus.backgroundopt.hook.handle.android.isHighPriorityProcess
+import com.venus.backgroundopt.hook.handle.android.isHighPriorityProcessByBasicProperty
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.callMethod
 import com.venus.backgroundopt.utils.getBooleanFieldValue
@@ -56,7 +56,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
-import kotlin.reflect.full.declaredMemberProperties
 
 /**
  * @author XingC
@@ -816,7 +815,7 @@ class ProcessRecord(
         const val OTHER = 3
         const val WAKE_LOCK = 4
 
-        val WAKE_LOCK_ARRAY = run {
+        /*val WAKE_LOCK_ARRAY = run {
             AdjHandleActionType::class.declaredMemberProperties
                 .filter { it.isConst }
                 // .filter { property -> property != AdjHandleActionType::WAKE_LOCK }
@@ -827,18 +826,17 @@ class ProcessRecord(
                         (property.call() as Int) xor WAKE_LOCK
                     }
                 }
-                .toIntArray().apply {
-                    distinct()
-                    sort()
-                }
-        }
+                .distinct()
+                .sorted()
+                .toIntArray()
+        }*/
     }
 
     var adjHandleActionType: Int = AdjHandleActionType.OTHER
 
     private fun initAdjHandleType() {
         // 高优先级进程
-        if (isHighPriorityProcess()) {
+        if (isHighPriorityProcessByBasicProperty()) {
             // 是否配置自定义主进程
             val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[packageName]
             appOptimizePolicy.isCustomMainProcessAdjValid().ifTrue {
