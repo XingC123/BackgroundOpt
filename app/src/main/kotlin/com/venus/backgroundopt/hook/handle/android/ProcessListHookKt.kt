@@ -268,12 +268,12 @@ class ProcessListHookKt(
     private inline fun applyHighPriorityProcessFinalAdj(
         curAdj: Int,
         adjHandleFunction: BiFunction<AppInfo, AppOptimizePolicy, Boolean>,
-        shouldHandleAdj: () -> Boolean,
+        shouldHandleAdj: Boolean,
         block: (Int) -> Int
     ): Int {
         return when (adjHandleFunction) {
             AppInfo.handleAdjIfHasActivity -> {
-                if (shouldHandleAdj()) {
+                if (shouldHandleAdj) {
                     block(curAdj)
                 } else {
                     computeHighPriorityProcessAdjNotHasActivity(curAdj)
@@ -439,7 +439,7 @@ class ProcessListHookKt(
         val isUserSpaceAdj = adjWillSet >= 0
 
         val adjHandleFunction = appInfo.adjHandleFunction
-        val shouldHandleAdj: () -> Boolean = appInfo::shouldHandleAdj
+        val shouldHandleAdj = appInfo.shouldHandleAdj()
         val adjHandleActionType = process.adjHandleActionType
         //addAdjSetAction(process) {
         val finalApplyAdj: Int = autoApplyAdjHandleAction(
@@ -532,7 +532,7 @@ class ProcessListHookKt(
         process: ProcessRecord,
         appGroupEnum: AppGroupEnum,
         adjHandleFunction: BiFunction<AppInfo, AppOptimizePolicy, Boolean>,
-        shouldHandleAdj: () -> Boolean,
+        shouldHandleAdj: Boolean,
         globalOomScorePolicy: GlobalOomScorePolicy,
     ): Int {
         return when (adjHandleActionType) {
@@ -588,7 +588,7 @@ class ProcessListHookKt(
         }
     }
 
-    private inline fun doCustomMainProcessAdj(
+    private fun doCustomMainProcessAdj(
         adj: Int,
         adjWillSet: Int,
         isUserSpaceAdj: Boolean,
@@ -596,7 +596,7 @@ class ProcessListHookKt(
         processRecord: ProcessRecord,
         appGroupEnum: AppGroupEnum,
         adjHandleFunction: BiFunction<AppInfo, AppOptimizePolicy, Boolean>,
-        shouldHandleAdj: () -> Boolean,
+        shouldHandleAdj: Boolean,
         mainProcess: Boolean,
         isHighPriorityProcess: Boolean
     ): Int {
@@ -629,7 +629,7 @@ class ProcessListHookKt(
         }
     }
 
-    private inline fun doGlobalOomScoreAdj(
+    private fun doGlobalOomScoreAdj(
         globalOomScorePolicy: GlobalOomScorePolicy,
         adj: Int,
         adjWillSet: Int,
@@ -637,7 +637,7 @@ class ProcessListHookKt(
         isNegativeMode: Boolean,
         processRecord: ProcessRecord,
         adjHandleFunction: BiFunction<AppInfo, AppOptimizePolicy, Boolean>,
-        shouldHandleAdj: () -> Boolean,
+        shouldHandleAdj: Boolean,
         appGroupEnum: AppGroupEnum = processRecord.appInfo.appGroupEnum,
         mainProcess: Boolean = processRecord.mainProcess,
         isHighPriorityProcess: Boolean = processRecord.isHighPriorityProcess(),
@@ -674,7 +674,7 @@ class ProcessListHookKt(
         }
     }
 
-    private inline fun doOther(
+    private fun doOther(
         adj: Int,
         adjWillSet: Int,
         isUserSpaceAdj: Boolean,
@@ -682,7 +682,7 @@ class ProcessListHookKt(
         processRecord: ProcessRecord,
         appGroupEnum: AppGroupEnum = processRecord.appInfo.appGroupEnum,
         adjHandleFunction: BiFunction<AppInfo, AppOptimizePolicy, Boolean>,
-        shouldHandleAdj: () -> Boolean,
+        shouldHandleAdj: Boolean,
         appInfo: AppInfo = processRecord.appInfo,
         mainProcess: Boolean = processRecord.mainProcess,
         isHighPriorityProcess: Boolean = processRecord.isHighPriorityProcess(),
