@@ -149,7 +149,7 @@
     <string name="configureAppProcessCustomMainProcessOomScoreText">Custom main Process oom score</string>
     <string name="configureAppProcessCustomMainProcessBgAdjTipText" translatable="false">后台Adj</string>
     <string name="configureAppProcessCustomMainProcessFgAdjTipText" translatable="false">前台Adj</string>
-    <string name="configureAppProcessCustomMainProcessAdjTipText" translatable="false">[-1000, 1000]</string>
+    <string name="configureAppProcessCustomMainProcessAdjTipText" translatable="false">空 / [-1000, 1000]</string>
     <string name="configureAppProcessCustomMainProcessOomScoreApplyBtn">Apply</string>
     <string name="configureAppProcessForegroundMemoryTrim">Foreground Mem Trim</string>
     <string name="configureAppProcessBackgroundMemoryTrim">Background Mem Trim</string>
