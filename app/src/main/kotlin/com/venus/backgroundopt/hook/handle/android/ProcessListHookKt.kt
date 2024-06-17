@@ -438,7 +438,7 @@ class ProcessListHookKt(
         }*/
         val isUserSpaceAdj = adjWillSet >= 0
 
-        val adjHandleFunction = appInfo.shouldHandleAdj
+        val adjHandleFunction = appInfo.adjHandleFunction
         val shouldHandleAdj: () -> Boolean = appInfo::shouldHandleAdj
         val adjHandleActionType = process.adjHandleActionType
         //addAdjSetAction(process) {

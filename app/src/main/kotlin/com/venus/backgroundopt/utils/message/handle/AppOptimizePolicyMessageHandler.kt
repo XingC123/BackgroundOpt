@@ -72,7 +72,7 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
 
                     runningInfo.runningAppInfos.asSequence()
                         .filter { appInfo -> appInfo.packageName == appOptimizePolicy.packageName }
-                        .forEach { appInfo -> appInfo.setShouldHandleAdj(appOptimizePolicy) }
+                        .forEach { appInfo -> appInfo.setAdjHandleFunction(appOptimizePolicy) }
 
                     if (old?.enableCustomMainProcessOomScore != appOptimizePolicy.enableCustomMainProcessOomScore) {
                         ProcessRecord.resetAdjHandleType(

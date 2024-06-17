@@ -722,7 +722,7 @@ public class RunningInfo implements ILogger {
         // 将原桌面的adj调节修改
         runningApps.values().stream()
                 .filter(appInfo -> Objects.equals(appInfo.getPackageName(), curLaunchPackageName))
-                .forEach(appInfo -> appInfo.shouldHandleAdj = AppInfo.handleAdjDependOnAppOptimizePolicy);
+                .forEach(appInfo -> appInfo.adjHandleFunction = AppInfo.handleAdjDependOnAppOptimizePolicy);
         // 保存新桌面包名
         this.activeLaunchPackageName = activeLaunchPackageName;
     }
@@ -796,10 +796,10 @@ public class RunningInfo implements ILogger {
                     .filter(appInfo -> Objects.equals(appInfo.getPackageName(), oldValue) || Objects.equals(appInfo.getPackageName(), newValue))
                     .forEach(appInfo -> {
                         if (Objects.equals(appInfo.getPackageName(), oldValue)) {
-                            appInfo.setShouldHandleAdj();
+                            appInfo.setAdjHandleFunction();
                         } else {
                             // 设置当前app
-                            appInfo.shouldHandleAdj = AppInfo.handleAdjAlways;
+                            appInfo.adjHandleFunction = AppInfo.handleAdjAlways;
                         }
                     });
             getLogger().info("更换的" + tag + "包名为: " + newValue);
