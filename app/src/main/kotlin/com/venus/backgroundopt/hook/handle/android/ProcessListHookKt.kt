@@ -267,6 +267,7 @@ class ProcessListHookKt(
      * 当不满足一些条件时, [block]不会被执行
      */
     private inline fun applyHighPriorityProcessFinalAdj(
+        processRecord: ProcessRecord,
         curAdj: Int,
         adjHandleFunction: BiFunction<AppInfo, AppOptimizePolicy, Boolean>,
         shouldHandleAdj: Boolean,
@@ -275,13 +276,17 @@ class ProcessListHookKt(
         return when (adjHandleFunction) {
             AppInfo.handleAdjIfHasActivity -> {
                 if (shouldHandleAdj) {
+                    processRecord.checkAndSetDefaultMaxAdjIfNeed()
                     block(curAdj)
                 } else {
                     computeHighPriorityProcessAdjNotHasActivity(curAdj)
                 }
             }
 
-            AppInfo.handleAdjAlways -> block(curAdj)
+            AppInfo.handleAdjAlways -> {
+                processRecord.checkAndSetDefaultMaxAdjIfNeed()
+                block(curAdj)
+            }
             AppInfo.handleAdjNever -> curAdj
 
             else -> computeHighPriorityProcessAdjNotHasActivity(curAdj)
@@ -624,6 +629,7 @@ class ProcessListHookKt(
             )
         }
         return applyHighPriorityProcessFinalAdj(
+            processRecord = processRecord,
             adjHandleFunction = adjHandleFunction,
             curAdj = adjWillSet,
             shouldHandleAdj = shouldHandleAdj
@@ -653,6 +659,7 @@ class ProcessListHookKt(
             )
         ) {
             val finalApplyAdj = applyHighPriorityProcessFinalAdj(
+                processRecord = processRecord,
                 adjHandleFunction = adjHandleFunction,
                 curAdj = adjWillSet,
                 shouldHandleAdj = shouldHandleAdj
@@ -699,6 +706,7 @@ class ProcessListHookKt(
         if (isHighPriorityProcess) {
             when {
                 appGroupEnum == AppGroupEnum.ACTIVE -> {
+                    processRecord.checkAndSetDefaultMaxAdjIfNeed()
                     finalApplyAdj = ProcessRecord.DEFAULT_MAIN_ADJ
                 }
 
@@ -708,6 +716,7 @@ class ProcessListHookKt(
 
                 else -> {
                     finalApplyAdj = applyHighPriorityProcessFinalAdj(
+                        processRecord = processRecord,
                         curAdj = adjWillSet,
                         adjHandleFunction = adjHandleFunction,
                         shouldHandleAdj = shouldHandleAdj
