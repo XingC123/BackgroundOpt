@@ -720,30 +720,36 @@ class ProcessListHookKt(
         }
 
         var finalApplyAdj: Int = adjWillSet
-        if (appGroupEnum == AppGroupEnum.ACTIVE) {
-            finalApplyAdj = adj
-        } else if (isHighPriorityProcess) {
-            if (isNegativeMode) {
-                // do nothing
-            } else {
-                finalApplyAdj = applyHighPriorityProcessFinalAdj(
-                    curAdj = adjWillSet,
-                    adjHandleFunction = adjHandleFunction,
-                    shouldHandleAdj = shouldHandleAdj
-                ) {
-                    if (processRecord.fixedOomAdjScore != ProcessRecord.DEFAULT_MAIN_ADJ) {
-                        processRecord.fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
+        if (isHighPriorityProcess) {
+            when {
+                appGroupEnum == AppGroupEnum.ACTIVE -> {
+                    finalApplyAdj = ProcessRecord.DEFAULT_MAIN_ADJ
+                }
 
-                        if (ProcessRecord.isNeedSetDefaultMaxAdj) {
-                            processRecord.setDefaultMaxAdj()
+                isNegativeMode -> {
+                    // do nothing
+                }
+
+                else -> {
+                    finalApplyAdj = applyHighPriorityProcessFinalAdj(
+                        curAdj = adjWillSet,
+                        adjHandleFunction = adjHandleFunction,
+                        shouldHandleAdj = shouldHandleAdj
+                    ) {
+                        if (processRecord.fixedOomAdjScore != ProcessRecord.DEFAULT_MAIN_ADJ) {
+                            processRecord.fixedOomAdjScore = ProcessRecord.DEFAULT_MAIN_ADJ
+
+                            if (ProcessRecord.isNeedSetDefaultMaxAdj) {
+                                processRecord.setDefaultMaxAdj()
+                            }
                         }
+                        oomAdjHandler.computeFinalAdj(
+                            oomScoreAdj = adjWillSet,
+                            processRecord = processRecord,
+                            appInfo = appInfo,
+                            mainProcess = mainProcess
+                        )
                     }
-                    oomAdjHandler.computeFinalAdj(
-                        oomScoreAdj = adjWillSet,
-                        processRecord = processRecord,
-                        appInfo = appInfo,
-                        mainProcess = mainProcess
-                    )
                 }
             }
         } else {    // 普通子进程
