@@ -405,11 +405,19 @@ public class ProcessList implements ILogger {
     }
 
     public static boolean writeLmkd(int pid, int uid, int adj) {
-        ByteBuffer buf = ByteBuffer.allocate(4 * 4);
+        return writeLmkd(getByteBufferUsedToWriteLmkd(), pid, uid, adj);
+    }
+
+    public static boolean writeLmkd(@NonNull ByteBuffer buf, int pid, int uid, int adj) {
         buf.putInt(LMK_PROCPRIO);
         buf.putInt(pid);
         buf.putInt(uid);
         buf.putInt(adj);
         return writeLmkd(buf, null);
+    }
+
+    @NonNull
+    public static ByteBuffer getByteBufferUsedToWriteLmkd() {
+        return ByteBuffer.allocate(4 * 4);
     }
 }

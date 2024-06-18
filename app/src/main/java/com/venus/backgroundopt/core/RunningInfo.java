@@ -676,14 +676,14 @@ public class RunningInfo implements ILogger {
                     .filter(processRecord -> !processRecord.getMainProcess())
                     .filter(ProcessListHookKtKt::isHighPrioritySubProcess)
                     .forEach(processRecord -> {
-                        // hookInstance.addAdjSetAction(processRecord, () -> {
-                        ProcessList.writeLmkd(
-                                processRecord.getPid(),
-                                processRecord.getUid(),
-                                adj
-                        );
-                        // return null;
-                        // });
+                        hookInstance.addAdjComputeAndApplyAction(processRecord, () -> {
+                            ProcessList.writeLmkd(
+                                    processRecord.getPid(),
+                                    processRecord.getUid(),
+                                    adj
+                            );
+                            return null;
+                        });
                     });
             //});
         }

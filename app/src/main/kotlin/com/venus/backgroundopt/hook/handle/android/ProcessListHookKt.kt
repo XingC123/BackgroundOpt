@@ -38,6 +38,7 @@ import com.venus.backgroundopt.utils.clamp
 import com.venus.backgroundopt.utils.concurrent.lock
 import com.venus.backgroundopt.utils.getBooleanFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
+import com.venus.backgroundopt.utils.ifTrue
 import com.venus.backgroundopt.utils.log.logInfo
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.message.handle.GlobalOomScoreEffectiveScopeEnum
@@ -45,10 +46,14 @@ import com.venus.backgroundopt.utils.message.handle.GlobalOomScorePolicy
 import com.venus.backgroundopt.utils.message.handle.getCustomMainProcessBgAdj
 import com.venus.backgroundopt.utils.message.handle.getCustomMainProcessFgAdj
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
+import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.ThreadFactory
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.BiFunction
 import kotlin.math.max
 import kotlin.math.min
@@ -331,34 +336,61 @@ class ProcessListHookKt(
         }
     }
 
-    private val adjSetActionPool = ScheduledThreadPoolExecutor(3).apply {
-        removeOnCancelPolicy = true
+    private val adjHandleActionPool = Executors.newFixedThreadPool(3)
+    private fun addAdjHandleAction(block: () -> Unit) {
+        adjHandleActionPool.execute(block)
     }
 
-    // private val adjSetActionPool = runningInfo.activityEventChangeExecutor
-    private val adjSetActionMap = ConcurrentHashMap<ProcessRecord, ScheduledFuture<*>>()
+    private class AdjComputeAndApplyActionPoolThreadFactory : ThreadFactory {
+        private val threadNumber = AtomicInteger(1)
 
-    fun addAdjSetAction(processRecord: ProcessRecord, block: () -> Unit) {
-        adjSetActionMap.compute(processRecord) { _, lastScheduledFuture ->
-            // 合并5s内的adj设置操作
-            lastScheduledFuture?.cancel(true)
-            scheduleAdjSetAction {
-                adjSetActionMap.remove(processRecord)
-                block()
+        override fun newThread(r: Runnable?): Thread = Thread(r, generateThreadName()).apply {
+            isDaemon.ifTrue {
+                setDaemon(false)
             }
-            /*runningInfo.scheduleActivityEventChangeAction({
-                adjSetActionMap.remove(processRecord)
-                block.run()
-            }, 5L, TimeUnit.SECONDS)*/
+            (priority != Thread.NORM_PRIORITY).ifTrue {
+                setPriority(Thread.NORM_PRIORITY)
+            }
+
+            threadLocalMap[this] = object : ThreadLocal<ByteBuffer>() {
+                override fun initialValue(): ByteBuffer = ProcessList.getByteBufferUsedToWriteLmkd()
+            }
+        }
+
+        private fun generateThreadName(): String {
+            return "${THREAD_FACTORY_NAME}-${THREAD_NAME}-${threadNumber.getAndIncrement()}"
+        }
+
+        companion object {
+            const val THREAD_FACTORY_NAME = "adjComputeAndApplyActionThreadFactory"
+            const val THREAD_NAME = "adjComputeAndApplyActionThread"
+
+            @JvmField
+            val threadLocalMap = ConcurrentHashMap<Thread, ThreadLocal<ByteBuffer>>(4, 1.5F)
         }
     }
 
-    fun addAdjSetAction(block: () -> Unit) {
-        adjSetActionPool.execute(block)
+    private val adjComputeAndApplyActionPool = ScheduledThreadPoolExecutor(
+        3,
+        AdjComputeAndApplyActionPoolThreadFactory()
+    ).apply {
+        removeOnCancelPolicy = true
+    }
+    private val adjComputeAndApplyActionMap = ConcurrentHashMap<ProcessRecord, ScheduledFuture<*>>()
+
+    fun addAdjComputeAndApplyAction(processRecord: ProcessRecord, block: () -> Unit) {
+        adjComputeAndApplyActionMap.compute(processRecord) { _, lastScheduledFuture ->
+            // 合并5s内的adj设置操作
+            lastScheduledFuture?.cancel(true)
+            scheduleAdjSetAction {
+                adjComputeAndApplyActionMap.remove(processRecord)
+                block()
+            }
+        }
     }
 
     fun scheduleAdjSetAction(block: () -> Unit): ScheduledFuture<*> {
-        return adjSetActionPool.schedule(block, 5L, TimeUnit.SECONDS)
+        return adjComputeAndApplyActionPool.schedule(block, 3L, TimeUnit.SECONDS)
     }
 
     private fun handleSetOomAdj(param: MethodHookParam) {
@@ -395,7 +427,7 @@ class ProcessListHookKt(
         }
 
         param.result = null
-        addAdjSetAction {
+        addAdjHandleAction {
             appInfo.lock {
                 handleSetOomAdjLocked(
                     process = process,
@@ -408,16 +440,6 @@ class ProcessListHookKt(
                 )
             }
         }
-        /*addAdjSetAction(process) {
-            appInfo.lock {
-                handleSetOomAdjLocked(
-                    param = param,
-                    pid = pid,
-                    process = process,
-                    appInfo = appInfo
-                )
-            }
-        }*/
     }
 
     @JvmOverloads
@@ -450,28 +472,28 @@ class ProcessListHookKt(
         val adjHandleFunction = appInfo.adjHandleFunction
         val shouldHandleAdj = appInfo.shouldHandleAdj()
         val adjHandleActionType = process.adjHandleActionType
-        //addAdjSetAction(process) {
-        val finalApplyAdj: Int = autoApplyAdjHandleAction(
-            adjHandleActionType = adjHandleActionType,
-            adj = adj,
-            adjWillSet = adjWillSet,
-            isUserSpaceAdj = isUserSpaceAdj,
-            isNegativeMode = isNegativeMode,
-            isHighPriorityProcess = isHighPriorityProcess,
-            mainProcess = mainProcess,
-            process = process,
-            appGroupEnum = appGroupEnum,
-            adjHandleFunction = adjHandleFunction,
-            shouldHandleAdj = shouldHandleAdj,
-            globalOomScorePolicy = globalOomScorePolicy
-        )
+        addAdjComputeAndApplyAction(process) {
+            val finalApplyAdj: Int = autoApplyAdjHandleAction(
+                adjHandleActionType = adjHandleActionType,
+                adj = adj,
+                adjWillSet = adjWillSet,
+                isUserSpaceAdj = isUserSpaceAdj,
+                isNegativeMode = isNegativeMode,
+                isHighPriorityProcess = isHighPriorityProcess,
+                mainProcess = mainProcess,
+                process = process,
+                appGroupEnum = appGroupEnum,
+                adjHandleFunction = adjHandleFunction,
+                shouldHandleAdj = shouldHandleAdj,
+                globalOomScorePolicy = globalOomScorePolicy
+            )
 
-        applyFinalAdj(
-            pid = pid,
-            uid = uid,
-            adj = finalApplyAdj
-        )
-        //}
+            applyFinalAdjUseCachedByteBuffer(
+                pid = pid,
+                uid = uid,
+                adj = finalApplyAdj
+            )
+        }
 
         // 记录本次系统计算的分数
         process.oomAdjScore = adjWillSet
@@ -528,6 +550,13 @@ class ProcessListHookKt(
 
     private fun applyFinalAdj(pid: Int, uid: Int, adj: Int) {
         ProcessList.writeLmkd(pid, uid, adj)
+    }
+
+    private fun applyFinalAdjUseCachedByteBuffer(pid: Int, uid: Int, adj: Int) {
+        val threadLocal = AdjComputeAndApplyActionPoolThreadFactory.threadLocalMap[Thread.currentThread()]!!
+        val byteBuffer = threadLocal.get()!!
+        ProcessList.writeLmkd(byteBuffer, pid, uid, adj)
+        byteBuffer.clear()
     }
 
     private fun autoApplyAdjHandleAction(
