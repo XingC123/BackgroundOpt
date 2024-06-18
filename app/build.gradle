@@ -111,6 +111,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_21.toString()
+        freeCompilerArgs += ["-Xlambdas=indy"]
     }
 //    packagingOptions {
 //        jniLibs {
