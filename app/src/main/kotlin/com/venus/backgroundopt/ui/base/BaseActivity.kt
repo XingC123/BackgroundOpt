@@ -24,6 +24,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import com.venus.backgroundopt.environment.CommonProperties
 import com.venus.backgroundopt.utils.UiUtils
+import com.venus.backgroundopt.utils.ifFalse
+import com.venus.backgroundopt.utils.ifTrue
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.ModuleRunningMessageHandler.ModuleRunningMessage
 import com.venus.backgroundopt.utils.message.sendMessage
@@ -129,20 +131,13 @@ fun BaseActivity.isModuleRunning(): Boolean {
 }
 
 /**
- * 比较模块后端的版本和[targetVersionCode], 如果符合要求, 则执行[compatibleBlock]。不符合则执行[incompatibleBlock]
- * @receiver BaseActivity
+ * 比较模块后端的版本和[targetVersionCode], 如果不符合要求则执行[incompatibleBlock],
+ * 若[isForcible]为true则无法执行[compatibleBlock]
  */
 inline fun BaseActivity.ifVersionIsCompatible(
     targetVersionCode: Int,
-    crossinline incompatibleBlock: (BaseActivity) -> Unit = {
-        runOnUiThread {
-            UiUtils.createDialog(
-                context = this,
-                text = "app与模块版本不匹配, 请重启后再试",
-                enablePositiveBtn = true
-            ).show()
-        }
-    },
+    isForcible: Boolean = true,
+    noinline incompatibleBlock: ((BaseActivity) -> Unit)? = null,
     crossinline compatibleBlock: (BaseActivity) -> Unit
 ) {
     // 检查版本是否匹配
@@ -162,7 +157,23 @@ inline fun BaseActivity.ifVersionIsCompatible(
         }
 
         if (versionCode < targetVersionCode) {
-            incompatibleBlock(this)
+            incompatibleBlock?.invoke(this) ?: run {
+                runOnUiThread {
+                    UiUtils.createDialog(
+                        context = this,
+                        cancelable = false,
+                        text = "app与模块版本不匹配, ${if (isForcible) "请重启后再试" else "一些参数的设置需要重启后才能生效"}",
+                        enablePositiveBtn = true,
+                        positiveBlock = {dialogInterface, _->
+                            dialogInterface.dismiss()
+                            isForcible.ifFalse {
+                                compatibleBlock(this)
+                            }
+                        },
+                        enableNegativeBtn = !isForcible
+                    ).show()
+                }
+            }
             return@showProgressBarViewForAction
         }
 

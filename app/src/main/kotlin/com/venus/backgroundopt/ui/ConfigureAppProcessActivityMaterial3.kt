@@ -42,9 +42,10 @@ import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
 import com.venus.backgroundopt.ui.component.VenusListCheckMaterial3
 import com.venus.backgroundopt.ui.component.VenusSwitchMaterial3
 import com.venus.backgroundopt.utils.PackageUtils
-import com.venus.backgroundopt.utils.StringUtils
 import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.getTmpData
+import com.venus.backgroundopt.utils.ifFalse
+import com.venus.backgroundopt.utils.ifTrue
 import com.venus.backgroundopt.utils.message.MessageKeyConstants
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy.MainProcessAdjManagePolicy
@@ -52,8 +53,10 @@ import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHand
 import com.venus.backgroundopt.utils.message.sendMessage
 import com.venus.backgroundopt.utils.preference.prefPut
 import com.venus.backgroundopt.utils.preference.prefValue
+import com.venus.backgroundopt.utils.runCatchThrowable
 import com.venus.backgroundopt.utils.showProgressBarViewForAction
 import kotlin.reflect.KMutableProperty0
+import kotlin.reflect.KMutableProperty1
 
 class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
     private lateinit var appItem: AppItem
@@ -189,86 +192,7 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                 )
             )
 
-            /*
-                自定义主进程oom分数
-             */
-            // 输入框
-            val customMainProcessOomScoreEditText =
-                findViewById<EditText>(R.id.configureAppProcessCustomMainProcessOomScoreEditText)
-            // 应用按钮
-            val customMainProcessOomScoreApplyBtn =
-                findViewById<Button>(R.id.configureAppProcessCustomMainProcessOomScoreApplyBtn)?.apply {
-                    setOnClickListener { _ ->
-                        val inputOomScore =
-                            customMainProcessOomScoreEditText?.text.toString().trim()
-                        if (StringUtils.isEmpty(inputOomScore)) {
-                            return@setOnClickListener
-                        }
-
-                        val oomScore = try {
-                            inputOomScore.toInt()
-                        } catch (e: Exception) {
-                            Int.MIN_VALUE
-                        }
-                        // 不合法的取值
-                        if (oomScore < ProcessList.NATIVE_ADJ || oomScore >= ProcessList.UNKNOWN_ADJ) {
-                            UiUtils.createDialog(
-                                context = context,
-                                text = "不合法的输入值",
-                                cancelable = true,
-                                enableNegativeBtn = true
-                            ).show()
-                            return@setOnClickListener
-                        }
-
-                        appOptimizePolicy.customMainProcessOomScore = oomScore
-
-                        appOptimizePolicySaveAction(appOptimizePolicy)
-                    }
-                }
-            // 启用/禁用此功能
-            findViewById<SwitchCompat>(R.id.configureAppProcessCustomMainProcessOomScoreSwitch)?.let { switch ->
-                // 开关的ui状态
-                switch.isChecked =
-                    appOptimizePolicy.enableCustomMainProcessOomScore.also { isEnabled ->
-                        if (isEnabled) {
-                            customMainProcessOomScoreEditText?.let {
-                                it.isEnabled = true
-                                // 从配置中读取值
-                                it.setText(
-                                    appOptimizePolicy.customMainProcessOomScore.toString(),
-                                    TextView.BufferType.EDITABLE
-                                )
-                            }
-                        }
-                    }
-
-                fun enableInputArea(enabled: Boolean) {
-                    customMainProcessOomScoreEditText?.isEnabled = enabled
-                    customMainProcessOomScoreApplyBtn?.isEnabled = enabled
-                }
-                // 默认是否启用输入框
-                enableInputArea(switch.isChecked)
-                // 监听
-                switch.setOnCheckedChangeListener { _, isChecked ->
-                    // 写入数据到对象
-                    appOptimizePolicy.enableCustomMainProcessOomScore = isChecked
-
-                    // 更新tag显示
-                    appItem.appConfiguredEnumSet.apply {
-                        if (isChecked) {
-                            add(AppConfiguredEnum.CustomMainProcessOomScore)
-                        } else {
-                            remove(AppConfiguredEnum.CustomMainProcessOomScore)
-                        }
-                    }
-
-                    appOptimizePolicySaveAction(appOptimizePolicy)
-
-                    // 输入框禁用与启用
-                    enableInputArea(isChecked)
-                }
-            }
+            initCustomMainProcAdj(appOptimizePolicy)
 
             /*
                 是否被模块纳入管理
@@ -402,6 +326,164 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                 )
             }
         }
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 自定义主进程oom分数                                                        *
+     *                                                                         *
+     **************************************************************************/
+    private fun initCustomMainProcAdj(appOptimizePolicy: AppOptimizePolicy) {
+        // 输入框
+        val fgAdjEditText = findViewById<EditText>(
+            R.id.configureAppProcessCustomMainProcessFgAdjEditText
+        )
+        val bgAdjEditText = findViewById<EditText>(
+            R.id.configureAppProcessCustomMainProcessBgAdjEditText
+        )
+
+        val customAdjEditTextAndPropertyMap = mapOf(
+            fgAdjEditText to AppOptimizePolicy::customMainProcessFgAdj,
+            bgAdjEditText to AppOptimizePolicy::customMainProcessOomScore
+        )
+        // 应用按钮
+        val customMainProcessOomScoreApplyBtn = findViewById<Button>(
+            R.id.configureAppProcessCustomMainProcessOomScoreApplyBtn
+        ).apply {
+            setOnClickListener { _ ->
+                var isAllAdjValid = true
+                val adjEditTextArray = arrayOf<EditText>(fgAdjEditText, bgAdjEditText)
+                val adjArray = IntArray(2)
+                customAdjEditTextAndPropertyMap.keys.forEachIndexed { index, editText ->
+                    val inputAdjStr = editText.text.toString().trim()
+                    if (inputAdjStr.isBlank()) {
+                        adjArray[index] = Int.MIN_VALUE
+                        return@forEachIndexed
+                    }
+
+                    val finalAdj = runCatchThrowable(
+                        catchBlock = {
+                            // 非数字
+                            isAllAdjValid = false
+                            Int.MIN_VALUE
+                        }
+                    ) {
+                        val adj = inputAdjStr.toInt()
+                        return@runCatchThrowable if (ProcessList.isValidAdj(adj)) {
+                            adj
+                        } else {
+                            // 取值不正确
+                            isAllAdjValid = false
+                            Int.MIN_VALUE
+
+                        }
+                    }!!
+                    adjArray[index] = finalAdj
+                }
+                isAllAdjValid.ifFalse {
+                    UiUtils.createDialog(
+                        context = context,
+                        text = "不合法的输入值",
+                        cancelable = true,
+                        enableNegativeBtn = true
+                    ).show()
+                    return@setOnClickListener
+                }
+
+                appOptimizePolicy.apply {
+                    enableCustomMainProcessOomScore = true
+                    // 设置自定义的adj
+                    adjEditTextArray.forEachIndexed { index, editText ->
+                        customAdjEditTextAndPropertyMap[editText]!!.set(
+                            this,
+                            adjArray[index]
+                        )
+                    }
+                }
+
+                // 更新tag显示
+                appItem.appConfiguredEnumSet.add(AppConfiguredEnum.CustomMainProcessOomScore)
+
+                appOptimizePolicySaveAction(appOptimizePolicy)
+            }
+        }
+
+        // 启用/禁用此功能
+        findViewById<SwitchCompat>(R.id.configureAppProcessCustomMainProcessOomScoreSwitch).apply {
+            val switch = this
+            // 开关的ui状态
+            switch.isChecked = appOptimizePolicy.enableCustomMainProcessOomScore.also { isEnabled ->
+                customAdjEditTextAndPropertyMap.forEach { (editText, property) ->
+                    initCustomMainProcAdjEditText(
+                        isEnabled = isEnabled,
+                        editText = editText,
+                        appOptimizePolicy = appOptimizePolicy,
+                        property = property
+                    )
+                }
+            }
+
+            fun enableCustomMainProcAdjComponents() {
+                enableCustomMainProcAdjComponents(
+                    isEnabled = switch.isChecked,
+                    editTexts = customAdjEditTextAndPropertyMap.keys,
+                    applyBtn = customMainProcessOomScoreApplyBtn
+                )
+            }
+
+            // 默认是否启用输入框
+            enableCustomMainProcAdjComponents()
+            // 监听
+            switch.setOnCheckedChangeListener { _, isChecked ->
+                if (!isChecked && appOptimizePolicy.enableCustomMainProcessOomScore != isChecked) {
+                    customAdjEditTextAndPropertyMap.forEach { (editText, property) ->
+                        // 重置输入框
+                        editText.text.clear()
+                        // 重置app配置中的值
+                        property.set(appOptimizePolicy, Int.MIN_VALUE)
+                    }
+                    appOptimizePolicy.enableCustomMainProcessOomScore = false
+
+                    // 更新tag显示
+                    appItem.appConfiguredEnumSet.remove(AppConfiguredEnum.CustomMainProcessOomScore)
+
+                    appOptimizePolicySaveAction(appOptimizePolicy)
+                }
+
+                // 输入框禁用与启用
+                enableCustomMainProcAdjComponents()
+            }
+        }
+    }
+
+    private fun initCustomMainProcAdjEditText(
+        isEnabled: Boolean,
+        editText: EditText,
+        appOptimizePolicy: AppOptimizePolicy,
+        property: KMutableProperty1<AppOptimizePolicy, Int>,
+    ) {
+        isEnabled.ifTrue {
+            editText.isEnabled = true
+            // 从配置中读取值
+            val adj = property.get(appOptimizePolicy)
+            ProcessList.isValidAdj(adj).ifTrue {
+                editText.setText(
+                    property.get(appOptimizePolicy).toString(),
+                    TextView.BufferType.EDITABLE
+                )
+            }
+        }
+    }
+
+    private fun enableCustomMainProcAdjComponents(
+        isEnabled: Boolean,
+        editTexts: Collection<EditText>,
+        applyBtn: Button
+    ) {
+        editTexts.forEach { editText ->
+            editText.isEnabled = isEnabled
+        }
+        applyBtn.isEnabled = isEnabled
     }
 
     private fun appOptimizePolicySaveAction(

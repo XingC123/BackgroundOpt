@@ -23,6 +23,7 @@ import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.MessageHandler
 import com.venus.backgroundopt.utils.message.createResponse
@@ -62,12 +63,22 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
                 }
 
                 AppOptimizePolicyMessage.MSG_SAVE -> {
-                    val appOptimizePolicy =
-                        parseObjectFromJsonObject<AppOptimizePolicy>(message.value)!!
+                    val appOptimizePolicy = parseObjectFromJsonObject<AppOptimizePolicy>(
+                        message.value
+                    )!!
+                    val old = appOptimizePolicyMap[appOptimizePolicy.packageName]
+
                     appOptimizePolicyMap[appOptimizePolicy.packageName] = appOptimizePolicy
+
                     runningInfo.runningAppInfos.asSequence()
                         .filter { appInfo -> appInfo.packageName == appOptimizePolicy.packageName }
-                        .forEach { appInfo -> appInfo.setShouldHandleAdj(appOptimizePolicy) }
+                        .forEach { appInfo -> appInfo.setAdjHandleFunction(appOptimizePolicy) }
+
+                    if (old?.enableCustomMainProcessOomScore != appOptimizePolicy.enableCustomMainProcessOomScore) {
+                        ProcessRecord.resetAdjHandleType(
+                            packageName = packageName
+                        )
+                    }
 
                     initMainProcessAdjManagePolicyUiText(appOptimizePolicy)
                     returnValue = appOptimizePolicy
@@ -132,7 +143,8 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
 
         // 自定义的主进程oom分数
         var enableCustomMainProcessOomScore = false
-        var customMainProcessOomScore = Int.MIN_VALUE
+        var customMainProcessFgAdj = Int.MIN_VALUE      /* 进程处于前台时的adj */
+        var customMainProcessOomScore = Int.MIN_VALUE   /* 进程处于后台时的adj */
 
         // 该app是否管理adj
         @Deprecated(message = "已被取代", replaceWith = ReplaceWith("mainProcessAdjManagePolicy"))
@@ -190,19 +202,39 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
     }
 }
 
+fun AppOptimizePolicyMessageHandler.AppOptimizePolicy?.isEnabledCustomMainProcessAdj(): Boolean {
+    return this?.enableCustomMainProcessOomScore == true
+}
+
 /**
  * 获取自定义的主进程oom分数
  * @receiver AppOptimizePolicyMessageHandler.AppOptimizePolicy? app优化策略
  * @return Int? 自定义主进程oom分数
  */
-fun AppOptimizePolicyMessageHandler.AppOptimizePolicy?.getCustomMainProcessOomScore(): Int? {
-    return if (this?.enableCustomMainProcessOomScore == true &&
-        /* 对自定义的主进程adj进行合法性确认 */
-        this.customMainProcessOomScore >= ProcessList.NATIVE_ADJ &&
-        this.customMainProcessOomScore < ProcessList.UNKNOWN_ADJ
-    ) {
-        this.customMainProcessOomScore
-    } else {
-        null
+fun AppOptimizePolicyMessageHandler.AppOptimizePolicy?.isCustomMainProcessAdjValid(): Boolean {
+    if (this?.enableCustomMainProcessOomScore != true) {
+        return false
     }
+    return ProcessList.isValidAdj(customMainProcessFgAdj)
+            || ProcessList.isValidAdj(customMainProcessOomScore)
+}
+
+private fun AppOptimizePolicyMessageHandler.AppOptimizePolicy.getCustomMainProcessAdj(adj: Int): Int? {
+    return if (enableCustomMainProcessOomScore && ProcessList.isValidAdj(adj)) adj else null
+}
+
+fun AppOptimizePolicyMessageHandler.AppOptimizePolicy?.getCustomMainProcessFgAdj(): Int? {
+    return this?.getCustomMainProcessAdj(customMainProcessFgAdj)
+}
+
+fun AppOptimizePolicyMessageHandler.AppOptimizePolicy?.getCustomMainProcessBgAdj(): Int? {
+    return this?.getCustomMainProcessAdj(customMainProcessOomScore)
+}
+
+fun AppOptimizePolicyMessageHandler.AppOptimizePolicy.getCustomMainProcessFgAdjFromNonNull(): Int? {
+    return getCustomMainProcessAdj(customMainProcessFgAdj)
+}
+
+fun AppOptimizePolicyMessageHandler.AppOptimizePolicy.getCustomMainProcessBgAdjFromNonNull(): Int? {
+    return getCustomMainProcessAdj(customMainProcessOomScore)
 }

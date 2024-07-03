@@ -63,7 +63,7 @@ class AppCompactManager2(
         ConcurrentHashMap()
 
     override fun isNecessaryToOptimizeProcess(processRecord: ProcessRecord): Boolean {
-        return processRecord.mCurRawAdj >= 0 && processRecord.appInfo.appGroupEnum != AppGroupEnum.ACTIVE
+        return processRecord.oomAdjScore >= 0 && processRecord.appInfo.appGroupEnum != AppGroupEnum.ACTIVE
     }
 
     fun compactProcess(

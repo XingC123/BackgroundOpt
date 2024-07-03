@@ -32,10 +32,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginHorizontal="@dimen/content_space"
         android:divider="@drawable/item_space_vertical"
         android:orientation="vertical"
-        android:paddingHorizontal="@dimen/content_space"
-        android:paddingVertical="@dimen/content_space"
         android:showDividers="middle"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
@@ -43,7 +42,8 @@
             android:id="@+id/showAppCompactListRecyclerViewTipText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/showAppCompactListRecyclerViewTipText" />
+            android:text="@string/showAppCompactListRecyclerViewTipText"
+            android:visibility="gone" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/showAppCompactListRecyclerView"

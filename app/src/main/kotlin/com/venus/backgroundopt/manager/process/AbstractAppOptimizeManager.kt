@@ -34,7 +34,7 @@ abstract class AbstractAppOptimizeManager(val appOptimizeEnum: AppOptimizeEnum) 
     abstract fun getExecutor(): Executor
 
     open fun isNecessaryToOptimizeProcess(processRecord: ProcessRecord): Boolean {
-        val isSafeOomAdj = processRecord.mCurRawAdj >= 0
+        val isSafeOomAdj = processRecord.oomAdjScore >= 0
         return if (isSafeOomAdj) {
             if (processRecord.mainProcess) {
                 processRecord.isNecessaryToOptimize()

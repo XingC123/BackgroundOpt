@@ -20,7 +20,6 @@ package com.venus.backgroundopt.utils
 import com.venus.backgroundopt.hook.base.HookPoint
 import com.venus.backgroundopt.hook.base.IHook
 import com.venus.backgroundopt.utils.log.logError
-import com.venus.backgroundopt.utils.log.logInfo
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import de.robv.android.xposed.XC_MethodReplacement
@@ -183,17 +182,21 @@ fun Any.callMethod(methodName: String, paramTypes: Array<out Class<*>>, vararg a
 @JvmName("callMethodWithType")
 @Suppress("UNCHECKED_CAST")
 fun <R> Any.callMethod(methodName: String, paramTypes: Array<out Class<*>>, vararg args: Any?): R {
-    return callMethod(methodName, paramTypes, args) as R
+    return callMethod(
+        methodName = methodName,
+        paramTypes = paramTypes,
+        args = args
+    ) as R
 }
 
 fun Class<*>.callStaticMethod(methodName: String, vararg args: Any?): Any? {
-    return XposedHelpers.callStaticMethod(this, methodName, args)
+    return XposedHelpers.callStaticMethod(this, methodName, *args)
 }
 
 @JvmName("callStaticMethodWithType")
 @Suppress("UNCHECKED_CAST")
 fun <R> Class<*>.callStaticMethod(methodName: String, vararg args: Any?): R {
-    return callStaticMethod(methodName, args) as R
+    return callStaticMethod(methodName = methodName, args = args) as R
 }
 
 fun Class<*>.callStaticMethod(
@@ -201,7 +204,7 @@ fun Class<*>.callStaticMethod(
     paramTypes: Array<out Class<*>>,
     vararg args: Any?
 ): Any? {
-    return XposedHelpers.callStaticMethod(this, methodName, paramTypes, args)
+    return XposedHelpers.callStaticMethod(this, methodName, paramTypes, *args)
 }
 
 @JvmName("callStaticMethodWithType")
@@ -211,7 +214,11 @@ fun <R> Class<*>.callStaticMethod(
     paramTypes: Array<out Class<*>>,
     vararg args: Any?
 ): R {
-    return callStaticMethod(methodName, paramTypes, args) as R
+    return callStaticMethod(
+        methodName = methodName,
+        paramTypes = paramTypes,
+        args = args
+    ) as R
 }
 
 /* *************************************************************************

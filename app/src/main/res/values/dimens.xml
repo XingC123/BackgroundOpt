@@ -3,7 +3,8 @@
     <dimen name="padding_horizontal_if_use_border">5dp</dimen>
     <dimen name="padding_vertical_if_use_border">1dp</dimen>
     <!--页边距-->
-    <dimen name="content_space">10dp</dimen>
+    <dimen name="content_space">@dimen/abc_dialog_padding_material</dimen>
+    <dimen name="content_space_top">@dimen/abc_dialog_padding_top_material</dimen>
     <!--元素边距-->
     <dimen name="item_space">5dp</dimen>
 

@@ -17,9 +17,12 @@
 
 package com.venus.backgroundopt.hook.handle.android.entity;
 
+import androidx.annotation.NonNull;
+
 import com.venus.backgroundopt.annotation.AndroidMethod;
 import com.venus.backgroundopt.annotation.AndroidObject;
 import com.venus.backgroundopt.annotation.AndroidObjectField;
+import com.venus.backgroundopt.core.RunningInfo;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.ApplicationIdentity;
 import com.venus.backgroundopt.hook.constants.ClassConstants;
@@ -221,6 +224,21 @@ public class ProcessList implements ILogger {
     @AndroidObjectField
     static final byte LMK_STATE_CHANGED = 9; // Msg to subscribed clients on state changed
 
+    private static Class<?> processListClazz;
+
+    @NonNull
+    public static Class<?> getProcessListClazz() {
+        return processListClazz;
+    }
+
+    public static void initProcessListClazz() {
+        ClassLoader classLoader = RunningInfo.getInstance().getClassLoader();
+        processListClazz = XposedUtilsKt.findClass(
+                ClassConstants.ProcessList,
+                classLoader
+        );
+    }
+
     @AndroidObject(classPath = ClassConstants.ProcessList)
     private final Object processList;
     // 系统进程列表
@@ -234,6 +252,10 @@ public class ProcessList implements ILogger {
         this.activityManagerService = activityManagerService;
 
         this.processRecordList = (List<?>) XposedHelpers.getObjectField(processList, FieldConstants.mLruProcesses);
+    }
+
+    public static void init() {
+        initProcessListClazz();
     }
 
     @AndroidObjectField
@@ -364,24 +386,38 @@ public class ProcessList implements ILogger {
         return processRecord.get();
     }
 
+    public static boolean isValidAdj(int adj) {
+        return NATIVE_ADJ <= adj && adj < UNKNOWN_ADJ;
+    }
+
+    private static final Class<?>[] writeLmkdParamTypes = new Class[]{ByteBuffer.class, ByteBuffer.class};
+
     @AndroidMethod
     @SuppressWarnings("all")
-    public boolean writeLmkd(ByteBuffer buf, ByteBuffer repl) {
-        return (boolean) XposedUtilsKt.callMethod(
-                processList,
+    public static boolean writeLmkd(ByteBuffer buf, ByteBuffer repl) {
+        return (boolean) XposedUtilsKt.callStaticMethod(
+                processListClazz,
                 MethodConstants.writeLmkd,
+                writeLmkdParamTypes,
                 buf,
                 repl
         );
     }
 
-    @SuppressWarnings("all")
-    public boolean writeLmkd(int pid, int uid, int adj) {
-        ByteBuffer buf = ByteBuffer.allocate(4 * 4);
+    public static boolean writeLmkd(int pid, int uid, int adj) {
+        return writeLmkd(getByteBufferUsedToWriteLmkd(), pid, uid, adj);
+    }
+
+    public static boolean writeLmkd(@NonNull ByteBuffer buf, int pid, int uid, int adj) {
         buf.putInt(LMK_PROCPRIO);
         buf.putInt(pid);
         buf.putInt(uid);
         buf.putInt(adj);
         return writeLmkd(buf, null);
+    }
+
+    @NonNull
+    public static ByteBuffer getByteBufferUsedToWriteLmkd() {
+        return ByteBuffer.allocate(4 * 4);
     }
 }

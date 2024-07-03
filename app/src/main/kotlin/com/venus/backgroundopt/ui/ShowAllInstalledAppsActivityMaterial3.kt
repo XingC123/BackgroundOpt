@@ -103,7 +103,7 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
         // 初始化搜索栏
         val appNameSearchBar = findViewById<SearchBar>(R.id.showAllInstalledAppsSearchBar)
         fun applySearch(text: CharSequence, searchView: SearchView) {
-            appNameSearchBar.text = text
+            appNameSearchBar.setText(text)
             searchView.hide()
             (recyclerView.adapter as ShowAllInstalledAppsAdapter3).filter.filter(text)
         }

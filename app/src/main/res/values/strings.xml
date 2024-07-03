@@ -122,6 +122,8 @@
         \n\t\t\t\t\t\t① 从不：模块不对adj进行干预。
         \n\t\t\t\t\t\t② 拥有界面：后台含有界面时，模块会对其进行“保活”。不含界面时，模块会将其视为子进程级别处理adj。
         \n\t\t\t\t\t\t③ 强制：无论如何都进行adj调整。
+        \n\t\t15) 设置-次级消息发送器：
+        \n\t\t\t\t模块自2.5_vc201开始，默认使用Socket作为前后端通信渠道。但可能出现不可控的被关闭的情况(原因暂不明)，因此添加此开关，开启后可恢复之前版本的通信方式。
 
 
         \n\n<b>3. 其他问题</b>
@@ -145,7 +147,9 @@
     <string name="settingsOomStrictModeSummary" translatable="false">开启以将主进程的最大adj限制到更低水平</string>
     <string name="settingsOomWorkModePrefText">OOM work mode</string>
     <string name="configureAppProcessCustomMainProcessOomScoreText">Custom main Process oom score</string>
-    <string name="configureAppProcessCustomMainProcessOomScoreTipText" translatable="false">(-1000~1000)</string>
+    <string name="configureAppProcessCustomMainProcessBgAdjTipText" translatable="false">后台Adj</string>
+    <string name="configureAppProcessCustomMainProcessFgAdjTipText" translatable="false">前台Adj</string>
+    <string name="configureAppProcessCustomMainProcessAdjTipText" translatable="false">空 / [-1000, 1000]</string>
     <string name="configureAppProcessCustomMainProcessOomScoreApplyBtn">Apply</string>
     <string name="configureAppProcessForegroundMemoryTrim">Foreground Mem Trim</string>
     <string name="configureAppProcessBackgroundMemoryTrim">Background Mem Trim</string>
@@ -197,4 +201,7 @@
     <string name="processInfoDialogRssTip" translatable="false">Rss:</string>
     <string name="processInfoDialogOriginalAdjTip">Original adj:</string>
     <string name="processInfoDialogCurAdjTip">Current adj:</string>
+    <string name="main_activity_socket_port" translatable="false">通信端口:</string>
+    <string name="settingsSecondaryMessageSender" translatable="false">次级消息发送器</string>
+    <string name="settingsSecondaryMessageSenderSummary" translatable="false">重启App生效</string>
 </resources>
