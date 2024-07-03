@@ -23,4 +23,7 @@
     -->
     <!--动态取色-->
     <string name="pref_key_dynamic_theme" translatable="false">pref_key_dynamic_theme</string>
+
+    <!--次级消息发送器-->
+    <string name="pref_key_secondary_message_sender" translatable="false">pref_key_secondary_message_sender</string>
 </resources>

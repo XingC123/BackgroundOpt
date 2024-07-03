@@ -30,14 +30,13 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginHorizontal="@dimen/content_space"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:paddingHorizontal="@dimen/content_space"
-            android:paddingVertical="@dimen/content_space">
+            android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -104,10 +103,10 @@
                     android:showDividers="middle">
 
                     <com.google.android.material.card.MaterialCardView
-                        style="@style/OutlinedCardView"
+                        style="@style/FilledCardView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
+                        app:cardBackgroundColor="?attr/colorSurfaceContainer">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -134,10 +133,10 @@
                     </com.google.android.material.card.MaterialCardView>
 
                     <com.google.android.material.card.MaterialCardView
-                        style="@style/OutlinedCardView"
+                        style="@style/FilledCardView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
+                        app:cardBackgroundColor="?attr/colorSurfaceContainer">
 
                         <LinearLayout
                             android:layout_width="match_parent"

@@ -27,8 +27,7 @@
             android:id="@+id/showAllInstalledAppsRecycleView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingHorizontal="@dimen/content_space"
-            android:paddingVertical="@dimen/content_space"
+            android:layout_marginHorizontal="@dimen/content_space"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         <com.google.android.material.appbar.AppBarLayout

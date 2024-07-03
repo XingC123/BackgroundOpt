@@ -17,17 +17,23 @@
 
 package com.venus.backgroundopt.utils.message
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.widget.TextView
 import com.alibaba.fastjson2.JSON
 import com.alibaba.fastjson2.JSONObject
 import com.venus.backgroundopt.BuildConfig
+import com.venus.backgroundopt.environment.PreferenceDefaultValue
+import com.venus.backgroundopt.environment.constants.PreferenceKeyConstants
+import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt
 import com.venus.backgroundopt.manager.message.SocketModuleMessageHandler
 import com.venus.backgroundopt.utils.JsonUtils
 import com.venus.backgroundopt.utils.log.logError
 import com.venus.backgroundopt.utils.log.logErrorAndroid
 import com.venus.backgroundopt.utils.log.logInfoAndroid
+import com.venus.backgroundopt.utils.log.logWarnAndroid
 import com.venus.backgroundopt.utils.message.handle.AppCompactListMessageHandler
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler
 import com.venus.backgroundopt.utils.message.handle.AppWebviewProcessProtectMessageHandler
@@ -49,6 +55,7 @@ import com.venus.backgroundopt.utils.message.handle.RunningAppInfoMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SimpleLmkMessageHandler
 import com.venus.backgroundopt.utils.message.handle.SubProcessOomConfigChangeMessageHandler
 import com.venus.backgroundopt.utils.message.handle.TargetAppGroupMessageHandler
+import com.venus.backgroundopt.utils.preference.prefBoolean
 import com.venus.backgroundopt.utils.runCatchThrowable
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import java.io.ObjectInputStream
@@ -139,6 +146,10 @@ interface IMessageSender {
     }
 }
 
+class NoImplMessageSender : IMessageSender {
+    override fun send(key: String, value: Any): String? = null
+}
+
 class DefaultMessageSender(
     private val context: Context,
 ) : IMessageSender {
@@ -183,15 +194,40 @@ class MessageSender {
     private lateinit var sender: IMessageSender
     private val executor = Executors.newFixedThreadPool(3)
 
-    fun init(context: Context, socketPort: Int) {
+    fun init(
+        context: Context,
+        socketPort: Int?,
+        socketPortText: TextView?
+    ) {
         executor.execute {
+            var socketPortStr = "null"
+
+            val enableSecondaryMessageSender = context.prefBoolean(
+                name = PreferenceNameConstants.MAIN_SETTINGS,
+                key = PreferenceKeyConstants.SECONDARY_MESSAGE_SENDER,
+                defaultValue = PreferenceDefaultValue.enableSecondaryMessageSender
+            )
+            if (enableSecondaryMessageSender) {
+                logInfoAndroid("传统通信~")
+                sender = DefaultMessageSender(context = context)
+                socketPortStr = "次级消息发送器"
+            } else if (socketPort == null) {
+                logWarnAndroid("无任何消息实现~")
+                sender = NoImplMessageSender()
+            }
             // 支持socket传输
-            if (SocketModuleMessageHandler.isPortValid(socketPort)) {
+            else if (SocketModuleMessageHandler.isPortValid(socketPort)) {
                 logInfoAndroid("Socket通信~")
                 sender = SocketMessageSender(socketPort = socketPort)
+                socketPortStr = socketPort.toString()
             } else {
                 logInfoAndroid("传统通信~")
                 sender = DefaultMessageSender(context = context)
+                socketPortStr = "其他实现"
+            }
+
+            (context as? Activity)?.runOnUiThread {
+                socketPortText?.text = socketPortStr
             }
         }
     }
@@ -222,9 +258,11 @@ class MessageSender {
             is SocketMessageSender -> {
                 executor.execute(block)
             }
+
             is DefaultMessageSender -> {
                 block()
             }
+
             else -> {}
         }
     }

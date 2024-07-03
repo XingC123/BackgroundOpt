@@ -22,6 +22,7 @@ import android.content.Intent
 import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.core.RunningInfo
 import com.venus.backgroundopt.utils.JsonUtils
+import com.venus.backgroundopt.utils.log.ILogger
 import com.venus.backgroundopt.utils.log.logDebug
 import com.venus.backgroundopt.utils.log.logError
 import com.venus.backgroundopt.utils.log.logInfo
@@ -33,6 +34,7 @@ import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
+import java.net.InetAddress
 import java.net.ServerSocket
 import java.util.concurrent.Executors
 
@@ -57,7 +59,7 @@ class ModuleMessageManager(
 /**
  * 模块消息处理器
  */
-interface ModuleMessageHandler {
+interface ModuleMessageHandler : ILogger {
     val runningInfo: RunningInfo
 }
 
@@ -92,19 +94,24 @@ class SocketModuleMessageHandler(
     override val runningInfo: RunningInfo
 ) : ModuleMessageHandler {
     private val executor = Executors.newFixedThreadPool(3)
-    val socket: ServerSocket? = initSocket()
+    private val socket: ServerSocket? = initSocket()
     val port: Int
-        get() = socket?.localPort ?: Int.MIN_VALUE
+        get() = if (socket != null && !socket.isClosed) {
+            socket.localPort
+        } else {
+            Int.MIN_VALUE
+        }
 
     private fun initSocket(): ServerSocket? {
         var socket: ServerSocket? = null
-        var curPort = 45555
+        var curPort = 11011
+        val localHost = InetAddress.getLocalHost()
         do {
             runCatchThrowable {
-                socket = ServerSocket(curPort)
+                socket = ServerSocket(curPort, 50, localHost)
             }
             ++curPort
-        } while (socket == null && curPort <= 65535)
+        } while (socket == null && curPort <= 49152)
         return socket
     }
 
@@ -121,12 +128,22 @@ class SocketModuleMessageHandler(
             }.newInstance()
             while (true) {
                 val accept = socket.accept()
-                val objectInputStream = ObjectInputStream(accept.getInputStream())
+                val objectInputStream = runCatchThrowable(catchBlock = { throwable ->
+                    logger.error("创建消息接收流时发生异常！", throwable)
+                    runCatchThrowable {
+                        accept.close()
+                    }
+                    null
+                }) {
+                    ObjectInputStream(accept.getInputStream())
+                } ?: continue
 
                 executor.execute {
                     runCatchThrowable(finallyBlock = {
-                        objectInputStream.close()
-                        accept.close()
+                        runCatchThrowable {
+                            objectInputStream.close()
+                            accept.close()
+                        }
                     }) {
                         val message = objectInputStream.readObject() as Message
                         if (BuildConfig.DEBUG) {

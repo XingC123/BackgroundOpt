@@ -30,6 +30,7 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginHorizontal="@dimen/content_space"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -37,8 +38,6 @@
             android:layout_height="match_parent"
             android:divider="@drawable/item_space_vertical_component"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/content_space"
-            android:paddingVertical="@dimen/content_space"
             android:showDividers="middle">
 
             <LinearLayout
@@ -154,10 +153,10 @@
                     android:visibility="gone" />
 
                 <com.google.android.material.card.MaterialCardView
-                    style="@style/OutlinedCardView"
+                    style="@style/FilledCardView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -293,10 +292,10 @@
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
-                    style="@style/OutlinedCardView"
+                    style="@style/FilledCardView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -321,19 +320,56 @@
                             android:orientation="horizontal"
                             android:showDividers="middle">
 
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
+                        </LinearLayout>
 
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/configureAppProcessCustomMainProcessOomScoreEditText"
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:divider="@drawable/item_space_vertical"
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical"
+                            android:showDividers="middle">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:baselineAligned="false"
+                                android:divider="@drawable/item_space_horizontal"
+                                android:orientation="horizontal"
+                                android:showDividers="middle">
+
+                                <com.google.android.material.textfield.TextInputLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:ems="10"
-                                    android:hint="@string/configureAppProcessCustomMainProcessOomScoreTipText"
-                                    android:inputType="number|numberSigned" />
-                            </com.google.android.material.textfield.TextInputLayout>
+                                    android:layout_weight="1"
+                                    android:hint="@string/configureAppProcessCustomMainProcessFgAdjTipText"
+                                    app:helperTextEnabled="true"
+                                    app:helperText="@string/configureAppProcessCustomMainProcessAdjTipText">
+
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/configureAppProcessCustomMainProcessFgAdjEditText"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:ems="10"
+                                        android:inputType="number|numberSigned" />
+                                </com.google.android.material.textfield.TextInputLayout>
+
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:hint="@string/configureAppProcessCustomMainProcessBgAdjTipText"
+                                    app:helperTextEnabled="true"
+                                    app:helperText="@string/configureAppProcessCustomMainProcessAdjTipText">
+
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/configureAppProcessCustomMainProcessBgAdjEditText"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:ems="10"
+                                        android:inputType="number|numberSigned" />
+                                </com.google.android.material.textfield.TextInputLayout>
+                            </LinearLayout>
 
                             <Button
                                 android:id="@+id/configureAppProcessCustomMainProcessOomScoreApplyBtn"
@@ -370,10 +406,10 @@
                     app:switchTextSize="16sp" />
 
                 <com.google.android.material.card.MaterialCardView
-                    style="@style/OutlinedCardView"
+                    style="@style/FilledCardView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer">
 
                     <com.venus.backgroundopt.ui.component.VenusListCheckMaterial3
                         android:id="@+id/manage_main_process_adj_venus_list_check"

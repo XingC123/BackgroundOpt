@@ -34,14 +34,19 @@ import com.venus.backgroundopt.hook.constants.FieldConstants
 import com.venus.backgroundopt.hook.constants.MethodConstants
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_NEWLINE_TERM
 import com.venus.backgroundopt.hook.handle.android.entity.Process.PROC_OUT_LONG
+import com.venus.backgroundopt.hook.handle.android.isHighPriorityProcessByBasicProperty
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.callMethod
 import com.venus.backgroundopt.utils.getBooleanFieldValue
 import com.venus.backgroundopt.utils.getIntFieldValue
 import com.venus.backgroundopt.utils.getObjectFieldValue
 import com.venus.backgroundopt.utils.getStringFieldValue
+import com.venus.backgroundopt.utils.ifTrue
 import com.venus.backgroundopt.utils.log.ILogger
+import com.venus.backgroundopt.utils.log.logDebug
 import com.venus.backgroundopt.utils.log.logInfo
+import com.venus.backgroundopt.utils.message.handle.isCustomMainProcessAdjValid
+import com.venus.backgroundopt.utils.nullableFilter
 import com.venus.backgroundopt.utils.runCatchThrowable
 import com.venus.backgroundopt.utils.setIntFieldValue
 import java.math.RoundingMode
@@ -78,6 +83,9 @@ class ProcessRecord(
         // 高优先级子进程的最大adj
         var HIGH_PRIORITY_SUB_PROC_DEFAULT_MAX_ADJ = ProcessList.UNKNOWN_ADJ
 
+        // 是否设置默认最大adj
+        var isNeedSetDefaultMaxAdj = false
+
         @JvmField
         var defaultMaxAdjStr = "null"
 
@@ -99,11 +107,16 @@ class ProcessRecord(
 
         init {
             // 根据配置文件决定defaultMaxAdj
-            val oomMode = HookCommonProperties.oomWorkModePref.oomMode
-            defaultMaxAdj = when (oomMode) {
+            when (HookCommonProperties.oomWorkModePref.oomMode) {
                 OomWorkModePref.MODE_STRICT,
                 OomWorkModePref.MODE_STRICT_SECONDARY,
-                OomWorkModePref.MODE_BALANCE_PLUS -> ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
+                OomWorkModePref.MODE_BALANCE_PLUS -> {
+                    isNeedSetDefaultMaxAdj = true
+
+                    defaultMaxAdj = ProcessList.PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ
+                    // 高优先级子进程
+                    HIGH_PRIORITY_SUB_PROC_DEFAULT_MAX_ADJ = ProcessList.VISIBLE_APP_ADJ
+                }
                 // OomWorkModePref.MODE_NEGATIVE -> ProcessList.HEAVY_WEIGHT_APP_ADJ
                 else -> ProcessList.UNKNOWN_ADJ
             }
@@ -111,14 +124,6 @@ class ProcessRecord(
                 if (defaultMaxAdj == ProcessList.UNKNOWN_ADJ) "系统默认" else defaultMaxAdj
             }"
             logInfo(logStr = "最大oom_score_adj: $defaultMaxAdjStr")
-
-            // 高优先级子进程
-            HIGH_PRIORITY_SUB_PROC_DEFAULT_MAX_ADJ = when (oomMode) {
-                OomWorkModePref.MODE_STRICT,
-                OomWorkModePref.MODE_STRICT_SECONDARY,
-                OomWorkModePref.MODE_BALANCE_PLUS -> ProcessList.VISIBLE_APP_ADJ
-                else -> ProcessList.UNKNOWN_ADJ
-            }
 
             // 计算最小的、要进行优化的资源占用的值
             RunningInfo.getInstance().memInfoReader?.let { memInfoReader ->
@@ -169,6 +174,8 @@ class ProcessRecord(
             if (mainProcess) {
                 this.appInfo.setmProcessRecord(this)
             }
+
+            initAdjHandleType()
         }
 
         /**
@@ -428,6 +435,38 @@ class ProcessRecord(
                 // 执行完本次之后就清除掉设置器
                 process.clearFixedOomScoreAdjSetter()
             }*/
+
+        @JvmStatic
+        fun resetAdjHandleType(
+            packageNameFilter: ((ProcessRecord) -> Boolean)? = null,
+            processNameFilter: ((ProcessRecord) -> Boolean)? = null,
+        ) {
+            val runningInfo = RunningInfo.getInstance()
+            runningInfo.runningProcesses.asSequence()
+                .nullableFilter(packageNameFilter)
+                .nullableFilter(processNameFilter)
+                .forEach { processRecord ->
+                    processRecord.resetAdjHandleType()
+                }
+        }
+
+        @JvmStatic
+        fun resetAdjHandleType(packageName: String, processName: String? = null) {
+            if (BuildConfig.DEBUG) {
+                logDebug("重新计算adj处理策略: packageName: ${packageName}, processName: ${processName}")
+            }
+
+            resetAdjHandleType(
+                packageNameFilter = { processRecord ->
+                    processRecord.packageName == packageName
+                },
+                processNameFilter = processName?.let {
+                    { processRecord ->
+                        processRecord.getFullProcessName() == processName
+                    }
+                }
+            )
+        }
     }
 
     // 反射拿到的安卓的processStateRecord对象
@@ -672,9 +711,6 @@ class ProcessRecord(
     @JSONField(serialize = false)
     private val compactInterval = TimeUnit.MINUTES.toMillis(7)
 
-    @JSONField(serialize = false)
-    var mCurRawAdj = Int.MIN_VALUE
-
     fun addCompactProcess(runningInfo: RunningInfo) {
         runningInfo.processManager.addCompactProcess(this)
     }
@@ -746,8 +782,80 @@ class ProcessRecord(
         _wakeLockCount.decrementAndGet()
     }
 
+    fun incrementWakeLockCountAndChangeAdjHandleActionType() {
+        incrementWakeLockCount()
+        /*if (!(mainProcess || isHighPrioritySubProcessBasic())) {
+            appInfo.getmProcessRecord()?.adjHandleActionType?.let { adjHandleActionType = it }
+        }*/
+        // adjHandleActionType = (adjHandleActionType shl 4) or AdjHandleActionType.WAKE_LOCK
+        adjHandleActionType = adjHandleActionType xor AdjHandleActionType.WAKE_LOCK
+    }
+
+    fun decrementWakeLockCountAndChangeAdjHandleActionType() {
+        decrementWakeLockCount()
+        /*if (!(mainProcess || isHighPrioritySubProcessBasic())) {
+            adjHandleActionType = AdjHandleActionType.OTHER
+        }*/
+        // adjHandleActionType = adjHandleActionType shr 4
+        adjHandleActionType = adjHandleActionType xor AdjHandleActionType.WAKE_LOCK
+    }
+
     @JSONField(serialize = false)
     fun hasWakeLock(): Boolean = wakeLockCount > 0
+
+    /* *************************************************************************
+    *                                                                         *
+    * adj处理方式                                                               *
+    *                                                                         *
+    **************************************************************************/
+    object AdjHandleActionType {
+        const val DO_NOTHING = 0
+        const val CUSTOM_MAIN_PROCESS = 1
+        const val GLOBAL_OOM_ADJ = 2
+        const val OTHER = 3
+        const val WAKE_LOCK = 4
+
+        /*val WAKE_LOCK_ARRAY = run {
+            AdjHandleActionType::class.declaredMemberProperties
+                .filter { it.isConst }
+                // .filter { property -> property != AdjHandleActionType::WAKE_LOCK }
+                .map { property ->
+                    if (property == AdjHandleActionType::WAKE_LOCK) {
+                        WAKE_LOCK
+                    } else {
+                        (property.call() as Int) xor WAKE_LOCK
+                    }
+                }
+                .distinct()
+                .sorted()
+                .toIntArray()
+        }*/
+    }
+
+    var adjHandleActionType: Int = AdjHandleActionType.OTHER
+
+    private fun initAdjHandleType() {
+        // 高优先级进程
+        if (isHighPriorityProcessByBasicProperty()) {
+            // 是否配置自定义主进程
+            val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[packageName]
+            appOptimizePolicy.isCustomMainProcessAdjValid().ifTrue {
+                adjHandleActionType = AdjHandleActionType.CUSTOM_MAIN_PROCESS
+                return
+            }
+            // 是否开启了全局oom
+            if (HookCommonProperties.globalOomScorePolicy.value.enabled) {
+                adjHandleActionType = AdjHandleActionType.GLOBAL_OOM_ADJ
+                return
+            }
+        }
+
+        adjHandleActionType = AdjHandleActionType.OTHER
+    }
+
+    fun resetAdjHandleType() {
+        initAdjHandleType()
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

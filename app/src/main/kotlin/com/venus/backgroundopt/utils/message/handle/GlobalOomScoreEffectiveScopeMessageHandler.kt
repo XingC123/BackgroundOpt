@@ -40,7 +40,10 @@ class GlobalOomScoreEffectiveScopeMessageHandler : MessageHandler {
             try {
                 val enumName = pair.second
                 val scopeEnum = GlobalOomScoreEffectiveScopeEnum.valueOf(enumName)
-                HookCommonProperties.globalOomScorePolicy.value.globalOomScoreEffectiveScope = scopeEnum
+                val old = HookCommonProperties.globalOomScorePolicy.value
+                HookCommonProperties.globalOomScorePolicy.value = old.apply {
+                    globalOomScoreEffectiveScope = scopeEnum
+                }
                 logger.info("切换全局oom作用域为: ${scopeEnum.uiName}")
             } catch (t: Throwable) {
                 logger.warn("错误的全局oom作用域类型", t)

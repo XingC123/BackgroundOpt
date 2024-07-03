@@ -32,8 +32,7 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingHorizontal="@dimen/content_space"
-        android:paddingVertical="@dimen/content_space"
+        android:layout_marginHorizontal="@dimen/content_space"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -45,6 +44,7 @@
             android:showDividers="middle">
 
             <com.google.android.material.card.MaterialCardView
+                style="@style/FilledCardView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="50dp"
@@ -129,6 +129,32 @@
                             android:id="@+id/trim_mem_opt_threshold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:text="null"
+                            android:textColor="@color/white"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:divider="@drawable/item_space_horizontal"
+                        android:orientation="horizontal"
+                        android:showDividers="middle">
+
+                        <TextView
+                            android:id="@+id/textView16"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/main_activity_socket_port"
+                            android:textColor="@color/white"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/socket_port"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             android:text="null"
                             android:textColor="@color/white"
                             android:textSize="16sp" />

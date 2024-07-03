@@ -132,6 +132,9 @@
         <item name="strokeColor">?attr/colorOutline</item>
     </style>
 
+    <style name="FilledCardView" parent="Widget.Material3.CardView.Filled">
+    </style>
+
     <!--自动换行的水平布局-->
     <style name="LineFeedLayoutDefault">
         <item name="horizontalSpacing">@dimen/item_space</item>

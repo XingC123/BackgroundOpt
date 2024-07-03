@@ -77,6 +77,8 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
         if (moduleActive) {
             findViewById<TextView>(R.id.mainActivityModuleActiveText)?.setText(R.string.moduleActive)
             // 获取要展示的信息
+            var socketPort: Int? = null
+            var socketPortText: TextView? = null
             IMessageSender.sendDefault<HomePageModuleInfoMessage>(
                 context = this,
                 key = MessageKeyConstants.getHomePageModuleInfo,
@@ -85,9 +87,17 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
                     homePageModuleInfoMessage.defaultMaxAdjStr
                 findViewById<TextView>(R.id.trim_mem_opt_threshold)?.text =
                     homePageModuleInfoMessage.minOptimizeRssInMBytesStr
+                socketPortText = findViewById(
+                    R.id.socket_port
+                )
 
-                messageSender.init(this, homePageModuleInfoMessage.socketPort)
+                socketPort = homePageModuleInfoMessage.socketPort
             }
+            messageSender.init(
+                context = this,
+                socketPort = socketPort,
+                socketPortText = socketPortText
+            )
         }
 
         // 查询运行中app的信息
@@ -119,7 +129,12 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
         )?.setOnClickListener { _ ->
             ifVersionIsCompatible(targetVersionCode = 201) {
                 runOnUiThread {
-                    startActivity(Intent(this, ShowManagedAdjDefaultAppsActivityMaterial3::class.java))
+                    startActivity(
+                        Intent(
+                            this,
+                            ShowManagedAdjDefaultAppsActivityMaterial3::class.java
+                        )
+                    )
                 }
             }
         }
@@ -128,7 +143,7 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
         findViewById<Button>(
             R.id.gotoConfigureAppProcessActivityBtn, moduleActive
         )?.setOnClickListener { _ ->
-            ifVersionIsCompatible(targetVersionCode = 201) {
+            ifVersionIsCompatible(targetVersionCode = 204, isForcible = false) {
                 runOnUiThread {
                     startActivity(Intent(this, ShowAllInstalledAppsActivityMaterial3::class.java))
                 }

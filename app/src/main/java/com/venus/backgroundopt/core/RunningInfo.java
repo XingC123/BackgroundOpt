@@ -27,9 +27,10 @@ import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
 import com.venus.backgroundopt.annotation.AndroidObject;
-import com.venus.backgroundopt.annotation.UsageComment;
 import com.venus.backgroundopt.entity.AppInfo;
 import com.venus.backgroundopt.entity.FindAppResult;
+import com.venus.backgroundopt.entity.FindAppResultKt;
+import com.venus.backgroundopt.environment.hook.HookCommonProperties;
 import com.venus.backgroundopt.hook.base.IHook;
 import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt;
@@ -37,14 +38,15 @@ import com.venus.backgroundopt.hook.handle.android.ProcessListHookKtKt;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
 import com.venus.backgroundopt.hook.handle.android.entity.PackageManagerService;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord.AdjHandleActionType;
 import com.venus.backgroundopt.manager.application.DefaultApplicationManager;
 import com.venus.backgroundopt.manager.message.ModuleMessageManager;
 import com.venus.backgroundopt.manager.process.ProcessManager;
 import com.venus.backgroundopt.reference.PropertyChangeListener;
 import com.venus.backgroundopt.service.ProcessDaemonService;
-import com.venus.backgroundopt.utils.ThrowableUtilsKt;
-import com.venus.backgroundopt.utils.concurrent.ConcurrentUtils;
+import com.venus.backgroundopt.utils.concurrent.ConcurrentUtilsKt;
 import com.venus.backgroundopt.utils.log.ILogger;
 
 import java.io.IOException;
@@ -60,8 +62,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import de.robv.android.xposed.XC_MethodHook;
 
 /**
  * 运行信息
@@ -145,9 +145,18 @@ public class RunningInfo implements ILogger {
 
     @NonNull
     public FindAppResult getFindAppResult(int userId, String packageName) {
-        return findAppResultMap.computeIfAbsent(
+        return getFindAppResult(
                 getNormalAppKey(userId, packageName),
-                key -> activityManagerService.getFindAppResult(userId, packageName)
+                userId,
+                packageName
+        );
+    }
+
+    @NonNull
+    private FindAppResult getFindAppResult(String key, int userId, String packageName) {
+        return findAppResultMap.computeIfAbsent(
+                key,
+                k -> activityManagerService.getFindAppResult(userId, packageName)
         );
     }
 
@@ -159,10 +168,11 @@ public class RunningInfo implements ILogger {
      * @return key
      */
     public String getNormalAppKey(int userId, String packageName) {
-        if (userId == ActivityManagerService.MAIN_USER) {
-            return packageName;
-        }
-        return userId + ":" + packageName;
+        return getAppKey(userId, packageName);
+    }
+
+    private String getAppKey(int userId, String packageName) {
+        return userId == ActivityManagerService.MAIN_USER ? packageName : userId + ":" + packageName;
     }
 
     /**
@@ -228,7 +238,7 @@ public class RunningInfo implements ILogger {
      */
     @NonNull
     public String getRunningAppIdentifier(int userId, String packageName) {
-        return getNormalAppKey(userId, packageName);
+        return getAppKey(userId, packageName);
     }
 
     /**
@@ -253,6 +263,11 @@ public class RunningInfo implements ILogger {
         return runningApps.get(getRunningAppIdentifier(userId, packageName));
     }
 
+    @Nullable
+    private AppInfo getRunningAppInfo(String key) {
+        return runningApps.get(key);
+    }
+
     /**
      * 若 {@link #runningApps} 中没有此uid记录, 将进行计算创建
      *
@@ -267,12 +282,15 @@ public class RunningInfo implements ILogger {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("创建新App记录: " + packageName + ", uid: " + uid);
             }
-            return new AppInfo(
-                    userId,
-                    packageName,
-                    getFindAppResult(userId, packageName),
-                    this
-            ).setUid(uid);
+            return FindAppResultKt.getOrCreateAppInfo(getFindAppResult(userId, packageName), result -> {
+                return AppInfo.newInstance(
+                        uid,
+                        userId,
+                        packageName,
+                        result,
+                        this
+                );
+            });
         });
     }
 
@@ -287,21 +305,13 @@ public class RunningInfo implements ILogger {
 
         String packageName = appInfo.getPackageName();
         if (packageName == null) {
-            getLogger().warn("kill: 包名为空");
+            getLogger().warn("kill: 包名为空(uid: " + appInfo.getUid() + ")");
             return;
         }
 
-        ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
-            getLogger().error(
-                    "杀死app(packageName: " + packageName + ", userId: " + appInfo.getUserId() + ")出现错误",
-                    throwable
-            );
-            return null;
-        }, () -> {
-            /*ConcurrentUtilsKt.lock(appInfo, () -> {*/
+        try {
             // 从运行列表移除
             AppInfo remove = runningApps.remove(getRunningAppIdentifier(appInfo.getUserId(), packageName));
-
             if (remove != null) {
                 // 从待处理列表中移除
                 activeAppGroup.remove(appInfo);
@@ -321,10 +331,12 @@ public class RunningInfo implements ILogger {
                     getLogger().warn("kill: 未找到移除项 -> userId: " + appInfo.getUserId() + ", packageName: " + packageName);
                 }
             }
-                /*return null;
-            });*/
-            return null;
-        });
+        } catch (Throwable throwable) {
+            getLogger().error(
+                    "杀死app(packageName: " + packageName + ", userId: " + appInfo.getUserId() + ")出现错误",
+                    throwable
+            );
+        }
     }
 
     public void forceStopRunningApp(@NonNull AppInfo appInfo) {
@@ -332,19 +344,11 @@ public class RunningInfo implements ILogger {
         if (packageName == null) {
             return;
         }
-        ConcurrentUtils.execute(activityEventChangeExecutor, () -> {
-            /*ConcurrentUtilsKt.lock(appInfo, () -> {*/
-            ThrowableUtilsKt.runCatchThrowable(null, throwable -> {
-                getLogger().error("强制停止app出错(uid: " + appInfo.getUid() + ", packageName: " + packageName + ")", throwable);
-                return null;
-            }, null, () -> {
-                activityManagerService.forceStopPackage(packageName, appInfo.getUserId());
-                return null;
-            });
-                /*return null;
-            });*/
-            return null;
-        });
+        try {
+            activityManagerService.forceStopPackage(packageName, appInfo.getUserId());
+        } catch (Throwable throwable) {
+            getLogger().error("强制停止app出错(uid: " + appInfo.getUid() + ", packageName: " + packageName + ")", throwable);
+        }
     }
 
     /* *************************************************************************
@@ -457,10 +461,14 @@ public class RunningInfo implements ILogger {
 
     private final Consumer<AppInfo> putIntoActiveAction = this::putIntoActiveAppGroup;
 
-    private final ExecutorService activityEventChangeExecutor = Executors.newFixedThreadPool(4);
+    private final ExecutorService activityEventChangeExecutor = Executors.newFixedThreadPool(3);
 
     public ExecutorService getActivityEventChangeExecutor() {
         return activityEventChangeExecutor;
+    }
+
+    public void addActivityEventChangeAction(Runnable block) {
+        getActivityEventChangeExecutor().execute(block);
     }
 
     /**
@@ -471,27 +479,23 @@ public class RunningInfo implements ILogger {
      * @param componentName 组件
      */
     public void handleActivityEventChange(int event, int userId, @NonNull ComponentName componentName) {
-        handleActivityEventChange(event, userId, componentName.getPackageName(), componentName);
+        addActivityEventChangeAction(() -> {
+            handleActivityEventChange(event, userId, componentName.getPackageName(), componentName);
+        });
     }
 
     public void handleActivityEventChange(int event, int userId, @NonNull String packageName, @Nullable ComponentName componentName) {
-        /*ConcurrentUtils.execute(activityEventChangeExecutor, throwable -> {
-            getLogger().error(
-                    "处理app切换事件(userId: " + userId + "包名: " + packageName + ", event: " + event + ")错误: " + throwable.getMessage(),
-                    throwable
-            );
-            return null;
-        }, () -> {*/
-        FindAppResult findAppResult = getFindAppResult(userId, packageName);
+        String appKey = getAppKey(userId, packageName);
+        FindAppResult findAppResult = getFindAppResult(appKey, userId, packageName);
         AppInfo appInfo;
-        if (findAppResult.getApplicationInfo() == null
-                || (appInfo = getRunningAppInfo(userId, packageName)) == null) {
-            return /*null*/;
+        if ((appInfo = getRunningAppInfo(appKey)) == null || findAppResult.getApplicationInfo() == null) {
+            return;
         }
 
-        handleActivityEventChange(event, componentName, appInfo);
-            /*return null;
-        });*/
+        ConcurrentUtilsKt.lock(appInfo, () -> {
+            handleActivityEventChangeLocked(event, componentName, appInfo);
+            return null;
+        });
     }
 
     /**
@@ -517,13 +521,7 @@ public class RunningInfo implements ILogger {
      * @param componentName 当前组件
      * @param appInfo       app
      */
-    @UsageComment(
-            /**
-             * 在目前的逻辑实现下, 仅允许{@link com.venus.backgroundopt.hook.handle.android.ProcessListHookKt#handleSetOomAdj(XC_MethodHook.MethodHookParam)}调用
-            */
-            ""
-    )
-    public void handleActivityEventChange(int event, @Nullable ComponentName componentName, @NonNull AppInfo appInfo) {
+    public void handleActivityEventChangeLocked(int event, @Nullable ComponentName componentName, @NonNull AppInfo appInfo) {
         switch (event) {
             case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
                 Consumer<AppInfo> consumer;
@@ -590,14 +588,14 @@ public class RunningInfo implements ILogger {
     }
 
     private void putIntoActiveAppGroup(@NonNull AppInfo appInfo) {
-        // 重置切换事件处理状态
-        appInfo.setSwitchEventHandled(false);
+        activeAppGroup.add(appInfo);
+        appInfo.setAppGroupEnum(AppGroupEnum.ACTIVE);
 
         // 处理当前app
         handleCurApp(appInfo);
 
-        activeAppGroup.add(appInfo);
-        appInfo.setAppGroupEnum(AppGroupEnum.ACTIVE);
+        // 重置切换事件处理状态
+        appInfo.setSwitchEventHandled(false);
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入ActiveGroup");
@@ -605,11 +603,13 @@ public class RunningInfo implements ILogger {
     }
 
     private void putIntoIdleAppGroup(@NonNull AppInfo appInfo) {
+        idleAppGroup.add(appInfo);
+        appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
+
         // 处理上个app
         handleLastApp(appInfo);
 
-        idleAppGroup.add(appInfo);
-        appInfo.setAppGroupEnum(AppGroupEnum.IDLE);
+        appInfo.setSwitchEventHandled(true);
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + "  被放入IdleGroup");
@@ -626,6 +626,20 @@ public class RunningInfo implements ILogger {
 
         // 启动前台工作
         processManager.appActive(appInfo);
+
+        ProcessRecord processRecord = appInfo.getmProcessRecord();
+        if (processRecord != null) {
+            if (processRecord.getAdjHandleActionType() == AdjHandleActionType.CUSTOM_MAIN_PROCESS) {
+                ProcessListHookKt hookInstance = IHook.getHookInstance(ProcessListHookKt.class);
+                if (hookInstance != null) {
+                    hookInstance.handleSetOomAdjLocked(
+                            processRecord,
+                            ProcessList.FOREGROUND_APP_ADJ,
+                            HookCommonProperties.getGlobalOomScorePolicy().getValue()
+                    );
+                }
+            }
+        }
     }
 
     /**
@@ -656,20 +670,23 @@ public class RunningInfo implements ILogger {
         ProcessListHookKt hookInstance = IHook.getHookInstance(ProcessListHookKt.class);
         if (hookInstance != null) {
             int adj = hookInstance.getOomAdjHandler().computeHighPrioritySubProcessAdj(0);
+            //hookInstance.addAdjSetAction(() -> {
             getRunningProcesses().stream()
                     .filter(processRecord -> processRecord.appInfo == appInfo)
                     .filter(processRecord -> !processRecord.getMainProcess())
                     .filter(ProcessListHookKtKt::isHighPrioritySubProcess)
                     .forEach(processRecord -> {
-                        activityManagerService.getProcessList().writeLmkd(
-                                processRecord.getPid(),
-                                processRecord.getUid(),
-                                adj
-                        );
+                        hookInstance.addAdjComputeAndApplyAction(processRecord, () -> {
+                            ProcessList.writeLmkd(
+                                    processRecord.getPid(),
+                                    processRecord.getUid(),
+                                    adj
+                            );
+                            return null;
+                        });
                     });
+            //});
         }
-
-        appInfo.setSwitchEventHandled(true);
     }
 
     /* *************************************************************************
@@ -705,7 +722,7 @@ public class RunningInfo implements ILogger {
         // 将原桌面的adj调节修改
         runningApps.values().stream()
                 .filter(appInfo -> Objects.equals(appInfo.getPackageName(), curLaunchPackageName))
-                .forEach(appInfo -> appInfo.shouldHandleAdj = AppInfo.handleAdjDependOnAppOptimizePolicy);
+                .forEach(appInfo -> appInfo.adjHandleFunction = AppInfo.handleAdjDependOnAppOptimizePolicy);
         // 保存新桌面包名
         this.activeLaunchPackageName = activeLaunchPackageName;
     }
@@ -779,10 +796,10 @@ public class RunningInfo implements ILogger {
                     .filter(appInfo -> Objects.equals(appInfo.getPackageName(), oldValue) || Objects.equals(appInfo.getPackageName(), newValue))
                     .forEach(appInfo -> {
                         if (Objects.equals(appInfo.getPackageName(), oldValue)) {
-                            appInfo.setShouldHandleAdj();
+                            appInfo.setAdjHandleFunction();
                         } else {
                             // 设置当前app
-                            appInfo.shouldHandleAdj = AppInfo.handleAdjAlways;
+                            appInfo.adjHandleFunction = AppInfo.handleAdjAlways;
                         }
                     });
             getLogger().info("更换的" + tag + "包名为: " + newValue);
