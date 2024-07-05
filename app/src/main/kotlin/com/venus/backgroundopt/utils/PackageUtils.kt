@@ -119,6 +119,7 @@ object PackageUtils {
                     ).apply {
                         pid = baseProcessInfo.pid
                         processName = baseProcessInfo.processName
+                        fullQualifiedProcessName = absoluteProcessName(packageName, baseProcessInfo.processName)
                         oomAdjScore = baseProcessInfo.oomAdjScore
                         curAdj = baseProcessInfo.curAdj
                         rssInBytes = baseProcessInfo.rssInBytes

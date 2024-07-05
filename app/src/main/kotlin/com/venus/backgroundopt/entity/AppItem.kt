@@ -52,6 +52,9 @@ class AppItem @JSONCreator constructor() : MessageFlag {
     var processName: String? = null
 
     @JSONField(serialize = false)
+    var fullQualifiedProcessName: String? = null
+
+    @JSONField(serialize = false)
     var oomAdjScore: Int = Int.MIN_VALUE
 
     @JSONField(serialize = false)

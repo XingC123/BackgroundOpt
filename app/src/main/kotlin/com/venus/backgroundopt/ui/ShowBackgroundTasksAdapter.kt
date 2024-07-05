@@ -89,7 +89,7 @@ class ShowBackgroundTasksAdapter(
         val viewHolder = holder as ShowBackgroundTasksViewHolder
 
         // 设置应用名
-        viewHolder.appItemTipText1.text = appItem.processName
+        viewHolder.appItemTipText1.text = appItem.fullQualifiedProcessName
 
         var enablePolicyForegroundTrim = enableForegroundProcTrimMem
         var enablePolicyBackgroundTrim = PreferenceDefaultValue.enableBackgroundTrimMem

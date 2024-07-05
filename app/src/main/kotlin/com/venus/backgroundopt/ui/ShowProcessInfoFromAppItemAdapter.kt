@@ -142,7 +142,9 @@ abstract class ShowProcessInfoFromAppItemAdapter(
                             // 设置app名字
                             findViewById<TextView>(R.id.appNameText)?.text = appItem.appName
                             // 设置进程名
-                            findViewById<TextView>(R.id.processNameText)?.text = appItem.processName
+                            findViewById<TextView>(
+                                R.id.processNameText
+                            )?.text = appItem.fullQualifiedProcessName
                             // 设置包名
                             findViewById<TextView>(R.id.packageNameText)?.text = appItem.packageName
                             // 设置pid

@@ -37,7 +37,7 @@ class ShowAppCompactListAdapter(
     items: List<AppItem>
 ) : ShowProcessInfoFromAppItemAdapter(activity,items) {
     override fun getText1Content(appItem: AppItem): String {
-        return appItem.processName ?: appItem.packageName
+        return appItem.fullQualifiedProcessName ?: appItem.packageName
     }
 
     override fun getText2Content(appItem: AppItem): String {
