@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
- package com.venus.backgroundopt.utils
+
+package com.venus.backgroundopt.utils
 
 /**
  * @author XingC
@@ -31,3 +31,15 @@ object StringUtils {
      */
     fun isEmpty(str: String?): Boolean = str?.isBlank() ?: true
 }
+
+/**
+ * 当前字符序列存在[other]则返回true(忽略类型)
+ */
+fun CharSequence.containsIgnoreCase(other: CharSequence): Boolean =
+    this.contains(other, ignoreCase = true)
+
+/**
+ * 当前字符串与[other]相同则返回true(忽略类型)
+ */
+fun String?.equalsIgnoreCase(other: String?): Boolean = this.equals(other, ignoreCase = true)
+

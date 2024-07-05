@@ -43,6 +43,7 @@ import com.venus.backgroundopt.ui.component.VenusListCheckMaterial3
 import com.venus.backgroundopt.ui.component.VenusSwitchMaterial3
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.UiUtils
+import com.venus.backgroundopt.utils.equalsIgnoreCase
 import com.venus.backgroundopt.utils.getTmpData
 import com.venus.backgroundopt.utils.ifFalse
 import com.venus.backgroundopt.utils.ifTrue
@@ -287,7 +288,7 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
         while (iterator.hasNext()) {
             processName = iterator.next()
             // 剔除主进程
-            if (!processName.contains(PackageUtils.processNameSeparator)) {
+            if (processName.equalsIgnoreCase(appItem.packageName)) {
                 iterator.remove()
                 continue
             }
