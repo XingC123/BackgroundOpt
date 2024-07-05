@@ -18,6 +18,7 @@
 package com.venus.backgroundopt.ui
 
 import android.app.Activity
+import android.content.DialogInterface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -119,10 +120,14 @@ abstract class ShowProcessInfoFromAppItemAdapter(
         holder.appItemTasksText4.text = getText4Content(appItem)
 
         // 设置点击事件
-        setItemOnClickListener(view = holder.itemView, appItem = appItem)
+        setItemOnClickListener(
+            view = holder.itemView,
+            appItem = appItem,
+            adjComponent = holder.appItemTasksText4
+        )
     }
 
-    private fun setItemOnClickListener(view: View, appItem: AppItem) {
+    private fun setItemOnClickListener(view: View, appItem: AppItem, adjComponent: TextView) {
         view.setOnClickListener {
             view.context.showProgressBarViewForAction(text = "正在获取...") {
                 val processRunningInfo = messageSender.send(
@@ -163,7 +168,11 @@ abstract class ShowProcessInfoFromAppItemAdapter(
                             findViewById<TextView>(R.id.curAdjText)?.text = appItem.curAdj.toString()
                         },
                         titleStr = "进程信息",
-                        enablePositiveBtn = true
+                        enablePositiveBtn = true,
+                        positiveBlock = { _: DialogInterface, _: Int ->
+                            // 更新当前的adj
+                            adjComponent.text = getText4Content(appItem)
+                        }
                     ).show()
                 }
             }
