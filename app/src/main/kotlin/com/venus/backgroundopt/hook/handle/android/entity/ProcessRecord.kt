@@ -543,6 +543,7 @@ class ProcessRecord(
      */
     @JSONField(serialize = false)
     fun setDefaultMaxAdj() {
+        originalMaxAdj = getMaxAdj()
         if (mainProcess) {
             setMaxAdj(defaultMaxAdj)
         } else {

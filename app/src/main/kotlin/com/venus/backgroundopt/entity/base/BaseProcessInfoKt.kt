@@ -17,6 +17,7 @@
 
 package com.venus.backgroundopt.entity.base
 
+import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.manager.process.AbstractAppOptimizeManager.AppOptimizeEnum
 import com.venus.backgroundopt.manager.process.ProcessingResult
 import com.venus.backgroundopt.utils.message.MessageFlag
@@ -49,6 +50,9 @@ open class BaseProcessInfoKt(
      */
     @Volatile
     var fixedOomAdjScore = Int.MIN_VALUE
+
+    @Volatile
+    var originalMaxAdj = ProcessList.MAX_ADJ //ProcessList.UNKNOWN_ADJ
 
     // app主进程
     @Volatile

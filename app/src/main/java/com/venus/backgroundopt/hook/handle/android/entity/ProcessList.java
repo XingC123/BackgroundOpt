@@ -55,6 +55,8 @@ public class ProcessList implements ILogger {
     //不可能的adj取值
     public static final int IMPOSSIBLE_ADJ = Integer.MIN_VALUE;
 
+    public static final int MAX_ADJ = 1000;
+
     // Uninitialized value for any major or minor adj fields
     @AndroidObjectField(objectClassPath = ClassConstants.ProcessList, fieldName = "INVALID_ADJ")
     public static final int INVALID_ADJ = -10000;
