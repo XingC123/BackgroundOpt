@@ -56,7 +56,6 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.BiFunction
 import kotlin.math.max
-import kotlin.math.min
 
 /**
  * @author XingC
@@ -303,7 +302,7 @@ class ProcessListHookKt(
         curAdj: Int
     ): Int {
         return highPriorityProcessNotHasActivityAdjMap.computeIfAbsent(curAdj) {_->
-            max(min(curAdj, ProcessList.CACHED_APP_MAX_ADJ), ProcessRecord.SUB_PROC_ADJ)
+            max(curAdj, ProcessRecord.SUB_PROC_ADJ)
         }
     }
 
@@ -488,7 +487,8 @@ class ProcessListHookKt(
                 globalOomScorePolicy = globalOomScorePolicy
             )
 
-            applyFinalAdjUseCachedByteBuffer(
+            applyFinalAdjUseCachedByteBufferChecked(
+                process = process,
                 pid = pid,
                 uid = uid,
                 adj = finalApplyAdj
@@ -557,6 +557,19 @@ class ProcessListHookKt(
         val byteBuffer = threadLocal.get()!!
         ProcessList.writeLmkd(byteBuffer, pid, uid, adj)
         byteBuffer.clear()
+    }
+
+    private fun applyFinalAdjUseCachedByteBufferChecked(
+        process: ProcessRecord,
+        pid: Int,
+        uid: Int,
+        adj: Int,
+    ) {
+        applyFinalAdjUseCachedByteBuffer(
+            pid = pid,
+            uid = uid,
+            adj = clamp(adj, min = ProcessList.NATIVE_ADJ, max = process.originalMaxAdj)
+        )
     }
 
     private fun autoApplyAdjHandleAction(
