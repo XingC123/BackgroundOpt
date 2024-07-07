@@ -142,6 +142,7 @@ abstract class ShowProcessInfoFromAppItemAdapter(
                 activity.runOnUiThread {
                     UiUtils.createDialog(
                         context = view.context,
+                        cancelable = false,
                         viewResId = R.layout.content_process_info_dialog,
                         viewBlock = {
                             // 设置app名字
