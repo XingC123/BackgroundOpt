@@ -11,7 +11,7 @@
     public static *** d(...);
     public static *** v(...);
     public static *** w(...);
-    public static *** e(...);
+    # public static *** e(...);
 }
 
 ##########################################################################################################
@@ -42,7 +42,7 @@
     public void debug(...);
     public void info(...);
     public void warn(...);
-    public void error(...);
+    # public void error(...);
 
     public boolean isTraceEnabled(...);
     public boolean isDebugEnabled(...);
