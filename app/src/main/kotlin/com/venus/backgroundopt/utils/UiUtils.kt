@@ -18,6 +18,8 @@
 package com.venus.backgroundopt.utils
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -33,6 +35,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.content.res.ResourcesCompat
 import com.alibaba.fastjson2.JSON
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.utils.concurrent.newThreadTask
 import com.venus.backgroundopt.utils.log.logErrorAndroid
@@ -248,14 +251,26 @@ object UiUtils {
                     t = it
                 )
                 (context as Activity).runOnUiThread {
+                    val exceptionStr = "错误信息: ${it.stackTraceToString()}"
                     createDialog(
                         context = context,
                         titleResId = null,
                         titleStr = "加载出错",
-                        text = "错误信息: ${it.stackTraceToString()}",
+                        text = exceptionStr,
                         cancelable = cancelable,
                         enableNegativeBtn = enableNegativeBtn,
                         negativeBtnText = negativeBtnText,
+                        enablePositiveBtn = true,
+                        positiveBtnText = "复制错误信息",
+                        positiveBlock = { _: DialogInterface, _: Int ->
+                            // 将错误信息写入剪切板
+                            val clipboardManager = SystemServices.getClipboardManager(context)
+                            val clipData = ClipData.newPlainText(
+                                BuildConfig.APPLICATION_ID,
+                                exceptionStr
+                            )
+                            clipboardManager.setPrimaryClip(clipData)
+                        }
                     ).show()
                 }
             }
