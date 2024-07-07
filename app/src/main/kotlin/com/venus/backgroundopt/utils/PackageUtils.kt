@@ -52,7 +52,7 @@ object PackageUtils {
         }
     }
 
-    const val PACKAGE_INFO_FLAG = 0 or PackageManager.GET_ACTIVITIES
+    const val PACKAGE_INFO_FLAG = 0 // or PackageManager.GET_ACTIVITIES
 //    PackageManager.MATCH_UNINSTALLED_PACKAGES or PackageManager.GET_ACTIVITIES    // 在某些系统可能存在获取不到app的情况
 
     private fun getPackageInfo(
