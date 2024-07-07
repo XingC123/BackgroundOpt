@@ -17,6 +17,8 @@
 
 package com.venus.backgroundopt.ui
 
+import android.content.ClipData
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.MenuItem
@@ -25,6 +27,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.search.SearchBar
 import com.google.android.material.search.SearchView
+import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
@@ -33,11 +36,14 @@ import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
 import com.venus.backgroundopt.ui.style.RecycleViewItemSpaceDecoration
 import com.venus.backgroundopt.utils.PackageUtils
+import com.venus.backgroundopt.utils.SystemServices
 import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.ifTrue
+import com.venus.backgroundopt.utils.log.logInfoAndroid
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.preference.prefAll
+import com.venus.backgroundopt.utils.runCatchThrowable
 import com.venus.backgroundopt.utils.showProgressBarViewForAction
 import java.text.Collator
 import java.util.Locale
@@ -126,10 +132,36 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
         }
 
         // 获取已安装app
-        appItems = PackageUtils.getInstalledPackages(
-            context = this,
-            filter = null,
-        )
+        appItems = runCatchThrowable(catchBlock = { throwable ->
+            logInfoAndroid("获取已安装app出错", t = throwable)
+            val exceptionStr = throwable.stackTraceToString()
+            runOnUiThread {
+                UiUtils.createDialog(
+                    context = this,
+                    titleStr = "错误",
+                    text = exceptionStr,
+                    enablePositiveBtn = true,
+                    positiveBtnText = "确定",
+                    enableNegativeBtn = true,
+                    negativeBtnText = "复制",
+                    negativeBlock = { _: DialogInterface, _: Int ->
+                        val clipboardManager = SystemServices.getClipboardManager(this)
+                        val clipData = ClipData.newPlainText(
+                            BuildConfig.APPLICATION_ID,
+                            exceptionStr
+                        )
+                        clipboardManager.setPrimaryClip(clipData)
+                    }
+                ).show()
+            }
+            arrayListOf(PackageUtils.getSelfInfo(this))
+        }) {
+            PackageUtils.getInstalledPackages(
+                context = this,
+                filter = null,
+            )
+        }!!
+
         // 排序
         sortAppList()
 

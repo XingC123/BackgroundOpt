@@ -23,6 +23,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Build
+import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.entity.base.BaseProcessInfoKt
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService
@@ -159,6 +160,9 @@ object PackageUtils {
             .filterNotNull()
             .toList()
     }
+
+    fun getSelfInfo(context: Context): AppItem =
+        getTargetApps(context, listOf(BuildConfig.APPLICATION_ID))[0]
 
     /**
      * 获取已安装app的信息列表
