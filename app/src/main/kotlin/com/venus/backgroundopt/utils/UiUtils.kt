@@ -19,7 +19,6 @@ package com.venus.backgroundopt.utils
 
 import android.app.Activity
 import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -139,6 +138,7 @@ object UiUtils {
     fun createDialog(
         context: Context,
         text: String? = null,
+        @StringRes textResId: Int?=null,
         viewResId: Int? = null,
         viewBlock: (View.() -> Unit)? = null,
         useDialogPreferredPaddingHorizontal: Boolean = true,
@@ -162,7 +162,7 @@ object UiUtils {
         // 默认的对话框布局
         if (viewResId == null) {
             // 设置文本内容
-            text?.let { builder.setMessage(it) }
+            text?.let { builder.setMessage(it) } ?: textResId?.let { builder.setMessage(it) }
         } else {
             val view = context.getView(viewResId)
             // 通用对话框布局
