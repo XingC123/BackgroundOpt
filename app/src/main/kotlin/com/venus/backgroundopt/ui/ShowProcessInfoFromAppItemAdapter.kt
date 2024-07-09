@@ -160,8 +160,6 @@ abstract class ShowProcessInfoFromAppItemAdapter(
                         cancelable = false,
                         viewResId = R.layout.content_process_info_dialog,
                         viewBlock = {
-                            // 设置app名字
-                            findViewById<TextView>(R.id.appNameText)?.text = appItem.appName
                             // 设置进程名
                             findViewById<TextView>(
                                 R.id.processNameText
@@ -183,7 +181,8 @@ abstract class ShowProcessInfoFromAppItemAdapter(
                             // 设置当前adj
                             findViewById<TextView>(R.id.curAdjText)?.text = appItem.curAdj.toString()
                         },
-                        titleStr = "进程信息",
+                        titleStr = appItem.appName,
+                        icon = appItem.appIcon,
                         enablePositiveBtn = true,
                         positiveBlock = { _: DialogInterface, _: Int ->
                             // 更新当前的adj
