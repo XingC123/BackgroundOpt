@@ -42,8 +42,8 @@ import com.venus.backgroundopt.utils.showProgressBarViewForAction
  * @date 2023/9/25
  */
 abstract class ShowProcessInfoFromAppItemAdapter(
-    protected open val activity: Activity,
-    protected open val items: List<AppItem>
+    protected val activity: Activity,
+    protected val appItems: MutableList<AppItem>
 ) : ShowInfoFromAppItemAdapter() {
     /* *************************************************************************
      *                                                                         *
@@ -82,36 +82,51 @@ abstract class ShowProcessInfoFromAppItemAdapter(
      * 布局                                                                     *
      *                                                                         *
      **************************************************************************/
+    // 过滤后的列表。用于搜索功能
+    var filterAppItems: MutableList<AppItem> = appItems
+
     open fun getViewHolder(view: View): ShowProcessInfoFromAppItemViewHolder {
         return ShowProcessInfoFromAppItemViewHolder(view)
     }
 
     override fun getItemCount(): Int {
-        return items.size
+        return filterAppItems.size
     }
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
     ): ShowProcessInfoFromAppItemViewHolder {
-        val view: View =
-            LayoutInflater.from(parent.context)
-                .inflate(R.layout.recycler_app_item, parent, false)
-        // 修改tip内容
-        view.findViewById<TextView>(R.id.appName)
-            ?.setText(getTipText1ResId())
-        view.findViewById<TextView>(R.id.appItemTipText2)
-            ?.setText(getTipText2ResId())
-        view.findViewById<TextView>(R.id.appItemTipText3)
-            ?.setText(getTipText3ResId())
-        view.findViewById<TextView>(R.id.appItemTipText4)
-            ?.setText(getTipText4ResId())
+        val view = doOnCreateViewHolder(parent, viewType)
         return getViewHolder(view)
+    }
+
+    protected fun doOnCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): View {
+        return LayoutInflater
+            .from(parent.context)
+            .inflate(
+                R.layout.recycler_app_item,
+                parent,
+                false
+            ).also { view ->
+                // 修改tip内容
+                view.findViewById<TextView>(R.id.appName)
+                    ?.setText(getTipText1ResId())
+                view.findViewById<TextView>(R.id.appItemTipText2)
+                    ?.setText(getTipText2ResId())
+                view.findViewById<TextView>(R.id.appItemTipText3)
+                    ?.setText(getTipText3ResId())
+                view.findViewById<TextView>(R.id.appItemTipText4)
+                    ?.setText(getTipText4ResId())
+            }
     }
 
     override fun onBindViewHolder(holder: ShowInfoFromAppItemViewHolder, position: Int) {
         holder as ShowProcessInfoFromAppItemViewHolder
-        val appItem = items[position]
+        val appItem = filterAppItems[position]
         holder.appIcon.setImageDrawable(appItem.appIcon)
         holder.appNameText.text = getText0Content(appItem)
         holder.processNameText.text = getText1Content(appItem)

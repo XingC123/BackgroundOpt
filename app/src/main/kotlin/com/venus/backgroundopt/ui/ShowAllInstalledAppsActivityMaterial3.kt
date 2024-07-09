@@ -34,6 +34,7 @@ import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.ui.base.BaseActivityMaterial3
+import com.venus.backgroundopt.ui.base.SearchFromAppItemRVAdapter
 import com.venus.backgroundopt.ui.style.RecycleViewItemSpaceDecoration
 import com.venus.backgroundopt.utils.PackageUtils
 import com.venus.backgroundopt.utils.SystemServices
@@ -184,8 +185,8 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
                     LinearLayoutManager(this@ShowAllInstalledAppsActivityMaterial3).apply {
                         orientation = LinearLayoutManager.VERTICAL
                     }
-                adapter = ShowAllInstalledAppsSearchHistoryRecycleViewAdapter(
-                    items = appItems,
+                adapter = SearchFromAppItemRVAdapter(
+                    appItems = appItems,
                     applySearchBlock = { text ->
                         applySearch(text, searchView)
                     }

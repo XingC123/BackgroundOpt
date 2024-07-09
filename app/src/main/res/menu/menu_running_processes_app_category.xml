@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/runningProcessesAllAppCategoryMenuItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/running_processes_all_app_category_menu_item" />
+    <item
+        android:id="@+id/runningProcessesUserAppCategoryMenuItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/running_processes_user_app_category_menu_item" />
+    <item
+        android:id="@+id/runningProcessesSystemAppCategoryMenuItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/running_processes_system_app_category_menu_item" />
+</menu>

@@ -111,6 +111,10 @@
         <activity
             android:name=".ui.ShowManagedAdjDefaultAppsActivityMaterial3"
             android:exported="true" />
+
+        <activity
+            android:name=".ui.RunningProcessesActivityMaterial3"
+            android:exported="true" />
     </application>
 
 </manifest>

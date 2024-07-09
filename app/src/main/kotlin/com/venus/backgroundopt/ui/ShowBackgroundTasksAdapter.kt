@@ -34,7 +34,7 @@ import com.venus.backgroundopt.utils.message.handle.BackgroundTasksMessageHandle
  */
 class ShowBackgroundTasksAdapter(
     activity: Activity,
-    override val items: List<AppItem>,
+    items: MutableList<AppItem>,
     private val backgroundTaskMessage: BackgroundTasksMessageHandler.BackgroundTaskMessage
 ) : ShowProcessInfoFromAppItemAdapter(activity, items) {
     private var enableForegroundProcTrimMem = false
@@ -84,7 +84,7 @@ class ShowBackgroundTasksAdapter(
 
     override fun onBindViewHolder(holder: ShowInfoFromAppItemViewHolder, position: Int) {
         super.onBindViewHolder(holder, position)
-        val appItem = items[position]
+        val appItem = filterAppItems[position]
         val packageName = appItem.packageName
         val viewHolder = holder as ShowBackgroundTasksViewHolder
 

@@ -106,6 +106,11 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
                 .show()
         }
 
+        // 运行中的进程
+        findViewById<Button>(R.id.gotoRunningProcessesBtn, moduleActive)?.setOnClickListener { _ ->
+            startActivity(Intent(this, RunningProcessesActivityMaterial3::class.java))
+        }
+
         // 获取应用内存分组
         findViewById<Button>(R.id.getTargetAppGroupBtn, moduleActive)?.setOnClickListener { _ ->
             QueryInfoDialog.createQueryIntDataDialog(this, MessageKeyConstants.getTargetAppGroup)

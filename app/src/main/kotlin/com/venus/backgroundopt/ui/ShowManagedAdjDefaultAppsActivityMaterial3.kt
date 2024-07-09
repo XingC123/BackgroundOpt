@@ -32,7 +32,7 @@ import com.venus.backgroundopt.utils.message.handle.GetManagedAdjDefaultAppsMess
  */
 class ShowManagedAdjDefaultAppsActivityMaterial3 : ShowInfoFromAppItemActivityMaterial3() {
     override fun getShowInfoAdapter(
-        appItems: List<AppItem>,
+        appItems: MutableList<AppItem>,
         vararg others: Any?
     ): ShowManagedAdjDefaultAppsAdapter {
         return ShowManagedAdjDefaultAppsAdapter(appItems)

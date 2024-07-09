@@ -35,7 +35,7 @@ import com.venus.backgroundopt.utils.message.sendMessage
  */
 class ShowBackgroundTasksActivityMaterial3 : ShowInfoFromAppItemActivityMaterial3() {
     override fun getShowInfoAdapter(
-        appItems: List<AppItem>,
+        appItems: MutableList<AppItem>,
         vararg others: Any?
     ): ShowProcessInfoFromAppItemAdapter {
         return ShowBackgroundTasksAdapter(this, appItems, others[0] as BackgroundTaskMessage)

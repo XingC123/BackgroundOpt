@@ -204,4 +204,21 @@
     <string name="main_activity_socket_port" translatable="false">通信端口:</string>
     <string name="settingsSecondaryMessageSender" translatable="false">次级消息发送器</string>
     <string name="settingsSecondaryMessageSenderSummary" translatable="false">重启App生效</string>
+    <string name="running_processes_toolbar_title">Running processes</string>
+    <string name="running_processes_pid_sort_menu_item">By PID</string>
+    <string name="running_processes_uid_sort_menu_item">By UID</string>
+    <string name="running_processes_name_sort_menu_item">By NAME</string>
+    <string name="running_processes_user_app_category_menu_item">User</string>
+    <string name="running_processes_system_app_category_menu_item">System</string>
+    <string name="running_processes_all_app_category_menu_item">All</string>
+    <string name="gotoRunningProcessesBtnText">Running processes</string>
+    <string name="running_processes_searchbar_text">Process name/App name/Package name</string>
+    <string name="helpStr" translatable="true">Help</string>
+    <string name="running_processes_toolbar_help_tip_text" translatable="true">
+        1. Value Meaning of Last Execution Result:
+        \n\t\t1) ✔：Means that <b>it has been executed</b>.
+        \n\t\t2) ▬：Means that <b>the execution conditions are not met and therefore not executed</b>(详见：使用手册-补充说明-第4条).
+        \n\t\t3) ✪：Means that <b>no execution is required</b>.
+        \n\t\t4) Empty：Means that <b>it was never executed</b>(This state is caused by the process being added to the list for the first time)
+    </string>
 </resources>

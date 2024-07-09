@@ -32,10 +32,10 @@ import com.venus.backgroundopt.ui.base.ShowInfoFromAppItemViewHolder
  * @author XingC
  * @date 2023/9/25
  */
-class ShowAppCompactListAdapter(
+open class ShowAppCompactListAdapter(
     activity: Activity,
-    items: List<AppItem>
-) : ShowProcessInfoFromAppItemAdapter(activity,items) {
+    items: MutableList<AppItem>
+) : ShowProcessInfoFromAppItemAdapter(activity, items) {
     override fun getText1Content(appItem: AppItem): String {
         return appItem.fullQualifiedProcessName ?: appItem.packageName
     }
@@ -75,7 +75,7 @@ class ShowAppCompactListAdapter(
         super.onBindViewHolder(holder, position)
         val viewHolder = holder as ShowAppCompactListViewHolder
         val view = viewHolder.itemView
-        val appItem = items[position]
+        val appItem = filterAppItems[position]
 
         // 上一次执行结果
         val textView = viewHolder.appItemLastProcessingResultText
@@ -103,7 +103,7 @@ class ShowAppCompactListAdapter(
         }
     }
 
-    class ShowAppCompactListViewHolder(itemView: View) :
+    open class ShowAppCompactListViewHolder(itemView: View) :
         ShowProcessInfoFromAppItemViewHolder(itemView) {
         var appItemLastProcessingResultText: TextView
 

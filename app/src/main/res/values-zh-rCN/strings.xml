@@ -74,4 +74,21 @@
     <string name="processInfoDialogPackageNameTip">包名:</string>
     <string name="processInfoDialogOriginalAdjTip">原始Adj:</string>
     <string name="processInfoDialogCurAdjTip">当前Adj:</string>
+    <string name="running_processes_toolbar_title">运行中的进程</string>
+    <string name="running_processes_pid_sort_menu_item">按 PID</string>
+    <string name="running_processes_uid_sort_menu_item">按 UID</string>
+    <string name="running_processes_name_sort_menu_item">按 名称</string>
+    <string name="running_processes_user_app_category_menu_item">用户</string>
+    <string name="running_processes_system_app_category_menu_item">系统</string>
+    <string name="running_processes_all_app_category_menu_item">所有</string>
+    <string name="gotoRunningProcessesBtnText">运行中的进程</string>
+    <string name="running_processes_searchbar_text">进程名/app名/包名</string>
+    <string name="helpStr">帮助</string>
+    <string name="running_processes_toolbar_help_tip_text">
+        1. “上次执行结果”的值含义：
+        \n\t\t1) ✔：意味着<b>已经执行过</b>。
+        \n\t\t2) ▬：意味着<b>不满足执行条件因而未执行</b>(详见：使用手册-补充说明-第4条)
+        \n\t\t3) ✪：意味着<b>暂无需执行</b>
+        \n\t\t4) 空白：意味着<b>从未执行过</b>(进程可能被杀死再新建或初次加入, 导致处于此状态)
+    </string>
 </resources>

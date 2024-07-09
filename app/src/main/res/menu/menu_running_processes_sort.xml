@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--    <item-->
+    <!--        android:id="@+id/runningProcessesNameSortMenuItem"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:title="@string/running_processes_name_sort_menu_item" />-->
+    <item
+        android:id="@+id/runningProcessesPidSortMenuItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/running_processes_pid_sort_menu_item" />
+    <item
+        android:id="@+id/runningProcessesUidSortMenuItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/running_processes_uid_sort_menu_item" />
+</menu>

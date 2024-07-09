@@ -91,7 +91,7 @@ object PackageUtils {
      * @param list 要获取的应用的列表
      * @return 封装了应用名称/图标等信息的列表
      */
-    fun getTargetApps(context: Context, list: List<BaseProcessInfoKt>): List<AppItem> {
+    fun getTargetApps(context: Context, list: List<BaseProcessInfoKt>): MutableList<AppItem> {
         val packageManager = context.packageManager
         // 应用部分信息缓存
         val infoCache = HashMap<String, AppInfoCache>()
@@ -124,12 +124,13 @@ object PackageUtils {
                         oomAdjScore = baseProcessInfo.oomAdjScore
                         curAdj = baseProcessInfo.curAdj
                         rssInBytes = baseProcessInfo.rssInBytes
+                        systemApp = ActivityManagerService.isImportantSystemApp(applicationInfo)
                         lastProcessingResultMap = baseProcessInfo.lastProcessingResultMap
                     }
                 }
             }
             .filterNotNull()
-            .toList()
+            .toMutableList()
         // 清空缓存
         infoCache.clear()
         return appItems
@@ -141,7 +142,7 @@ object PackageUtils {
      * @param packageNames Collection<String>
      * @return List<AppItem>
      */
-    fun getTargetApps(context: Context, packageNames: Collection<String>): List<AppItem> {
+    fun getTargetApps(context: Context, packageNames: Collection<String>): MutableList<AppItem> {
         val packageManager = context.packageManager
         return packageNames.asSequence()
             .map { packageName ->
@@ -158,7 +159,7 @@ object PackageUtils {
                 }
             }
             .filterNotNull()
-            .toList()
+            .toMutableList()
     }
 
     fun getSelfInfo(context: Context): AppItem =

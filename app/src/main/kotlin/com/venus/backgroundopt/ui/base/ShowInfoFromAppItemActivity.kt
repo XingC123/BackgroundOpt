@@ -42,7 +42,7 @@ abstract class ShowInfoFromAppItemActivity : BaseActivity() {
     }
 
     abstract fun getShowInfoAdapter(
-        appItems: List<AppItem>,
+        appItems: MutableList<AppItem>,
         vararg others: Any?
     ): ShowInfoFromAppItemAdapter
 
@@ -63,7 +63,7 @@ abstract class ShowInfoFromAppItemActivity : BaseActivity() {
         initRecyclerView(appItems = appItems)
     }
 
-    protected open fun initRecyclerView(appItems: List<AppItem>, vararg others: Any?) {
+    protected open fun initRecyclerView(appItems: MutableList<AppItem>, vararg others: Any?) {
         runOnUiThread {
             findViewById<RecyclerView>(getRecyclerViewResId()).apply {
                 layoutManager = LinearLayoutManager(this@ShowInfoFromAppItemActivity).apply {

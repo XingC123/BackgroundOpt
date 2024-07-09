@@ -32,7 +32,7 @@ import com.venus.backgroundopt.utils.setIntentData
  */
 class ShowAppCompactListActivityMaterial3 : ShowInfoFromAppItemActivityMaterial3() {
     override fun getShowInfoAdapter(
-        appItems: List<AppItem>,
+        appItems: MutableList<AppItem>,
         vararg others: Any?
     ): ShowProcessInfoFromAppItemAdapter {
         return ShowAppCompactListAdapter(this, appItems)

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- package com.venus.backgroundopt.ui.base
+package com.venus.backgroundopt.ui.base
 
 import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -33,6 +33,8 @@ import com.venus.backgroundopt.utils.showProgressBarViewForAction
  * @date 2023/9/25
  */
 abstract class ShowInfoFromAppItemActivityMaterial3 : BaseActivityMaterial3() {
+    lateinit var appItems: MutableList<AppItem>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -42,7 +44,7 @@ abstract class ShowInfoFromAppItemActivityMaterial3 : BaseActivityMaterial3() {
     }
 
     abstract fun getShowInfoAdapter(
-        appItems: List<AppItem>,
+        appItems: MutableList<AppItem>,
         vararg others: Any?
     ): ShowInfoFromAppItemAdapter
 
@@ -59,11 +61,11 @@ abstract class ShowInfoFromAppItemActivityMaterial3 : BaseActivityMaterial3() {
         val list = JSON.parseArray(stringExtra, BaseProcessInfoKt::class.java)
         list ?: return
 
-        val appItems = PackageUtils.getTargetApps(this, list)
+        appItems = PackageUtils.getTargetApps(this, list)
         initRecyclerView(appItems = appItems)
     }
 
-    protected open fun initRecyclerView(appItems: List<AppItem>, vararg others: Any?) {
+    protected open fun initRecyclerView(appItems: MutableList<AppItem>, vararg others: Any?) {
         runOnUiThread {
             findViewById<RecyclerView>(getRecyclerViewResId()).apply {
                 layoutManager = LinearLayoutManager(this@ShowInfoFromAppItemActivityMaterial3).apply {

@@ -207,6 +207,13 @@
                     android:visibility="gone" />
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/gotoRunningProcessesBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/gotoRunningProcessesBtnText" />
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/getBackgroundTasksBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
