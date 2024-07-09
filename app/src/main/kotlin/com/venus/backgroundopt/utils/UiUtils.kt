@@ -30,6 +30,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.res.ResourcesCompat
@@ -205,6 +206,33 @@ object UiUtils {
             .create()
     }
 
+    fun createExceptionDialog(
+        context: Context,
+        throwable: Throwable,
+        titleStr: String? = "错误",
+        @StringRes titleResId: Int? = null,
+        text: String = throwable.stackTraceToString(),
+    ): AlertDialog {
+        return createDialog(
+            context = context,
+            titleStr = titleStr,
+            titleResId = titleResId,
+            text = text,
+            enableNegativeBtn = true,
+            enablePositiveBtn = true,
+            positiveBtnText = "复制错误信息",
+            positiveBlock = { _: DialogInterface, _: Int ->
+                // 将错误信息写入剪切板
+                val clipboardManager = SystemServices.getClipboardManager(context)
+                val clipData = ClipData.newPlainText(
+                    BuildConfig.APPLICATION_ID,
+                    text
+                )
+                clipboardManager.setPrimaryClip(clipData)
+            }
+        )
+    }
+
     @JvmStatic
     fun createProgressBarView(
         context: Context,
@@ -251,26 +279,10 @@ object UiUtils {
                     t = it
                 )
                 (context as Activity).runOnUiThread {
-                    val exceptionStr = "错误信息: ${it.stackTraceToString()}"
-                    createDialog(
+                    createExceptionDialog(
                         context = context,
-                        titleResId = null,
+                        throwable = it,
                         titleStr = "加载出错",
-                        text = exceptionStr,
-                        cancelable = cancelable,
-                        enableNegativeBtn = enableNegativeBtn,
-                        negativeBtnText = negativeBtnText,
-                        enablePositiveBtn = true,
-                        positiveBtnText = "复制错误信息",
-                        positiveBlock = { _: DialogInterface, _: Int ->
-                            // 将错误信息写入剪切板
-                            val clipboardManager = SystemServices.getClipboardManager(context)
-                            val clipData = ClipData.newPlainText(
-                                BuildConfig.APPLICATION_ID,
-                                exceptionStr
-                            )
-                            clipboardManager.setPrimaryClip(clipData)
-                        }
                     ).show()
                 }
             }
@@ -388,6 +400,22 @@ inline fun AlertDialog.Builder.setPositiveBtn(
         }
     }
     return this
+}
+
+fun Context.createExceptionDialog(
+    throwable: Throwable,
+    titleStr: String? = "错误",
+    titleResId: Int? = null,
+    text: String = throwable.stackTraceToString(),
+): AlertDialog {
+    return UiUtils.createExceptionDialog(
+        context = this,
+        throwable = throwable,
+        titleStr = titleStr,
+        titleResId =
+            titleResId,
+        text = text
+    )
 }
 
 fun Context.showProgressBarViewForAction(
