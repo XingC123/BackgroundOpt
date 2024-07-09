@@ -29,6 +29,13 @@
         <!--选项列表-->
         <attr name="entries" format="reference" />
         <attr name="entryValues" format="reference" />
-        <attr name="defaultValue" format="string|boolean|integer|reference|float"/>
+        <attr name="defaultValue" format="string|boolean|integer|reference|float" />
+    </declare-styleable>
+
+    <declare-styleable name="VenusPopMenuButton">
+        <!--默认选中的菜单-->
+        <attr name="defaultMenuItemResId" format="reference" />
+        <!--菜单-->
+        <attr name="menu" format="reference" />
     </declare-styleable>
 </resources>
