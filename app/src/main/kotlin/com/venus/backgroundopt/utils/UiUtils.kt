@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.TypedArray
+import android.graphics.drawable.Drawable
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -144,6 +145,8 @@ object UiUtils {
         useDialogPreferredPaddingHorizontal: Boolean = true,
         titleResId: Int? = null,
         titleStr: String? = null,
+        icon: Drawable? = null,
+        iconResId: Int? = null,
         cancelable: Boolean = true,
         enableNegativeBtn: Boolean = false,
         negativeBtnText: String = "放弃",
@@ -158,6 +161,7 @@ object UiUtils {
     ): AlertDialog {
         val builder = MaterialAlertDialogBuilder(context)
         titleResId?.let { builder.setTitle(it) } ?: titleStr?.let { builder.setTitle(it) }
+        iconResId?.let { builder.setIcon(it) } ?: icon?.let { builder.setIcon(it) }
 
         // 默认的对话框布局
         if (viewResId == null) {
