@@ -19,6 +19,7 @@ package com.venus.backgroundopt.utils.message.handle
 
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.core.RunningInfo
+import com.venus.backgroundopt.entity.preference.JsonPreferenceFlag
 import com.venus.backgroundopt.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.environment.hook.HookCommonProperties
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt
@@ -99,7 +100,7 @@ class AppOptimizePolicyMessageHandler : MessageHandler {
             }
     }
 
-    class AppOptimizePolicy : MessageFlag {
+    class AppOptimizePolicy : MessageFlag, JsonPreferenceFlag {
         lateinit var packageName: String
 
         @Deprecated(

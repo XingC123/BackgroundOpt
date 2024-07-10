@@ -19,12 +19,12 @@
 
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import com.venus.backgroundopt.entity.preference.JsonPreferenceFlag
 import com.venus.backgroundopt.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.utils.JsonUtils
 import com.venus.backgroundopt.utils.UiUtils
 import com.venus.backgroundopt.utils.concurrent.newThreadTaskResult
-import com.venus.backgroundopt.utils.message.MessageFlag
 import com.venus.backgroundopt.utils.message.handle.AppOptimizePolicyMessageHandler.AppOptimizePolicy
 import com.venus.backgroundopt.utils.preference.prefAll
 import com.venus.backgroundopt.utils.preference.prefEdit
@@ -129,7 +129,7 @@ class AllPreference(private val activity: ComponentActivity) {
         }
     }
 
-    class JsonPreference : MessageFlag {
+    class JsonPreference : JsonPreferenceFlag {
         lateinit var appOptimizePolicyMap: MutableMap<String, AppOptimizePolicy>
         lateinit var subProcessOomPolicyMap: MutableMap<String, SubProcessOomPolicy>
         lateinit var mainSettingsMap: MutableMap<String, *>

@@ -20,9 +20,7 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class com.venus.backgroundopt.hook.MainHook {
-    *;
-}
+-keep class com.venus.backgroundopt.hook.MainHook
 
 #==================================【基本配置】==================================
 # 代码混淆压缩比，在0~7之间，默认为5,一般不下需要修改
@@ -161,10 +159,11 @@
 ################################################################
 # 自定义规则                                                     #
 ################################################################
-# 不混淆实现了此接口的类
--keepclasseswithmembers class * implements com.venus.backgroundopt.utils.message.MessageFlag {
-    *;
-}
+# 不混淆消息实体
+# 当 前后端版本不一致时也可以进行通信
+-keep class * implements com.venus.backgroundopt.utils.message.MessageFlag
+# 不混淆需要持久化的实体
+-keep class * implements com.venus.backgroundopt.entity.preference.JsonPreferenceFlag
 # 模块激活状态的检测
 -keepclasseswithmembers class com.venus.backgroundopt.environment.CommonProperties {
     public final boolean isModuleActive();

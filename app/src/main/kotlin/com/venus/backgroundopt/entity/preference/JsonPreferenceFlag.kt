@@ -14,24 +14,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
+
 package com.venus.backgroundopt.entity.preference
 
-import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
-import com.venus.backgroundopt.utils.message.MessageFlag
-
 /**
- *  子进程oom配置策略
+ * 所有需要持久化的实体实现此接口, 以避免被混淆
  *
  * @author XingC
- * @date 2023/9/28
+ * @date 2024/7/10
  */
-class SubProcessOomPolicy : MessageFlag, JsonPreferenceFlag {
-    var policyEnum: SubProcessOomPolicyEnum = SubProcessOomPolicyEnum.DEFAULT
-    var targetOomAdjScore: Int = ProcessRecord.SUB_PROC_ADJ
-
-    enum class SubProcessOomPolicyEnum(val configCode: Int, val configName: String) {
-        DEFAULT(1, "默认"),
-        MAIN_PROCESS(2, "主进程"),
-    }
-}
+interface JsonPreferenceFlag
