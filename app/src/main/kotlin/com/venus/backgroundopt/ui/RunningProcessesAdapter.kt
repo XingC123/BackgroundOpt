@@ -97,8 +97,8 @@ class RunningProcessesAdapter(
             private fun updateFilterAppItems(new: MutableList<AppItem>) {
                 appItemsBeforeClassify = new
 
-                filterAppItems = new
                 classifyProcessList()
+                sortProcessList()
             }
 
             override fun performFiltering(constraint: CharSequence?): FilterResults {

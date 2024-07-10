@@ -252,14 +252,11 @@ class RunningProcessesActivityMaterial3 : ShowInfoFromAppItemActivityMaterial3()
                 }) {
                     // 更新数据
                     updateRunningProcesses()
-                    // 排序
-                    processesRVAdapter.sortProcessList()
                     // 是否进行搜索内容过滤
                     if (searchContent.isNotBlank()) {
                         filterProcessList(searchContent)
                     } else {
-                        // 刷新UI
-                        processesRVAdapter.refreshShownItemUiVisible()
+                        processesRVAdapter.sortProcessListAndRefreshUi()
                     }
                 }
             },
