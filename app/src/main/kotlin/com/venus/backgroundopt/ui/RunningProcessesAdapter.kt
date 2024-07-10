@@ -28,8 +28,6 @@ import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.ui.ShowAppCompactListAdapter.ShowAppCompactListViewHolder
 import com.venus.backgroundopt.ui.base.isKeywordMatched
-import java.text.Collator
-import java.util.Locale
 
 
 /**
@@ -147,7 +145,7 @@ class RunningProcessesAdapter(
      * 进程排序                                                                  *
      *                                                                         *
      **************************************************************************/
-    private lateinit var processListComparator: () -> Unit
+    private lateinit var processListComparator: Comparator<AppItem>
 
     fun sortProcessListAndRefreshUi() {
         sortProcessList()
@@ -156,33 +154,33 @@ class RunningProcessesAdapter(
 
     fun changeProcessesSort(itemResId: Int) {
         processListComparator = when (itemResId) {
-            R.id.runningProcessesUidSortMenuItem -> ::sortProcessListByUid
+            R.id.runningProcessesUidSortMenuItem -> AppItem.uidComparator
             else -> {
                 // 默认按pid
-                ::sortProcessListByPid
+                AppItem.pidComparator
             }
         }
     }
 
     fun sortProcessList() {
-        processListComparator()
+        filterAppItems.sortWith(processListComparator)
     }
 
     private fun sortProcessListByName() {
         filterAppItems.sortWith { appItem1, appItem2 ->
-            appNameComparator.compare(appItem2, appItem1)
+            AppItem.appNameComparator.compare(appItem2, appItem1)
         }
     }
 
     private fun sortProcessListByPid() {
         filterAppItems.sortWith { appItem1, appItem2 ->
-            pidComparator.compare(appItem2, appItem1)
+            AppItem.pidComparator.compare(appItem2, appItem1)
         }
     }
 
     private fun sortProcessListByUid() {
         filterAppItems.sortWith { appItem1, appItem2 ->
-            uidComparator.compare(appItem2, appItem1)
+            AppItem.uidComparator.compare(appItem2, appItem1)
         }
     }
 
@@ -233,47 +231,6 @@ class RunningProcessesAdapter(
         const val PROCESS_SORT_BY_NAME = 1
         const val PROCESS_SORT_BY_PID = 2
         const val PROCESS_SORT_BY_UID = 3
-
-        @JvmStatic
-        val appNameComparator: Comparator<AppItem>
-            get() = object : Comparator<AppItem> {
-                val chinaCollator = Collator.getInstance(Locale.CHINA)
-                fun isEnglish(char: Char): Boolean {
-                    return char in 'a'..'z' || char in 'A'..'z'
-                }
-
-                /**
-                 * 最终排序为: 前: 所有英文的app名字。后: 所有中文的app名字
-                 */
-                override fun compare(o1: AppItem, o2: AppItem): Int {
-                    val firstAppName = o1.appName
-                    val secondAppName = o2.appName
-                    // 只判断app名字的第一个字符(英文: 首字母。中文: 第一个字)
-                    val isFirstNameEnglish = isEnglish(firstAppName[0])
-                    val isSecondNameEnglish = isEnglish(secondAppName[0])
-                    if (isFirstNameEnglish) {
-                        if (isSecondNameEnglish) {
-                            // 都是英文
-                            return o1.appName.lowercase().compareTo(o2.appName.lowercase())
-                        }
-                        // 第一个是英文, 第二个是中文。
-                        return -1
-                    } else if (!isSecondNameEnglish) {
-                        // 两个都是中文
-                        return chinaCollator.compare(firstAppName, secondAppName)
-                    }
-
-                    return 1
-                }
-            }
-
-        @JvmStatic
-        val pidComparator: Comparator<AppItem>
-            get() = Comparator { o1, o2 -> o1.pid - o2.pid }
-
-        @JvmStatic
-        val uidComparator: Comparator<AppItem>
-            get() = Comparator { o1, o2 -> o1.uid - o2.uid }
     }
 }
 
