@@ -196,6 +196,7 @@ class RunningProcessesActivityMaterial3 : ShowInfoFromAppItemActivityMaterial3()
 
         // 排序
         processesRVAdapter.changeProcessesSort(processesSortBtn.selectedItemResId)
+        processesRVAdapter.sortProcessListAndRefreshUi()
     }
 
     /* *************************************************************************
