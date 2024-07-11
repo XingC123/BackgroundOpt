@@ -126,7 +126,7 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
             }
 
             editText.addTextChangedListener {
-                (searchHistoryContainer.adapter as ShowAllInstalledAppsSearchHistoryRecycleViewAdapter)
+                (searchHistoryContainer.adapter as SearchFromAppItemRVAdapter)
                     .filter
                     .filter(it.toString())
             }
