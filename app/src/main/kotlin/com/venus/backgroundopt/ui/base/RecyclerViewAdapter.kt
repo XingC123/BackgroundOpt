@@ -36,13 +36,13 @@ abstract class RecyclerViewAdapter<VH : RecyclerView.ViewHolder> : RecyclerView.
     override fun onViewAttachedToWindow(holder: VH) {
         super.onViewAttachedToWindow(holder)
 
-        handleAddScrollAnimation(holder)
+        addScrollAnimationMethod(holder)
     }
 
     override fun onViewDetachedFromWindow(holder: VH) {
         super.onViewDetachedFromWindow(holder)
 
-        handleRemoveShowingViewHolder(holder)
+        removeShowingViewHolderMethod(holder)
     }
 
     /* *************************************************************************
@@ -52,6 +52,21 @@ abstract class RecyclerViewAdapter<VH : RecyclerView.ViewHolder> : RecyclerView.
      **************************************************************************/
     // 正在显示的ViewHolder
     private val showingViewHoldersMap = ConcurrentHashMap<Int, VH>(2)
+    // 是否启用滑动动画
+    var enableScrollAnimation: Boolean = true
+        set(value) {
+            field = value
+
+            if (value) {
+                addScrollAnimationMethod = ::handleAddScrollAnimation
+                removeShowingViewHolderMethod = ::handleRemoveShowingViewHolder
+            } else {
+                addScrollAnimationMethod = ::viewHolderConsumer
+                removeShowingViewHolderMethod = ::viewHolderConsumer
+            }
+        }
+    private var addScrollAnimationMethod: (VH) -> Unit = ::handleAddScrollAnimation
+    private var removeShowingViewHolderMethod: (VH) -> Unit = ::handleRemoveShowingViewHolder
 
     /**
      * 滑动[RecyclerView]时, item进入视野之前, [showingViewHoldersMap].get(position)返回的是null, 此时应该添加动画。
@@ -100,5 +115,12 @@ abstract class RecyclerViewAdapter<VH : RecyclerView.ViewHolder> : RecyclerView.
         val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 0f, 1f)
         val alpha = ObjectAnimator.ofFloat(view, "alpha", 0f, 1f)
         return arrayOf(scaleX, scaleY, alpha)
+    }
+
+    companion object {
+        @JvmStatic
+        fun viewHolderConsumer(holder: RecyclerView.ViewHolder) {
+            // do nothing
+        }
     }
 }
