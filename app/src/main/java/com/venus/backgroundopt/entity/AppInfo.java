@@ -88,7 +88,7 @@ public class AppInfo implements ILogger, LockFlag {
     public AppInfo init() {
         appSwitchEvent.set(Integer.MIN_VALUE);
         switchEventHandled.set(false);
-        componentNameAtomicReference.set(null);
+        activityRecordReference.set(null);
         appGroupEnum = AppGroupEnum.NONE;
 
         setAdjHandleFunction();
@@ -122,7 +122,7 @@ public class AppInfo implements ILogger, LockFlag {
 
     // 当前app被模块检测到的activity的ComponentName
     @DontClearField(reset = true)
-    private final Set<ComponentName> activities = Collections.newSetFromMap(new ConcurrentHashMap<>(4));
+    private final Set<Object> activities = Collections.newSetFromMap(new ConcurrentHashMap<>(4));
 
     @DontClearField
     private final AtomicInteger appSwitchEvent = new AtomicInteger(Integer.MIN_VALUE); // app切换事件
@@ -131,7 +131,7 @@ public class AppInfo implements ILogger, LockFlag {
     private final AtomicBoolean switchEventHandled = new AtomicBoolean(false);    // 切换事件处理完毕
 
     @DontClearField(reset = true)
-    private final AtomicReference<ComponentName> componentNameAtomicReference = new AtomicReference<>(null);
+    private final AtomicReference<Object> activityRecordReference = new AtomicReference<>(null);
 
     @DontClearField
     private FindAppResult findAppResult;
@@ -157,20 +157,20 @@ public class AppInfo implements ILogger, LockFlag {
         this.switchEventHandled.set(switchEventHandled);
     }
 
-    public ComponentName getComponentName() {
-        return componentNameAtomicReference.get();
+    public Object getActivityRecordReference() {
+        return activityRecordReference.get();
     }
 
-    public void setComponentName(ComponentName componentName) {
-        componentNameAtomicReference.set(componentName);
+    public void setActivityRecordReference(Object activityRecord) {
+        this.activityRecordReference.set(activityRecord);
     }
 
-    public void activityActive(@NonNull ComponentName componentName) {
-        activities.add(componentName);
+    public void activityActive(@NonNull Object activityRecord) {
+        activities.add(activityRecord);
     }
 
-    public void activityDie(@NonNull ComponentName componentName) {
-        activities.remove(componentName);
+    public void activityDie(@NonNull Object activityRecord) {
+        activities.remove(activityRecord);
     }
 
     public int getAppShowingActivityCount() {

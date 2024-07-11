@@ -45,6 +45,7 @@ import com.venus.backgroundopt.hook.handle.android.ServiceManagerHook;
 import com.venus.backgroundopt.hook.handle.android.SystemPropertiesHook;
 import com.venus.backgroundopt.hook.handle.android.WindowProcessControllerHook;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
+import com.venus.backgroundopt.hook.handle.android.function.ActivitySwitchHook;
 import com.venus.backgroundopt.hook.handle.android.function.CleanUpRemovedTaskHook;
 import com.venus.backgroundopt.hook.handle.android.function.DefaultApplicationChangeHook;
 
@@ -79,6 +80,7 @@ public class AndroidHookHandler extends PackageHook {
         new DeviceConfigHookNew(classLoader, runningInfo);
 
         // 抓取AMS, 前后台切换
+        new ActivitySwitchHook(classLoader, runningInfo);
         new ActivityManagerServiceHook(classLoader, runningInfo);
         new ActivityManagerServiceHookKt(classLoader, runningInfo);
 

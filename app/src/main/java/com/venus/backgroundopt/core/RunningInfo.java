@@ -19,7 +19,6 @@ package com.venus.backgroundopt.core;
 
 import static com.venus.backgroundopt.manager.application.DefaultApplicationManager.DefaultApplicationNode;
 
-import android.content.ComponentName;
 import android.os.PowerManager;
 
 import androidx.annotation.NonNull;
@@ -32,15 +31,17 @@ import com.venus.backgroundopt.entity.FindAppResult;
 import com.venus.backgroundopt.entity.FindAppResultKt;
 import com.venus.backgroundopt.environment.hook.HookCommonProperties;
 import com.venus.backgroundopt.hook.base.IHook;
-import com.venus.backgroundopt.hook.handle.android.ActivityManagerServiceHookKt;
+import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookKt;
 import com.venus.backgroundopt.hook.handle.android.ProcessListHookKtKt;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
+import com.venus.backgroundopt.hook.handle.android.entity.ActivityRecord;
 import com.venus.backgroundopt.hook.handle.android.entity.MemInfoReader;
 import com.venus.backgroundopt.hook.handle.android.entity.PackageManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord.AdjHandleActionType;
+import com.venus.backgroundopt.hook.handle.android.function.ActivitySwitchHook;
 import com.venus.backgroundopt.manager.application.DefaultApplicationManager;
 import com.venus.backgroundopt.manager.message.ModuleMessageManager;
 import com.venus.backgroundopt.manager.process.ProcessManager;
@@ -475,16 +476,18 @@ public class RunningInfo implements ILogger {
      * 以异步的方式处理Activity改变事件
      *
      * @param event         当前事件码
-     * @param userId        用户id
-     * @param componentName 组件
+     * @param activityRecord {@link ClassConstants#ActivityRecord}
      */
-    public void handleActivityEventChange(int event, int userId, @NonNull ComponentName componentName) {
+    public void handleActivityEventChange(int event, @NonNull Object activityRecord) {
         addActivityEventChangeAction(() -> {
-            handleActivityEventChange(event, userId, componentName.getPackageName(), componentName);
+            int userId = ActivityRecord.getUserId(activityRecord);
+            String packageName = ActivityRecord.getPackageName(activityRecord);
+
+            handleActivityEventChange(event, userId, packageName, activityRecord);
         });
     }
 
-    public void handleActivityEventChange(int event, int userId, @NonNull String packageName, @Nullable ComponentName componentName) {
+    public void handleActivityEventChange(int event, int userId, @NonNull String packageName, @Nullable Object activityRecord) {
         String appKey = getAppKey(userId, packageName);
         FindAppResult findAppResult = getFindAppResult(appKey, userId, packageName);
         AppInfo appInfo;
@@ -493,7 +496,7 @@ public class RunningInfo implements ILogger {
         }
 
         ConcurrentUtilsKt.lock(appInfo, () -> {
-            handleActivityEventChangeLocked(event, componentName, appInfo);
+            handleActivityEventChangeLocked(event, activityRecord, appInfo);
             return null;
         });
     }
@@ -518,48 +521,48 @@ public class RunningInfo implements ILogger {
      * </pre>
      *
      * @param event         事件码
-     * @param componentName 当前组件
+     * @param activityRecord 当前{@link ClassConstants#ActivityRecord}
      * @param appInfo       app
      */
-    public void handleActivityEventChangeLocked(int event, @Nullable ComponentName componentName, @NonNull AppInfo appInfo) {
+    public void handleActivityEventChangeLocked(int event, @Nullable Object activityRecord, @NonNull AppInfo appInfo) {
         switch (event) {
-            case ActivityManagerServiceHookKt.ACTIVITY_RESUMED -> {
+            case ActivitySwitchHook.ACTIVITY_RESUMED -> {
                 Consumer<AppInfo> consumer;
                 // 从后台到前台 || 第一次打开app
-                if (Objects.equals(componentName, appInfo.getComponentName())
+                if (Objects.equals(activityRecord, appInfo.getActivityRecordReference())
                         /*&& appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_STOPPED*/
                         && appInfo.getAppGroupEnum() != AppGroupEnum.ACTIVE
-                        || appInfo.getComponentName() == null
+                        || appInfo.getActivityRecordReference() == null
                 ) {
                     consumer = putIntoActiveAction;
                 } else {
                     consumer = doNothing;
                 }
                 handleActuallyActivityEventChange(appInfo, () -> {
-                    appInfo.activityActive(componentName);
+                    appInfo.activityActive(activityRecord);
 
                     consumer.accept(appInfo);
-                    updateAppSwitchState(/*event, */componentName, appInfo);
+                    updateAppSwitchState(/*event, */activityRecord, appInfo);
                 }, throwable -> getLogger().error("ACTIVITY_RESUMED处理出错", throwable));
             }
 
-            case ActivityManagerServiceHookKt.ACTIVITY_STOPPED -> {
+            case ActivitySwitchHook.ACTIVITY_STOPPED -> {
                 /*
                     23.10.18: appInfo.getAppGroupEnum() != AppGroupEnum.IDLE可以换成appInfo.getAppGroupEnum() == AppGroupEnum.ACTIVE,
                         但为了往后的兼容性, 暂时保持这样
                  */
-                if (Objects.equals(componentName, appInfo.getComponentName())) {
+                if (Objects.equals(activityRecord, appInfo.getActivityRecordReference())) {
                     if (appInfo.getAppGroupEnum() != AppGroupEnum.IDLE || !getPowerManager().isInteractive()) {
                         handleActuallyActivityEventChange(appInfo, () -> {
                             putIntoIdleAppGroup(appInfo);
-                            updateAppSwitchState(/*event, */componentName, appInfo);
+                            updateAppSwitchState(/*event, */activityRecord, appInfo);
                         }, throwable -> getLogger().error("ACTIVITY_STOPPED处理出错", throwable));
                     }
                 }
             }
 
-            case ActivityManagerServiceHookKt.ACTIVITY_DESTROYED -> {
-                appInfo.activityDie(componentName);
+            case ActivitySwitchHook.ACTIVITY_DESTROYED -> {
+                appInfo.activityDie(activityRecord);
             }
 
             default -> {
@@ -581,10 +584,10 @@ public class RunningInfo implements ILogger {
         }*/
     }
 
-    private void updateAppSwitchState(/*int event, */ComponentName componentName, @NonNull AppInfo appInfo) {
+    private void updateAppSwitchState(/*int event, */Object activityRecord, @NonNull AppInfo appInfo) {
         // 更新app的切换状态
 //        appInfo.setAppSwitchEvent(event);
-        appInfo.setComponentName(componentName);
+        appInfo.setActivityRecordReference(activityRecord);
     }
 
     private void putIntoActiveAppGroup(@NonNull AppInfo appInfo) {

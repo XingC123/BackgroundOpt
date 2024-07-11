@@ -34,6 +34,7 @@ import com.venus.backgroundopt.hook.handle.android.entity.ActivityManager
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessList
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord.AdjHandleActionType
+import com.venus.backgroundopt.hook.handle.android.function.ActivitySwitchHook
 import com.venus.backgroundopt.utils.clamp
 import com.venus.backgroundopt.utils.concurrent.lock
 import com.venus.backgroundopt.utils.getBooleanFieldValue
@@ -507,7 +508,7 @@ class ProcessListHookKt(
         // 此时那些没有打开过页面的app就可以被设置内存分组, 相应的进行内存优化处理。
         if (appGroupEnum == AppGroupEnum.NONE && mainProcess) {
             runningInfo.handleActivityEventChangeLocked(
-                ActivityManagerServiceHookKt.ACTIVITY_STOPPED,
+                ActivitySwitchHook.ACTIVITY_STOPPED,
                 null,
                 appInfo
             )

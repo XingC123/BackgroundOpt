@@ -43,6 +43,8 @@ public interface ClassConstants {
     String WindowProcessController = "com.android.server.wm.WindowProcessController";
     String Task = "com.android.server.wm.Task";
     String ActivityTaskSupervisor = "com.android.server.wm.ActivityTaskSupervisor";
+    String ActivityTaskManagerService = "com.android.server.wm.ActivityTaskManagerService";
+    String ActivityRecord = "com.android.server.wm.ActivityRecord";
     String ComponentName = "android.content.ComponentName";
     String IBinder = "android.os.IBinder";
     String Process = "android.os.Process";

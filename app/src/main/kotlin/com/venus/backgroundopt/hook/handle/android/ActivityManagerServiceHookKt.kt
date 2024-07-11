@@ -46,14 +46,14 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
 
     override fun getHookPoint(): Array<HookPoint> {
         return arrayOf(
-            generateMatchedMethodHookPoint(
-                true,
+            /*generateMatchedMethodHookPoint(
+                false,
                 ClassConstants.ActivityManagerService,
                 MethodConstants.updateActivityUsageStats,
                 arrayOf(
                     beforeHookAction { handleUpdateActivityUsageStats(it) }
                 )
-            ),
+            ),*/
 //            HookPoint(
 //                ClassConstants.ActivityManagerService,
 //                MethodConstants.forceStopPackage,
@@ -151,7 +151,7 @@ class ActivityManagerServiceHookKt(classLoader: ClassLoader?, hookInfo: RunningI
                 // 本次事件用户
                 val userId = args[1] as Int
 
-                runningInfo.handleActivityEventChange(event, userId, componentName)
+                // runningInfo.handleActivityEventChange(event, userId, componentName)
             }
 
             else -> return
