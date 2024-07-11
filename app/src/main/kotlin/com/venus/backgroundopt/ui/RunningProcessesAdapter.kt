@@ -28,6 +28,7 @@ import com.venus.backgroundopt.R
 import com.venus.backgroundopt.entity.AppItem
 import com.venus.backgroundopt.ui.ShowAppCompactListAdapter.ShowAppCompactListViewHolder
 import com.venus.backgroundopt.ui.base.isKeywordMatched
+import com.venus.backgroundopt.utils.runCatchThrowable
 
 
 /**
@@ -60,17 +61,21 @@ class RunningProcessesAdapter(
         val lastVisiblePosition: Int = layoutManager.findLastVisibleItemPosition()
 
         activity.runOnUiThread {
-            notifyItemRangeChanged(
-                firstVisiblePosition,
-                lastVisiblePosition - firstVisiblePosition + 1
-            )
+            runCatchThrowable {
+                notifyItemRangeChanged(
+                    firstVisiblePosition,
+                    lastVisiblePosition - firstVisiblePosition + 1
+                )
+            }
         }
     }
 
     @SuppressLint("NotifyDataSetChanged")
     fun refreshShownItemUiFull() {
         activity.runOnUiThread {
-            notifyDataSetChanged()
+            runCatchThrowable {
+                notifyDataSetChanged()
+            }
         }
     }
 
