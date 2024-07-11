@@ -131,14 +131,20 @@ fun BaseActivity.isModuleRunning(): Boolean {
 }
 
 /**
- * 比较模块后端的版本和[targetVersionCode], 如果不符合要求则执行[incompatibleBlock],
- * 若[isForcible]为true则无法执行[compatibleBlock]
+ * 比较模块后端的版本和[targetVersionCode]
+ *
+ * 1. 如果 versionCode < 0 && [isNeedModuleRunning] = true, 则 -> [moduleNotRunningBlock]并退出
+ * 2. 如果 versionCode < [targetVersionCode], 则 -> [incompatibleBlock]
+ *     - 若 [isForcible] = false, 则 -> [compatibleBlock]
+ * 3. 如果 versionCode 符合 [targetVersionCode], 则 -> [compatibleBlock]
  */
 inline fun BaseActivity.ifVersionIsCompatible(
     targetVersionCode: Int,
+    isNeedModuleRunning: Boolean = false,
+    noinline moduleNotRunningBlock: ((BaseActivity, Int/* versionCode */) -> Unit)? = null,
     isForcible: Boolean = true,
     noinline incompatibleBlock: ((BaseActivity) -> Unit)? = null,
-    crossinline compatibleBlock: (BaseActivity) -> Unit
+    crossinline compatibleBlock: (BaseActivity) -> Unit,
 ) {
     // 检查版本是否匹配
     showProgressBarViewForAction(text = "版本校验中...") {
@@ -156,7 +162,19 @@ inline fun BaseActivity.ifVersionIsCompatible(
             returnVersionCode
         }
 
-        if (versionCode < targetVersionCode) {
+        if (versionCode < 0 && isNeedModuleRunning) {
+            moduleNotRunningBlock?.invoke(this, versionCode) ?: run {
+                runOnUiThread {
+                    UiUtils.createDialog(
+                        context = this,
+                        cancelable = false,
+                        text = "仅模块正在运作时才可使用, 请重启系统以完全激活模块",
+                        enablePositiveBtn = true,
+                    ).show()
+                }
+            }
+            return@showProgressBarViewForAction
+        } else if (versionCode < targetVersionCode) {
             incompatibleBlock?.invoke(this) ?: run {
                 runOnUiThread {
                     UiUtils.createDialog(
@@ -164,7 +182,7 @@ inline fun BaseActivity.ifVersionIsCompatible(
                         cancelable = false,
                         text = "app与模块版本不匹配, ${if (isForcible) "请重启后再试" else "一些参数的设置需要重启后才能生效"}",
                         enablePositiveBtn = true,
-                        positiveBlock = {dialogInterface, _->
+                        positiveBlock = { dialogInterface, _ ->
                             dialogInterface.dismiss()
                             isForcible.ifFalse {
                                 compatibleBlock(this)

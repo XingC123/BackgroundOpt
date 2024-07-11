@@ -148,7 +148,11 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
         findViewById<Button>(
             R.id.gotoConfigureAppProcessActivityBtn, moduleActive
         )?.setOnClickListener { _ ->
-            ifVersionIsCompatible(targetVersionCode = 204, isForcible = false) {
+            ifVersionIsCompatible(
+                targetVersionCode = 204,
+                isForcible = false,
+                isNeedModuleRunning = true
+            ) {
                 runOnUiThread {
                     startActivity(Intent(this, ShowAllInstalledAppsActivityMaterial3::class.java))
                 }
