@@ -161,9 +161,13 @@
 ################################################################
 # 不混淆消息实体
 # 当 前后端版本不一致时也可以进行通信
--keep class * implements com.venus.backgroundopt.utils.message.MessageFlag
+-keepclasseswithmembers class * implements com.venus.backgroundopt.utils.message.MessageFlag {
+    *;
+}
 # 不混淆需要持久化的实体
--keep class * implements com.venus.backgroundopt.entity.preference.JsonPreferenceFlag
+-keepclasseswithmembers class * implements com.venus.backgroundopt.entity.preference.JsonPreferenceFlag {
+    *;
+}
 # 模块激活状态的检测
 -keepclasseswithmembers class com.venus.backgroundopt.environment.CommonProperties {
     public final boolean isModuleActive();
