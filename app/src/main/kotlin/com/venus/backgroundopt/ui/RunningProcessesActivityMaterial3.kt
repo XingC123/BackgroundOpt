@@ -125,6 +125,7 @@ class RunningProcessesActivityMaterial3 : ShowInfoFromAppItemActivityMaterial3()
                     appItems
                 ).apply {
                     layoutManager = linearLayoutManager
+                    enableScrollAnimation = false
                 }.also { processesRVAdapter = it }
                 addItemDecoration(RecycleViewItemSpaceDecoration(context))
             }
