@@ -64,7 +64,8 @@ class RunningProcessesAdapter(
             runCatchThrowable {
                 notifyItemRangeChanged(
                     firstVisiblePosition,
-                    lastVisiblePosition - firstVisiblePosition + 1
+                    lastVisiblePosition - firstVisiblePosition + 1,
+                    1   /* 为了防止刷新数据时item闪烁 */
                 )
             }
         }
