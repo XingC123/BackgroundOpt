@@ -521,28 +521,29 @@ public class RunningInfo implements ILogger {
      * </pre>
      *
      * @param event         事件码
-     * @param activityRecord 当前{@link ClassConstants#ActivityRecord}
+     * @param activityRecord 当前{@link ClassConstants#ActivityRecord}, 在event = {@link ActivitySwitchHook#ACTIVITY_STOPPED}时可能为空
      * @param appInfo       app
      */
     public void handleActivityEventChangeLocked(int event, @Nullable Object activityRecord, @NonNull AppInfo appInfo) {
+        appInfo.increaseActivitySwitchEventHandlingCount();
+
         switch (event) {
             case ActivitySwitchHook.ACTIVITY_RESUMED -> {
                 Consumer<AppInfo> consumer;
                 // 从后台到前台 || 第一次打开app
-                if (Objects.equals(activityRecord, appInfo.getActivityRecordReference())
+                if (Objects.equals(activityRecord, appInfo.getActivityRecord())
                         /*&& appInfo.getAppSwitchEvent() == ActivityManagerServiceHookKt.ACTIVITY_STOPPED*/
                         && appInfo.getAppGroupEnum() != AppGroupEnum.ACTIVE
-                        || appInfo.getActivityRecordReference() == null
+                        || appInfo.getActivityRecord() == null
                 ) {
                     consumer = putIntoActiveAction;
                 } else {
                     consumer = doNothing;
                 }
-                handleActuallyActivityEventChange(appInfo, () -> {
+                handleAppSwitch(activityRecord, appInfo, () -> {
                     appInfo.activityActive(activityRecord);
 
                     consumer.accept(appInfo);
-                    updateAppSwitchState(/*event, */activityRecord, appInfo);
                 }, throwable -> getLogger().error("ACTIVITY_RESUMED处理出错", throwable));
             }
 
@@ -551,11 +552,10 @@ public class RunningInfo implements ILogger {
                     23.10.18: appInfo.getAppGroupEnum() != AppGroupEnum.IDLE可以换成appInfo.getAppGroupEnum() == AppGroupEnum.ACTIVE,
                         但为了往后的兼容性, 暂时保持这样
                  */
-                if (Objects.equals(activityRecord, appInfo.getActivityRecordReference())) {
+                if (Objects.equals(activityRecord, appInfo.getActivityRecord())) {
                     if (appInfo.getAppGroupEnum() != AppGroupEnum.IDLE || !getPowerManager().isInteractive()) {
-                        handleActuallyActivityEventChange(appInfo, () -> {
+                        handleAppSwitch(activityRecord, appInfo, () -> {
                             putIntoIdleAppGroup(appInfo);
-                            updateAppSwitchState(/*event, */activityRecord, appInfo);
                         }, throwable -> getLogger().error("ACTIVITY_STOPPED处理出错", throwable));
                     }
                 }
@@ -568,26 +568,28 @@ public class RunningInfo implements ILogger {
             default -> {
             }
         }
+
+        appInfo.decreaseActivitySwitchEventHandlingCount();
     }
 
-    private void handleActuallyActivityEventChange(@NonNull AppInfo appInfo, @NonNull Runnable action, @Nullable Consumer<Throwable> throwableAction) {
-        /*Lock appInfoLock = appInfo.getLock();
-        appInfoLock.lock();*/
+    private void handleAppSwitch(
+            @Nullable Object activityRecord,
+            @NonNull AppInfo appInfo,
+            @NonNull Runnable action,
+            @Nullable Consumer<Throwable> throwableAction
+    ) {
         try {
+            updateAppSwitchState(activityRecord, appInfo);
             action.run();
         } catch (Throwable throwable) {
             if (throwableAction != null) {
                 throwableAction.accept(throwable);
             }
-        }/* finally {
-            appInfoLock.unlock();
-        }*/
+        }
     }
 
-    private void updateAppSwitchState(/*int event, */Object activityRecord, @NonNull AppInfo appInfo) {
-        // 更新app的切换状态
-//        appInfo.setAppSwitchEvent(event);
-        appInfo.setActivityRecordReference(activityRecord);
+    private void updateAppSwitchState(Object activityRecord, @NonNull AppInfo appInfo) {
+        appInfo.setActivityRecord(activityRecord);
     }
 
     private void putIntoActiveAppGroup(@NonNull AppInfo appInfo) {
@@ -596,9 +598,6 @@ public class RunningInfo implements ILogger {
 
         // 处理当前app
         handleCurApp(appInfo);
-
-        // 重置切换事件处理状态
-        appInfo.setSwitchEventHandled(false);
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 被放入ActiveGroup");
@@ -611,8 +610,6 @@ public class RunningInfo implements ILogger {
 
         // 处理上个app
         handleLastApp(appInfo);
-
-        appInfo.setSwitchEventHandled(true);
 
         if (BuildConfig.DEBUG) {
             getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + "  被放入IdleGroup");
@@ -654,13 +651,6 @@ public class RunningInfo implements ILogger {
         if (Objects.equals(getActiveLaunchPackageName(), appInfo.getPackageName())) {
             if (BuildConfig.DEBUG) {
                 getLogger().debug("当前操作的app为默认桌面, 不进行处理");
-            }
-            return;
-        }
-
-        if (appInfo.isSwitchEventHandled()) {
-            if (BuildConfig.DEBUG) {
-                getLogger().debug(appInfo.getPackageName() + ", uid: " + appInfo.getUid() + " 的切换事件已经处理过");
             }
             return;
         }

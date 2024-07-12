@@ -17,16 +17,15 @@
 
 package com.venus.backgroundopt.entity;
 
-import static com.venus.backgroundopt.core.RunningInfo.AppGroupEnum;
-
-import android.content.ComponentName;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.BuildConfig;
+import com.venus.backgroundopt.annotation.AndroidObject;
 import com.venus.backgroundopt.core.RunningInfo;
+import com.venus.backgroundopt.core.RunningInfo.AppGroupEnum;
 import com.venus.backgroundopt.environment.hook.HookCommonProperties;
+import com.venus.backgroundopt.hook.constants.ClassConstants;
 import com.venus.backgroundopt.hook.handle.android.entity.ActivityManagerService;
 import com.venus.backgroundopt.hook.handle.android.entity.ProcessRecord;
 import com.venus.backgroundopt.manager.application.DefaultApplicationManager;
@@ -86,9 +85,8 @@ public class AppInfo implements ILogger, LockFlag {
     }
 
     public AppInfo init() {
-        appSwitchEvent.set(Integer.MIN_VALUE);
-        switchEventHandled.set(false);
-        activityRecordReference.set(null);
+        activitySwitchEventHandlingCount.set(0);
+        activityRecord.set(null);
         appGroupEnum = AppGroupEnum.NONE;
 
         setAdjHandleFunction();
@@ -113,25 +111,27 @@ public class AppInfo implements ILogger, LockFlag {
 
     /* *************************************************************************
      *                                                                         *
-     * app进程信息                                                               *
+     * app状态信息                                                               *
      *                                                                         *
      **************************************************************************/
     @DontClearField
     private final RunningInfo runningInfo;
-    private volatile ProcessRecord mProcessRecord;   // 主进程记录
+    // 主进程记录
+    private volatile ProcessRecord mProcessRecord;
+    // 当前app在本模块内的内存分组
+    @DontClearField
+    private volatile AppGroupEnum appGroupEnum = AppGroupEnum.NONE;
 
     // 当前app被模块检测到的activity的ComponentName
     @DontClearField(reset = true)
     private final Set<Object> activities = Collections.newSetFromMap(new ConcurrentHashMap<>(4));
 
-    @DontClearField
-    private final AtomicInteger appSwitchEvent = new AtomicInteger(Integer.MIN_VALUE); // app切换事件
+    // 正在处理的app切换事件的数量
+    @DontClearField(reset = true)
+    private final AtomicInteger activitySwitchEventHandlingCount = new AtomicInteger(0);
 
     @DontClearField(reset = true)
-    private final AtomicBoolean switchEventHandled = new AtomicBoolean(false);    // 切换事件处理完毕
-
-    @DontClearField(reset = true)
-    private final AtomicReference<Object> activityRecordReference = new AtomicReference<>(null);
+    private final AtomicReference<Object> activityRecord = new AtomicReference<>(null);
 
     @DontClearField
     private FindAppResult findAppResult;
@@ -149,20 +149,38 @@ public class AppInfo implements ILogger, LockFlag {
         return findAppResult.getImportantSystemApp();
     }
 
-    public boolean isSwitchEventHandled() {
-        return switchEventHandled.get();
+    public void setAppGroupEnum(@NonNull AppGroupEnum appGroupEnum) {
+        this.appGroupEnum = appGroupEnum;
     }
 
-    public void setSwitchEventHandled(boolean switchEventHandled) {
-        this.switchEventHandled.set(switchEventHandled);
+    @NonNull
+    public AppGroupEnum getAppGroupEnum() {
+        return appGroupEnum;
     }
 
-    public Object getActivityRecordReference() {
-        return activityRecordReference.get();
+    public boolean isHandlingActivitySwitch() {
+        return this.activitySwitchEventHandlingCount.get() > 0;
     }
 
-    public void setActivityRecordReference(Object activityRecord) {
-        this.activityRecordReference.set(activityRecord);
+    public int getActivitySwitchEventHandlingCount() {
+        return this.activitySwitchEventHandlingCount.get();
+    }
+
+    public int increaseActivitySwitchEventHandlingCount() {
+        return this.activitySwitchEventHandlingCount.incrementAndGet();
+    }
+
+    public int decreaseActivitySwitchEventHandlingCount() {
+        return this.activitySwitchEventHandlingCount.decrementAndGet();
+    }
+
+    @AndroidObject(classPath = ClassConstants.ActivityRecord)
+    public Object getActivityRecord() {
+        return activityRecord.get();
+    }
+
+    public void setActivityRecord(@AndroidObject(classPath = ClassConstants.ActivityRecord) Object activityRecord) {
+        this.activityRecord.set(activityRecord);
     }
 
     public void activityActive(@NonNull Object activityRecord) {
@@ -173,12 +191,12 @@ public class AppInfo implements ILogger, LockFlag {
         activities.remove(activityRecord);
     }
 
-    public int getAppShowingActivityCount() {
+    public int getAppActivityCount() {
         return activities.size();
     }
 
     public boolean hasActivity() {
-        return getAppShowingActivityCount() >= 1;
+        return getAppActivityCount() >= 1;
     }
 
     /* *************************************************************************
@@ -264,20 +282,10 @@ public class AppInfo implements ILogger, LockFlag {
 
     /* *************************************************************************
      *                                                                         *
-     * app进程信息(简单)                                                         *
+     * app状态信息                                                               *
      *                                                                         *
      **************************************************************************/
-    // 当前app在本模块内的内存分组
-    @DontClearField
-    private volatile AppGroupEnum appGroupEnum = AppGroupEnum.NONE;
 
-    public void setAppGroupEnum(AppGroupEnum appGroupEnum) {
-        this.appGroupEnum = appGroupEnum;
-    }
-
-    public AppGroupEnum getAppGroupEnum() {
-        return appGroupEnum;
-    }
 
     public ApplicationIdentity getApplicationIdentity() {
         return new ApplicationIdentity(userId, packageName);
@@ -430,18 +438,6 @@ public class AppInfo implements ILogger, LockFlag {
 //        } else {
 //            return this.mProcessRecord.getPid();
 //        }
-    }
-
-    public int getAppSwitchEvent() {
-        return appSwitchEvent.get();
-    }
-
-    public void setAppSwitchEvent(int appSwitchEvent) {
-        this.appSwitchEvent.set(appSwitchEvent);
-
-        if (BuildConfig.DEBUG) {
-            getLogger().debug(packageName + " 切换状态 ->>> " + appSwitchEvent);
-        }
     }
 
     @Nullable
