@@ -40,7 +40,7 @@
                 android:layout_weight="1"
                 android:text="@string/installedAppItemAppNameText" />
 
-            <com.venus.backgroundopt.ui.base.LineFeedLayout
+            <com.venus.backgroundopt.app.ui.component.LineFeedLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
@@ -101,7 +101,7 @@
                     android:paddingVertical="@dimen/padding_vertical_if_use_border"
                     android:text="@string/itemInstalledAppsMainProcessAdjManagePolicy"
                     android:textColor="@color/shanChui" />
-            </com.venus.backgroundopt.ui.base.LineFeedLayout>
+            </com.venus.backgroundopt.app.ui.component.LineFeedLayout>
         </LinearLayout>
 
     </LinearLayout>

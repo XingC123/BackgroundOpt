@@ -1,0 +1,51 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.venus.backgroundopt.xposed'
+    compileSdk rootProject.ext.compileSdk
+
+    defaultConfig {
+        minSdk rootProject.ext.minSdk
+        targetSdk rootProject.ext.targetSdk
+        buildConfigField("String", "APPLICATION_ID", "\"${rootProject.ext.applicationId}\"")
+        buildConfigField("int", "VERSION_CODE", "${rootProject.ext.versionCode}")
+        buildConfigField("String", "VERSION_NAME", "\"${rootProject.ext.versionName}\"")
+        buildConfigField("String", "SUFFIX", "\"${rootProject.ext.suffix}\"")
+        buildConfigField("String", "REALEASE_TIME", "\"${rootProject.ext.releaseTime}\"")
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+
+            // proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    compileOptions {
+        sourceCompatibility = rootProject.ext.sourceCompatibility
+        targetCompatibility = rootProject.ext.targetCompatibility
+    }
+    kotlinOptions {
+        jvmTarget = rootProject.ext.kotlinJvmTarget
+        freeCompilerArgs += ["-Xlambdas=indy"]
+    }
+}
+
+dependencies {
+    compileOnly("${rootProject.ext.xposedApiDependenceStr}")
+
+    implementation project(':common')
+
+    implementation("${rootProject.ext.jsonDependenceStr}")
+    // implementation("${rootProject.ext.androidxAnnotationJvmVersionDependenceStr}")
+    implementation("${rootProject.ext.androidxPreferenceKtxVersionDependenceStr}")
+    implementation("${rootProject.ext.kotlinReflectVersionDependenceStr}")
+}

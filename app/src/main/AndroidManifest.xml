@@ -44,7 +44,7 @@
 <!--        </activity>-->
 
         <activity
-            android:name=".ui.MainActivityMaterial3"
+            android:name=".app.ui.MainActivityMaterial3"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -57,7 +57,7 @@
 <!--            android:exported="true" />-->
 
         <activity
-            android:name=".ui.SettingsActivityMaterial3"
+            android:name=".app.ui.SettingsActivityMaterial3"
             android:exported="true" />
 
 <!--        <activity-->
@@ -65,7 +65,7 @@
 <!--            android:exported="true" />-->
 
         <activity
-            android:name=".ui.AboutAppActivityMaterial3"
+            android:name=".app.ui.AboutAppActivityMaterial3"
             android:exported="true" />
 
 <!--        <activity-->
@@ -73,7 +73,7 @@
 <!--            android:exported="true" />-->
 
         <activity
-            android:name=".ui.FeatureActivityMaterial3"
+            android:name=".app.ui.FeatureActivityMaterial3"
             android:exported="true" />
 
 <!--        <activity-->
@@ -81,7 +81,7 @@
 <!--            android:exported="true" />-->
 
         <activity
-            android:name=".ui.ShowBackgroundTasksActivityMaterial3"
+            android:name=".app.ui.ShowBackgroundTasksActivityMaterial3"
             android:exported="true" />
 
 <!--        <activity-->
@@ -89,7 +89,7 @@
 <!--            android:exported="true" />-->
 
         <activity
-            android:name=".ui.ShowAppCompactListActivityMaterial3"
+            android:name=".app.ui.ShowAppCompactListActivityMaterial3"
             android:exported="true" />
 
 <!--        <activity-->
@@ -97,7 +97,7 @@
 <!--            android:exported="true" />-->
 
         <activity
-            android:name=".ui.ShowAllInstalledAppsActivityMaterial3"
+            android:name=".app.ui.ShowAllInstalledAppsActivityMaterial3"
             android:exported="true" />
 
 <!--        <activity-->
@@ -105,15 +105,15 @@
 <!--            android:exported="true" />-->
 
         <activity
-            android:name=".ui.ConfigureAppProcessActivityMaterial3"
+            android:name=".app.ui.ConfigureAppProcessActivityMaterial3"
             android:exported="true" />
 
         <activity
-            android:name=".ui.ShowManagedAdjDefaultAppsActivityMaterial3"
+            android:name=".app.ui.ShowManagedAdjDefaultAppsActivityMaterial3"
             android:exported="true" />
 
         <activity
-            android:name=".ui.RunningProcessesActivityMaterial3"
+            android:name=".app.ui.RunningProcessesActivityMaterial3"
             android:exported="true" />
     </application>
 

@@ -3,83 +3,16 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
-//获取时间，添加到发布版本中
-static def releaseTime() {
-    return new Date().format("yyyyMMdd", TimeZone.getTimeZone("UTC"))
-}
-
-enum KeyType {
-    Integer,
-    String,
-    Boolean
-}
-
-static def getTargetType(KeyType keyType, String str) {
-    def value
-    switch (keyType) {
-        case KeyType.Integer:
-            value = Integer.valueOf(str)
-            break
-        case KeyType.String:
-            value = str
-            break
-        case KeyType.Boolean:
-            value = Boolean.valueOf(str)
-            break
-    }
-
-    return value
-}
-
-def getVersionInfo(String releaseKey, String debugKey, KeyType keyType) {
-    def versionFile = file('version.properties')
-
-    if (versionFile.canRead()) {
-        Properties properties = new Properties()
-        properties.load(new FileInputStream(versionFile))
-        //读取version.properties文件存放的版本号。
-        def versionInfo = getTargetType(keyType, properties[releaseKey])
-
-        def taskNames = gradle.startParameter.taskNames
-        for (def name : taskNames) {
-            if (name.toString().toLowerCase().contains('release')) {
-                versionInfo = getTargetType(keyType, properties[releaseKey])
-            } else if (name.toString().toLowerCase().contains('debug')) {
-                versionInfo = getTargetType(keyType, properties[debugKey])
-            }
-        }
-
-        return versionInfo
-    } else {
-        throw new GradleException("无法读取version.properties文件！")
-    }
-}
-
-// 生成版本信息
-def generateVersionCode() {
-    // return getVersionInfo("RELEASE_VERSION_CODE", "DEBUG_VERSION_CODE", KeyType.Integer)
-    return getVersionInfo("RELEASE_VERSION_CODE", "RELEASE_VERSION_CODE", KeyType.Integer)
-}
-
-def generateVersionName() {
-    return getVersionInfo("VERSION_NAME", "VERSION_NAME", KeyType.String)
-}
-
-// 后缀
-def generateSuffix() {
-    return getVersionInfo("RELEASE_SUFFIX", "DEBUG_SUFFIX", KeyType.String)
-}
-
 android {
     namespace 'com.venus.backgroundopt'
-    compileSdk 34
+    compileSdk rootProject.ext.compileSdk
 
     defaultConfig {
-        applicationId "com.venus.backgroundopt"
-        minSdk 31
-        targetSdk 34
-        versionCode generateVersionCode()
-        versionName generateVersionName() + "_vc${versionCode}"
+        applicationId rootProject.ext.applicationId
+        minSdk rootProject.ext.minSdk
+        targetSdk rootProject.ext.targetSdk
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -95,29 +28,24 @@ android {
             minifyEnabled true
             shrinkResources true
 
-            versionNameSuffix generateSuffix()
+            versionNameSuffix rootProject.ext.suffix
 
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules2.pro', 'proguard-log.pro'
         }
 
         debug {
-            versionNameSuffix generateSuffix()
+            versionNameSuffix rootProject.ext.suffix
         }
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
+        sourceCompatibility = rootProject.ext.sourceCompatibility
+        targetCompatibility = rootProject.ext.targetCompatibility
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_21.toString()
+        jvmTarget = rootProject.ext.kotlinJvmTarget
         freeCompilerArgs += ["-Xlambdas=indy"]
     }
-//    packagingOptions {
-//        jniLibs {
-//            useLegacyPackaging true
-//        }
-//    }
 
     buildFeatures {
         buildConfig = true
@@ -128,22 +56,25 @@ android {
             variant.outputs.configureEach {
                 //这里修改apk文件名
 //                outputFileName = "backgroundOpt_v${defaultConfig.versionName}_vc${defaultConfig.versionCode}" + generateSuffix() + "_" + releaseTime() + ".apk"
-                outputFileName = "backgroundOpt_v${defaultConfig.versionName}" + generateSuffix() + "_" + releaseTime() + ".apk"
+                outputFileName = "backgroundOpt_v${defaultConfig.versionName}" + rootProject.ext.suffix + "_" + rootProject.ext.releaseTime + ".apk"
             }
     }
 }
 
 dependencies {
-    compileOnly 'de.robv.android.xposed:api:82'
-//    compileOnly 'de.robv.android.xposed:api:82:sources'
+    compileOnly("${rootProject.ext.xposedApiDependenceStr}")
+
+    implementation project(':common')
+    implementation project(':xposed')
+
+    implementation("${rootProject.ext.jsonDependenceStr}")
+    implementation("${rootProject.ext.androidxPreferenceKtxVersionDependenceStr}")
+    implementation("${rootProject.ext.kotlinReflectVersionDependenceStr}")
 
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.preference:preference-ktx:1.2.1'
-    implementation 'com.alibaba:fastjson:2.0.51'
     implementation 'com.google.android.material:material:1.12.0'
-    implementation 'org.jetbrains.kotlin:kotlin-reflect:2.0.0'
 
     testImplementation 'junit:junit:4.13.2'
 

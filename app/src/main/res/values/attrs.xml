@@ -32,7 +32,7 @@
         <attr name="defaultValue" format="string|boolean|integer|reference|float" />
     </declare-styleable>
 
-    <declare-styleable name="VenusPopMenuButton">
+    <declare-styleable name="VenusPopupMenuButton">
         <!--默认选中的菜单-->
         <attr name="defaultMenuItemResId" format="reference" />
         <!--菜单-->

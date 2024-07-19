@@ -64,14 +64,14 @@
                 app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
                 <!--排序-->
-                <com.venus.backgroundopt.ui.component.VenusPopupMenuButton
+                <com.venus.backgroundopt.app.ui.component.VenusPopupMenuButton
                     android:id="@+id/processesSortBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:menu="@menu/menu_running_processes_sort"
                     app:defaultMenuItemResId="@id/runningProcessesPidSortMenuItem" />
                 <!--分类-->
-                <com.venus.backgroundopt.ui.component.VenusPopupMenuButton
+                <com.venus.backgroundopt.app.ui.component.VenusPopupMenuButton
                     android:id="@+id/appCategoryBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

@@ -21,3 +21,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "backgroundOpt"
 include ':app'
+include ':xposed'
+include ':common'

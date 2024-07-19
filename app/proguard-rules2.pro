@@ -1,27 +1,3 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
-
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
-
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
-
--keep class com.venus.backgroundopt.hook.MainHook
-
 #==================================【基本配置】==================================
 # 代码混淆压缩比，在0~7之间，默认为5,一般不下需要修改
 -optimizationpasses 5
@@ -83,7 +59,7 @@
 #    public void * (android.view.View);
 #}
 # 枚举类不能被混淆
--keepclasseswithmembers enum * {
+-keepclasseswithmembers enum com.venus.backgroundopt.common.** {
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
@@ -96,11 +72,11 @@
 #    *** get* ();
 #}
 # 保留Parcelable序列化的类不能被混淆
--keepclasseswithmembers class * implements android.os.Parcelable{
+-keepclasseswithmembers class com.venus.backgroundopt.common.** implements android.os.Parcelable{
     public static final android.os.Parcelable$Creator *;
 }
 # 保留Serializable 序列化的类不被混淆
--keepclasseswithmembers class * implements java.io.Serializable {
+-keepclasseswithmembers class com.venus.backgroundopt.common.** implements java.io.Serializable {
    static final long serialVersionUID;
    private static final java.io.ObjectStreamField[] serialPersistentFields;
    !static !transient <fields>;
@@ -157,18 +133,42 @@
 #-keepclasseswithmembers class com.alibaba.fastjson2.**{*; }
 
 ################################################################
-# 自定义规则                                                     #
+# app、common                                                  #
 ################################################################
 # 不混淆消息实体
 # 当 前后端版本不一致时也可以进行通信
--keepclasseswithmembers class * implements com.venus.backgroundopt.utils.message.MessageFlag {
+-keepclasseswithmembers class * implements com.venus.backgroundopt.common.util.message.MessageFlag {
     *;
 }
 # 不混淆需要持久化的实体
--keepclasseswithmembers class * implements com.venus.backgroundopt.entity.preference.JsonPreferenceFlag {
+-keepclasseswithmembers class * implements com.venus.backgroundopt.common.entity.preference.JsonPreferenceFlag {
     *;
 }
 # 模块激活状态的检测
--keepclasseswithmembers class com.venus.backgroundopt.environment.CommonProperties {
-    public final boolean isModuleActive();
+-keepclasseswithmembers class com.venus.backgroundopt.common.environment.CommonProperties {
+    boolean isModuleActive();
 }
+
+################################################################
+# xposed                                                       #
+################################################################
+# Hook的入口
+-keep class com.venus.backgroundopt.xposed.MainHook
+
+# 原生实体适配规则接口
+# -keepclasseswithmembers class * implements com.venus.backgroundopt.xposed.entity.base.IEntityCompatRule
+# -keepclasseswithmembers interface * extends com.venus.backgroundopt.xposed.entity.base.IEntityCompatRule
+
+
+#-keepclasseswithmembers class * {
+#    @com.venus.backgroundopt.xposed.entity.base.IEntityCompatMethod static <methods>;
+#}
+
+-keepclassmembers class * implements com.venus.backgroundopt.xposed.entity.base.IEntityCompatFlag {
+    # @com.venus.backgroundopt.xposed.entity.base.IEntityCompatMethod <methods>;
+    @com.venus.backgroundopt.xposed.entity.base.IEntityCompatMethod static <methods>;
+}
+
+
+
+

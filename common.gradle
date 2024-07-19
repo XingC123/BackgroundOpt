@@ -1,0 +1,107 @@
+//获取时间，添加到发布版本中
+static def releaseTime() {
+    return new Date().format("yyyyMMdd", TimeZone.getTimeZone("UTC"))
+}
+
+enum KeyType {
+    Integer,
+    String,
+    Boolean
+}
+
+static def getTargetType(KeyType keyType, String str) {
+    def value
+    switch (keyType) {
+        case KeyType.Integer:
+            value = Integer.valueOf(str)
+            break
+        case KeyType.String:
+            value = str
+            break
+        case KeyType.Boolean:
+            value = Boolean.valueOf(str)
+            break
+    }
+
+    return value
+}
+
+def getVersionInfo(String releaseKey, String debugKey, KeyType keyType) {
+    def versionFile = file('version.properties')
+
+    if (versionFile.canRead()) {
+        Properties properties = new Properties()
+        properties.load(new FileInputStream(versionFile))
+        //读取version.properties文件存放的版本号。
+        def versionInfo = getTargetType(keyType, properties[releaseKey])
+
+        def taskNames = gradle.startParameter.taskNames
+        for (def name : taskNames) {
+            if (name.toString().toLowerCase().contains('release')) {
+                versionInfo = getTargetType(keyType, properties[releaseKey])
+            } else if (name.toString().toLowerCase().contains('debug')) {
+                versionInfo = getTargetType(keyType, properties[debugKey])
+            }
+        }
+
+        return versionInfo
+    } else {
+        throw new GradleException("无法读取version.properties文件！")
+    }
+}
+
+// 生成版本信息
+def generateVersionCode() {
+    // return getVersionInfo("RELEASE_VERSION_CODE", "DEBUG_VERSION_CODE", KeyType.Integer)
+    return getVersionInfo("RELEASE_VERSION_CODE", "RELEASE_VERSION_CODE", KeyType.Integer)
+}
+
+def generateVersionName() {
+    return getVersionInfo("VERSION_NAME", "VERSION_NAME", KeyType.String)
+}
+
+// 后缀
+def generateVersionSuffix() {
+    return getVersionInfo("RELEASE_SUFFIX", "DEBUG_SUFFIX", KeyType.String)
+}
+
+ext {
+    /*app*/
+    applicationId = 'com.venus.backgroundopt'
+    versionCode = generateVersionCode()
+    versionName = generateVersionName() + "_vc" + versionCode
+    suffix = generateVersionSuffix()
+    releaseTime = releaseTime()
+
+    compileSdk = 34
+    minSdk = 30
+    targetSdk = compileSdk
+
+    /*代码*/
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    kotlinJvmTarget = JavaVersion.VERSION_21.toString()
+
+    /* Xposed */
+    xposedApiVersion = '82'
+    xposedApiDependenceStr = 'de.robv.android.xposed:api:' + xposedApiVersion
+    xposedSourceDependenceStr = 'de.robv.android.xposed:api:' + xposedApiVersion + ':sources'
+
+    /* fastjson */
+    fastjsonVersion = '2.0.52.android5'
+    fastjsonVersionDependenceStr = 'com.alibaba.fastjson2:fastjson2:' + fastjsonVersion
+
+    jsonDependenceStr = fastjsonVersionDependenceStr
+
+    /* androidx注解 */
+    androidxAnnotationJvmVersion = '1.8.0'
+    androidxAnnotationJvmVersionDependenceStr = 'androidx.annotation:annotation-jvm:' + androidxAnnotationJvmVersion
+
+    /*androidx-preference*/
+    androidxPreferenceKtxVersion = '1.2.1'
+    androidxPreferenceKtxVersionDependenceStr = 'androidx.preference:preference-ktx:' + androidxPreferenceKtxVersion
+
+    /*kotlin反射*/
+    kotlinReflectVersion = '2.0.0'
+    kotlinReflectVersionDependenceStr = 'org.jetbrains.kotlin:kotlin-reflect:' + '2.0.0'
+}
