@@ -109,7 +109,7 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
         // 运行中的进程
         findViewById<Button>(R.id.gotoRunningProcessesBtn, moduleActive)?.setOnClickListener { _ ->
             ifVersionIsCompatible(
-                targetVersionCode = 206,
+                targetVersionCode = 205,
                 isForcible = true,
                 isNeedModuleRunning = true
             ) {
