@@ -80,8 +80,8 @@ abstract class OomAdjuster(
 
         @JvmStatic
         override fun updateAppUidRecLSP(instance: Any, processRecord: Any) {
-            OomAdjusterHelper.callStaticMethod(
-                IOomAdjuster::updateAppUidRecLSP,
+            OomAdjusterHelper.callStaticMethod<Unit>(
+                IOomAdjuster::updateAppUidRecLSP.name,
                 instance,
                 processRecord
             )

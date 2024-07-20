@@ -80,7 +80,7 @@ abstract class ProcessServiceRecord(
         @JvmStatic
         override fun numberOfRunningServices(instance: Any): Int {
             return ProcessServiceRecordHelper.callStaticMethod(
-                IProcessServiceRecord::numberOfRunningServices,
+                IProcessServiceRecord::numberOfRunningServices.name,
                 instance
             )
         }
@@ -88,7 +88,7 @@ abstract class ProcessServiceRecord(
         @JvmStatic
         override fun modifyRawOomAdj(instance: Any, adj: Int): Int {
             return ProcessServiceRecordHelper.callStaticMethod(
-                IProcessServiceRecord::modifyRawOomAdj,
+                IProcessServiceRecord::modifyRawOomAdj.name,
                 instance,
                 adj
             )

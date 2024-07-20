@@ -125,15 +125,15 @@ abstract class ProcessStateRecord(
         @JvmStatic
         override fun getCurAdj(@OriginalObject instance: Any): Int {
             return ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::getCurAdj,
+                IProcessStateRecord::getCurAdj.name,
                 instance
             )
         }
 
         @JvmStatic
         override fun setCurAdj(@OriginalObject instance: Any, curAdj: Int) {
-            ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::setCurAdj,
+            ProcessStateRecordHelper.callStaticMethod<Unit>(
+                IProcessStateRecord::setCurAdj.name,
                 instance,
                 curAdj
             )
@@ -142,15 +142,15 @@ abstract class ProcessStateRecord(
         @JvmStatic
         override fun getMaxAdj(instance: Any): Int {
             return ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::getMaxAdj,
+                IProcessStateRecord::getMaxAdj.name,
                 instance
             )
         }
 
         @JvmStatic
         override fun setMaxAdj(instance: Any, maxAdj: Int) {
-            ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::setMaxAdj,
+            ProcessStateRecordHelper.callStaticMethod<Unit>(
+                IProcessStateRecord::setMaxAdj.name,
                 instance,
                 maxAdj
             )
@@ -159,15 +159,15 @@ abstract class ProcessStateRecord(
         @JvmStatic
         override fun getSetAdj(@OriginalObject instance: Any): Int {
             return ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::getSetAdj,
+                IProcessStateRecord::getSetAdj.name,
                 instance
             )
         }
 
         @JvmStatic
         override fun setSetAdj(@OriginalObject instance: Any, setAdj: Int) {
-            ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::setSetAdj,
+            ProcessStateRecordHelper.callStaticMethod<Unit>(
+                IProcessStateRecord::setSetAdj.name,
                 instance,
                 setAdj
             )
@@ -176,15 +176,15 @@ abstract class ProcessStateRecord(
         @JvmStatic
         override fun getCurRawAdj(@OriginalObject instance: Any): Int {
             return ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::getCurRawAdj,
+                IProcessStateRecord::getCurRawAdj.name,
                 instance
             )
         }
 
         @JvmStatic
         override fun setCurRawAdj(@OriginalObject instance: Any, curRawAdj: Int) {
-            ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::setCurRawAdj,
+            ProcessStateRecordHelper.callStaticMethod<Unit>(
+                IProcessStateRecord::setCurRawAdj.name,
                 instance,
                 curRawAdj
             )
@@ -193,7 +193,7 @@ abstract class ProcessStateRecord(
         @JvmStatic
         override fun getLastStateTime(@OriginalObject instance: Any): Long {
             return ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::getLastStateTime,
+                IProcessStateRecord::getLastStateTime.name,
                 instance
             )
         }
@@ -201,7 +201,7 @@ abstract class ProcessStateRecord(
         @JvmStatic
         override fun getCompletedAdjSeq(@OriginalObject instance: Any): Int {
             return ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::getCompletedAdjSeq,
+                IProcessStateRecord::getCompletedAdjSeq.name,
                 instance
             )
         }
@@ -209,15 +209,15 @@ abstract class ProcessStateRecord(
         @JvmStatic
         override fun getCached(instance: Any): Boolean {
             return ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::getCached,
+                IProcessStateRecord::getCached.name,
                 instance
             )
         }
 
         @JvmStatic
         override fun setCached(instance: Any, cached: Boolean) {
-            ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::setCached,
+            ProcessStateRecordHelper.callStaticMethod<Unit>(
+                IProcessStateRecord::setCached.name,
                 instance,
                 cached
             )
@@ -225,16 +225,16 @@ abstract class ProcessStateRecord(
 
         @JvmStatic
         override fun getEmpty(instance: Any): Boolean {
-           return ProcessStateRecordHelper.callStaticMethod(
-               method = IProcessStateRecord::getEmpty,
-               instance
-           )
+            return ProcessStateRecordHelper.callStaticMethod(
+                IProcessStateRecord::getEmpty.name,
+                instance
+            )
         }
 
         @JvmStatic
         override fun setEmpty(instance: Any, empty: Boolean) {
-            ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::setEmpty,
+            ProcessStateRecordHelper.callStaticMethod<Unit>(
+                IProcessStateRecord::setEmpty.name,
                 instance,
                 empty
             )
@@ -243,15 +243,15 @@ abstract class ProcessStateRecord(
         @JvmStatic
         override fun getCurSchedGroup(instance: Any): Int {
             return ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::getCurSchedGroup,
+                IProcessStateRecord::getCurSchedGroup.name,
                 instance
             )
         }
 
         @JvmStatic
         override fun setCurSchedGroup(instance: Any, curSchedGroup: Int) {
-            ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::setCurSchedGroup,
+            ProcessStateRecordHelper.callStaticMethod<Unit>(
+                IProcessStateRecord::setCurSchedGroup.name,
                 instance,
                 curSchedGroup
             )
@@ -260,15 +260,15 @@ abstract class ProcessStateRecord(
         @JvmStatic
         override fun getSetSchedGroup(instance: Any): Int {
             return ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::getSetSchedGroup,
+                IProcessStateRecord::getSetSchedGroup.name,
                 instance
             )
         }
 
         @JvmStatic
         override fun setSetSchedGroup(instance: Any, setSchedGroup: Int) {
-            ProcessStateRecordHelper.callStaticMethod(
-                method = IProcessStateRecord::setSetSchedGroup,
+            ProcessStateRecordHelper.callStaticMethod<Unit>(
+                IProcessStateRecord::setSetSchedGroup.name,
                 instance,
                 setSchedGroup
             )
@@ -277,14 +277,14 @@ abstract class ProcessStateRecord(
         @JvmStatic
         override fun getPid(instance: Any): Int {
             return ProcessStateRecordHelper.callStaticMethod(
-                IProcessStateRecord::getPid,
+                IProcessStateRecord::getPid.name,
                 instance
             )
         }
     }
 }
 
-interface IProcessStateRecord: IEntityCompatRule {
+interface IProcessStateRecord : IEntityCompatRule {
     fun getCurAdj(@OriginalObject instance: Any): Int
     fun setCurAdj(@OriginalObject instance: Any, curAdj: Int)
 

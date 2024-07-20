@@ -541,7 +541,7 @@ abstract class ProcessRecord(
         @JvmStatic
         override fun getPid(@OriginalObject instance: Any): Int {
             return ProcessRecordHelper.callStaticMethod(
-                method = IProcessRecord::getPid,
+                IProcessRecord::getPid.name,
                 instance
             )
         }
@@ -666,7 +666,7 @@ abstract class ProcessRecord(
         @JvmStatic
         override fun isKilledByAm(instance: Any): Boolean {
             return ProcessRecordHelper.callStaticMethod(
-                method = IProcessRecord::isKilledByAm,
+                IProcessRecord::isKilledByAm.name,
                 instance
             )
         }
@@ -674,7 +674,7 @@ abstract class ProcessRecord(
         @JvmStatic
         override fun getThread(instance: Any): Any? {
             return ProcessRecordHelper.callStaticMethod(
-                method = IProcessRecord::getThread,
+                IProcessRecord::getThread.name,
                 instance
             )
         }
@@ -696,7 +696,7 @@ abstract class ProcessRecord(
         @JvmStatic
         override fun getIsolatedEntryPoint(instance: Any): String? {
             return ProcessRecordHelper.callStaticMethod(
-                method = IProcessRecord::getIsolatedEntryPoint,
+                IProcessRecord::getIsolatedEntryPoint.name,
                 instance
             )
         }
@@ -709,8 +709,8 @@ abstract class ProcessRecord(
             subReason: Int,
             noisy: Boolean,
         ) {
-            ProcessRecordHelper.callStaticMethod(
-                method = IProcessRecord::killLocked,
+            ProcessRecordHelper.callStaticMethod<Unit>(
+                IProcessRecord::killLocked.name,
                 instance,
                 reason,
                 reasonCode,
