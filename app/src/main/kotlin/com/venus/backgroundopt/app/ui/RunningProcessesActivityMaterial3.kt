@@ -28,6 +28,7 @@ import com.venus.backgroundopt.R
 import com.venus.backgroundopt.app.ui.base.SearchFromAppItemRVAdapter
 import com.venus.backgroundopt.app.ui.base.ShowInfoFromAppItemActivityMaterial3
 import com.venus.backgroundopt.app.ui.base.ShowInfoFromAppItemAdapter
+import com.venus.backgroundopt.app.ui.component.NoIndexOutOfBoundsExceptionLinearLayoutManager
 import com.venus.backgroundopt.app.ui.component.VenusPopupMenuButton
 import com.venus.backgroundopt.app.ui.style.RecycleViewItemSpaceDecoration
 import com.venus.backgroundopt.app.utils.UiUtils
@@ -121,7 +122,7 @@ class RunningProcessesActivityMaterial3 : ShowInfoFromAppItemActivityMaterial3()
         // 布局初始化
         runOnUiThread {
             processesRV = findViewById<RecyclerView>(getRecyclerViewResId()).apply {
-                val linearLayoutManager = LinearLayoutManager(
+                val linearLayoutManager = NoIndexOutOfBoundsExceptionLinearLayoutManager(
                     this@RunningProcessesActivityMaterial3
                 ).apply {
                     orientation = LinearLayoutManager.VERTICAL

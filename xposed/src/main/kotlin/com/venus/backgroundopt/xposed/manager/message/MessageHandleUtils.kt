@@ -39,6 +39,7 @@ import com.venus.backgroundopt.xposed.manager.message.handle.KillAfterRemoveTask
 import com.venus.backgroundopt.xposed.manager.message.handle.ModuleRunningMessageHandler
 import com.venus.backgroundopt.xposed.manager.message.handle.ProcessRunningInfoMessageHandler
 import com.venus.backgroundopt.xposed.manager.message.handle.RunningAppInfoMessageHandler
+import com.venus.backgroundopt.xposed.manager.message.handle.RunningProcessListMessageHandler
 import com.venus.backgroundopt.xposed.manager.message.handle.SimpleLmkMessageHandler
 import com.venus.backgroundopt.xposed.manager.message.handle.SubProcessOomConfigChangeMessageHandler
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -73,6 +74,7 @@ val registeredMessageHandler by lazy {
         MessageKeyConstants.getManagedAdjDefaultApps to GetManagedAdjDefaultAppsMessageHandler(),
         MessageKeyConstants.KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY to KeepMainProcessAliveHasActivityMessageHandler(),
         MessageKeyConstants.getProcessRunningInfo to ProcessRunningInfoMessageHandler(),
+        MessageKeyConstants.RUNNING_PROCESS_LIST to RunningProcessListMessageHandler(),
     )
 }
 
