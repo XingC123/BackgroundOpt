@@ -42,7 +42,6 @@ import com.venus.backgroundopt.common.util.runCatchThrowable
 import com.venus.backgroundopt.common.util.unsafeLazy
 import com.venus.backgroundopt.xposed.entity.self.ProcessRecordBaseInfo
 import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
 /**
@@ -250,7 +249,7 @@ class RunningProcessesActivityMaterial3 : ShowInfoFromAppItemActivityMaterial3()
     private fun getRunningProcesses(): MutableList<ProcessRecordBaseInfo> {
         return sendMessageAcceptList<ProcessRecordBaseInfo>(
             context = this,
-            key = MessageKeyConstants.getAppCompactList
+            key = MessageKeyConstants.RUNNING_PROCESS_LIST
         ) ?: nullProcessList
     }
 
