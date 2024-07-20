@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 public class BackgroundAppMemoryTrimManager extends AppMemoryTrimManager {
     @Override
     int getCorePoolSize() {
-        return 10;
+        return 4;
     }
 
     @Override

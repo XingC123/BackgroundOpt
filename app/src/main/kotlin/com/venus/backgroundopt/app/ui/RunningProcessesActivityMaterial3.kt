@@ -33,6 +33,7 @@ import com.venus.backgroundopt.app.ui.style.RecycleViewItemSpaceDecoration
 import com.venus.backgroundopt.app.utils.UiUtils
 import com.venus.backgroundopt.common.entity.AppItem
 import com.venus.backgroundopt.common.util.PackageUtils
+import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.log.logInfoAndroid
 import com.venus.backgroundopt.common.util.message.MessageKeyConstants
 import com.venus.backgroundopt.common.util.message.sendMessageAcceptList
@@ -56,9 +57,11 @@ class RunningProcessesActivityMaterial3 : ShowInfoFromAppItemActivityMaterial3()
     private var searchContent: CharSequence = ""
 
     private val updateRunningProcessExecutor by unsafeLazy {
-        ScheduledThreadPoolExecutor(1).apply {
+        ExecutorUtils.newScheduleThreadPool(
+            coreSize = 1,
+            factoryName = "updateRunningProcessExecutor",
             removeOnCancelPolicy = true
-        }
+        )
     }
     private var updateRunningProcessesFuture: ScheduledFuture<*>? = null
     private val initialDelay = 3L

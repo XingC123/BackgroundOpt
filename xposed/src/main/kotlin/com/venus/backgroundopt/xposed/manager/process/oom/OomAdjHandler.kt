@@ -21,6 +21,7 @@ import com.venus.backgroundopt.common.entity.message.GlobalOomScoreEffectiveScop
 import com.venus.backgroundopt.common.entity.message.GlobalOomScorePolicy
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.common.util.clamp
+import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.log.logInfo
 import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessList
@@ -36,7 +37,6 @@ import com.venus.backgroundopt.xposed.util.getObjectFieldValue
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -57,12 +57,11 @@ abstract class OomAdjHandler(
      * ADJ应用任务调度                                                           *
      *                                                                         *
      **************************************************************************/
-    private val adjTaskPool = ScheduledThreadPoolExecutor(
-        3,
-        CachedByteBufferThreadFactory()
-    ).apply {
+    private val adjTaskPool = ExecutorUtils.newScheduleThreadPool(
+        coreSize = 3,
+        threadFactory = CachedByteBufferThreadFactory(),
         removeOnCancelPolicy = true
-    }
+    )
 
     private val adjTaskMap = ConcurrentHashMap<ProcessRecord, ScheduledFuture<*>>(4, 1.5F)
     private val adjTaskPriorityMap = HashMap<ProcessRecord, Int>(4, 1.5F)

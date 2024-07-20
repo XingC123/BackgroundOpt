@@ -18,6 +18,7 @@
 package com.venus.backgroundopt.xposed.manager.process.oom
 
 import com.venus.backgroundopt.common.entity.preference.OomWorkModePref
+import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.concurrent.lock.lock
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.xposed.core.RunningInfo
@@ -28,7 +29,6 @@ import com.venus.backgroundopt.xposed.environment.HookCommonProperties
 import com.venus.backgroundopt.xposed.manager.process.oom.OomAdjHandler.Companion.ADJ_TASK_PRIORITY_NORMAL
 import com.venus.backgroundopt.xposed.point.android.function.ActivitySwitchHook
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
-import java.util.concurrent.Executors
 
 /**
  * @author XingC
@@ -40,7 +40,10 @@ class OomAdjustManager(
     private val useSimpleLmk: Boolean get() = HookCommonProperties.useSimpleLmk
 
     private var oomAdjHandler: OomAdjHandler = initOomAdjHandler()
-    private val adjHandleActionPool = Executors.newFixedThreadPool(3)
+    private val adjHandleActionPool = ExecutorUtils.newFixedThreadPool(
+        coreSize = 3,
+        factoryName = "adjHandleActionPool"
+    )
 
     private fun initOomAdjHandler(): OomAdjHandler {
         return when (HookCommonProperties.oomWorkModePref.oomMode) {
@@ -203,7 +206,8 @@ class OomAdjustManager(
 
     companion object {
         fun printAdjHandleActionTypeLog(tag: String) {
-            ILogger.getLoggerStatic(OomAdjustManager::class.java).info("重新加载adj处理策略: [${tag}]")
+            ILogger.getLoggerStatic(OomAdjustManager::class.java)
+                .info("重新加载adj处理策略: [${tag}]")
         }
     }
 }

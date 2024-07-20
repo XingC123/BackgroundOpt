@@ -19,6 +19,7 @@ package com.venus.backgroundopt.xposed.manager.process.memory
 
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy
 import com.venus.backgroundopt.common.environment.PreferenceDefaultValue
+import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.runCatchThrowable
 import com.venus.backgroundopt.xposed.BuildConfig
@@ -32,7 +33,6 @@ import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
 /**
@@ -78,9 +78,11 @@ class AppMemoryTrimManagerKt(
 
     // 线程池
     // 23.9.14: 仅分配一个线程, 防止前后台任务同时进行造成可能的掉帧
-    private val executor = ScheduledThreadPoolExecutor(1).apply {
+    private val executor = ExecutorUtils.newScheduleThreadPool(
+        coreSize = 1,
+        factoryName = "AppMemoryTrimPool",
         removeOnCancelPolicy = true
-    }
+    )
 
     /**
      * 初始容量为4。此列表放置的是app主进程, 因此同步于[RunningInfo.activeAppGroup]的初始容量

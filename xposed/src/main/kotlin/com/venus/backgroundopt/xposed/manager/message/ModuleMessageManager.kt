@@ -20,6 +20,7 @@ package com.venus.backgroundopt.xposed.manager.message
 import android.content.ComponentName
 import android.content.Intent
 import com.venus.backgroundopt.common.environment.CommonProperties
+import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.log.logDebug
 import com.venus.backgroundopt.common.util.log.logError
@@ -36,7 +37,6 @@ import java.io.ObjectOutputStream
 import java.io.Serializable
 import java.net.InetAddress
 import java.net.ServerSocket
-import java.util.concurrent.Executors
 
 /**
  * @author XingC
@@ -93,7 +93,10 @@ class DefaultModuleMessageHandler(
 class SocketModuleMessageHandler(
     override val runningInfo: RunningInfo,
 ) : ModuleMessageHandler {
-    private val executor = Executors.newFixedThreadPool(3)
+    private val executor = ExecutorUtils.newFixedThreadPool(
+        coreSize = 3,
+        factoryName = "SocketModuleMessageHandlePool"
+    )
     private val socket: ServerSocket? = initSocket()
     val port: Int
         get() = if (socket != null && !socket.isClosed) {

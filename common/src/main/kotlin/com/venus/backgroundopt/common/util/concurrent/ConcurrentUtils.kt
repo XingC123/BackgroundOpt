@@ -25,7 +25,6 @@ import com.venus.backgroundopt.common.util.concurrent.lock.writeLock
 import com.venus.backgroundopt.common.util.log.logError
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 /**
  * @author XingC
@@ -91,7 +90,10 @@ inline fun ExecutorService?.executeResult(crossinline block: () -> Unit): Result
  * 全局线程池                                                                *
  *                                                                         *
  **************************************************************************/
-val commonThreadPoolExecutor: ExecutorService = Executors.newFixedThreadPool(2)
+val commonThreadPoolExecutor: ExecutorService = ExecutorUtils.newFixedThreadPool(
+    coreSize = 2,
+    factoryName = "globalThreadPool"
+)
 
 inline fun newThreadTask(crossinline block: () -> Unit) {
     commonThreadPoolExecutor.execute {

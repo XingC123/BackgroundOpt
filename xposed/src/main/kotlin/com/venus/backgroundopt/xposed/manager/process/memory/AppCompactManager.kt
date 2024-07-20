@@ -18,6 +18,7 @@
 package com.venus.backgroundopt.xposed.manager.process.memory
 
 import com.venus.backgroundopt.common.annotation.UsageComment
+import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.concurrent.lock.lock
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.xposed.BuildConfig
@@ -76,9 +77,11 @@ class AppCompactManager(
         }
 
     // App压缩处理线程池
-    private val executor = ScheduledThreadPoolExecutor(1).apply {
+    private val executor = ExecutorUtils.newScheduleThreadPool(
+        coreSize = 1,
+        factoryName = "appCompactPool",
         removeOnCancelPolicy = true
-    }
+    )
 
     // 待压缩的进程信息列表
     // 注意: 是"进程信息"而不是"应用信息", 其size代表的是进程数不是app数

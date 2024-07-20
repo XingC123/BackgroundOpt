@@ -26,6 +26,7 @@ import com.venus.backgroundopt.common.BuildConfig
 import com.venus.backgroundopt.common.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.common.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.common.environment.constants.PreferenceNameConstants
+import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.log.logErrorAndroid
 import com.venus.backgroundopt.common.util.log.logInfoAndroid
 import com.venus.backgroundopt.common.util.log.logWarnAndroid
@@ -39,7 +40,6 @@ import java.io.ObjectOutputStream
 import java.io.Serializable
 import java.net.InetAddress
 import java.net.Socket
-import java.util.concurrent.Executors
 
 /**
  * ui与模块主进程通信工具类
@@ -165,7 +165,10 @@ class SocketMessageSender(
  */
 class MessageSender {
     private lateinit var sender: IMessageSender
-    private val executor = Executors.newFixedThreadPool(3)
+    private val executor = ExecutorUtils.newFixedThreadPool(
+        coreSize = 3,
+        factoryName = "MessageSenderPool"
+    )
 
     fun init(
         context: Context,
