@@ -23,6 +23,7 @@ import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.compa
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.compat.PackageManagerServiceCompatUntilA11
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatFlag
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatHelper
+import com.venus.backgroundopt.xposed.entity.base.IEntityCompatRule
 import com.venus.backgroundopt.xposed.entity.base.IEntityWrapper
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 
@@ -48,16 +49,20 @@ abstract class PackageManagerService(
 
     abstract fun getDefaultInputMethod(): String?
 
-    object PackageManagerServiceHelper : IEntityCompatHelper<PackageManagerService> {
+    object PackageManagerServiceHelper :
+        IEntityCompatHelper<IPackageManagerService, PackageManagerService> {
         override val instanceClazz: Class<out PackageManagerService>
         override val instanceCreator: (Any) -> PackageManagerService
+        override val compatHelperInstance: IPackageManagerService
 
         init {
             if (OsUtils.isSOrHigher) {
                 instanceClazz = PackageManagerServiceCompatSinceA12::class.java
+                compatHelperInstance = PackageManagerServiceCompatSinceA12.Companion
                 instanceCreator = ::createPackageManagerServiceSinceA12
             } else {
                 instanceClazz = PackageManagerServiceCompatUntilA11::class.java
+                compatHelperInstance = PackageManagerServiceCompatUntilA11.Companion
                 instanceCreator = ::createPackageManagerServiceUntilA11
             }
         }
@@ -69,3 +74,5 @@ abstract class PackageManagerService(
             PackageManagerServiceCompatUntilA11(instance)
     }
 }
+
+interface IPackageManagerService : IEntityCompatRule

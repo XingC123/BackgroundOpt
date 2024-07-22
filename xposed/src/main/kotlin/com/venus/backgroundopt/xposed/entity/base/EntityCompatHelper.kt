@@ -28,12 +28,17 @@ import kotlin.reflect.KFunction
  * @author XingC
  * @date 2024/7/13
  */
-interface IEntityCompatHelper<T> {
+interface IEntityCompatHelper<C : IEntityCompatRule, T : IEntityCompatFlag> {
     val instanceClazz: Class<out T>
     val instanceCreator: (Any) -> T
+
+    /**
+     * [instanceClazz]中用来适配多版本的对象实例
+     */
+    val compatHelperInstance: C
 }
 
-inline fun <R> IEntityCompatHelper<*>.callStaticMethod(
+inline fun <R> IEntityCompatHelper<IEntityCompatRule, IEntityCompatFlag>.callStaticMethod(
     method: KFunction<R>,
     vararg params: Any?,
 ): R {
@@ -43,7 +48,10 @@ inline fun <R> IEntityCompatHelper<*>.callStaticMethod(
     )
 }
 
-inline fun <R> IEntityCompatHelper<*>.callStaticMethod(methodName: String, vararg params: Any?): R {
+inline fun <R> IEntityCompatHelper<IEntityCompatRule, IEntityCompatFlag>.callStaticMethod(
+    methodName: String,
+    vararg params: Any?,
+): R {
     return instanceClazz.callStaticMethod<R>(
         methodName = methodName,
         *params

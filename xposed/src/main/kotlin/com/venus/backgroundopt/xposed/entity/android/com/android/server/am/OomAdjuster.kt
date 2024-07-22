@@ -26,7 +26,6 @@ import com.venus.backgroundopt.xposed.entity.base.IEntityCompatFlag
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatHelper
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatRule
 import com.venus.backgroundopt.xposed.entity.base.IEntityWrapper
-import com.venus.backgroundopt.xposed.entity.base.callStaticMethod
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
 import com.venus.backgroundopt.xposed.util.getObjectFieldValue
@@ -51,16 +50,19 @@ abstract class OomAdjuster(
         updateAppUidRecLSP(originalInstance, processRecord)
     }
 
-    object OomAdjusterHelper : IEntityCompatHelper<OomAdjuster> {
+    object OomAdjusterHelper : IEntityCompatHelper<IOomAdjuster, OomAdjuster> {
         override val instanceClazz: Class<out OomAdjuster>
         override val instanceCreator: (Any) -> OomAdjuster
+        override val compatHelperInstance: IOomAdjuster
 
         init {
             if (OsUtils.isSOrHigher) {
                 instanceClazz = OomAdjusterCompatSinceA12::class.java
+                compatHelperInstance = OomAdjusterCompatSinceA12.Companion
                 instanceCreator = ::createOomAdjusterSinceA12
             } else {
                 instanceClazz = OomAdjusterCompatUntilA11::class.java
+                compatHelperInstance = OomAdjusterCompatUntilA11.Companion
                 instanceCreator = ::createOomAdjusterUntilA11
             }
         }
@@ -80,16 +82,12 @@ abstract class OomAdjuster(
 
         @JvmStatic
         override fun updateAppUidRecLSP(instance: Any, processRecord: Any) {
-            OomAdjusterHelper.callStaticMethod<Unit>(
-                IOomAdjuster::updateAppUidRecLSP.name,
-                instance,
-                processRecord
-            )
+            OomAdjusterHelper.compatHelperInstance.updateAppUidRecLSP(instance, processRecord)
         }
 
     }
 }
 
-interface IOomAdjuster: IEntityCompatRule {
+interface IOomAdjuster : IEntityCompatRule {
     fun updateAppUidRecLSP(@OriginalObject instance: Any, @OriginalObject processRecord: Any)
 }

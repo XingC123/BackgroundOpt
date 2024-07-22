@@ -25,7 +25,6 @@ import com.venus.backgroundopt.xposed.entity.base.IEntityCompatFlag
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatHelper
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatRule
 import com.venus.backgroundopt.xposed.entity.base.IEntityWrapper
-import com.venus.backgroundopt.xposed.entity.base.callStaticMethod
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
@@ -82,23 +81,26 @@ abstract class ProcessStateRecord(
         get() = getSetSchedGroup(originalInstance)
         set(value) = setSetSchedGroup(originalInstance, value)
 
-    object ProcessStateRecordHelper : IEntityCompatHelper<ProcessStateRecord> {
+    object ProcessStateRecordHelper : IEntityCompatHelper<IProcessStateRecord, ProcessStateRecord> {
         override val instanceClazz: Class<out ProcessStateRecord>
 
         /**
          * 传入原生[ProcessRecord]
          */
         override val instanceCreator: (Any) -> ProcessStateRecord
+        override val compatHelperInstance: IProcessStateRecord
 
         val getProcessStateRecordFromProcessRecord: (Any) -> Any
 
         init {
             if (OsUtils.isSOrHigher) {
                 instanceClazz = ProcessStateRecordCompatSinceA12::class.java
+                compatHelperInstance = ProcessStateRecordCompatSinceA12.Companion
                 instanceCreator = ::createProcessStateRecordSinceA12
                 getProcessStateRecordFromProcessRecord = ::getProcessStateRecordSinceA12
             } else {
                 instanceClazz = ProcessStateRecordCompatUntilA11::class.java
+                compatHelperInstance = ProcessStateRecordCompatUntilA11.Companion
                 instanceCreator = ::createProcessStateRecordUntilA11
                 getProcessStateRecordFromProcessRecord = ::getProcessStateRecordUntilA11
             }
@@ -124,162 +126,97 @@ abstract class ProcessStateRecord(
     companion object : IProcessStateRecord {
         @JvmStatic
         override fun getCurAdj(@OriginalObject instance: Any): Int {
-            return ProcessStateRecordHelper.callStaticMethod(
-                IProcessStateRecord::getCurAdj.name,
-                instance
-            )
+            return ProcessStateRecordHelper.compatHelperInstance.getCurAdj(instance)
         }
 
         @JvmStatic
         override fun setCurAdj(@OriginalObject instance: Any, curAdj: Int) {
-            ProcessStateRecordHelper.callStaticMethod<Unit>(
-                IProcessStateRecord::setCurAdj.name,
-                instance,
-                curAdj
-            )
+            ProcessStateRecordHelper.compatHelperInstance.setCurAdj(instance, curAdj)
         }
 
         @JvmStatic
         override fun getMaxAdj(instance: Any): Int {
-            return ProcessStateRecordHelper.callStaticMethod(
-                IProcessStateRecord::getMaxAdj.name,
-                instance
-            )
+            return ProcessStateRecordHelper.compatHelperInstance.getMaxAdj(instance)
         }
 
         @JvmStatic
         override fun setMaxAdj(instance: Any, maxAdj: Int) {
-            ProcessStateRecordHelper.callStaticMethod<Unit>(
-                IProcessStateRecord::setMaxAdj.name,
-                instance,
-                maxAdj
-            )
+            ProcessStateRecordHelper.compatHelperInstance.setMaxAdj(instance, maxAdj)
         }
 
         @JvmStatic
         override fun getSetAdj(@OriginalObject instance: Any): Int {
-            return ProcessStateRecordHelper.callStaticMethod(
-                IProcessStateRecord::getSetAdj.name,
-                instance
-            )
+            return ProcessStateRecordHelper.compatHelperInstance.getSetAdj(instance)
         }
 
         @JvmStatic
         override fun setSetAdj(@OriginalObject instance: Any, setAdj: Int) {
-            ProcessStateRecordHelper.callStaticMethod<Unit>(
-                IProcessStateRecord::setSetAdj.name,
-                instance,
-                setAdj
-            )
+            ProcessStateRecordHelper.compatHelperInstance.setSetAdj(instance, setAdj)
         }
 
         @JvmStatic
         override fun getCurRawAdj(@OriginalObject instance: Any): Int {
-            return ProcessStateRecordHelper.callStaticMethod(
-                IProcessStateRecord::getCurRawAdj.name,
-                instance
-            )
+            return ProcessStateRecordHelper.compatHelperInstance.getCurRawAdj(instance)
         }
 
         @JvmStatic
         override fun setCurRawAdj(@OriginalObject instance: Any, curRawAdj: Int) {
-            ProcessStateRecordHelper.callStaticMethod<Unit>(
-                IProcessStateRecord::setCurRawAdj.name,
-                instance,
-                curRawAdj
-            )
+            ProcessStateRecordHelper.compatHelperInstance.setCurRawAdj(instance, curRawAdj)
         }
 
         @JvmStatic
         override fun getLastStateTime(@OriginalObject instance: Any): Long {
-            return ProcessStateRecordHelper.callStaticMethod(
-                IProcessStateRecord::getLastStateTime.name,
-                instance
-            )
+            return ProcessStateRecordHelper.compatHelperInstance.getLastStateTime(instance)
         }
 
         @JvmStatic
         override fun getCompletedAdjSeq(@OriginalObject instance: Any): Int {
-            return ProcessStateRecordHelper.callStaticMethod(
-                IProcessStateRecord::getCompletedAdjSeq.name,
-                instance
-            )
+            return ProcessStateRecordHelper.compatHelperInstance.getCompletedAdjSeq(instance)
         }
 
         @JvmStatic
         override fun getCached(instance: Any): Boolean {
-            return ProcessStateRecordHelper.callStaticMethod(
-                IProcessStateRecord::getCached.name,
-                instance
-            )
+            return ProcessStateRecordHelper.compatHelperInstance.getCached(instance)
         }
 
         @JvmStatic
         override fun setCached(instance: Any, cached: Boolean) {
-            ProcessStateRecordHelper.callStaticMethod<Unit>(
-                IProcessStateRecord::setCached.name,
-                instance,
-                cached
-            )
+            ProcessStateRecordHelper.compatHelperInstance.setCached(instance, cached)
         }
 
         @JvmStatic
         override fun getEmpty(instance: Any): Boolean {
-            return ProcessStateRecordHelper.callStaticMethod(
-                IProcessStateRecord::getEmpty.name,
-                instance
-            )
+            return ProcessStateRecordHelper.compatHelperInstance.getEmpty(instance)
         }
 
         @JvmStatic
         override fun setEmpty(instance: Any, empty: Boolean) {
-            ProcessStateRecordHelper.callStaticMethod<Unit>(
-                IProcessStateRecord::setEmpty.name,
-                instance,
-                empty
-            )
+            ProcessStateRecordHelper.compatHelperInstance.setEmpty(instance, empty)
         }
 
         @JvmStatic
         override fun getCurSchedGroup(instance: Any): Int {
-            return ProcessStateRecordHelper.callStaticMethod(
-                IProcessStateRecord::getCurSchedGroup.name,
-                instance
-            )
+            return ProcessStateRecordHelper.compatHelperInstance.getCurSchedGroup(instance)
         }
 
         @JvmStatic
         override fun setCurSchedGroup(instance: Any, curSchedGroup: Int) {
-            ProcessStateRecordHelper.callStaticMethod<Unit>(
-                IProcessStateRecord::setCurSchedGroup.name,
-                instance,
-                curSchedGroup
-            )
+            ProcessStateRecordHelper.compatHelperInstance.setCurSchedGroup(instance, curSchedGroup)
         }
 
         @JvmStatic
         override fun getSetSchedGroup(instance: Any): Int {
-            return ProcessStateRecordHelper.callStaticMethod(
-                IProcessStateRecord::getSetSchedGroup.name,
-                instance
-            )
+            return ProcessStateRecordHelper.compatHelperInstance.getSetSchedGroup(instance)
         }
 
         @JvmStatic
         override fun setSetSchedGroup(instance: Any, setSchedGroup: Int) {
-            ProcessStateRecordHelper.callStaticMethod<Unit>(
-                IProcessStateRecord::setSetSchedGroup.name,
-                instance,
-                setSchedGroup
-            )
+            ProcessStateRecordHelper.compatHelperInstance.setSetSchedGroup(instance, setSchedGroup)
         }
 
         @JvmStatic
         override fun getPid(instance: Any): Int {
-            return ProcessStateRecordHelper.callStaticMethod(
-                IProcessStateRecord::getPid.name,
-                instance
-            )
+            return ProcessStateRecordHelper.compatHelperInstance.getPid(instance)
         }
     }
 }

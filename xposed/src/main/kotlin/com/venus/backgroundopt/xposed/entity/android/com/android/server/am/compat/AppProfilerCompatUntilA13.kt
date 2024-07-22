@@ -18,6 +18,7 @@
 package com.venus.backgroundopt.xposed.entity.android.com.android.server.am.compat
 
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.AppProfiler
+import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.IAppProfiler
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
 import com.venus.backgroundopt.xposed.util.callMethod
 
@@ -26,7 +27,7 @@ import com.venus.backgroundopt.xposed.util.callMethod
  * @date 2024/7/13
  */
 class AppProfilerCompatUntilA13(
-    originalInstance: Any
+    originalInstance: Any,
 ) : AppProfiler(originalInstance) {
     override fun updateLowMemStateLSP(
         numCached: Int,
@@ -41,4 +42,6 @@ class AppProfilerCompatUntilA13(
             numTrimming
         )
     }
+
+    companion object : IAppProfiler
 }

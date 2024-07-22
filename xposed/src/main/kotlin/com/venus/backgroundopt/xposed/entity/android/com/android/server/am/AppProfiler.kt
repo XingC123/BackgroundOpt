@@ -24,6 +24,7 @@ import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.compa
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.compat.AppProfilerCompatUntilA13
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatFlag
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatHelper
+import com.venus.backgroundopt.xposed.entity.base.IEntityCompatRule
 import com.venus.backgroundopt.xposed.entity.base.IEntityWrapper
 
 /**
@@ -40,16 +41,19 @@ abstract class AppProfiler(
         @OriginalMethodParam(since = OsUtils.U) now: Long,
     ): Boolean
 
-    object AppProfilerHelper : IEntityCompatHelper<AppProfiler> {
+    object AppProfilerHelper : IEntityCompatHelper<IAppProfiler, AppProfiler> {
         override val instanceClazz: Class<out AppProfiler>
         override val instanceCreator: (Any) -> AppProfiler
+        override val compatHelperInstance: IAppProfiler
 
         init {
             if (OsUtils.isUOrHigher) {
                 instanceClazz = AppProfilerCompatSinceA14::class.java
+                compatHelperInstance = AppProfilerCompatSinceA14.Companion
                 instanceCreator = ::createAppProfilerSinceA14
             } else {
                 instanceClazz = AppProfilerCompatUntilA13::class.java
+                compatHelperInstance = AppProfilerCompatUntilA13.Companion
                 instanceCreator = ::createAppProfilerUntilA13
             }
         }
@@ -63,3 +67,5 @@ abstract class AppProfiler(
             AppProfilerCompatUntilA13(instance)
     }
 }
+
+interface IAppProfiler : IEntityCompatRule

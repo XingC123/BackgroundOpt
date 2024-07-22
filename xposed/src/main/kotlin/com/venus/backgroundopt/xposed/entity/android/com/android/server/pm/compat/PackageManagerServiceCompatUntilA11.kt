@@ -21,6 +21,7 @@ import android.app.role.RoleManager
 import com.venus.backgroundopt.common.util.runCatchThrowable
 import com.venus.backgroundopt.xposed.annotation.OriginalObjectField
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ActivityManagerService
+import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.IPackageManagerService
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.PackageManagerService
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.Settings
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.role.RoleManagerService
@@ -86,4 +87,6 @@ class PackageManagerServiceCompatUntilA11(
     override fun getDefaultInputMethod(): String? {
         return DefaultApplicationManager.getDefaultPkgNameFromSettings(key = Settings.Secure.DEFAULT_INPUT_METHOD)
     }
+
+    companion object : IPackageManagerService
 }

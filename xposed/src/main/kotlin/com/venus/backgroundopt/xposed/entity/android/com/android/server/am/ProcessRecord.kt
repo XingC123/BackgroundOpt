@@ -45,7 +45,6 @@ import com.venus.backgroundopt.xposed.entity.base.IEntityCompatFlag
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatHelper
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatRule
 import com.venus.backgroundopt.xposed.entity.base.IEntityWrapper
-import com.venus.backgroundopt.xposed.entity.base.callStaticMethod
 import com.venus.backgroundopt.xposed.entity.self.AppInfo
 import com.venus.backgroundopt.xposed.entity.self.ProcessAdjConstants
 import com.venus.backgroundopt.xposed.entity.self.ProcessRecordBaseInfo
@@ -363,16 +362,19 @@ abstract class ProcessRecord(
         initAdjHandleType()
     }
 
-    object ProcessRecordHelper : IEntityCompatHelper<ProcessRecord> {
+    object ProcessRecordHelper : IEntityCompatHelper<IProcessRecord, ProcessRecord> {
         override val instanceClazz: Class<out ProcessRecord>
         override val instanceCreator: (Any) -> ProcessRecord
+        override val compatHelperInstance: IProcessRecord
 
         init {
             if (OsUtils.isSOrHigher) {
                 instanceClazz = ProcessRecordCompatSinceA12::class.java
+                compatHelperInstance = ProcessRecordCompatSinceA12.Companion
                 instanceCreator = ::createProcessRecordSinceA12
             } else {
                 instanceClazz = ProcessRecordCompatUntilA11::class.java
+                compatHelperInstance = ProcessRecordCompatUntilA11.Companion
                 instanceCreator = ::createProcessRecordUntilA11
             }
         }
@@ -540,10 +542,7 @@ abstract class ProcessRecord(
          */
         @JvmStatic
         override fun getPid(@OriginalObject instance: Any): Int {
-            return ProcessRecordHelper.callStaticMethod(
-                IProcessRecord::getPid.name,
-                instance
-            )
+            return ProcessRecordHelper.compatHelperInstance.getPid(instance)
         }
 
         /**
@@ -665,18 +664,12 @@ abstract class ProcessRecord(
 
         @JvmStatic
         override fun isKilledByAm(instance: Any): Boolean {
-            return ProcessRecordHelper.callStaticMethod(
-                IProcessRecord::isKilledByAm.name,
-                instance
-            )
+            return ProcessRecordHelper.compatHelperInstance.isKilledByAm(instance)
         }
 
         @JvmStatic
         override fun getThread(instance: Any): Any? {
-            return ProcessRecordHelper.callStaticMethod(
-                IProcessRecord::getThread.name,
-                instance
-            )
+            return ProcessRecordHelper.compatHelperInstance.getThread(instance)
         }
 
         @JvmStatic
@@ -695,10 +688,7 @@ abstract class ProcessRecord(
 
         @JvmStatic
         override fun getIsolatedEntryPoint(instance: Any): String? {
-            return ProcessRecordHelper.callStaticMethod(
-                IProcessRecord::getIsolatedEntryPoint.name,
-                instance
-            )
+            return ProcessRecordHelper.compatHelperInstance.getIsolatedEntryPoint(instance)
         }
 
         @JvmStatic
@@ -709,13 +699,12 @@ abstract class ProcessRecord(
             subReason: Int,
             noisy: Boolean,
         ) {
-            ProcessRecordHelper.callStaticMethod<Unit>(
-                IProcessRecord::killLocked.name,
-                instance,
-                reason,
-                reasonCode,
-                subReason,
-                noisy
+            ProcessRecordHelper.compatHelperInstance.killLocked(
+                instance = instance,
+                reason = reason,
+                reasonCode = reasonCode,
+                subReason = subReason,
+                noisy = noisy
             )
         }
 

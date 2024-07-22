@@ -22,6 +22,7 @@ import com.venus.backgroundopt.common.util.runCatchThrowable
 import com.venus.backgroundopt.xposed.annotation.OriginalObject
 import com.venus.backgroundopt.xposed.annotation.OriginalObjectField
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ActivityManagerService
+import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.IPackageManagerService
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.PackageManagerService
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.Settings
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
@@ -90,4 +91,6 @@ class PackageManagerServiceCompatSinceA12(
     override fun getDefaultInputMethod(): String? {
         return DefaultApplicationManager.getDefaultPkgNameFromSettings(key = Settings.Secure.DEFAULT_INPUT_METHOD)
     }
+
+    companion object : IPackageManagerService
 }
