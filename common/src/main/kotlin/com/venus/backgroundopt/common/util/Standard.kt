@@ -28,24 +28,24 @@ class Standard
  * Any                                                                     *
  *                                                                         *
  **************************************************************************/
-inline fun Any?.ifNull(block: () -> Unit): Any? {
+inline fun <T> T?.ifNull(block: () -> Unit): T? {
     this ?: run(block)
     return this
 }
 
-inline fun Any?.ifNotNull(block: (Any) -> Unit): Any? {
+inline fun <T> T?.ifNotNull(block: (T) -> Unit): T? {
     this?.let { block(this) }
     return this
 }
 
-inline fun Any?.eq(target: Any?, block: () -> Unit): Any? {
+inline fun <T> T?.eq(target: Any?, block: () -> Unit): T? {
     if (this == target) {
         block()
     }
     return this
 }
 
-inline fun Any?.ne(target: Any?, block: () -> Unit): Any? {
+inline fun <T> T?.ne(target: Any?, block: () -> Unit): T? {
     if (this != target) {
         block()
     }
