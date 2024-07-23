@@ -262,6 +262,7 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
         val packageName = appItem.packageName
         var result = false
 
+        appItem.appConfiguredEnumSet.clear()
         appOptimizePolicies[packageName]?.let { appOptimizePolicy ->
             if (appOptimizePolicy.disableForegroundTrimMem != null ||
                 appOptimizePolicy.disableBackgroundTrimMem != null ||
