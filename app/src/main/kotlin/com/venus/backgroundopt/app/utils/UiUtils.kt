@@ -244,15 +244,16 @@ object UiUtils {
     @JvmStatic
     fun createProgressBarView(
         context: Context,
-        text: String,
+        text: String? = null,
+        textResId: Int? = R.string.loading,
         cancelable: Boolean = false,
         enableNegativeBtn: Boolean = true,
         negativeBtnText: String = "放弃",
     ): AlertDialog {
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_progress_bar, null)
 
-        view.findViewById<TextView>(R.id.progressBarText)?.let {
-            it.text = text
+        view.findViewById<TextView>(R.id.progressBarText)?.let { bar ->
+            text?.let { bar.text = text } ?: textResId?.let { bar.setText(textResId) }
         }
 
         return MaterialAlertDialogBuilder(context)
@@ -269,14 +270,21 @@ object UiUtils {
     @JvmStatic
     fun showProgressBarViewForAction(
         context: Context,
-        text: String,
+        text: String? = null,
+        textResId: Int? = R.string.loading,
         cancelable: Boolean = false,
         enableNegativeBtn: Boolean = true,
         negativeBtnText: String = "放弃",
         action: () -> Unit,
     ) {
-        val dialog =
-            createProgressBarView(context, text, cancelable, enableNegativeBtn, negativeBtnText)
+        val dialog = createProgressBarView(
+            context = context,
+            text = text,
+            textResId = textResId,
+            cancelable = cancelable,
+            enableNegativeBtn = enableNegativeBtn,
+            negativeBtnText = negativeBtnText
+        )
         dialog.show()
         newThreadTask {
             runCatching {
@@ -427,19 +435,21 @@ fun Context.createExceptionDialog(
 }
 
 fun Context.showProgressBarViewForAction(
-    text: String,
+    text: String? = null,
+    textResId: Int? = R.string.loading,
     cancelable: Boolean = false,
     enableNegativeBtn: Boolean = true,
     negativeBtnText: String = "放弃",
     action: () -> Unit,
 ) {
     UiUtils.showProgressBarViewForAction(
-        this,
-        text,
-        cancelable,
-        enableNegativeBtn,
-        negativeBtnText,
-        action
+        context = this,
+        text = text,
+        textResId = textResId,
+        cancelable = cancelable,
+        enableNegativeBtn = enableNegativeBtn,
+        negativeBtnText = negativeBtnText,
+        action = action
     )
 }
 

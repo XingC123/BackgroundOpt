@@ -221,4 +221,5 @@
         \n\t\t3) ✪：Means that <b>no execution is required</b>.
         \n\t\t4) Empty：Means that <b>it was never executed</b>(This state is caused by the process being added to the list for the first time)
     </string>
+    <string name="loading">Loading</string>
 </resources>
