@@ -221,5 +221,8 @@
         \n\t\t3) ✪：Means that <b>no execution is required</b>.
         \n\t\t4) Empty：Means that <b>it was never executed</b>(This state is caused by the process being added to the list for the first time)
     </string>
+    <string name="configure_app_by_pkg_name_btn">Configure App by package name</string>
+    <string name="package_name">Package name</string>
+    <string name="app_not_exist_tip">The target application does not exist</string>
     <string name="loading">Loading</string>
 </resources>

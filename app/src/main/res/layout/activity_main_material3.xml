@@ -241,6 +241,13 @@
                     android:layout_weight="0"
                     android:text="@string/gotoConfigureAppProcessActivityBtn" />
 
+                <Button
+                    android:id="@+id/configureAppByPkgNameBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/configure_app_by_pkg_name_btn" />
+
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

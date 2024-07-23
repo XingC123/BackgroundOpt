@@ -91,5 +91,8 @@
         \n\t\t3) ✪：意味着<b>暂无需执行</b>
         \n\t\t4) 空白：意味着<b>从未执行过</b>(进程可能被杀死再新建或初次加入, 导致处于此状态)
     </string>
+    <string name="configure_app_by_pkg_name_btn">按包名配置app</string>
+    <string name="package_name">包名</string>
+    <string name="app_not_exist_tip">目标应用不存在</string>
     <string name="loading">正在加载</string>
 </resources>

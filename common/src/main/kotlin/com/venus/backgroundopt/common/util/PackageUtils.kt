@@ -180,6 +180,39 @@ object PackageUtils {
         listOf(CommonProperties.PACKAGE_NAME)
     )[0]
 
+    private fun getAppItemForConfiguration(
+        packageInfo: PackageInfo,
+        packageManager: PackageManager,
+    ): AppItem {
+        return getAppItemForConfiguration(
+            packageName = packageInfo.packageName,
+            packageManager = packageManager
+        )!!
+    }
+
+    fun getAppItemForConfiguration(
+        packageName: String,
+        packageManager: PackageManager,
+    ): AppItem? {
+        val packageInfo = getPackageInfo(
+            packageName = packageName,
+            packageManager = packageManager
+        ) ?: return null
+        val applicationInfo = packageInfo.applicationInfo
+
+        return AppItem(
+            applicationInfo.loadLabel(packageManager).toString(),
+            packageInfo.packageName,
+            applicationInfo.uid,
+            applicationInfo.loadIcon(packageManager),
+            packageInfo
+        ).apply {
+            versionName = packageInfo.versionName
+            longVersionCode = packageInfo.longVersionCode
+            systemApp = isImportantSystemApp(applicationInfo)
+        }
+    }
+
     /**
      * 获取已安装app的信息列表
      *
@@ -202,18 +235,7 @@ object PackageUtils {
             .filterNotNull()
             .nullableFilter(filter)
             .map { packageInfo ->
-                val applicationInfo = packageInfo.applicationInfo
-                AppItem(
-                    applicationInfo.loadLabel(packageManager).toString(),
-                    packageInfo.packageName,
-                    applicationInfo.uid,
-                    applicationInfo.loadIcon(packageManager),
-                    packageInfo
-                ).apply {
-                    versionName = packageInfo.versionName
-                    longVersionCode = packageInfo.longVersionCode
-                    systemApp = isImportantSystemApp(applicationInfo)
-                }
+                getAppItemForConfiguration(packageInfo, packageManager)
             }
             .toMutableList()
     }

@@ -19,16 +19,22 @@ package com.venus.backgroundopt.app.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
+import com.google.android.material.textfield.TextInputEditText
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.app.ui.base.BaseActivityMaterial3
 import com.venus.backgroundopt.app.ui.base.ifVersionIsCompatible
 import com.venus.backgroundopt.app.ui.widget.QueryInfoDialog
+import com.venus.backgroundopt.app.utils.UiUtils
 import com.venus.backgroundopt.app.utils.findViewById
+import com.venus.backgroundopt.app.utils.setTmpData
+import com.venus.backgroundopt.app.utils.showProgressBarViewForAction
 import com.venus.backgroundopt.common.entity.message.HomePageModuleInfoMessage
 import com.venus.backgroundopt.common.environment.CommonProperties
+import com.venus.backgroundopt.common.util.PackageUtils
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.message.IMessageSender
 import com.venus.backgroundopt.common.util.message.MessageKeyConstants
@@ -150,17 +156,67 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
             }
         }
 
-        // 转去设置应用进程页面
+        /*
+         * 转去设置应用进程页面
+         */
+        val versionForConfiguringApp = 204
+        val isForcibleForConfiguringApp = false
+        val isNeedModuleRunningForConfiguringApp = true
+
         findViewById<Button>(
             R.id.gotoConfigureAppProcessActivityBtn, moduleActive
         )?.setOnClickListener { _ ->
             ifVersionIsCompatible(
-                targetVersionCode = 204,
-                isForcible = false,
-                isNeedModuleRunning = true
+                targetVersionCode = versionForConfiguringApp,
+                isForcible = isForcibleForConfiguringApp,
+                isNeedModuleRunning = isNeedModuleRunningForConfiguringApp
             ) {
                 runOnUiThread {
                     startActivity(Intent(this, ShowAllInstalledAppsActivityMaterial3::class.java))
+                }
+            }
+        }
+
+        findViewById<Button>(
+            R.id.configureAppByPkgNameBtn, moduleActive
+        )?.setOnClickListener { _ ->
+            ifVersionIsCompatible(
+                targetVersionCode = versionForConfiguringApp,
+                isForcible = isForcibleForConfiguringApp,
+                isNeedModuleRunning = isNeedModuleRunningForConfiguringApp
+            ) {
+                runOnUiThread {
+                    UiUtils.createDialog(
+                        context = this,
+                        titleResId = R.string.configure_app_by_pkg_name_btn,
+                        viewResId = R.layout.query_info,
+                        viewBlock = {
+                            val editText = findViewById<TextInputEditText>(R.id.queryInfoEditText).apply {
+                                // 提示文本
+                                setHint(R.string.package_name)
+                            }
+                            // 设置按钮点击事件
+                            findViewById<Button>(R.id.doQueryBtn)?.setOnClickListener doQueryBtn@{ _ ->
+                                val appItem = PackageUtils.getAppItemForConfiguration(
+                                    packageName = editText.text?.trim().toString(),
+                                    packageManager = packageManager
+                                ) ?: run {
+                                    findViewById<TextView>(R.id.queryResultText).setText(R.string.app_not_exist_tip)
+                                    return@doQueryBtn
+                                }
+
+                                showProgressBarViewForAction {
+                                    setTmpData(appItem)
+                                    startActivity(
+                                        Intent(
+                                            this@MainActivityMaterial3,
+                                            ConfigureAppProcessActivityMaterial3::class.java
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    ).show()
                 }
             }
         }
