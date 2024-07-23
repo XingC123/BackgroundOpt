@@ -36,11 +36,15 @@ import com.venus.backgroundopt.app.utils.SystemServices
 import com.venus.backgroundopt.app.utils.UiUtils
 import com.venus.backgroundopt.app.utils.showProgressBarViewForAction
 import com.venus.backgroundopt.common.entity.AppItem
+import com.venus.backgroundopt.common.entity.AppItem.AppConfiguredEnum
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy
+import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy.SubProcessOomPolicyEnum
+import com.venus.backgroundopt.common.environment.CommonProperties
 import com.venus.backgroundopt.common.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.common.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.common.util.PackageUtils
+import com.venus.backgroundopt.common.util.containsIgnoreCase
 import com.venus.backgroundopt.common.util.ifTrue
 import com.venus.backgroundopt.common.util.log.logInfoAndroid
 import com.venus.backgroundopt.common.util.preference.prefAll
@@ -241,30 +245,23 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
             PreferenceNameConstants.APP_OPTIMIZE_POLICY
         )
         // 开始排序
+        val map = HashMap<AppItem, Boolean>(appItems.size)
         appItems.sortWith(
-            Comparator
-                .comparing(::hasConfiguredApp)
-                .thenComparator { appItem1, appItem2 ->
-                    appNameComparator.compare(
-                        appItem2,
-                        appItem1
-                    )
-                }
-                .reversed()
+            Comparator.comparing { appItem: AppItem ->
+                !hasConfiguredApp(appItem, map)
+            }.thenComparator(appNameComparator::compare)
         )
     }
 
     /**
      * [appItem]是否自定义了配置
      */
-    private fun hasConfiguredApp(appItem: AppItem): Boolean {
+    private fun hasConfiguredApp(appItem: AppItem, map: HashMap<AppItem, Boolean>): Boolean {
+        map[appItem]?.let { return it }
+
         val packageName = appItem.packageName
-        // app是否启用优化
-        var hasConfiguredAppOptimizePolicy = false
-        // 自定义oom
-        var hasConfiguredMainProcessCustomOomScore = false
-        // 主进程ADJ管理策略
-        var hasConfiguredMainProcessAdjManagePolicy = false
+        var result = false
+
         appOptimizePolicies[packageName]?.let { appOptimizePolicy ->
             if (appOptimizePolicy.disableForegroundTrimMem != null ||
                 appOptimizePolicy.disableBackgroundTrimMem != null ||
@@ -275,40 +272,59 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
                 ConfigureAppProcessActivityMaterial3.saveAppMemoryOptimize(appOptimizePolicy, this)
             }
 
+            // app是否启用优化
             if (appOptimizePolicy.enableForegroundTrimMem == !PreferenceDefaultValue.enableForegroundTrimMem ||
                 appOptimizePolicy.enableBackgroundTrimMem == !PreferenceDefaultValue.enableBackgroundTrimMem ||
                 appOptimizePolicy.enableBackgroundGc == !PreferenceDefaultValue.enableBackgroundGc
             ) {
-                appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.AppOptimizePolicy)
-                hasConfiguredAppOptimizePolicy = true
+                appItem.appConfiguredEnumSet.add(AppConfiguredEnum.AppOptimizePolicy)
+                result = true
             }
 
+            // 自定义oom
             if (appOptimizePolicy.enableCustomMainProcessOomScore) {
-                appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.CustomMainProcessOomScore)
-                hasConfiguredMainProcessCustomOomScore = true
+                appItem.appConfiguredEnumSet.add(AppConfiguredEnum.CustomMainProcessOomScore)
+                result = true
             }
 
             // 主进程ADJ管理策略
             if (appOptimizePolicy.mainProcessAdjManagePolicy != AppOptimizePolicy.MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_DEFAULT) {
-                appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.MainProcessAdjManagePolicy)
-                hasConfiguredMainProcessAdjManagePolicy = true
+                appItem.appConfiguredEnumSet.add(AppConfiguredEnum.MainProcessAdjManagePolicy)
+                result = true
             }
         }
 
         // 是否配置过子进程oom策略
         var hasConfiguredSubProcessOomPolicy = false
-        for ((subProcessName, subProcessOomPolicy) in subProcessOomPolicyMap.entries) {
-            if (subProcessName.contains(packageName)) {
-                if (subProcessOomPolicy.policyEnum != SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT) {
-                    appItem.appConfiguredEnumSet.add(AppItem.AppConfiguredEnum.SubProcessOomPolicy)
-                    hasConfiguredSubProcessOomPolicy = true
-                    break
+        val appConfiguredEnumIfConfiguredSubProcessOomPolicy = AppConfiguredEnum.SubProcessOomPolicy
+        // 在默认白名单
+        for (processName in CommonProperties.subProcessDefaultUpgradeSet) {
+            if (processName.containsIgnoreCase(packageName)) {
+                appItem.appConfiguredEnumSet.add(appConfiguredEnumIfConfiguredSubProcessOomPolicy)
+                hasConfiguredSubProcessOomPolicy = true
+                break
+            }
+        }
+        if (!hasConfiguredSubProcessOomPolicy) {
+            // 从本地配置查找
+            for ((subProcessName, subProcessOomPolicy) in subProcessOomPolicyMap.entries) {
+                if (subProcessName.containsIgnoreCase(packageName)) {
+                    if (subProcessOomPolicy.policyEnum != SubProcessOomPolicyEnum.DEFAULT) {
+                        appItem.appConfiguredEnumSet.add(
+                            appConfiguredEnumIfConfiguredSubProcessOomPolicy
+                        )
+                        hasConfiguredSubProcessOomPolicy = true
+                        break
+                    }
                 }
             }
         }
-        return hasConfiguredAppOptimizePolicy ||
-                hasConfiguredMainProcessCustomOomScore ||
-                hasConfiguredMainProcessAdjManagePolicy ||
-                hasConfiguredSubProcessOomPolicy
+        if (hasConfiguredSubProcessOomPolicy) {
+            result = true
+        }
+
+        return result.also {
+            map[appItem] = it
+        }
     }
 }
