@@ -46,6 +46,16 @@ inline fun Context.prefEdit(
     pref(name).edit(commit = commit, action = action)
 }
 
+fun Context.prefRemove(
+    name: String,
+    key: String,
+    commit: Boolean = false,
+) {
+    prefEdit(name = name, commit = commit) {
+        remove(key)
+    }
+}
+
 fun Context.prefPut(
     name: String,
     commit: Boolean = false,
