@@ -218,14 +218,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
-                    android:text="@string/getBackgroundTasks" />
+                    android:text="@string/getBackgroundTasks"
+                    android:visibility="gone" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/getAppCompactItemsBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
-                    android:text="@string/getAppCompactItemsBtn" />
+                    android:text="@string/getAppCompactItemsBtn"
+                    android:visibility="gone" />
 
                 <Button
                     android:id="@+id/getManageAdjDefalutAppsBtn"
