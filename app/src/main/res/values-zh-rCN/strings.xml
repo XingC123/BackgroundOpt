@@ -11,17 +11,11 @@
     <string name="appItemTipText1">tip1:</string>
     <string name="appItemTipText2">"tip2: "</string>
     <string name="appItemTipPackageName">"包名: "</string>
-    <string name="appItemTipPid">"pid: "</string>
     <string name="getAppCompactItemsBtn">获取压缩任务列表</string>
     <string name="appItemTipProcessName">"进程名: "</string>
     <string name="appItemTipText3">"tip3: "</string>
-    <string name="appItemTipUid">"uid: "</string>
     <string name="appItemTipText4">tip4:</string>
-    <string name="appItemTipOomAdjScore">"oomAdjScore: "</string>
     <string name="configureAppProcessAppNameText">应用名</string>
-    <string name="configureAppProcessVersionNameTipText">"versionName: "</string>
-    <string name="configureAppProcessVersionCodeTipText">"versionCode: "</string>
-    <string name="configureAppProcessItemProcessNameText">processName</string>
     <string name="configureAppProcessItemApplyConfigureNameText">配置名</string>
     <string name="configureAppProcessItemSelectConfigBtn">选择</string>
     <string name="gotoConfigureAppProcessActivityBtn">设置应用进程</string>

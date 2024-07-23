@@ -1,29 +1,29 @@
 <resources>
-    <string name="app_name">后台优化</string>
-    <string name="getRunningAppInfoBtn">getRunningAppInfoBtn</string>
-    <string name="getTargetAppGroupBtn">getTargetAppGroup</string>
+    <string name="app_name">BackgroundOpt</string>
+    <string name="getRunningAppInfoBtn">Info of target running app</string>
+    <string name="getTargetAppGroupBtn">Group of target app</string>
     <string name="queryInfoTipText">application uid for querying</string>
     <string name="queryInfoEditTextHint">application uid</string>
     <string name="doQueryBtn">Query</string>
     <string name="queryResultText">Launch a query~</string>
-    <string name="getBackgroundTasks">getBackgroundTasks</string>
+    <string name="getBackgroundTasks">Background tasks</string>
     <string name="appItemTipText1">tip1:</string>
     <string name="appItemTipText2">tip2:</string>
-    <string name="appItemTipPackageName">"name of package: "</string>
-    <string name="appItemTipPid">pid:</string>
-    <string name="getAppCompactItemsBtn">get compact app  items</string>
-    <string name="appItemTipProcessName">"name of process: "</string>
+    <string name="appItemTipPackageName">"package name: "</string>
+    <string name="appItemTipPid" translatable="false">pid:</string>
+    <string name="getAppCompactItemsBtn">Compact tasts</string>
+    <string name="appItemTipProcessName">"process name: "</string>
     <string name="appItemTipText3">"tip3: "</string>
-    <string name="appItemTipUid">uid:</string>
+    <string name="appItemTipUid" translatable="false">uid:</string>
     <string name="appItemTipText4">tip4:</string>
-    <string name="appItemTipOomAdjScore">"oom_adj_score: "</string>
-    <string name="configureAppProcessAppNameText">name of application</string>
-    <string name="configureAppProcessVersionNameTipText">"versionName: "</string>
-    <string name="configureAppProcessVersionCodeTipText">"versionCode: "</string>
-    <string name="configureAppProcessItemProcessNameText">processName</string>
-    <string name="configureAppProcessItemApplyConfigureNameText">name of configure</string>
+    <string name="appItemTipOomAdjScore" translatable="false">"adj: "</string>
+    <string name="configureAppProcessAppNameText">application name</string>
+    <string name="configureAppProcessVersionNameTipText" translatable="false">"versionName: "</string>
+    <string name="configureAppProcessVersionCodeTipText" translatable="false">"versionCode: "</string>
+    <string name="configureAppProcessItemProcessNameText" translatable="false">processName</string>
+    <string name="configureAppProcessItemApplyConfigureNameText">configure name</string>
     <string name="configureAppProcessItemSelectConfigBtn">select</string>
-    <string name="gotoConfigureAppProcessActivityBtn">go to configure app processes</string>
+    <string name="gotoConfigureAppProcessActivityBtn">Configure app processes</string>
     <string name="installedAppItemAppNameText">appName</string>
     <string name="subProcessOomPolicyDialogDefaultBtn">Default</string>
     <string name="subProcessOomPolicyDialogMainProcessBtn">Main Process</string>
