@@ -107,7 +107,7 @@ class ShowAllInstalledAppsAdapter3(
      * 刷新已安装app列表的ui界面
      */
     fun refreshInstalledAppsListUI() {
-        notifyItemRangeChanged(0, appItemListNeedRefreshItemCount)
+        notifyItemRangeChanged(0, appItemListNeedRefreshItemCount, 1 /* 防止列表刷新时闪烁 */)
     }
 
     /* *************************************************************************
