@@ -14,12 +14,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
+
 package com.venus.backgroundopt.common.entity.preference
 
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT
 import com.venus.backgroundopt.common.util.message.MessageFlag
-import com.venus.backgroundopt.xposed.entity.self.ProcessAdjConstants
 
 /**
  *  子进程oom配置策略
@@ -28,8 +27,10 @@ import com.venus.backgroundopt.xposed.entity.self.ProcessAdjConstants
  * @date 2023/9/28
  */
 class SubProcessOomPolicy : MessageFlag, JsonPreferenceFlag {
+    var configureWithVersionCode: Int = Int.MIN_VALUE
+
     var policyEnum: SubProcessOomPolicyEnum = DEFAULT
-    var targetOomAdjScore: Int = ProcessAdjConstants.SUB_PROC_ADJ
+    var targetOomAdjScore: Int = Int.MIN_VALUE
 
     enum class SubProcessOomPolicyEnum(val configCode: Int, val configName: String) {
         DEFAULT(1, "默认"),

@@ -30,16 +30,26 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
+import com.venus.backgroundopt.app.ui.base.BaseActivityMaterial3
+import com.venus.backgroundopt.app.ui.base.sendMessage
+import com.venus.backgroundopt.app.ui.component.VenusListCheckMaterial3
+import com.venus.backgroundopt.app.ui.component.VenusSwitchMaterial3
+import com.venus.backgroundopt.app.utils.UiUtils
+import com.venus.backgroundopt.app.utils.getTmpData
+import com.venus.backgroundopt.app.utils.showProgressBarViewForAction
+import com.venus.backgroundopt.common.BuildConfig
 import com.venus.backgroundopt.common.entity.AppItem
 import com.venus.backgroundopt.common.entity.AppItem.AppConfiguredEnum
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy.MainProcessAdjManagePolicy
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicyMessage
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy
+import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy.SubProcessOomPolicyEnum
 import com.venus.backgroundopt.common.environment.CommonProperties
 import com.venus.backgroundopt.common.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.common.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.common.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
+import com.venus.backgroundopt.common.util.PackageUtils
 import com.venus.backgroundopt.common.util.equalsIgnoreCase
 import com.venus.backgroundopt.common.util.ifFalse
 import com.venus.backgroundopt.common.util.ifTrue
@@ -47,14 +57,6 @@ import com.venus.backgroundopt.common.util.message.MessageKeyConstants
 import com.venus.backgroundopt.common.util.preference.prefPut
 import com.venus.backgroundopt.common.util.preference.prefValue
 import com.venus.backgroundopt.common.util.runCatchThrowable
-import com.venus.backgroundopt.app.ui.base.BaseActivityMaterial3
-import com.venus.backgroundopt.app.ui.base.sendMessage
-import com.venus.backgroundopt.app.ui.component.VenusListCheckMaterial3
-import com.venus.backgroundopt.app.ui.component.VenusSwitchMaterial3
-import com.venus.backgroundopt.common.util.PackageUtils
-import com.venus.backgroundopt.app.utils.UiUtils
-import com.venus.backgroundopt.app.utils.getTmpData
-import com.venus.backgroundopt.app.utils.showProgressBarViewForAction
 import com.venus.backgroundopt.xposed.entity.self.ProcessAdjConstants
 import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KMutableProperty1
@@ -296,13 +298,21 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
             val subProcessOomPolicy = prefValue<SubProcessOomPolicy>(
                 SUB_PROCESS_OOM_POLICY,
                 processName
-            ) ?: run {
+            ).apply {
+                this ?: return@apply
+
+                if (this.configureWithVersionCode == Int.MIN_VALUE) {
+                    this.targetOomAdjScore = Int.MIN_VALUE
+                    this.configureWithVersionCode = BuildConfig.VERSION_CODE
+                }
+            } ?: run {
                 // 不存在
                 SubProcessOomPolicy().apply {
+                    // 版本号
+                    this.configureWithVersionCode = BuildConfig.VERSION_CODE
                     // 当前进程是否在默认白名单
                     if (CommonProperties.subProcessDefaultUpgradeSet.contains(processName)) {
-                        this.policyEnum =
-                            SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
+                        this.policyEnum = SubProcessOomPolicyEnum.MAIN_PROCESS
 
                         // 保存到本地
                         prefPut(SUB_PROCESS_OOM_POLICY, commit = true, processName, this)
