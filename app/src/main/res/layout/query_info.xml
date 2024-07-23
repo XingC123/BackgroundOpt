@@ -42,10 +42,7 @@
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/queryInfoEditText"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/queryInfoEditTextHint"
-                        android:ems="10"
-                        android:inputType="number"/>
+                        android:layout_height="wrap_content"/>
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
