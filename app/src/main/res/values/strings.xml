@@ -225,4 +225,12 @@
     <string name="package_name">Package name</string>
     <string name="app_not_exist_tip">The target application does not exist</string>
     <string name="loading">Loading</string>
+    <string name="reset">Reset</string>
+    <string name="reset_success">Reset successful</string>
+    <string name="reset_failed">Reset failed</string>
+    <string name="reseting">Reseting</string>
+    <string name="reset_success_tip">Reset successful, takes effect after restarting the target app</string>
+    <string name="confirm_reset">Confirm Reset</string>
+    <string name="reset_app_config_version_incompatible">Version mismatch. The modification of local configuration takes effect immediately, but it can only work normally after reboot</string>
+    <string name="reset_app_config_version_incompatible_force">Work after reboot</string>
 </resources>

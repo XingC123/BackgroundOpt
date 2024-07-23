@@ -89,4 +89,12 @@
     <string name="package_name">包名</string>
     <string name="app_not_exist_tip">目标应用不存在</string>
     <string name="loading">正在加载</string>
+    <string name="reset">重置</string>
+    <string name="reset_success">重置成功</string>
+    <string name="reset_failed">重置失败</string>
+    <string name="reseting">重置中</string>
+    <string name="reset_success_tip">重置成功，重启目标app后生效</string>
+    <string name="confirm_reset">确认重置</string>
+    <string name="reset_app_config_version_incompatible">版本不匹配。本地配置的修改即刻生效，但重启后才可正常工作</string>
+    <string name="reset_app_config_version_incompatible_force">重启生效</string>
 </resources>

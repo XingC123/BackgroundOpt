@@ -38,6 +38,7 @@ import com.venus.backgroundopt.xposed.manager.message.handle.KeepMainProcessAliv
 import com.venus.backgroundopt.xposed.manager.message.handle.KillAfterRemoveTaskMessageHandler
 import com.venus.backgroundopt.xposed.manager.message.handle.ModuleRunningMessageHandler
 import com.venus.backgroundopt.xposed.manager.message.handle.ProcessRunningInfoMessageHandler
+import com.venus.backgroundopt.xposed.manager.message.handle.ResetAppConfigurationMessageHandler
 import com.venus.backgroundopt.xposed.manager.message.handle.RunningAppInfoMessageHandler
 import com.venus.backgroundopt.xposed.manager.message.handle.RunningProcessListMessageHandler
 import com.venus.backgroundopt.xposed.manager.message.handle.SimpleLmkMessageHandler
@@ -75,6 +76,7 @@ val registeredMessageHandler by lazy {
         MessageKeyConstants.KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY to KeepMainProcessAliveHasActivityMessageHandler(),
         MessageKeyConstants.getProcessRunningInfo to ProcessRunningInfoMessageHandler(),
         MessageKeyConstants.RUNNING_PROCESS_LIST to RunningProcessListMessageHandler(),
+        MessageKeyConstants.RESET_APP_CONFIGURATION to ResetAppConfigurationMessageHandler(),
     )
 }
 

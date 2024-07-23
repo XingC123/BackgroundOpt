@@ -39,6 +39,7 @@ class AppItem @JSONCreator constructor() : MessageFlag {
 
     @JSONField(serialize = false)
     lateinit var appIcon: Drawable
+
     lateinit var packageName: String
 
     @JSONField(serialize = false)
@@ -66,7 +67,6 @@ class AppItem @JSONCreator constructor() : MessageFlag {
     var rssInBytes: Long = Long.MIN_VALUE
 
     // 清单文件中注册的所有进程
-    @JSONField(serialize = false)
     lateinit var processes: MutableSet<String>
 
     @JSONField(serialize = false)

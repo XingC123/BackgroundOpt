@@ -18,6 +18,7 @@
 package com.venus.backgroundopt.app.ui
 
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.Button
@@ -31,6 +32,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.app.ui.base.BaseActivityMaterial3
+import com.venus.backgroundopt.app.ui.base.ifVersionIsCompatible
 import com.venus.backgroundopt.app.ui.base.sendMessage
 import com.venus.backgroundopt.app.ui.component.VenusListCheckMaterial3
 import com.venus.backgroundopt.app.ui.component.VenusSwitchMaterial3
@@ -43,18 +45,21 @@ import com.venus.backgroundopt.common.entity.AppItem.AppConfiguredEnum
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy.MainProcessAdjManagePolicy
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicyMessage
+import com.venus.backgroundopt.common.entity.message.ResetAppConfigurationMessage
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy.SubProcessOomPolicyEnum
 import com.venus.backgroundopt.common.environment.CommonProperties
 import com.venus.backgroundopt.common.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.common.environment.constants.PreferenceNameConstants
-import com.venus.backgroundopt.common.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.common.util.PackageUtils
 import com.venus.backgroundopt.common.util.equalsIgnoreCase
 import com.venus.backgroundopt.common.util.ifFalse
 import com.venus.backgroundopt.common.util.ifTrue
+import com.venus.backgroundopt.common.util.log.logErrorAndroid
 import com.venus.backgroundopt.common.util.message.MessageKeyConstants
+import com.venus.backgroundopt.common.util.preference.prefEdit
 import com.venus.backgroundopt.common.util.preference.prefPut
+import com.venus.backgroundopt.common.util.preference.prefRemove
 import com.venus.backgroundopt.common.util.preference.prefValue
 import com.venus.backgroundopt.common.util.runCatchThrowable
 import com.venus.backgroundopt.xposed.entity.self.ProcessAdjConstants
@@ -79,6 +84,35 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                     context = this,
                     viewResId = R.layout.content_configure_app_proc_toolbar_help
                 ).show()
+            }
+
+            R.id.resetMenuItem -> {
+                val isForcible = false
+                ifVersionIsCompatible(
+                    targetVersionCode = 207,
+                    isNeedModuleRunning = true,
+                    isForcible = isForcible,
+                    incompatibleBlock = { activity ->
+                        activity.runOnUiThread {
+                            UiUtils.createDialog(
+                                context = activity,
+                                textResId = if (isForcible)
+                                    R.string.reset_app_config_version_incompatible_force
+                                else
+                                    R.string.reset_app_config_version_incompatible,
+                                enableNegativeBtn = true,
+                                enablePositiveBtn = true,
+                                positiveBlock = { dialogInterface: DialogInterface, _: Int ->
+                                    dialogInterface.dismiss()
+
+                                    showResetAppConfigDialog()
+                                }
+                            ).show()
+                        }
+                    }
+                ) {
+                    showResetAppConfigDialog()
+                }
             }
         }
     }
@@ -296,7 +330,7 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
             }
 
             val subProcessOomPolicy = prefValue<SubProcessOomPolicy>(
-                SUB_PROCESS_OOM_POLICY,
+                PreferenceNameConstants.SUB_PROCESS_OOM_POLICY,
                 processName
             ).apply {
                 this ?: return@apply
@@ -527,6 +561,90 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
 
                 messageType = AppOptimizePolicyMessage.MSG_CREATE_OR_GET
             }
+        )!!
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * 重置配置                                                                  *
+     *                                                                         *
+     **************************************************************************/
+    private fun showResetAppConfigDialog() {
+        UiUtils.createDialog(
+            context = this,
+            textResId = R.string.confirm_reset,
+            cancelable = false,
+            enableNegativeBtn = true,
+            enablePositiveBtn = true,
+            positiveBlock = { dialogInterface: DialogInterface, _: Int ->
+                resetAppConfiguration()
+
+                dialogInterface.dismiss()
+            }
+        ).show()
+    }
+
+    private fun resetAppConfiguration() {
+        showProgressBarViewForAction(textResId = R.string.reseting) {
+            runCatchThrowable(catchBlock = { throwable: Throwable ->
+                logErrorAndroid("重置App配置失败", t = throwable)
+
+                runOnUiThread {
+                    UiUtils.createExceptionDialog(
+                        context = this,
+                        throwable = throwable
+                    ).show()
+                }
+            }) {
+                resetAppLocalConfiguration()
+                resetAppRemoteConfiguration()
+
+                runOnUiThread {
+                    UiUtils.createDialog(
+                        context = this,
+                        cancelable = false,
+                        textResId = R.string.reset_success_tip,
+                        enablePositiveBtn = true,
+                        positiveBlock = { dialogInterface: DialogInterface, _: Int ->
+                            dialogInterface.dismiss()
+
+                            this.finish()
+                        }
+                    ).show()
+                }
+            }
+        }
+    }
+
+    /**
+     * 移除本地配置
+     */
+    private fun resetAppLocalConfiguration() {
+        // 移除应用配置
+        prefRemove(
+            name = PreferenceNameConstants.APP_OPTIMIZE_POLICY,
+            key = appItem.packageName,
+            commit = true
+        )
+
+        // 移除进程配置
+        prefEdit(
+            name = PreferenceNameConstants.SUB_PROCESS_OOM_POLICY,
+            commit = true
+        ) {
+            for (processName in appItem.processes) {
+                remove(processName)
+            }
+        }
+    }
+
+    /**
+     * 移除远程配置
+     */
+    private fun resetAppRemoteConfiguration(): ResetAppConfigurationMessage {
+        return sendMessage<ResetAppConfigurationMessage>(
+            key = MessageKeyConstants.RESET_APP_CONFIGURATION,
+            value = appItem
         )!!
     }
 

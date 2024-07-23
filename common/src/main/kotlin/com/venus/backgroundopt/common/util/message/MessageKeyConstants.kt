@@ -48,5 +48,6 @@ interface MessageKeyConstants {
         const val KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY = "KEEP_MAIN_PROCESS_ALIVE_HAS_ACTIVITY"
         const val getProcessRunningInfo = "getProcessRunningInfo"
         const val RUNNING_PROCESS_LIST = "RUNNING_PROCESS_LIST"
+        const val RESET_APP_CONFIGURATION = "RESET_APP_CONFIGURATION"
     }
 }
