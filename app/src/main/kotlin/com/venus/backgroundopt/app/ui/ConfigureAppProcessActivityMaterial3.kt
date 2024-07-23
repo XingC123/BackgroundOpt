@@ -315,7 +315,7 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                         this.policyEnum = SubProcessOomPolicyEnum.MAIN_PROCESS
 
                         // 保存到本地
-                        prefPut(SUB_PROCESS_OOM_POLICY, commit = true, processName, this)
+                        // prefPut(SUB_PROCESS_OOM_POLICY, commit = true, processName, this)
                     }
                 }
             }
