@@ -267,6 +267,9 @@ public class ProcessManager implements ILogger {
         // cancelCompactProcess(appInfo);
         // 添加前台任务
         startForegroundAppTrimTask(appInfo.getMProcessRecord());
+
+        oomAdjustManager.triggerMainProcessAdjSetAction(appInfo);
+        oomAdjustManager.triggerSubprocessAdjSetActionByCustomAdj(appInfo);
             /*return null;
         });*/
     }
@@ -277,6 +280,9 @@ public class ProcessManager implements ILogger {
         startBackgroundAppTrimTask(appInfo.getMProcessRecord());
         // 添加压缩任务
         // addCompactProcess(appInfo);
+
+        oomAdjustManager.triggerMainProcessAdjSetAction(appInfo);
+        oomAdjustManager.triggerSubprocessAdjSetActionByHighPriorityAndCustomAdj(appInfo);
             /*return null;
         });*/
     }

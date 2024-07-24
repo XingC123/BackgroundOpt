@@ -14,9 +14,7 @@ import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum.ACTIVE
 import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum.IDLE
 import com.venus.backgroundopt.xposed.entity.android.com.android.internal.util.MemInfoReader
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ActivityManagerService
-import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessList
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
-import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord.AdjHandleActionType
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.PackageManagerService
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.wm.ActivityRecord
 import com.venus.backgroundopt.xposed.entity.self.AppInfo
@@ -27,8 +25,6 @@ import com.venus.backgroundopt.xposed.manager.application.DefaultApplicationMana
 import com.venus.backgroundopt.xposed.manager.application.DefaultApplicationManager.DefaultApplicationNode
 import com.venus.backgroundopt.xposed.manager.message.ModuleMessageManager
 import com.venus.backgroundopt.xposed.manager.process.ProcessManager
-import com.venus.backgroundopt.xposed.manager.process.oom.OomAdjHandler
-import com.venus.backgroundopt.xposed.manager.process.oom.isHighPrioritySubProcess
 import com.venus.backgroundopt.xposed.point.android.function.ActivitySwitchHook
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
@@ -516,19 +512,6 @@ class RunningInfo(
         appInfo.activityRecord = activityRecord
     }
 
-    private fun triggerMainProcessAdjSetAction(appInfo: AppInfo) {
-        // 若配置了自定义主进程, 则主动触发一次
-        appInfo.mProcessRecord?.let { processRecord: ProcessRecord ->
-            if (processRecord.adjHandleActionType == AdjHandleActionType.CUSTOM_MAIN_PROCESS) {
-                processManager.oomAdjustManager.handleSetOomAdjLocked(
-                    process = processRecord,
-                    adj = ProcessList.FOREGROUND_APP_ADJ,
-                    priority = OomAdjHandler.ADJ_TASK_PRIORITY_LOWER
-                )
-            }
-        }
-    }
-
     private fun putIntoActiveAppGroup(appInfo: AppInfo) {
         activeAppGroup.add(appInfo)
         appInfo.appGroupEnum = ACTIVE
@@ -551,8 +534,6 @@ class RunningInfo(
 
         // 启动前台工作
         processManager.appActive(appInfo)
-
-        triggerMainProcessAdjSetAction(appInfo)
     }
 
     private fun putIntoIdleAppGroup(appInfo: AppInfo) {
@@ -582,26 +563,6 @@ class RunningInfo(
 
         // 启动后台工作
         processManager.appIdle(appInfo)
-
-        triggerMainProcessAdjSetAction(appInfo)
-        // 默认对高优先级子进程设置adj
-        val oomAdjustManager = processManager.oomAdjustManager
-        val adj: Int = oomAdjustManager.computeHighPrioritySubprocessAdj(
-            ProcessList.FOREGROUND_APP_ADJ
-        )
-        runningProcessList.asSequence()
-            .filter { processRecord: ProcessRecord -> processRecord.appInfo === appInfo }
-            .filter { processRecord: ProcessRecord -> !processRecord.mainProcess }
-            .filter(ProcessRecord::isHighPrioritySubProcess)
-            .forEach { processRecord: ProcessRecord ->
-                oomAdjustManager.addTask(processRecord) {
-                    ProcessList.writeLmkd(
-                        processRecord.pid,
-                        processRecord.uid,
-                        adj
-                    )
-                }
-            }
     }
 
     /* *************************************************************************

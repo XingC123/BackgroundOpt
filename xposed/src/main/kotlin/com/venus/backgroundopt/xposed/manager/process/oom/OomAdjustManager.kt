@@ -23,7 +23,9 @@ import com.venus.backgroundopt.common.util.concurrent.lock.lock
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.xposed.core.RunningInfo
 import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum
+import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessList
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
+import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord.AdjHandleActionType
 import com.venus.backgroundopt.xposed.entity.self.AppInfo
 import com.venus.backgroundopt.xposed.environment.HookCommonProperties
 import com.venus.backgroundopt.xposed.manager.process.oom.OomAdjHandler.Companion.ADJ_TASK_PRIORITY_NORMAL
@@ -87,6 +89,19 @@ class OomAdjustManager(
         block: () -> Unit,
     ) {
         oomAdjHandler.addTask(processRecord, priority, block)
+    }
+
+    @JvmOverloads
+    fun computeAdjAndApply(
+        processRecord: ProcessRecord,
+        adj: Int,
+        priority: Int = ADJ_TASK_PRIORITY_NORMAL,
+    ) {
+        oomAdjHandler.computeAdjAndApply(
+            processRecord = processRecord,
+            adj = adj,
+            priority = priority
+        )
     }
 
     fun computeHighPrioritySubprocessAdj(adj: Int): Int {
@@ -178,6 +193,100 @@ class OomAdjustManager(
             adjLastSet,
             adjWillSet,
             oomAdjustLevel
+        )
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * ADJ设置任务的触发                                                          *
+     *                                                                         *
+     **************************************************************************/
+    object SubprocessAdjSetActionType {
+        const val HIGH_PRIORITY_SUBPROCESS = 1
+        const val SUBPROCESS_CUSTOM_ADJ = 2
+        const val HIGH_PRIORITY_AND_CUSTOM_ADJ = 3
+    }
+
+    private fun triggerProcessAdjSetAction(processRecord: ProcessRecord) {
+        computeAdjAndApply(
+            processRecord = processRecord,
+            adj = ProcessList.FOREGROUND_APP_ADJ,
+            priority = OomAdjHandler.ADJ_TASK_PRIORITY_LOWER
+        )
+    }
+
+    fun triggerMainProcessAdjSetAction(appInfo: AppInfo) {
+        // 若配置了自定义主进程, 则主动触发一次
+        appInfo.mProcessRecord?.let { processRecord: ProcessRecord ->
+            if (processRecord.adjHandleActionType == AdjHandleActionType.CUSTOM_MAIN_PROCESS) {
+                triggerProcessAdjSetAction(processRecord)
+            }
+        }
+    }
+
+    private fun filterNothingAdjTriggerSubprocessAdjSetAction(processRecord: ProcessRecord): Boolean {
+        return false
+    }
+
+    private fun filterCustomAdjForTriggerSubprocessAdjSetAction(processRecord: ProcessRecord): Boolean {
+        return processRecord.adjHandleActionType == AdjHandleActionType.CUSTOM_SUBPROCESS
+    }
+
+    private fun filterHighPriorityTriggerSubprocessAdjSetAction(processRecord: ProcessRecord): Boolean {
+        return processRecord.isHighPrioritySubProcess()
+    }
+
+    private fun filterHighPriorityAndCustomAdjTriggerSubprocessAdjSetAction(processRecord: ProcessRecord): Boolean {
+        return filterCustomAdjForTriggerSubprocessAdjSetAction(processRecord)
+                || filterHighPriorityTriggerSubprocessAdjSetAction(processRecord)
+    }
+
+    private fun triggerSubprocessAdjSetAction(
+        appInfo: AppInfo,
+        subprocessAdjSetActionType: Int,
+    ) {
+        val filter: (ProcessRecord) -> Boolean = when (subprocessAdjSetActionType) {
+            SubprocessAdjSetActionType.SUBPROCESS_CUSTOM_ADJ -> { processRecord ->
+                filterCustomAdjForTriggerSubprocessAdjSetAction(processRecord)
+            }
+
+            SubprocessAdjSetActionType.HIGH_PRIORITY_SUBPROCESS -> { processRecord ->
+                filterHighPriorityTriggerSubprocessAdjSetAction(processRecord)
+            }
+
+            SubprocessAdjSetActionType.HIGH_PRIORITY_AND_CUSTOM_ADJ -> { processRecord ->
+                filterHighPriorityAndCustomAdjTriggerSubprocessAdjSetAction(processRecord)
+            }
+
+            else -> { processRecord ->
+                filterNothingAdjTriggerSubprocessAdjSetAction(processRecord)
+            }
+        }
+        runningInfo.runningProcessList.asSequence()
+            .filter { processRecord: ProcessRecord -> processRecord.appInfo === appInfo }
+            .filter { processRecord: ProcessRecord -> !processRecord.mainProcess }
+            .filter(filter)
+            .forEach(::triggerProcessAdjSetAction)
+    }
+
+    fun triggerSubprocessAdjSetActionByCustomAdj(appInfo: AppInfo) {
+        triggerSubprocessAdjSetAction(
+            appInfo = appInfo,
+            subprocessAdjSetActionType = SubprocessAdjSetActionType.SUBPROCESS_CUSTOM_ADJ
+        )
+    }
+
+    fun triggerSubprocessAdjSetActionByHighPriority(appInfo: AppInfo) {
+        triggerSubprocessAdjSetAction(
+            appInfo = appInfo,
+            subprocessAdjSetActionType = SubprocessAdjSetActionType.HIGH_PRIORITY_SUBPROCESS
+        )
+    }
+
+    fun triggerSubprocessAdjSetActionByHighPriorityAndCustomAdj(appInfo: AppInfo) {
+        triggerSubprocessAdjSetAction(
+            appInfo = appInfo,
+            subprocessAdjSetActionType = SubprocessAdjSetActionType.HIGH_PRIORITY_AND_CUSTOM_ADJ
         )
     }
 
