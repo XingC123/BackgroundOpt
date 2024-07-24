@@ -233,4 +233,9 @@
     <string name="confirm_reset">Confirm Reset</string>
     <string name="reset_app_config_version_incompatible">Version mismatch. The modification of local configuration takes effect immediately, but it can only work normally after reboot</string>
     <string name="reset_app_config_version_incompatible_force">Work after reboot</string>
+    <string name="adj_range" translatable="false">[-1000, 1000]</string>
+    <string name="invalid_custom_adj">Invalid custom adj</string>
+    <string name="fg_adj_tip_text">Foreground adj</string>
+    <string name="bg_adj_tip_text">Background adj</string>
+    <string name="process_adj_tip_text">Null / [-1000, 1000]</string>
 </resources>

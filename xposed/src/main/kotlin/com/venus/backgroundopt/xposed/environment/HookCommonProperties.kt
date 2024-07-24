@@ -68,6 +68,18 @@ object HookCommonProperties : ILogger {
         }
     }
 
+    fun isUpgradeSubProcessLevel(processName: String): Boolean {
+        return subProcessOomPolicyMap[processName]?.let {
+            when (it.policyEnum) {
+                SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS,
+                SubProcessOomPolicy.SubProcessOomPolicyEnum.CUSTOM_ADJ,
+                -> true
+
+                else -> false
+            }
+        } ?: false
+    }
+
     /* *************************************************************************
      *                                                                         *
      * OOM                                                                     *
@@ -151,7 +163,7 @@ object HookCommonProperties : ILogger {
     val appOptimizePolicyMap: MutableMap<String, AppOptimizePolicy> by lazy {
         (prefAll(PreferenceNameConstants.APP_OPTIMIZE_POLICY)
             ?: ConcurrentHashMap<String, AppOptimizePolicy>()).apply {
-                logger.info("已配置的App优化策略的数量: ${this.size}")
+            logger.info("已配置的App优化策略的数量: ${this.size}")
         }
     }
 

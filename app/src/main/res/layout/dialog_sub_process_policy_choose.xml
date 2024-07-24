@@ -33,29 +33,18 @@
             android:text="@string/subProcessOomPolicyDialogDoNothingBtn"
             android:visibility="gone" />
 
-        <LinearLayout
+        <RadioButton
+            android:id="@+id/subProcessOomPolicyDialogCustomBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/subProcessOomPolicyDialogCustomBtn" />
+
+        <include
+            android:id="@+id/adj_input_layout"
+            layout="@layout/view_custom_adj_fg_bg"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:divider="@drawable/item_space_horizontal"
-            android:orientation="horizontal"
-            android:showDividers="middle"
-            android:visibility="gone">
-
-            <RadioButton
-                android:id="@+id/subProcessOomPolicyDialogCustomBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0"
-                android:text="@string/subProcessOomPolicyDialogCustomBtn" />
-
-            <EditText
-                android:id="@+id/editTextNumber"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ems="10"
-                android:inputType="number" />
-        </LinearLayout>
+            android:layout_height="wrap_content"
+            android:visibility="gone"/>
     </RadioGroup>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

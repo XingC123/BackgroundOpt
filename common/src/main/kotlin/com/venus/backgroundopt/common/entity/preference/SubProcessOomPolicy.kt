@@ -17,8 +17,10 @@
 
 package com.venus.backgroundopt.common.entity.preference
 
+import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy.SubProcessOomPolicyEnum
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT
 import com.venus.backgroundopt.common.util.message.MessageFlag
+import com.venus.backgroundopt.xposed.entity.self.ProcessAdjConstants
 
 /**
  *  子进程oom配置策略
@@ -27,13 +29,42 @@ import com.venus.backgroundopt.common.util.message.MessageFlag
  * @date 2023/9/28
  */
 class SubProcessOomPolicy : MessageFlag, JsonPreferenceFlag {
-    var configureWithVersionCode: Int = Int.MIN_VALUE
-
     var policyEnum: SubProcessOomPolicyEnum = DEFAULT
-    var targetOomAdjScore: Int = Int.MIN_VALUE
+
+    var targetFgAdj: Int = Int.MIN_VALUE
+    var targetBgAdj: Int = Int.MIN_VALUE
 
     enum class SubProcessOomPolicyEnum(val configCode: Int, val configName: String) {
         DEFAULT(1, "默认"),
         MAIN_PROCESS(2, "主进程"),
+        CUSTOM_ADJ(3, "自定义分数"),
+    }
+}
+
+fun SubProcessOomPolicy?.isCustomProcessAdjValid(): Boolean {
+    if (this?.policyEnum != SubProcessOomPolicyEnum.CUSTOM_ADJ) {
+        return false
+    }
+
+    return ProcessAdjConstants.isValidAdj(targetFgAdj) || ProcessAdjConstants.isValidAdj(targetBgAdj)
+}
+
+fun SubProcessOomPolicy?.getCustomFgAdj(): Int? {
+    return if (this?.policyEnum == SubProcessOomPolicyEnum.CUSTOM_ADJ
+        && ProcessAdjConstants.isValidAdj(targetFgAdj)
+    ) {
+        targetFgAdj
+    } else {
+        null
+    }
+}
+
+fun SubProcessOomPolicy?.getCustomBgAdj(): Int? {
+    return if (this?.policyEnum == SubProcessOomPolicyEnum.CUSTOM_ADJ
+        && ProcessAdjConstants.isValidAdj(targetBgAdj)
+    ) {
+        targetBgAdj
+    } else {
+        null
     }
 }

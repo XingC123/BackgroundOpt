@@ -97,4 +97,8 @@
     <string name="confirm_reset">确认重置</string>
     <string name="reset_app_config_version_incompatible">版本不匹配。本地配置的修改即刻生效，但重启后才可正常工作</string>
     <string name="reset_app_config_version_incompatible_force">重启生效</string>
+    <string name="invalid_custom_adj">无效的自定义分数</string>
+    <string name="fg_adj_tip_text">前台ADJ</string>
+    <string name="bg_adj_tip_text">后台ADJ</string>
+    <string name="process_adj_tip_text">空 / [-1000, 1000]</string>
 </resources>

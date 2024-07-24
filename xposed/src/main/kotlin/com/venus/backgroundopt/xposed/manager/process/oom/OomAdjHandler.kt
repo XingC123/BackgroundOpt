@@ -19,7 +19,8 @@ package com.venus.backgroundopt.xposed.manager.process.oom
 
 import com.venus.backgroundopt.common.entity.message.GlobalOomScoreEffectiveScopeEnum
 import com.venus.backgroundopt.common.entity.message.GlobalOomScorePolicy
-import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy
+import com.venus.backgroundopt.common.entity.preference.getCustomBgAdj
+import com.venus.backgroundopt.common.entity.preference.getCustomFgAdj
 import com.venus.backgroundopt.common.util.clamp
 import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.log.logInfo
@@ -214,6 +215,15 @@ abstract class OomAdjHandler(
                 )
             }
 
+            AdjHandleActionType.CUSTOM_SUBPROCESS -> {
+                doCustomSubprocessAdj(
+                    processRecord = processRecord,
+                    adj = adj,
+                    isUserSpaceAdj = isUserSpaceAdj,
+                    isHighPriorityProcess = isHighPriorityProcess
+                )
+            }
+
             AdjHandleActionType.GLOBAL_OOM_ADJ -> {
                 doGlobalOomScoreAdj(
                     processRecord = processRecord,
@@ -249,6 +259,38 @@ abstract class OomAdjHandler(
         val possibleAdj = when (appGroupEnum) {
             AppGroupEnum.ACTIVE -> appOptimizePolicy.getCustomMainProcessFgAdj()
             AppGroupEnum.IDLE -> appOptimizePolicy.getCustomMainProcessBgAdj()
+            else -> null
+        } ?: run {
+            return doOther(
+                processRecord = processRecord,
+                adj = adj,
+                isUserSpaceAdj = isUserSpaceAdj,
+                isHighPriorityProcess = isHighPriorityProcess,
+                appInfo = appInfo,
+                appGroupEnum = appGroupEnum
+            )
+        }
+        return computeHighPriorityProcessAdjByAdjHandlePolicy(
+            processRecord = processRecord,
+            adj = adj,
+            appInfo = appInfo,
+            adjHandleFunction = appInfo.adjHandleFunction
+        ) { possibleAdj }
+    }
+
+    private fun doCustomSubprocessAdj(
+        processRecord: ProcessRecord,
+        adj: Int,
+        isUserSpaceAdj: Boolean,
+        isHighPriorityProcess: Boolean,
+    ): Int {
+        val subProcessOomPolicy =
+            HookCommonProperties.subProcessOomPolicyMap[processRecord.processName]
+        val appInfo = processRecord.appInfo
+        val appGroupEnum = appInfo.appGroupEnum
+        val possibleAdj = when (appGroupEnum) {
+            AppGroupEnum.ACTIVE -> subProcessOomPolicy.getCustomFgAdj()
+            AppGroupEnum.IDLE -> subProcessOomPolicy.getCustomBgAdj()
             else -> null
         } ?: run {
             return doOther(
@@ -591,11 +633,8 @@ class MainAndSubProcessGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler() {
  * @receiver ProcessRecordKt
  * @return Boolean 升级 -> true
  */
-fun ProcessRecord.isUpgradeSubProcessLevel(): Boolean {
-    return HookCommonProperties.subProcessOomPolicyMap[this.processName]?.let {
-        it.policyEnum == SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
-    } ?: false
-}
+fun ProcessRecord.isUpgradeSubProcessLevel(): Boolean =
+    HookCommonProperties.isUpgradeSubProcessLevel(processName)
 
 /**
  * 是否需要处理webview进程

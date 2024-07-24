@@ -19,11 +19,16 @@ package com.venus.backgroundopt.app.ui
 
 import android.content.Context
 import android.content.DialogInterface
+import android.view.View
+import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.venus.backgroundopt.R
+import com.venus.backgroundopt.app.ui.base.BaseActivity
+import com.venus.backgroundopt.app.ui.base.ifVersionIsCompatible
+import com.venus.backgroundopt.app.utils.UiUtils
 import com.venus.backgroundopt.common.entity.AppItem
 import com.venus.backgroundopt.common.entity.AppItem.AppConfiguredEnum
 import com.venus.backgroundopt.common.entity.message.SubProcessOomConfigChangeMessage
@@ -31,13 +36,16 @@ import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy.SubProcessOomPolicyEnum
 import com.venus.backgroundopt.common.environment.CommonProperties
 import com.venus.backgroundopt.common.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
+import com.venus.backgroundopt.common.util.ifTrue
 import com.venus.backgroundopt.common.util.message.MessageKeyConstants
 import com.venus.backgroundopt.common.util.message.messageSender
 import com.venus.backgroundopt.common.util.message.sendMessage
 import com.venus.backgroundopt.common.util.preference.prefEdit
 import com.venus.backgroundopt.common.util.preference.prefPut
 import com.venus.backgroundopt.common.util.preference.putObject
-import com.venus.backgroundopt.app.utils.UiUtils
+import com.venus.backgroundopt.common.util.runCatchThrowable
+import com.venus.backgroundopt.xposed.entity.self.ProcessAdjConstants
+import kotlin.reflect.KMutableProperty1
 
 /**
  * @author XingC
@@ -55,6 +63,9 @@ object ConfigureAppProcessDialogBuilder {
         // 获取按钮
         val defaultBtnId = R.id.subProcessOomPolicyDialogDefaultBtn
         val mainProcessBtnId = R.id.subProcessOomPolicyDialogMainProcessBtn
+        val customAdjBtnId = R.id.subProcessOomPolicyDialogCustomBtn
+        val customAdjComponentAndPropertyMap =
+            HashMap<TextView, KMutableProperty1<SubProcessOomPolicy, Int>>()
 
         // 若用户点击单选按钮, 则更新此值
         var checkedRadioButtonId: Int = Int.MIN_VALUE
@@ -63,22 +74,66 @@ object ConfigureAppProcessDialogBuilder {
             context = context,
             cancelable = false,
             titleStr = "子进程配置策略",
+            autoDismissAfterClickButton = false,
             viewResId = R.layout.dialog_sub_process_policy_choose,
             viewBlock = {
-                // 初始化单选按钮的选择状态
-                when (subProcessOomPolicy.policyEnum) {
-                    SubProcessOomPolicyEnum.DEFAULT -> findViewById<RadioButton>(
-                        defaultBtnId
-                    ).isChecked = true
+                val customFgAdjEditText = findViewById<TextView>(R.id.fg_adj_editText)
+                val customBgAdjEditText = findViewById<TextView>(R.id.bg_adj_editText)
+                val inputLayout = findViewById<LinearLayout>(R.id.adj_input_layout)
 
-                    SubProcessOomPolicyEnum.MAIN_PROCESS -> findViewById<RadioButton>(
+                // 初始化单选按钮的选择状态
+                checkedRadioButtonId = when (subProcessOomPolicy.policyEnum) {
+                    SubProcessOomPolicyEnum.DEFAULT -> {
+                        findViewById<RadioButton>(
+                            defaultBtnId
+                        ).isChecked = true
+                        defaultBtnId
+                    }
+
+                    SubProcessOomPolicyEnum.MAIN_PROCESS -> {
+                        findViewById<RadioButton>(
+                            mainProcessBtnId
+                        ).isChecked = true
                         mainProcessBtnId
-                    ).isChecked = true
+                    }
+
+                    SubProcessOomPolicyEnum.CUSTOM_ADJ -> {
+                        findViewById<RadioButton>(customAdjBtnId).isChecked = true
+                        // 读取配置
+                        ProcessAdjConstants.isValidAdj(subProcessOomPolicy.targetFgAdj).ifTrue {
+                            customFgAdjEditText.text = subProcessOomPolicy.targetFgAdj.toString()
+                        }
+                        ProcessAdjConstants.isValidAdj(subProcessOomPolicy.targetBgAdj).ifTrue {
+                            customBgAdjEditText.text = subProcessOomPolicy.targetBgAdj.toString()
+                        }
+                        // 显示adj输入域
+                        inputLayout.visibility = View.VISIBLE
+
+                        customAdjBtnId
+                    }
                 }
 
                 // 设置点击事件
                 findViewById<RadioGroup>(R.id.subProcessOomPolicyDialogRadioGroup).setOnCheckedChangeListener { _, checkedBtnResId ->
                     checkedRadioButtonId = checkedBtnResId
+
+                    inputLayout.visibility = if (checkedBtnResId == customAdjBtnId) {
+                        // ConfigureAppProcessAdapter2传入的context为BaseActivity
+                        (context as? BaseActivity)?.ifVersionIsCompatible(
+                            targetVersionCode = 207,
+                            isNeedModuleRunning = true,
+                            isForcible = false,
+                        ) {}
+
+                        View.VISIBLE
+                    } else {
+                        View.GONE
+                    }
+                }
+
+                customAdjComponentAndPropertyMap.apply {
+                    put(customFgAdjEditText, SubProcessOomPolicy::targetFgAdj)
+                    put(customBgAdjEditText, SubProcessOomPolicy::targetBgAdj)
                 }
             },
             enableNegativeBtn = true,
@@ -124,6 +179,52 @@ object ConfigureAppProcessDialogBuilder {
                                         SubProcessOomPolicyEnum.MAIN_PROCESS
                                 })
                         }
+                    }
+
+                    customAdjBtnId -> {
+                        // 检验分数是否有效
+                        var validAdjCount = 0
+                        val arraySize = customAdjComponentAndPropertyMap.size
+                        val componentArray = arrayOfNulls<TextView>(arraySize)
+                        val adjArray = IntArray(arraySize)
+
+                        customAdjComponentAndPropertyMap.keys.forEachIndexed { index, component ->
+                            val customAdj = runCatchThrowable(defaultValue = Int.MIN_VALUE) {
+                                component.text.toString().toInt()
+                            }!!
+                            if (ProcessAdjConstants.isValidAdj(customAdj)) {
+                                ++validAdjCount
+                            }
+                            componentArray[index] = component
+                            adjArray[index] = customAdj
+                        }
+                        // 全部无效
+                        if (validAdjCount == 0) {
+                            UiUtils.createDialog(
+                                context = context,
+                                textResId = R.string.invalid_custom_adj,
+                                enablePositiveBtn = true,
+                            ).show()
+                            return@positiveBlock
+                        }
+
+                        // 分数没问题
+                        subProcessOomPolicyMap[processName] = subProcessOomPolicy.apply {
+                            policyEnum = SubProcessOomPolicyEnum.CUSTOM_ADJ
+
+                            componentArray.forEachIndexed { index, component ->
+                                customAdjComponentAndPropertyMap[component]!!.set(
+                                    subProcessOomPolicy,
+                                    adjArray[index]
+                                )
+                            }
+                        }
+                        context.prefPut(
+                            SUB_PROCESS_OOM_POLICY,
+                            commit = true,
+                            processName,
+                            subProcessOomPolicy
+                        )
                     }
                 }
 

@@ -36,10 +36,10 @@ import com.venus.backgroundopt.app.ui.base.ifVersionIsCompatible
 import com.venus.backgroundopt.app.ui.base.sendMessage
 import com.venus.backgroundopt.app.ui.component.VenusListCheckMaterial3
 import com.venus.backgroundopt.app.ui.component.VenusSwitchMaterial3
+import com.venus.backgroundopt.app.ui.style.RecycleViewItemSpaceDecoration
 import com.venus.backgroundopt.app.utils.UiUtils
 import com.venus.backgroundopt.app.utils.getTmpData
 import com.venus.backgroundopt.app.utils.showProgressBarViewForAction
-import com.venus.backgroundopt.common.BuildConfig
 import com.venus.backgroundopt.common.entity.AppItem
 import com.venus.backgroundopt.common.entity.AppItem.AppConfiguredEnum
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy
@@ -332,18 +332,9 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
             val subProcessOomPolicy = prefValue<SubProcessOomPolicy>(
                 PreferenceNameConstants.SUB_PROCESS_OOM_POLICY,
                 processName
-            ).apply {
-                this ?: return@apply
-
-                if (this.configureWithVersionCode == Int.MIN_VALUE) {
-                    this.targetOomAdjScore = Int.MIN_VALUE
-                    this.configureWithVersionCode = BuildConfig.VERSION_CODE
-                }
-            } ?: run {
+            ) ?: run {
                 // 不存在
                 SubProcessOomPolicy().apply {
-                    // 版本号
-                    this.configureWithVersionCode = BuildConfig.VERSION_CODE
                     // 当前进程是否在默认白名单
                     if (CommonProperties.subProcessDefaultUpgradeSet.contains(processName)) {
                         this.policyEnum = SubProcessOomPolicyEnum.MAIN_PROCESS
@@ -364,11 +355,13 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                     LinearLayoutManager(this@ConfigureAppProcessActivityMaterial3).apply {
                         orientation = LinearLayoutManager.VERTICAL
                     }
-                adapter = ConfigureAppProcessAdapter(
+                adapter = ConfigureAppProcessAdapter2(
+                    activity = this@ConfigureAppProcessActivityMaterial3,
                     appItem = appItem,
                     processes = appItem.processes.toList(),
                     subProcessOomPolicyMap = subProcessOomPolicyMap
                 )
+                addItemDecoration(RecycleViewItemSpaceDecoration(context))
             }
         }
     }

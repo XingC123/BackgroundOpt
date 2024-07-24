@@ -21,6 +21,7 @@ import android.content.pm.ApplicationInfo
 import android.os.Build
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.common.entity.preference.OomWorkModePref
+import com.venus.backgroundopt.common.entity.preference.isCustomProcessAdjValid
 import com.venus.backgroundopt.common.util.OsUtils
 import com.venus.backgroundopt.common.util.PackageUtils
 import com.venus.backgroundopt.common.util.ifTrue
@@ -316,6 +317,7 @@ abstract class ProcessRecord(
     object AdjHandleActionType {
         const val DO_NOTHING = 0
         const val CUSTOM_MAIN_PROCESS = 1
+        const val CUSTOM_SUBPROCESS = 5
         const val GLOBAL_OOM_ADJ = 2
         const val OTHER = 3
         const val WAKE_LOCK = 4
@@ -342,11 +344,19 @@ abstract class ProcessRecord(
     private fun initAdjHandleType() {
         // 高优先级进程
         if (isHighPriorityProcessByBasicProperty()) {
-            // 是否配置自定义主进程
-            val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[packageName]
-            appOptimizePolicy.isCustomMainProcessAdjValid().ifTrue {
-                adjHandleActionType = AdjHandleActionType.CUSTOM_MAIN_PROCESS
-                return
+            if (mainProcess) {
+                // 是否配置自定义主进程
+                val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[packageName]
+                appOptimizePolicy.isCustomMainProcessAdjValid().ifTrue {
+                    adjHandleActionType = AdjHandleActionType.CUSTOM_MAIN_PROCESS
+                    return
+                }
+            } else {
+                val subProcessOomPolicy = HookCommonProperties.subProcessOomPolicyMap[processName]
+                subProcessOomPolicy.isCustomProcessAdjValid().ifTrue {
+                    adjHandleActionType = AdjHandleActionType.CUSTOM_SUBPROCESS
+                    return
+                }
             }
             // 是否开启了全局oom
             if (HookCommonProperties.globalOomScorePolicy.value.enabled) {
