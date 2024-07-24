@@ -30,6 +30,7 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.annotation.StyleableRes
@@ -152,6 +153,7 @@ object UiUtils {
         icon: Drawable? = null,
         iconResId: Int? = null,
         cancelable: Boolean = true,
+        autoDismissAfterClickButton: Boolean = true,
         enableNegativeBtn: Boolean = false,
         negativeBtnText: String = "放弃",
         negativeBlock: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
@@ -209,9 +211,41 @@ object UiUtils {
 
         return builder
             .setCancelable(cancelable)
-            .setNegativeBtn(context, enableNegativeBtn, negativeBtnText, negativeBlock)
-            .setPositiveBtn(context, enablePositiveBtn, positiveBtnText, positiveBlock)
-            .create()
+            .setNegativeBtn(
+                context,
+                enableNegativeBtn,
+                negativeBtnText,
+                block = if (autoDismissAfterClickButton) negativeBlock else null
+            )
+            .setPositiveBtn(
+                context,
+                enablePositiveBtn,
+                positiveBtnText,
+                if (autoDismissAfterClickButton) positiveBlock else null
+            )
+            .create().apply {
+                if (!autoDismissAfterClickButton) {
+                    setOnShowListener { dialogInterface ->
+                        /*
+                         * 在此处设置点击事件以覆盖掉原生设置, 其会导致点击按钮后自动关闭对话框
+                         */
+                        setNegativeBtn(
+                            dialog = this,
+                            dialogInterface = dialogInterface,
+                            enableNegativeBtn = enableNegativeBtn,
+                            negativeBtnText = negativeBtnText,
+                            block = negativeBlock
+                        )
+                        setPositiveBtn(
+                            dialog = this,
+                            dialogInterface = dialogInterface,
+                            enablePositiveBtn = enablePositiveBtn,
+                            positiveBtnText = positiveBtnText,
+                            block = positiveBlock
+                        )
+                    }
+                }
+            }
     }
 
     fun createExceptionDialog(
@@ -384,35 +418,71 @@ object UiUtils {
     }
 }
 
-inline fun AlertDialog.Builder.setNegativeBtn(
+internal fun AlertDialog.Builder.setNegativeBtn(
     context: Context,
     enableNegativeBtn: Boolean = false,
     negativeBtnText: String = "放弃",
-    crossinline block: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
+    block: ((DialogInterface, Int) -> Unit)? = { dialogInterface, _ ->
         dialogInterface.dismiss()
         (context as Activity).finish()
     },
 ): AlertDialog.Builder {
     if (enableNegativeBtn) {
-        setNegativeButton(negativeBtnText) { dialogInterface, i ->
-            block(dialogInterface, i)
-        }
+        setNegativeButton(negativeBtnText, block)
     }
     return this
 }
 
-inline fun AlertDialog.Builder.setPositiveBtn(
+internal fun AlertDialog.Builder.setPositiveBtn(
     context: Context,
     enablePositiveBtn: Boolean = false,
     positiveBtnText: String = "确认",
-    crossinline block: (DialogInterface, Int) -> Unit = { dialogInterface, _ ->
+    block: ((DialogInterface, Int) -> Unit)? = { dialogInterface, _ ->
         dialogInterface.dismiss()
         (context as Activity).finish()
     },
 ): AlertDialog.Builder {
     if (enablePositiveBtn) {
-        setPositiveButton(positiveBtnText) { dialogInterface, i ->
-            block(dialogInterface, i)
+        setPositiveButton(positiveBtnText, block)
+    }
+    return this
+}
+
+internal inline fun AlertDialog.setNegativeBtn(
+    dialog: AlertDialog,
+    dialogInterface: DialogInterface,
+    enableNegativeBtn: Boolean = false,
+    negativeBtnText: String = "放弃",
+    crossinline block: (DialogInterface, Int) -> Unit = { _, _ ->
+        dialogInterface.dismiss()
+    },
+): AlertDialog {
+    if (enableNegativeBtn) {
+        dialog.findViewById<Button>(android.R.id.button2)?.let { button ->
+            button.text = negativeBtnText
+            button.setOnClickListener {
+                block(dialogInterface, android.R.id.button2)
+            }
+        }
+    }
+    return this
+}
+
+internal inline fun AlertDialog.setPositiveBtn(
+    dialog: AlertDialog,
+    dialogInterface: DialogInterface,
+    enablePositiveBtn: Boolean = false,
+    positiveBtnText: String = "确认",
+    crossinline block: (DialogInterface, Int) -> Unit = { _, _ ->
+        dialogInterface.dismiss()
+    },
+): AlertDialog {
+    if (enablePositiveBtn) {
+        dialog.findViewById<Button>(android.R.id.button1)?.let { button ->
+            button.text = positiveBtnText
+            button.setOnClickListener {
+                block(dialogInterface, android.R.id.button1)
+            }
         }
     }
     return this
