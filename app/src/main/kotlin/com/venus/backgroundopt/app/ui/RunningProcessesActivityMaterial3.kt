@@ -215,14 +215,14 @@ class RunningProcessesActivityMaterial3 : ShowInfoFromAppItemActivityMaterial3()
     private fun initProcessesClassifyFunction() {
         val appCategoryBtn = findViewById<VenusPopupMenuButton>(R.id.appCategoryBtn).apply {
             setExtraOnMenuItemClickListener { menuItem: MenuItem ->
-                processesRVAdapter.changeCategoryUsedToShowProcesses(menuItem.itemId)
-                processesRVAdapter.classifyProcessListAndRefreshUi()
+                processesRVAdapter.changeCategoryToShowAppItems(menuItem.itemId)
+                processesRVAdapter.filterAppItemsAndRefreshUi()
                 true
             }
         }
 
         // 排序
-        processesRVAdapter.changeCategoryUsedToShowProcesses(appCategoryBtn.selectedItemResId)
+        processesRVAdapter.changeCategoryToShowAppItems(appCategoryBtn.selectedItemResId)
     }
 
     /* *************************************************************************

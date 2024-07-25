@@ -100,9 +100,9 @@ class RunningProcessesAdapter(
             val tmpList = arrayListOf<AppItem>()
 
             private fun updateFilterAppItems(new: MutableList<AppItem>) {
-                appItemsBeforeClassify = new
+                appItemsBeforeFilter = new
 
-                classifyProcessList()
+                filterAppItems()
                 sortProcessList()
             }
 
@@ -189,49 +189,6 @@ class RunningProcessesAdapter(
         filterAppItems.sortWith { appItem1, appItem2 ->
             AppItem.uidComparator.compare(appItem2, appItem1)
         }
-    }
-
-    /* *************************************************************************
-     *                                                                         *
-     * 进程分类                                                                  *
-     *                                                                         *
-     **************************************************************************/
-    private var appItemsBeforeClassify = filterAppItems
-    private lateinit var processesListShownCategory: () -> Unit
-
-    fun classifyProcessListAndRefreshUi() {
-        classifyProcessList()
-        refreshShownItemUiFull()
-    }
-
-    fun changeCategoryUsedToShowProcesses(resId: Int) {
-        processesListShownCategory = when (resId) {
-            R.id.runningProcessesUserAppCategoryMenuItem -> ::classifyProcessesWithUserApp
-            R.id.runningProcessesSystemAppCategoryMenuItem -> ::classifyProcessesWithSystemApp
-            else -> {
-                ::classifyProcessesWithAll
-            }
-        }
-    }
-
-    fun classifyProcessList() {
-        processesListShownCategory()
-    }
-
-    private fun classifyProcessesWithAll() {
-        filterAppItems = appItemsBeforeClassify
-    }
-
-    private fun classifyProcessesWithUserApp() {
-        filterAppItems = appItemsBeforeClassify.filter { appItem ->
-            !appItem.systemApp
-        }.toMutableList()
-    }
-
-    private fun classifyProcessesWithSystemApp() {
-        filterAppItems = appItemsBeforeClassify.filter { appItem ->
-            appItem.systemApp
-        }.toMutableList()
     }
 
     companion object {

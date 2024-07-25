@@ -17,23 +17,25 @@
 
 package com.venus.backgroundopt.app.ui
 
+import android.app.Activity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.venus.backgroundopt.R
-import com.venus.backgroundopt.common.entity.AppItem
 import com.venus.backgroundopt.app.ui.base.ShowInfoFromAppItemAdapter
 import com.venus.backgroundopt.app.ui.base.ShowInfoFromAppItemViewHolder
+import com.venus.backgroundopt.common.entity.AppItem
 
 /**
  * @author XingC
  * @date 2024/4/23
  */
 class ShowManagedAdjDefaultAppsAdapter(
-    val items: List<AppItem>,
-) : ShowInfoFromAppItemAdapter() {
+    activity: Activity,
+    appItems: MutableList<AppItem>,
+) : ShowInfoFromAppItemAdapter(activity, appItems) {
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -45,12 +47,12 @@ class ShowManagedAdjDefaultAppsAdapter(
         return ShowManagedAdjDefaultAppsViewHolder(view)
     }
 
-    override fun getItemCount(): Int = items.size
+    override fun getItemCount(): Int = appItems.size
 
     override fun onBindViewHolder(holder: ShowInfoFromAppItemViewHolder, position: Int) {
         holder as ShowManagedAdjDefaultAppsViewHolder
 
-        val appItem = items[position]
+        val appItem = appItems[position]
 
         holder.appIcon.setImageDrawable(appItem.appIcon)
         holder.appNameText.text = appItem.appName

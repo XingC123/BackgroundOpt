@@ -42,9 +42,9 @@ import com.venus.backgroundopt.xposed.entity.self.ProcessRecordBaseInfo
  * @date 2023/9/25
  */
 abstract class ShowProcessInfoFromAppItemAdapter(
-    protected val activity: Activity,
-    protected val appItems: MutableList<AppItem>,
-) : ShowInfoFromAppItemAdapter() {
+    activity: Activity,
+    appItems: MutableList<AppItem>,
+) : ShowInfoFromAppItemAdapter(activity, appItems) {
     /* *************************************************************************
      *                                                                         *
      * 提示信息的内容                                                             *
@@ -82,9 +82,6 @@ abstract class ShowProcessInfoFromAppItemAdapter(
      * 布局                                                                     *
      *                                                                         *
      **************************************************************************/
-    // 过滤后的列表。用于搜索功能
-    var filterAppItems: MutableList<AppItem> = appItems
-
     open fun getViewHolder(view: View): ShowProcessInfoFromAppItemViewHolder {
         return ShowProcessInfoFromAppItemViewHolder(view)
     }

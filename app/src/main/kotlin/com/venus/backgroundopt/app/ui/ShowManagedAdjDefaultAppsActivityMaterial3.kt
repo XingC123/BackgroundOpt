@@ -18,13 +18,13 @@
 package com.venus.backgroundopt.app.ui
 
 import com.venus.backgroundopt.R
-import com.venus.backgroundopt.common.entity.AppItem
-import com.venus.backgroundopt.common.entity.message.ManagedAdjDefaultAppMessage
-import com.venus.backgroundopt.common.util.log.logInfoAndroid
-import com.venus.backgroundopt.common.util.message.MessageKeyConstants
 import com.venus.backgroundopt.app.ui.base.ShowInfoFromAppItemActivityMaterial3
 import com.venus.backgroundopt.app.ui.base.sendMessage
+import com.venus.backgroundopt.common.entity.AppItem
+import com.venus.backgroundopt.common.entity.message.ManagedAdjDefaultAppMessage
 import com.venus.backgroundopt.common.util.PackageUtils
+import com.venus.backgroundopt.common.util.log.logInfoAndroid
+import com.venus.backgroundopt.common.util.message.MessageKeyConstants
 
 /**
  * @author XingC
@@ -35,7 +35,7 @@ class ShowManagedAdjDefaultAppsActivityMaterial3 : ShowInfoFromAppItemActivityMa
         appItems: MutableList<AppItem>,
         vararg others: Any?,
     ): ShowManagedAdjDefaultAppsAdapter {
-        return ShowManagedAdjDefaultAppsAdapter(appItems)
+        return ShowManagedAdjDefaultAppsAdapter(this, appItems)
     }
 
     override fun getRecyclerViewResId(): Int = R.id.recycler_view
