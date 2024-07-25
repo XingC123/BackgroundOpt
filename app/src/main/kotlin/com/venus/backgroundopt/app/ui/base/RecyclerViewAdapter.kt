@@ -19,9 +19,12 @@ package com.venus.backgroundopt.app.ui.base
 
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
+import com.venus.backgroundopt.app.ui.component.NoIndexOutOfBoundsExceptionLinearLayoutManager
 import com.venus.backgroundopt.common.util.ne
+import com.venus.backgroundopt.common.util.runCatchThrowable
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -122,6 +125,44 @@ abstract class RecyclerViewAdapter<VH : RecyclerView.ViewHolder> : RecyclerView.
         @JvmStatic
         fun viewHolderConsumer(holder: RecyclerView.ViewHolder) {
             // do nothing
+        }
+    }
+}
+
+/* *************************************************************************
+ *                                                                         *
+ * UI的刷新                                                                 *
+ *                                                                         *
+ **************************************************************************/
+/**
+ * 刷新可视范围内的元素
+ */
+fun <T : RecyclerView.ViewHolder> RecyclerViewAdapter<T>.refreshVisibleItemUi(
+    activity: Activity,
+    layoutManager: NoIndexOutOfBoundsExceptionLinearLayoutManager,
+) {
+    val firstVisiblePosition: Int = layoutManager.findFirstVisibleItemPosition()
+    val lastVisiblePosition: Int = layoutManager.findLastVisibleItemPosition()
+
+    activity.runOnUiThread {
+        runCatchThrowable {
+            notifyItemRangeChanged(
+                firstVisiblePosition,
+                lastVisiblePosition - firstVisiblePosition + 1,
+                1   /* 为了防止刷新数据时item闪烁 */
+            )
+        }
+    }
+}
+
+/**
+ * 刷新全列表
+ */
+@SuppressLint("NotifyDataSetChanged")
+fun <T : RecyclerView.ViewHolder> RecyclerViewAdapter<T>.refreshAllItemUi(activity: Activity) {
+    activity.runOnUiThread {
+        runCatchThrowable {
+            notifyDataSetChanged()
         }
     }
 }
