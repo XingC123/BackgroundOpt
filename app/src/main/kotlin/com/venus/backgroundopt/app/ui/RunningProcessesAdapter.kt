@@ -27,6 +27,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.app.ui.ShowAppCompactListAdapter.ShowAppCompactListViewHolder
 import com.venus.backgroundopt.app.ui.base.isKeywordMatched
+import com.venus.backgroundopt.app.ui.base.refreshAllItemUi
+import com.venus.backgroundopt.app.ui.base.refreshVisibleItemUi
+import com.venus.backgroundopt.app.ui.component.NoIndexOutOfBoundsExceptionLinearLayoutManager
 import com.venus.backgroundopt.common.entity.AppItem
 import com.venus.backgroundopt.common.util.runCatchThrowable
 import com.venus.backgroundopt.common.util.unsafeLazy
@@ -40,7 +43,7 @@ class RunningProcessesAdapter(
     activity: Activity,
     appItems: MutableList<AppItem>,
 ) : ShowAppCompactListAdapter(activity, appItems), Filterable {
-    lateinit var layoutManager: LinearLayoutManager
+    lateinit var layoutManager: NoIndexOutOfBoundsExceptionLinearLayoutManager
 
     override fun getViewHolder(view: View): ShowProcessInfoFromAppItemViewHolder =
         RunningProcessesViewHolder(view)
@@ -55,30 +58,6 @@ class RunningProcessesAdapter(
 
     override fun getItemCount(): Int {
         return filterAppItems.size
-    }
-
-    fun refreshShownItemUiVisible() {
-        val firstVisiblePosition: Int = layoutManager.findFirstVisibleItemPosition()
-        val lastVisiblePosition: Int = layoutManager.findLastVisibleItemPosition()
-
-        activity.runOnUiThread {
-            runCatchThrowable {
-                notifyItemRangeChanged(
-                    firstVisiblePosition,
-                    lastVisiblePosition - firstVisiblePosition + 1,
-                    1   /* 为了防止刷新数据时item闪烁 */
-                )
-            }
-        }
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    fun refreshShownItemUiFull() {
-        activity.runOnUiThread {
-            runCatchThrowable {
-                notifyDataSetChanged()
-            }
-        }
     }
 
     /* *************************************************************************
@@ -138,9 +117,9 @@ class RunningProcessesAdapter(
             @SuppressLint("NotifyDataSetChanged")
             override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
                 if (constraint == lastSearchContent) {
-                    refreshShownItemUiVisible()
+                    refreshVisibleItemUi(activity, layoutManager)
                 } else {
-                    refreshShownItemUiFull()
+                    refreshAllItemUi(activity)
                 }
                 lastSearchContent = curSearchContent
             }
@@ -156,7 +135,7 @@ class RunningProcessesAdapter(
 
     fun sortProcessListAndRefreshUi() {
         sortProcessList()
-        refreshShownItemUiVisible()
+        refreshVisibleItemUi(activity, layoutManager)
     }
 
     fun changeProcessesSort(itemResId: Int) {
