@@ -31,6 +31,7 @@ import com.venus.backgroundopt.BuildConfig
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.app.ui.base.BaseActivityMaterial3
 import com.venus.backgroundopt.app.ui.base.SearchFromAppItemRVAdapter
+import com.venus.backgroundopt.app.ui.component.VenusPopupMenuButton
 import com.venus.backgroundopt.app.ui.style.RecycleViewItemSpaceDecoration
 import com.venus.backgroundopt.app.utils.SystemServices
 import com.venus.backgroundopt.app.utils.UiUtils
@@ -175,7 +176,10 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
                     LinearLayoutManager(this@ShowAllInstalledAppsActivityMaterial3).apply {
                         orientation = LinearLayoutManager.VERTICAL
                     }
-                adapter = ShowAllInstalledAppsAdapter3(appItems).apply {
+                adapter = ShowAllInstalledAppsAdapter3(
+                    this@ShowAllInstalledAppsActivityMaterial3,
+                    appItems
+                ).apply {
                     isAllowedRefreshInstalledAppsUiProperty = ::isAllowedRefreshInstalledAppsUi
                 }.also {
                     appItemsRecyclerViewAdapter = it
@@ -196,6 +200,8 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
                 )
                 addItemDecoration(RecycleViewItemSpaceDecoration(context))
             }
+
+            initAppClassifyFunction()
         }
     }
 
@@ -327,5 +333,21 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
         return result.also {
             map[appItem] = it
         }
+    }
+
+    /* *************************************************************************
+     *                                                                         *
+     * app分类                                                                  *
+     *                                                                         *
+     **************************************************************************/
+    private fun initAppClassifyFunction() {
+        val appCategoryBtn = findViewById<VenusPopupMenuButton>(R.id.app_category_btn).apply {
+            setExtraOnMenuItemClickListener { menuItem: MenuItem ->
+                appItemsRecyclerViewAdapter.changeCategoryToShowAppItems(menuItem.itemId)
+                appItemsRecyclerViewAdapter.filterAppItemsAndRefreshUi()
+                true
+            }
+        }
+        appItemsRecyclerViewAdapter.changeCategoryToShowAppItems(appCategoryBtn.selectedItemResId)
     }
 }

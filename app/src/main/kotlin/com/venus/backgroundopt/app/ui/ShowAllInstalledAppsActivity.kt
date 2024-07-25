@@ -129,7 +129,7 @@ class ShowAllInstalledAppsActivity : BaseActivity() {
                 layoutManager = LinearLayoutManager(this@ShowAllInstalledAppsActivity).apply {
                     orientation = LinearLayoutManager.VERTICAL
                 }
-                adapter = ShowAllInstalledAppsAdapter3(appItems)
+                adapter = ShowAllInstalledAppsAdapter3(this@ShowAllInstalledAppsActivity, appItems)
                 addItemDecoration(RecycleViewItemSpaceDecoration(context))
 
                 // 设置搜索栏隐藏/显示行为

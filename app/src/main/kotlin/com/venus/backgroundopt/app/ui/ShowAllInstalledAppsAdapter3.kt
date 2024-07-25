@@ -18,6 +18,7 @@
 package com.venus.backgroundopt.app.ui
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
@@ -28,10 +29,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
-import com.venus.backgroundopt.common.entity.AppItem
-import com.venus.backgroundopt.app.ui.base.RecyclerViewAdapter
+import com.venus.backgroundopt.app.ui.base.ShowInfoFromAppItemAdapter
+import com.venus.backgroundopt.app.ui.base.ShowInfoFromAppItemViewHolder
+import com.venus.backgroundopt.app.ui.component.NoIndexOutOfBoundsExceptionLinearLayoutManager
 import com.venus.backgroundopt.app.utils.UiUtils
 import com.venus.backgroundopt.app.utils.setTmpData
+import com.venus.backgroundopt.common.entity.AppItem
+import com.venus.backgroundopt.common.util.unsafeLazy
 import kotlin.math.max
 import kotlin.reflect.KMutableProperty0
 
@@ -40,34 +44,9 @@ import kotlin.reflect.KMutableProperty0
  * @date 2023/9/27
  */
 class ShowAllInstalledAppsAdapter3(
-    private val appItems: List<AppItem>,
-) : RecyclerViewAdapter<ShowAllInstalledAppsAdapter3.ShowAllInstalledAppsViewHolder>(),
-    Filterable {
-    class ShowAllInstalledAppsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var appIcon: ImageView
-        var appName: TextView
-        var itemInstalledAppsMemTrimFlagText: TextView
-        var itemInstalledAppsCustomMainProcOomScoreFlagText: TextView
-        var itemInstalledAppsOomPolicyFlagText: TextView
-        var itemInstalledAppsShouldHandleMainProcAdjFlagText: TextView
-        var itemInstalledAppsMainProcessAdjManagePolicy: TextView
-
-        init {
-            appIcon = itemView.findViewById(R.id.appIconImageView)
-            appName = itemView.findViewById(R.id.appNameText)
-            itemInstalledAppsMemTrimFlagText =
-                itemView.findViewById(R.id.itemInstalledAppsMemTrimFlagText)
-            itemInstalledAppsCustomMainProcOomScoreFlagText =
-                itemView.findViewById(R.id.itemInstalledAppsCustomMainProcOomScoreFlagText)
-            itemInstalledAppsOomPolicyFlagText =
-                itemView.findViewById(R.id.itemInstalledAppsOomPolicyFlagText)
-            itemInstalledAppsShouldHandleMainProcAdjFlagText =
-                itemView.findViewById(R.id.itemInstalledAppsShouldHandleMainProcAdjFlagText)
-            itemInstalledAppsMainProcessAdjManagePolicy =
-                itemView.findViewById(R.id.itemInstalledAppsMainProcessAdjManagePolicy)
-        }
-    }
-
+    activity: Activity,
+    appItems: MutableList<AppItem>,
+) : ShowInfoFromAppItemAdapter(activity, appItems), Filterable {
     /* *************************************************************************
      *                                                                         *
      * 已安装app列表的刷新                                                        *
@@ -129,7 +108,9 @@ class ShowAllInstalledAppsAdapter3(
         return filterAppItems.size
     }
 
-    override fun onBindViewHolder(holder: ShowAllInstalledAppsViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ShowInfoFromAppItemViewHolder, position: Int) {
+        holder as ShowAllInstalledAppsViewHolder
+
         val appItem = filterAppItems[position]
         holder.appIcon.setImageDrawable(appItem.appIcon)
         holder.appName.text = appItem.appName
@@ -195,9 +176,6 @@ class ShowAllInstalledAppsAdapter3(
      * 根据搜索内容过滤当前列表                                                     *
      *                                                                         *
      **************************************************************************/
-    // 过滤后的列表。用于搜索功能
-    private var filterAppItems: List<AppItem> = appItems
-
     override fun getFilter(): Filter {
         return appItemFilter
     }
@@ -210,6 +188,13 @@ class ShowAllInstalledAppsAdapter3(
             val filterResult by lazy {
                 FilterResults()
             }
+            val tmpList = arrayListOf<AppItem>()
+
+            private fun updateFilterAppItems(new: MutableList<AppItem>) {
+                appItemsBeforeFilter = new
+
+                filterAppItems()
+            }
 
             override fun performFiltering(constraint: CharSequence?): FilterResults {
                 val searchAppName = constraint.toString()
@@ -218,19 +203,19 @@ class ShowAllInstalledAppsAdapter3(
                     if (hasSearched) {
                         hasSearched = false
                         lastSearchAppName = ""
-                        filterAppItems = appItems
+                        updateFilterAppItems(appItems)
                         return filterResult.apply {
                             values = filterAppItems
                         }
                     }
                 } else if (searchAppName != lastSearchAppName) {
-                    val filterList = arrayListOf<AppItem>()
+                    val filterList = tmpList.apply { clear() }
                     appItems.forEach { appItem ->
                         if (appItem.appName.contains(searchAppName, ignoreCase = true)) {
                             filterList.add(appItem)
                         }
                     }
-                    filterAppItems = filterList
+                    updateFilterAppItems(filterList)
                     hasSearched = true
                     lastSearchAppName = searchAppName
 
@@ -246,5 +231,25 @@ class ShowAllInstalledAppsAdapter3(
                 notifyDataSetChanged()
             }
         }
+    }
+}
+
+class ShowAllInstalledAppsViewHolder(itemView: View) : ShowInfoFromAppItemViewHolder(itemView) {
+    val appIcon: ImageView by unsafeLazy { itemView.findViewById(R.id.appIconImageView) }
+    val appName: TextView by unsafeLazy { itemView.findViewById(R.id.appNameText) }
+    val itemInstalledAppsMemTrimFlagText: TextView by unsafeLazy {
+        itemView.findViewById(R.id.itemInstalledAppsMemTrimFlagText)
+    }
+    val itemInstalledAppsCustomMainProcOomScoreFlagText: TextView by unsafeLazy {
+        itemView.findViewById(R.id.itemInstalledAppsCustomMainProcOomScoreFlagText)
+    }
+    val itemInstalledAppsOomPolicyFlagText: TextView by unsafeLazy {
+        itemView.findViewById(R.id.itemInstalledAppsOomPolicyFlagText)
+    }
+    val itemInstalledAppsShouldHandleMainProcAdjFlagText: TextView by unsafeLazy {
+        itemView.findViewById(R.id.itemInstalledAppsShouldHandleMainProcAdjFlagText)
+    }
+    val itemInstalledAppsMainProcessAdjManagePolicy: TextView by unsafeLazy {
+        itemView.findViewById(R.id.itemInstalledAppsMainProcessAdjManagePolicy)
     }
 }

@@ -23,13 +23,6 @@
 
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/showAllInstalledAppsRecycleView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginHorizontal="@dimen/content_space"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -54,6 +47,33 @@
                 android:layout_height="match_parent"
                 android:paddingHorizontal="@dimen/content_space" />
         </com.google.android.material.search.SearchView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginHorizontal="@dimen/content_space"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.venus.backgroundopt.app.ui.component.VenusPopupMenuButton
+                    android:id="@+id/app_category_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:defaultMenuItemResId="@id/runningProcessesAllAppCategoryMenuItem"
+                    app:menu="@menu/menu_running_processes_app_category" />
+
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/showAllInstalledAppsRecycleView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </LinearLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
