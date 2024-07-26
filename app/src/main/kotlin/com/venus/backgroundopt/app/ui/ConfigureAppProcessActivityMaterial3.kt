@@ -111,7 +111,9 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                         }
                     }
                 ) {
-                    showResetAppConfigDialog()
+                    runOnUiThread {
+                        showResetAppConfigDialog()
+                    }
                 }
             }
         }
