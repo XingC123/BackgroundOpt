@@ -361,7 +361,7 @@ abstract class OomAdjHandler(
 
         var finalApplyAdj: Int = adj
         // 高优先级进程
-        if (processRecord.isHighPriorityProcess()) {
+        if (isHighPriorityProcess) {
             when {
                 appGroupEnum == AppGroupEnum.ACTIVE -> {
                     checkAndSetDefaultMaxAdjIfNeed(processRecord)
