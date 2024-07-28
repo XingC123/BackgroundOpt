@@ -41,14 +41,18 @@ class OomAdjustManager(
 ) {
     private val useSimpleLmk: Boolean get() = HookCommonProperties.useSimpleLmk
 
-    private var oomAdjHandler: OomAdjHandler = initOomAdjHandler()
+    private lateinit var oomAdjHandler: OomAdjHandler
     private val adjHandleActionPool = ExecutorUtils.newFixedThreadPool(
         coreSize = 3,
         factoryName = "adjHandleActionPool"
     )
 
-    private fun initOomAdjHandler(): OomAdjHandler {
-        return when (HookCommonProperties.oomWorkModePref.oomMode) {
+    init {
+        initOomAdjHandler()
+    }
+
+    private fun initOomAdjHandler() {
+        oomAdjHandler = when (HookCommonProperties.oomWorkModePref.oomMode) {
             OomWorkModePref.MODE_STRICT -> StrictModeOomAdjHandler()
             OomWorkModePref.MODE_BALANCE -> {
                 if (!useSimpleLmk) {
@@ -298,6 +302,7 @@ class OomAdjustManager(
     object AdjHandleActionTypeListenerConstants {
         const val GLOBAL_ADJ = "ADJ_HANDLE_ACTION_TYPE_GLOBAL_ADJ_LISTENER_KEY"
         const val WEBVIEW_PROCESS_PROTECT = "ADJ_HANDLE_ACTION_TYPE_GLOBAL_ADJ_LISTENER_KEY"
+        const val OOM_WORK_PREF = "OOM_WORK_PREF"
     }
 
     init {
@@ -310,6 +315,13 @@ class OomAdjustManager(
         ) { _, _ ->
             printAdjHandleActionTypeLog("webview进程保护切换")
             ProcessRecord.resetAdjHandleType()
+        }
+
+        HookCommonProperties.enableSimpleLmk.addListener(
+            AdjHandleActionTypeListenerConstants.OOM_WORK_PREF
+        ) { _, _ ->
+            printAdjHandleActionTypeLog("SLMK启用状态切换")
+            initOomAdjHandler()
         }
     }
 
