@@ -18,7 +18,9 @@
 package com.venus.backgroundopt.xposed.manager.process.oom
 
 import com.venus.backgroundopt.common.entity.preference.OomWorkModePref
+import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
+import com.venus.backgroundopt.xposed.entity.self.AppInfo
 
 /**
  * [OomWorkModePref.MODE_NEGATIVE]
@@ -31,7 +33,14 @@ class NegativeModeOomAdjHandler: OomAdjHandler() {
         return adj
     }
 
-    override fun computeAdj(processRecord: ProcessRecord, adj: Int): Int {
+    override fun doOther(
+        processRecord: ProcessRecord,
+        adj: Int,
+        isUserSpaceAdj: Boolean,
+        isHighPriorityProcess: Boolean,
+        appInfo: AppInfo,
+        appGroupEnum: AppGroupEnum,
+    ): Int {
         return adj
     }
 }

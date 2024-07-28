@@ -247,7 +247,7 @@ abstract class OomAdjHandler(
     /**
      * 自定义了主进程adj
      */
-    private fun doCustomMainProcessAdj(
+    protected open fun doCustomMainProcessAdj(
         processRecord: ProcessRecord,
         adj: Int,
         isUserSpaceAdj: Boolean,
@@ -278,7 +278,7 @@ abstract class OomAdjHandler(
         ) { possibleAdj }
     }
 
-    private fun doCustomSubprocessAdj(
+    protected open fun doCustomSubprocessAdj(
         processRecord: ProcessRecord,
         adj: Int,
         isUserSpaceAdj: Boolean,
@@ -310,7 +310,7 @@ abstract class OomAdjHandler(
         ) { possibleAdj }
     }
 
-    private fun doGlobalOomScoreAdj(
+    protected open fun doGlobalOomScoreAdj(
         processRecord: ProcessRecord,
         adj: Int,
         isUserSpaceAdj: Boolean,
@@ -347,7 +347,7 @@ abstract class OomAdjHandler(
     /**
      * 所有进程默认的处理方式
      */
-    private fun doOther(
+    protected open fun doOther(
         processRecord: ProcessRecord,
         adj: Int,
         isUserSpaceAdj: Boolean,
