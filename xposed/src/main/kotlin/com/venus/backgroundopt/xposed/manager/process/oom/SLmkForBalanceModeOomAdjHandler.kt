@@ -24,9 +24,9 @@ import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.Proce
  * @date 2024/7/28
  */
 class SLmkForBalanceModeOomAdjHandler : SimpleLmkOomAdjHandler() {
-    private val balanceModeOomAdjHandler = BalanceModeOomAdjHandler()
+    private val balanceModeCustomizeOomAdjHandler = BalanceModeCustomizeOomAdjHandler()
 
     override fun checkAndSetDefaultMaxAdjIfNeed(processRecord: ProcessRecord) {
-        balanceModeOomAdjHandler.checkAndSetDefaultMaxAdjIfNeed(processRecord)
+        balanceModeCustomizeOomAdjHandler.checkAndSetDefaultMaxAdjIfNeed(processRecord)
     }
 }

@@ -52,7 +52,7 @@ abstract class OomAdjHandler(
     var userProcessMaxAdj: Int = ProcessList.MAX_ADJ,
     var adjConvertFactor: Int = 1,
     var highPrioritySubprocessAdjOffset: Int = 0,
-) {
+): OomAdjHandlerCommonMethods() {
     /* *************************************************************************
      *                                                                         *
      * ADJ应用任务调度                                                           *
@@ -143,7 +143,7 @@ abstract class OomAdjHandler(
         }
     }
 
-    open fun getAdjWillSet(processRecord: ProcessRecord, adj: Int): Int {
+    public override fun getAdjWillSet(processRecord: ProcessRecord, adj: Int): Int {
         return processRecord.processStateRecord.curRawAdj
     }
 
@@ -192,18 +192,15 @@ abstract class OomAdjHandler(
         )
     }
 
-    /**
-     * 计算adj
-     */
-    protected open fun computeAdj(processRecord: ProcessRecord, adj: Int): Int {
+    override fun computeAdj(processRecord: ProcessRecord, adj: Int): Int {
         return computeAdjByAdjHandleType(processRecord, adj)
     }
 
-    protected fun computeAdjByAdjHandleType(
+    override fun computeAdjByAdjHandleType(
         processRecord: ProcessRecord,
         adj: Int,
-        isUserSpaceAdj: Boolean = adj >= 0,
-        isHighPriorityProcess: Boolean = processRecord.isHighPriorityProcess(),
+        isUserSpaceAdj: Boolean,
+        isHighPriorityProcess: Boolean,
     ): Int {
         return when (processRecord.adjHandleActionType) {
             AdjHandleActionType.CUSTOM_MAIN_PROCESS -> {
@@ -247,7 +244,7 @@ abstract class OomAdjHandler(
     /**
      * 自定义了主进程adj
      */
-    protected open fun doCustomMainProcessAdj(
+    override fun doCustomMainProcessAdj(
         processRecord: ProcessRecord,
         adj: Int,
         isUserSpaceAdj: Boolean,
@@ -278,7 +275,7 @@ abstract class OomAdjHandler(
         ) { possibleAdj }
     }
 
-    protected open fun doCustomSubprocessAdj(
+    override fun doCustomSubprocessAdj(
         processRecord: ProcessRecord,
         adj: Int,
         isUserSpaceAdj: Boolean,
@@ -310,13 +307,13 @@ abstract class OomAdjHandler(
         ) { possibleAdj }
     }
 
-    protected open fun doGlobalOomScoreAdj(
+    override fun doGlobalOomScoreAdj(
         processRecord: ProcessRecord,
         adj: Int,
         isUserSpaceAdj: Boolean,
         isHighPriorityProcess: Boolean,
-        appInfo: AppInfo = processRecord.appInfo,
-        appGroupEnum: AppGroupEnum = appInfo.appGroupEnum,
+        appInfo: AppInfo,
+        appGroupEnum: AppGroupEnum,
     ): Int {
         return if (globalOomScoreAdjHandler.isShouldHandle(
                 isMainProcess = processRecord.mainProcess,
@@ -344,16 +341,13 @@ abstract class OomAdjHandler(
         }
     }
 
-    /**
-     * 所有进程默认的处理方式
-     */
-    protected open fun doOther(
+    override fun doOther(
         processRecord: ProcessRecord,
         adj: Int,
         isUserSpaceAdj: Boolean,
         isHighPriorityProcess: Boolean,
-        appInfo: AppInfo = processRecord.appInfo,
-        appGroupEnum: AppGroupEnum = appInfo.appGroupEnum,
+        appInfo: AppInfo,
+        appGroupEnum: AppGroupEnum,
     ): Int {
         if (!isUserSpaceAdj) {
             return adj
@@ -389,18 +383,11 @@ abstract class OomAdjHandler(
         return finalApplyAdj
     }
 
-    /**
-     * 检查并对原生进程的adj设置最大值
-     * @param processRecord ProcessRecord
-     */
-    protected open fun checkAndSetDefaultMaxAdjIfNeed(processRecord: ProcessRecord) {
+    override fun checkAndSetDefaultMaxAdjIfNeed(processRecord: ProcessRecord) {
         processRecord.checkAndSetDefaultMaxAdjIfNeed()
     }
 
-    /**
-     * 计算子进程的oom分数
-     */
-    protected open fun computeSubprocessAdj(
+    override fun computeSubprocessAdj(
         processRecord: ProcessRecord,
         adj: Int,
     ): Int {
@@ -423,9 +410,6 @@ abstract class OomAdjHandler(
         return possibleFinalAdj
     }
 
-    /**
-     * 根据[AppInfo.adjHandleFunction]来计算高优先级进程的adj
-     */
     private inline fun computeHighPriorityProcessAdjByAdjHandlePolicy(
         processRecord: ProcessRecord,
         adj: Int,
@@ -454,22 +438,16 @@ abstract class OomAdjHandler(
         }
     }
 
-    /**
-     * 高优先级进程此时没有显示过界面(非 前台 -> 后台)
-     */
     private fun computeHighPriorityProcessAdjNotHasActivity(curAdj: Int): Int {
         return highPriorityProcessNotHasActivityAdjMap.computeIfAbsent(curAdj) { _ ->
             max(curAdj, ProcessRecord.SUB_PROC_ADJ)
         }
     }
 
-    /**
-     * 计算高优先级进程可能会被使用的adj
-     */
-    protected open fun computeHighPriorityProcessPossibleAdj(
+    override fun computeHighPriorityProcessPossibleAdj(
         processRecord: ProcessRecord,
         adj: Int,
-        appInfo: AppInfo = processRecord.appInfo,
+        appInfo: AppInfo,
     ): Int {
         return if (processRecord.mainProcess) {
             computeMainProcessAdj(adj)
@@ -478,13 +456,13 @@ abstract class OomAdjHandler(
         }
     }
 
-    protected open fun computeMainProcessAdj(adj: Int): Int {
+    override fun computeMainProcessAdj(adj: Int): Int {
         return mainProcessAdjMap.computeIfAbsent(adj) { _ ->
             clamp(adj / adjConvertFactor, userProcessMinAdj, userProcessMaxAdj)
         }
     }
 
-    open fun computeHighPrioritySubprocessAdj(adj: Int): Int {
+    public override fun computeHighPrioritySubprocessAdj(adj: Int): Int {
         return subprocessAdjMap.computeIfAbsent(adj) { _ ->
             computeMainProcessAdj(adj) + highPrioritySubprocessAdjOffset
         }
