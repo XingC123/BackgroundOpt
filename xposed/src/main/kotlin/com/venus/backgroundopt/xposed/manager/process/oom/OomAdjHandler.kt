@@ -52,7 +52,7 @@ abstract class OomAdjHandler(
     var userProcessMaxAdj: Int = ProcessList.MAX_ADJ,
     var adjConvertFactor: Int = 1,
     var highPrioritySubprocessAdjOffset: Int = 0,
-): OomAdjHandlerCommonMethods() {
+) : OomAdjHandlerCommonMethods() {
     /* *************************************************************************
      *                                                                         *
      * ADJ应用任务调度                                                           *
@@ -111,19 +111,21 @@ abstract class OomAdjHandler(
     protected val highPrioritySubprocessAdjMap = ConcurrentHashMap<Int, Int>(4)
     protected val subprocessAdjMap = ConcurrentHashMap<Int, Int>(4)
 
-    private val globalOomScorePolicy = HookCommonProperties.globalOomScorePolicy
-    private var customGlobalOomScore = globalOomScorePolicy.value.customGlobalOomScore
+    @Volatile
+    private var globalOomScorePolicy = HookCommonProperties.globalOomScorePolicy.value
+    private val customGlobalOomScore: Int get() = globalOomScorePolicy.customGlobalOomScore
 
     // 全局oom分数处理器
     @Volatile
     private var globalOomScoreAdjHandler: GlobalOomScoreAdjHandler = getGlobalOomScoreAdjHandler(
-        globalOomScorePolicy.value
+        globalOomScorePolicy
     ).also {
-        globalOomScorePolicy.addListener(GlobalOomScoreAdjHandler.PROPERTY_LISTENER_KEY) { _, newValue ->
+        HookCommonProperties.globalOomScorePolicy.addListener(
+            GlobalOomScoreAdjHandler.PROPERTY_LISTENER_KEY
+        ) { _, newValue ->
             OomAdjustManager.printAdjHandleActionTypeLog("全局OOM切换")
+            globalOomScorePolicy = newValue
             globalOomScoreAdjHandler = getGlobalOomScoreAdjHandler(newValue)
-
-            customGlobalOomScore = newValue.customGlobalOomScore
 
             ProcessRecord.resetAdjHandleType()
         }
