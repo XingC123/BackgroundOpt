@@ -29,18 +29,24 @@ import java.util.concurrent.ConcurrentHashMap
  * @author XingC
  * @date 2024/7/17
  */
-class SimpleLmkOomAdjHandler : BalancePlusModeOomAdjHandler() {
-    private val systemMainProcessMinAdj: Int = BACKGROUND_ADJ_START
-    private val systemMainProcessMaxAdj: Int = 3
+open class SimpleLmkOomAdjHandler(
+    protected var systemMainProcessMinAdj: Int = BACKGROUND_ADJ_START,
+    protected var systemMainProcessMaxAdj: Int = 3,
+    userProcessMinAdj: Int = systemMainProcessMaxAdj + 1,
+    userProcessMaxAdj: Int = ProcessRecord.defaultMaxAdj,
+    adjConvertFactor: Int = ADJ_CONVERT_FACTOR,
+    highPrioritySubprocessAdjOffset: Int = HIGH_PRIORITY_SUBPROCESS_ADJ_OFFSET,
+) : OomAdjHandler(
+    userProcessMinAdj,
+    userProcessMaxAdj,
+    adjConvertFactor,
+    highPrioritySubprocessAdjOffset
+) {
     private val systemMainProcessNormalAdj: Int = "%.0f".format(
         (systemMainProcessMinAdj + systemMainProcessMaxAdj) / 2.0
     ).toInt()
 
     private val systemProcessAdjMap = ConcurrentHashMap<Int, Int>(4)
-
-    init {
-        userProcessMinAdj = systemMainProcessMaxAdj + 1
-    }
 
     private fun computeImportAppAdj(adj: Int): Int {
         return systemProcessAdjMap.computeIfAbsent(adj) { _ ->

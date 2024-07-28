@@ -54,7 +54,7 @@ class OomAdjustManager(
                 if (!useSimpleLmk) {
                     BalanceModeOomAdjHandler()
                 } else {
-                    SimpleLmkOomAdjHandler()
+                    SLmkForBalanceModeOomAdjHandler()
                 }
             }
 

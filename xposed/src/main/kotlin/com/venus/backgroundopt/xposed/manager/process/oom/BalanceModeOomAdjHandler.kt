@@ -17,6 +17,7 @@
 
 package com.venus.backgroundopt.xposed.manager.process.oom
 
+import com.venus.backgroundopt.common.annotation.UsageComment
 import com.venus.backgroundopt.common.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
 
@@ -39,7 +40,8 @@ open class BalanceModeOomAdjHandler(
 ) {
     private val highPrioritySubprocessAdj = userProcessMinAdj + highPrioritySubprocessAdjOffset
 
-    override fun checkAndSetDefaultMaxAdjIfNeed(processRecord: ProcessRecord) {
+    @UsageComment("不应该在OomAdjHandler外的其他部分调用")
+    public override fun checkAndSetDefaultMaxAdjIfNeed(processRecord: ProcessRecord) {
         // do nothing
     }
 
