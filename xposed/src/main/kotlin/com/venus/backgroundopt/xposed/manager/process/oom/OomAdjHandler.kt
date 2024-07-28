@@ -364,7 +364,7 @@ abstract class OomAdjHandler(
         if (processRecord.isHighPriorityProcess()) {
             when {
                 appGroupEnum == AppGroupEnum.ACTIVE -> {
-                    processRecord.checkAndSetDefaultMaxAdjIfNeed()
+                    checkAndSetDefaultMaxAdjIfNeed(processRecord)
                     finalApplyAdj = ProcessRecord.DEFAULT_MAIN_ADJ
                 }
 
@@ -439,13 +439,13 @@ abstract class OomAdjHandler(
         return when (adjHandleFunction) {
             AppInfo.handleAdjNever -> adj
             AppInfo.handleAdjAlways -> {
-                processRecord.checkAndSetDefaultMaxAdjIfNeed()
+                checkAndSetDefaultMaxAdjIfNeed(processRecord)
                 possibleAdjComputeBlock(adj)
             }
 
             else -> {
                 if (appInfo.shouldHandleAdj()) {
-                    processRecord.checkAndSetDefaultMaxAdjIfNeed()
+                    checkAndSetDefaultMaxAdjIfNeed(processRecord)
                     possibleAdjComputeBlock(adj)
                 } else {
                     computeHighPriorityProcessAdjNotHasActivity(adj)
