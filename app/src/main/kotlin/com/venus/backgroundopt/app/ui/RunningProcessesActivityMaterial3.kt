@@ -64,7 +64,7 @@ class RunningProcessesActivityMaterial3 : ShowInfoFromAppItemActivityMaterial3()
         )
     }
     private var updateRunningProcessesFuture: ScheduledFuture<*>? = null
-    private val initialDelay = 3L
+    private var initialDelay = 3L
     private val delay = 3L
     private val delayTimeUnit = TimeUnit.SECONDS
 
@@ -273,5 +273,9 @@ class RunningProcessesActivityMaterial3 : ShowInfoFromAppItemActivityMaterial3()
             delay,
             delayTimeUnit
         )
+
+        // 仅初次显示时多延迟一会儿
+        // 这里留1s是为了让用户直观感受到数据的刷新
+        initialDelay = 1L
     }
 }
