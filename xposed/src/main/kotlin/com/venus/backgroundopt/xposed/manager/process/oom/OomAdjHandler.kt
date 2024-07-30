@@ -323,14 +323,7 @@ abstract class OomAdjHandler(
                 isHighPriorityProcess = isHighPriorityProcess
             )
         ) {
-            computeHighPriorityProcessAdjByAdjHandlePolicy(
-                processRecord = processRecord,
-                adj = adj,
-                adjHandleFunction = appInfo.adjHandleFunction,
-                appInfo = appInfo
-            ) {
-                customGlobalOomScore
-            }
+            customGlobalOomScore
         } else {
             doOther(
                 processRecord = processRecord,
