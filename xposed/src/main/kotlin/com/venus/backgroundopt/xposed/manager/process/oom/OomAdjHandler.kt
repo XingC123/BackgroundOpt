@@ -594,7 +594,7 @@ class MainAndSubProcessGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler() {
         isMainProcess: Boolean,
         isHighPriorityProcess: Boolean,
     ): Boolean {
-        return isHighPriorityProcess && isUserSpaceAdj
+        return isUserSpaceAdj
     }
 
     override fun logTag(): String = GlobalOomScoreEffectiveScopeEnum.MAIN_AND_SUB_PROCESS.uiName
