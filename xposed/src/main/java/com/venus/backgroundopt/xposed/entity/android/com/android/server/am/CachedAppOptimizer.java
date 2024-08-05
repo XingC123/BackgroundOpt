@@ -260,6 +260,7 @@ public class CachedAppOptimizer implements ILogger, IEntityWrapper {
                 fos.write(actionBytes);
                 return true;
             } catch (Throwable ignore) {
+                removeCompactOutputStreams(pid);
             }
         }
         return false;
