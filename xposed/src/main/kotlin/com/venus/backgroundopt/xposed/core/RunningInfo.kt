@@ -2,6 +2,7 @@ package com.venus.backgroundopt.xposed.core
 
 import android.os.PowerManager
 import com.venus.backgroundopt.common.preference.PropertyChangeListener
+import com.venus.backgroundopt.common.util.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.concurrent.lock.lock
 import com.venus.backgroundopt.common.util.ifNull
@@ -368,7 +369,7 @@ class RunningInfo(
     private val putIntoActiveAction: (AppInfo) -> Unit = ::putIntoActiveAppGroup
 
     private val activityEventChangeExecutor: ExecutorService = ExecutorUtils.newFixedThreadPool(
-        coreSize = 3,
+        coreSize = ConcurrentUtils.commonTaskThreadCount,
         factoryName = "activityEventChangePool"
     )
 

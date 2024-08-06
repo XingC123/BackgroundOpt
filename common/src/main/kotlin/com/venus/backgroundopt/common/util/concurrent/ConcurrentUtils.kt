@@ -32,6 +32,18 @@ import java.util.concurrent.ExecutorService
  */
 
 object ConcurrentUtils {
+    @JvmField
+    val availableProcessors: Int = Runtime.getRuntime().availableProcessors()
+
+    @JvmField
+    val computeIntensiveTaskThreadCount: Int = availableProcessors + 1
+
+    @JvmField
+    val ioIntensiveTaskThreadCount: Int = availableProcessors * 2
+
+    @JvmField
+    val commonTaskThreadCount: Int = availableProcessors.coerceAtLeast(6)
+
     @JvmStatic
     @JvmOverloads
     fun execute(

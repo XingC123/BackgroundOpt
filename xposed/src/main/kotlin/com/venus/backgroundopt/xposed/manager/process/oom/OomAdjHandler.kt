@@ -22,6 +22,7 @@ import com.venus.backgroundopt.common.entity.message.GlobalOomScorePolicy
 import com.venus.backgroundopt.common.entity.preference.getCustomBgAdj
 import com.venus.backgroundopt.common.entity.preference.getCustomFgAdj
 import com.venus.backgroundopt.common.util.clamp
+import com.venus.backgroundopt.common.util.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.log.logInfo
 import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum
@@ -59,7 +60,7 @@ abstract class OomAdjHandler(
      *                                                                         *
      **************************************************************************/
     private val adjTaskPool = ExecutorUtils.newScheduleThreadPool(
-        coreSize = 3,
+        coreSize = ConcurrentUtils.computeIntensiveTaskThreadCount,
         threadFactory = CachedByteBufferThreadFactory(),
         removeOnCancelPolicy = true
     )

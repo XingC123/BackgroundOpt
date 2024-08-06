@@ -18,6 +18,7 @@
 package com.venus.backgroundopt.xposed.manager.process.oom
 
 import com.venus.backgroundopt.common.entity.preference.OomWorkModePref
+import com.venus.backgroundopt.common.util.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.concurrent.lock.lock
 import com.venus.backgroundopt.common.util.log.ILogger
@@ -43,7 +44,7 @@ class OomAdjustManager(
 
     private lateinit var oomAdjHandler: OomAdjHandler
     private val adjHandleActionPool = ExecutorUtils.newFixedThreadPool(
-        coreSize = 3,
+        coreSize = ConcurrentUtils.commonTaskThreadCount,
         factoryName = "adjHandleActionPool"
     )
 
