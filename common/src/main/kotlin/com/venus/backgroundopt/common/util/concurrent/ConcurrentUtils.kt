@@ -107,10 +107,8 @@ val commonThreadPoolExecutor: ExecutorService = ExecutorUtils.newFixedThreadPool
     factoryName = "globalThreadPool"
 )
 
-inline fun newThreadTask(crossinline block: () -> Unit) {
-    commonThreadPoolExecutor.execute {
-        block()
-    }
+fun newThreadTask(block: () -> Unit) {
+    commonThreadPoolExecutor.execute(block)
 }
 
 inline fun newThreadTaskResult(crossinline block: () -> Unit): Result<Unit> {
