@@ -241,10 +241,6 @@ abstract class ProcessRecord(
     @JSONField(serialize = false)
     private val lastCompactTimeAtomicLong = AtomicLong(0L)
 
-    // 压缩间隔
-    @JSONField(serialize = false)
-    private val compactInterval = TimeUnit.MINUTES.toMillis(7)
-
     fun addCompactProcess(runningInfo: RunningInfo) {
         runningInfo.processManager.addCompactProcess(this)
     }
@@ -436,6 +432,9 @@ abstract class ProcessRecord(
 
         // 资源占用因子
         const val minOptimizeRssFactor = 0.025
+
+        // 压缩间隔
+        private val compactInterval = TimeUnit.MINUTES.toMillis(7)
 
         init {
             // 根据配置文件决定defaultMaxAdj
