@@ -340,6 +340,8 @@ class RunningInfo(
                 logger.debug("kill: userId: ${appInfo.userId}, packageName: ${packageName}, pid:${pid} >>> 子进程被杀")
             }
         }
+
+        ProcessRecord.recycleProcessRecord(processRecord)
     }
 
     /* *************************************************************************

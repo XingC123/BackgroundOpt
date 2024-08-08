@@ -24,6 +24,7 @@ import com.venus.backgroundopt.common.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.common.entity.preference.isCustomProcessAdjValid
 import com.venus.backgroundopt.common.util.OsUtils
 import com.venus.backgroundopt.common.util.PackageUtils
+import com.venus.backgroundopt.common.util.PooledInstance
 import com.venus.backgroundopt.common.util.ifTrue
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.log.logDebug
@@ -75,7 +76,7 @@ import java.util.concurrent.atomic.AtomicLong
  */
 abstract class ProcessRecord(
     @field:JSONField(serialize = false)
-    final override val originalInstance: Any,
+    final override var originalInstance: Any,
 ) : ProcessRecordBaseInfo(), IEntityWrapper, IEntityCompatFlag, ILogger {
     @JSONField(serialize = false)
     lateinit var appInfo: AppInfo
@@ -472,6 +473,26 @@ abstract class ProcessRecord(
             }
         }
 
+        /* *************************************************************************
+         *                                                                         *
+         * ProcessRecord实例缓存                                                     *
+         *                                                                         *
+         **************************************************************************/
+        private val processRecordCache = PooledInstance(
+            poolMaxSize = 20,
+            filler = Any(),
+        ) { originalInstance ->
+            ProcessRecordHelper.instanceCreator(originalInstance!!)
+        }
+
+        /**
+         * 回收[processRecord]
+         */
+        @JvmStatic
+        fun recycleProcessRecord(processRecord: ProcessRecord) {
+            processRecordCache.recycle(processRecord)
+        }
+
         @JvmStatic
         @JvmOverloads
         fun newInstance(
@@ -482,7 +503,9 @@ abstract class ProcessRecord(
             userId: Int = getUserId(processRecord),
             packageName: String = getPkgName(processRecord),
         ): ProcessRecord {
-            return ProcessRecordHelper.instanceCreator(processRecord).apply {
+            return processRecordCache.take(processRecord) {
+                this.originalInstance = processRecord
+
                 this.uid = uid
                 this.userId = userId
                 this.pid = pid
@@ -495,8 +518,14 @@ abstract class ProcessRecord(
                     appInfo.mProcessRecord = this
                 }
                 this.webviewProcessProbable = isWebviewProcProbable(processRecord)
-
                 this.appInfo = appInfo
+
+                // 一些状态的重置
+                this.recordMaxAdj = 0
+                this.oomAdjScoreAtomicInteger.set(Int.MIN_VALUE)
+                this.lastCompactTimeAtomicLong.set(0L)
+                this._wakeLockCount.set(0)
+                this.adjHandleActionType = AdjHandleActionType.OTHER
 
                 initAdjHandleType()
             }
