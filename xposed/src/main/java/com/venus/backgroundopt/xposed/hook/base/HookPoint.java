@@ -14,19 +14,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-                    
+
 package com.venus.backgroundopt.xposed.hook.base;
 
 import androidx.annotation.NonNull;
 
-import com.venus.backgroundopt.common.util.ThrowableUtilsKt;
+import com.venus.backgroundopt.common.environment.CommonProperties;
 import com.venus.backgroundopt.common.util.log.ILogger;
 import com.venus.backgroundopt.xposed.hook.base.action.AfterHookAction;
 import com.venus.backgroundopt.xposed.hook.base.action.BeforeHookAction;
 import com.venus.backgroundopt.xposed.hook.base.action.DoNotingHookAction;
 import com.venus.backgroundopt.xposed.hook.base.action.HookAction;
 import com.venus.backgroundopt.xposed.hook.base.action.ReplacementHookAction;
-import com.venus.backgroundopt.common.environment.CommonProperties;
 import com.venus.backgroundopt.xposed.util.XposedUtilsKt;
 
 import org.jetbrains.annotations.NotNull;
@@ -163,44 +162,35 @@ public class HookPoint implements ILogger {
         if (hookAction instanceof BeforeHookAction) {
             xc_methodHook = new XC_MethodHook() {
                 @Override
-                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                    super.beforeHookedMethod(param);
-
-                    ThrowableUtilsKt.runCatchThrowable(null, throwable -> {
-                        XposedUtilsKt.printAfterAppearException(className, methodName, throwable);
-                        return null;
-                    }, () -> {
+                protected void beforeHookedMethod(MethodHookParam param) {
+                    try {
                         hookAction.execute(param);
-                        return null;
-                    });
+                    } catch (Throwable throwable) {
+                        XposedUtilsKt.printAfterAppearException(className, methodName, throwable);
+                    }
                 }
             };
         } else if (hookAction instanceof AfterHookAction) {
             xc_methodHook = new XC_MethodHook() {
                 @Override
-                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    super.afterHookedMethod(param);
-
-                    ThrowableUtilsKt.runCatchThrowable(null, throwable -> {
-                        XposedUtilsKt.printAfterAppearException(className, methodName, throwable);
-                        return null;
-                    }, () -> {
+                protected void afterHookedMethod(MethodHookParam param) {
+                    try {
                         hookAction.execute(param);
-                        return null;
-                    });
+                    } catch (Throwable throwable) {
+                        XposedUtilsKt.printAfterAppearException(className, methodName, throwable);
+                    }
                 }
             };
         } else if (hookAction instanceof ReplacementHookAction) {
             xc_methodHook = new XC_MethodReplacement() {
                 @Override
-                protected Object replaceHookedMethod(MethodHookParam methodHookParam) throws Throwable {
-                    return ThrowableUtilsKt.runCatchThrowable(null, throwable -> {
+                protected Object replaceHookedMethod(MethodHookParam methodHookParam) {
+                    try {
+                        return hookAction.execute(methodHookParam);
+                    } catch (Throwable throwable) {
                         XposedUtilsKt.printAfterAppearException(className, methodName, throwable);
                         return null;
-                    }, () -> {
-                        hookAction.execute(methodHookParam);
-                        return null;
-                    });
+                    }
                 }
             };
         } else if (hookAction instanceof DoNotingHookAction) {
