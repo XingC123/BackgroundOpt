@@ -147,6 +147,7 @@ class CleanUpRemovedTaskHook(
         }.afterHook(
             classLoader = classLoader,
             methodName = methodNameForCleanUpRemovedTask,
+            tag = getHookTag(),
             hookAllMethod = true,
         ) {
             killProcessesForRemovedTask()
@@ -158,6 +159,7 @@ class CleanUpRemovedTaskHook(
         ClassConstants.WindowProcessController.afterHook(
             classLoader = classLoader,
             methodName = MethodConstants.shouldKillProcessForRemovedTask,
+            tag = getHookTag(),
             hookAllMethod = true
         ) { param ->
             val shouldKillProc = param.result as Boolean
@@ -179,6 +181,7 @@ class CleanUpRemovedTaskHook(
             enable = false,
             classLoader = classLoader,
             methodName = MethodConstants.killProcessesForRemovedTask,
+            tag = getHookTag(),
             hookAllMethod = true
         ) { param ->
             // 获取要查杀的进程列表
