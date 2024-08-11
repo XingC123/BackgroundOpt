@@ -315,7 +315,7 @@ private fun String.hookMethod(
 
 fun printAfterAppearException(className: String, methodName: String?, throwable: Throwable) {
     logError(
-        logStr = "beforeHook执行出错.className: ${className}, methodName: ${methodName}",
+        logStr = "Hook执行出错.className: ${className}, methodName: ${methodName}",
         t = throwable
     )
 }
