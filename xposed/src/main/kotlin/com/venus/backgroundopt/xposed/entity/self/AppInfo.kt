@@ -134,6 +134,8 @@ class AppInfo(
         activities.remove(activityRecord)
     }
 
+    fun resetActivityCount() = activities.clear()
+
     fun hasActivity(): Boolean = appActivityCount >= 1
 
     /* *************************************************************************

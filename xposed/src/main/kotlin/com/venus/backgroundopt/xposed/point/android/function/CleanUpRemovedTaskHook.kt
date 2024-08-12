@@ -143,6 +143,9 @@ class CleanUpRemovedTaskHook(
                 killProcess = true
             }
 
+            // 清空activity的计数
+            appInfo.resetActivityCount()
+
             param.args[1] = killProcess
         }.afterHook(
             classLoader = classLoader,
