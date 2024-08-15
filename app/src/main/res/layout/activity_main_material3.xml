@@ -25,7 +25,7 @@
                 android:elevation="0dp"
                 app:layout_collapseMode="pin"
                 app:menu="@menu/menu_main_activity_toolbar"
-                app:title="@string/app_name" />
+                app:title="@string/home_toolbar_title" />
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
