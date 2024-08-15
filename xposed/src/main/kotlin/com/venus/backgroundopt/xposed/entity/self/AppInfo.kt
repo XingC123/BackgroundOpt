@@ -197,7 +197,7 @@ class AppInfo(
     * 锁                                                                       *
     *                                                                         *
     **************************************************************************/
-    override val lock: ReentrantLock = ReentrantLock(true)
+    override val lock: ReentrantLock = ReentrantLock()
 
     /**
      * 该注解用以标识那些不需要被清理的字段
