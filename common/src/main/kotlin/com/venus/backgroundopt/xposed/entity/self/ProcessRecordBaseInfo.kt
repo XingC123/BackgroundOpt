@@ -32,8 +32,7 @@ open class ProcessRecordBaseInfo(
     var userId: Int = 0,
 ): MessageFlag {
     /**
-     * 主进程 -> 系统将要进行设置的oom_adj_score
-     * 子进程 -> 真实oom_adj_score
+     * 系统设置的oom_score_adj
      */
     var oomAdjScore: Int = Int.MIN_VALUE
 
