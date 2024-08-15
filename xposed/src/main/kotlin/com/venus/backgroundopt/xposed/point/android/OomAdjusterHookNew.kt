@@ -264,7 +264,10 @@ class OomAdjusterHookNew(
             val app: Any = lruList[i]!!
             // ProcessStateRecord
             val state: Any = ProcessRecord.getProcessStateRecord(app)
-            if (!ProcessRecord.isKilledByAm(app) && ProcessRecord.getThread(app) != null) {
+            if (!ProcessRecord.isKilledByAm(app)
+                && ProcessRecord.getThread(app) != null
+                && !isPendingFinishAttachMethod(app)
+            ) {
                 // We don't need to apply the update for the process which didn't get computed
                 if (ProcessStateRecord.getCompletedAdjSeq(state) == oomAdjuster.getIntFieldValue(
                         fieldName = FieldConstants.mAdjSeq
@@ -276,12 +279,6 @@ class OomAdjusterHookNew(
                         nowElapsed = nowElapsed,
                         oomAdjReason = oomAdjReason
                     )
-                }
-                if (isPendingFinishAttachMethod(app)) {
-                    // Avoid trimming processes that are still initializing. If they aren't
-                    // hosting any components yet because they may be unfairly killed.
-                    // We however apply the oom scores set at #setAttachingProcessStatesLSP.
-                    continue
                 }
                 // ProcessServiceRecord
                 val psr: Any = ProcessRecord.getProcessServiceRecord(app)
