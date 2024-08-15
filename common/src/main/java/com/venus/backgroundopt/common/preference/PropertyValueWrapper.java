@@ -30,6 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2024/2/2
  */
 public class PropertyValueWrapper<V> {
+    public static final String PROPERTY_INITIALIZATION_LISTEN_KEY = "PROPERTY_INITIALIZATION_LISTEN_KEY";
+
     private V value;
 
     private final Map<String, PropertyChangeListener<V>> valueChangeListener = new ConcurrentHashMap<>();
@@ -59,6 +61,21 @@ public class PropertyValueWrapper<V> {
      */
     public void addListener(@NonNull String key, @NonNull PropertyChangeListener<V> listener) {
         valueChangeListener.putIfAbsent(key, listener);
+    }
+
+    /**
+     * 注册属性监听器以获知初始化事件, 并返回当前的属性值。
+     * 若属性已被初始化, 则不再注册监听器
+     *
+     * @param listener 监听器{@link PropertyChangeListener}
+     * @return 返回当前的属性值
+     */
+    @Nullable
+    public V addPropertyInitListener(@NonNull PropertyChangeListener<V> listener) {
+        if (value != null) {
+            addListener(PROPERTY_INITIALIZATION_LISTEN_KEY, listener);
+        }
+        return value;
     }
 
     /**
