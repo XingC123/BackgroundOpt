@@ -164,10 +164,11 @@
 #    @com.venus.backgroundopt.xposed.entity.base.IEntityCompatMethod static <methods>;
 #}
 
--keepclassmembers class * implements com.venus.backgroundopt.xposed.entity.base.IEntityCompatFlag {
-    # @com.venus.backgroundopt.xposed.entity.base.IEntityCompatMethod <methods>;
-    @com.venus.backgroundopt.xposed.entity.base.IEntityCompatMethod static <methods>;
-}
+# 新的实现已不需要通过此方式阻止混淆
+#-keepclassmembers class * implements com.venus.backgroundopt.xposed.entity.base.IEntityCompatFlag {
+#    # @com.venus.backgroundopt.xposed.entity.base.IEntityCompatMethod <methods>;
+#    @com.venus.backgroundopt.xposed.entity.base.IEntityCompatMethod static <methods>;
+#}
 
 
 
