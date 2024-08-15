@@ -17,10 +17,12 @@
 
 package com.venus.backgroundopt.xposed.point.android
 
+import com.venus.backgroundopt.common.util.containsIgnoreCase
 import com.venus.backgroundopt.xposed.core.RunningInfo
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
 import com.venus.backgroundopt.xposed.hook.base.IHook
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
+import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
 import com.venus.backgroundopt.xposed.manager.process.oom.isHighPriorityProcess
 import com.venus.backgroundopt.xposed.util.beforeHook
 
@@ -37,15 +39,16 @@ class ProcessRecordHook(
      */
     val dontKillReasons = arrayOf(
         "anr",
-        "cached #",/* description: "too many cached" */
-        "empty for",/* description: "empty for too long" */
-        "empty #",/* description: "too many empty" */
-        "swap low and too many cached",
+        // 已在 OomAdjusterHookNew 中重写了 updateAndTrimProcessLSP() 的逻辑, 以下情况并不会出现
+        // "cached #",/* description: "too many cached" */
+        // "empty for",/* description: "empty for too long" */
+        // "empty #",/* description: "too many empty" */
+        // "swap low and too many cached",
     )
 
     private fun isReasonInDontKillReasons(reason: String): Boolean {
         dontKillReasons.forEach { predefinedReason ->
-            if (reason.contains(predefinedReason)) {
+            if (reason.containsIgnoreCase(predefinedReason)) {
                 return true
             }
         }
@@ -55,7 +58,7 @@ class ProcessRecordHook(
     override fun hook() {
         ClassConstants.ProcessRecord.beforeHook(
             classLoader = classLoader,
-            methodName = "killLocked",
+            methodName = MethodConstants.killLocked,
             hookAllMethod = true,
         ) { param ->
             val process = param.thisObject
