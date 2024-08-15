@@ -190,6 +190,7 @@ class MessageSender {
             } else if (socketPort == null) {
                 logWarnAndroid("无任何消息实现~")
                 sender = NoImplMessageSender()
+                socketPortStr = "重启后生效..."
             }
             // 支持socket传输
             else if (IModuleMessageHandler.isPortValid(socketPort)) {
