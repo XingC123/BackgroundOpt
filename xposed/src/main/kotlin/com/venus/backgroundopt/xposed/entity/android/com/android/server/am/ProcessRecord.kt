@@ -231,13 +231,9 @@ abstract class ProcessRecord(
 
     /* *************************************************************************
      *                                                                         *
-     * 独立于安卓原本ProcessRecord的字段                                           *
+     * 进程压缩                                                                  *
      *                                                                         *
      **************************************************************************/
-    // 此oomAdjScore为模块设置的值。若当前非app主进程, 则此值和真实值保持一致
-    @JSONField(serialize = false)
-    val oomAdjScoreAtomicInteger = AtomicInteger(Int.MIN_VALUE)
-
     // 上次压缩时间
     @JSONField(serialize = false)
     private val lastCompactTimeAtomicLong = AtomicLong(0L)
@@ -248,17 +244,6 @@ abstract class ProcessRecord(
 
     @JSONField(serialize = false)
     fun isAllowedCompact(time: Long): Boolean = time - getLastCompactTime() > compactInterval
-
-    @JvmName("getOomAdjScoreFromAtomicInteger")
-    @JSONField(serialize = false)
-    fun getOomAdjScore(): Int = oomAdjScoreAtomicInteger.get()
-
-    @JvmName("setOomAdjScoreToAtomicInteger")
-    @JSONField(serialize = false)
-    fun setOomAdjScore(oomAdjScore: Int) {
-        this.oomAdjScoreAtomicInteger.set(oomAdjScore)
-        this.oomAdjScore = oomAdjScore
-    }
 
     @JSONField(serialize = false)
     private fun getLastCompactTime(): Long = lastCompactTimeAtomicLong.get()
@@ -522,7 +507,6 @@ abstract class ProcessRecord(
 
                 // 一些状态的重置
                 this.recordMaxAdj = 0
-                this.oomAdjScoreAtomicInteger.set(Int.MIN_VALUE)
                 this.lastCompactTimeAtomicLong.set(0L)
                 this._wakeLockCount.set(0)
                 this.adjHandleActionType = AdjHandleActionType.OTHER
