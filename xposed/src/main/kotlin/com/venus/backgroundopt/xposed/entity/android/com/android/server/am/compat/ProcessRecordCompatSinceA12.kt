@@ -25,7 +25,10 @@ import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
 import com.venus.backgroundopt.xposed.util.callMethod
+import com.venus.backgroundopt.xposed.util.getBooleanFieldValue
 import com.venus.backgroundopt.xposed.util.getIntFieldValue
+import com.venus.backgroundopt.xposed.util.getObjectFieldValue
+import com.venus.backgroundopt.xposed.util.getStringFieldValue
 
 /**
  * @author XingC
@@ -42,19 +45,22 @@ class ProcessRecordCompatSinceA12(originalInstance: Any) : ProcessRecord(origina
         @JvmStatic
         @IEntityCompatMethod
         override fun getThread(@OriginalObject(classPath = ClassConstants.ProcessRecord) instance: Any): Any? {
-            return instance.callMethod(MethodConstants.getThread)
+            return instance.getObjectFieldValue(FieldConstants.mThread)
         }
 
         @JvmStatic
         @IEntityCompatMethod
         override fun getIsolatedEntryPoint(@OriginalObject(classPath = ClassConstants.ProcessRecord) instance: Any): String? {
-            return instance.callMethod<String?>(MethodConstants.getIsolatedEntryPoint)
+            return instance.getStringFieldValue(
+                FieldConstants.mIsolatedEntryPoint,
+                defaultValue = null
+            )
         }
 
         @JvmStatic
         @IEntityCompatMethod
         override fun isKilledByAm(instance: Any): Boolean {
-            return instance.callMethod<Boolean>(MethodConstants.isKilledByAm)
+            return instance.getBooleanFieldValue(FieldConstants.mKilledByAm)
         }
 
         @JvmStatic

@@ -88,7 +88,6 @@ public interface MethodConstants {
     String getProcessInPackage = "getProcessInPackage";
     String setProcessGroup = "setProcessGroup";
     String getProcessGroup = "getProcessGroup";
-    String getCurSchedGroup = "getCurSchedGroup";
     String setCurSchedGroup = "setCurSchedGroup";
     String setCurrentSchedulingGroup = "setCurrentSchedulingGroup";
     String getSetSchedGroup = "getSetSchedGroup";
@@ -139,9 +138,7 @@ public interface MethodConstants {
     String acquireWakeLockInternal = "acquireWakeLockInternal";
     String releaseWakeLockInternal = "releaseWakeLockInternal";
     String setCached = "setCached";
-    String getCached = "getCached";
     String setEmpty = "setEmpty";
-    String getEmpty = "getEmpty";
     String shouldKillProcessForRemovedTask = "shouldKillProcessForRemovedTask";
     String setHasForegroundServices = "setHasForegroundServices";
     String hasForegroundServices = "hasForegroundServices";

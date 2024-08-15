@@ -24,9 +24,12 @@ import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.Proce
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatMethod
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
-import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
-import com.venus.backgroundopt.xposed.util.callMethod
+import com.venus.backgroundopt.xposed.util.getBooleanFieldValue
+import com.venus.backgroundopt.xposed.util.getIntFieldValue
+import com.venus.backgroundopt.xposed.util.getLongFieldValue
 import com.venus.backgroundopt.xposed.util.getObjectFieldValue
+import com.venus.backgroundopt.xposed.util.setBooleanFieldValue
+import com.venus.backgroundopt.xposed.util.setIntFieldValue
 
 /**
  * @author XingC
@@ -39,7 +42,7 @@ class ProcessStateRecordCompatSinceA12(
         @JvmStatic
         @IEntityCompatMethod
         override fun getCurAdj(@OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any): Int {
-            return instance.callMethod<Int>(MethodConstants.getCurAdj)
+            return instance.getIntFieldValue(FieldConstants.mCurAdj)
         }
 
         @JvmStatic
@@ -48,13 +51,13 @@ class ProcessStateRecordCompatSinceA12(
             @OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any,
             curAdj: Int,
         ) {
-            instance.callMethod(MethodConstants.setCurAdj, curAdj)
+            instance.setIntFieldValue(FieldConstants.mCurAdj, curAdj)
         }
 
         @JvmStatic
         @IEntityCompatMethod
         override fun getMaxAdj(@OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any): Int {
-            return instance.callMethod<Int>(MethodConstants.getMaxAdj)
+            return instance.getIntFieldValue(FieldConstants.mMaxAdj)
         }
 
         @JvmStatic
@@ -63,13 +66,13 @@ class ProcessStateRecordCompatSinceA12(
             @OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any,
             maxAdj: Int,
         ) {
-            instance.callMethod(MethodConstants.setMaxAdj, maxAdj)
+            instance.setIntFieldValue(FieldConstants.mMaxAdj, maxAdj)
         }
 
         @JvmStatic
         @IEntityCompatMethod
         override fun getSetAdj(@OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any): Int {
-            return instance.callMethod<Int>(MethodConstants.getSetAdj)
+            return instance.getIntFieldValue(FieldConstants.mSetAdj)
         }
 
         @JvmStatic
@@ -78,13 +81,13 @@ class ProcessStateRecordCompatSinceA12(
             @OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any,
             setAdj: Int,
         ) {
-            instance.callMethod(MethodConstants.setSetAdj, setAdj)
+            instance.setIntFieldValue(FieldConstants.mSetAdj, setAdj)
         }
 
         @JvmStatic
         @IEntityCompatMethod
         override fun getCurRawAdj(@OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any): Int {
-            return instance.callMethod<Int>(MethodConstants.getCurRawAdj)
+            return instance.getIntFieldValue(FieldConstants.mCurRawAdj)
         }
 
         @JvmStatic
@@ -93,25 +96,25 @@ class ProcessStateRecordCompatSinceA12(
             @OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any,
             curRawAdj: Int,
         ) {
-            instance.callMethod(MethodConstants.setCurRawAdj, curRawAdj)
+            instance.setIntFieldValue(FieldConstants.mCurRawAdj, curRawAdj)
         }
 
         @JvmStatic
         @IEntityCompatMethod
         override fun getLastStateTime(@OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any): Long {
-            return instance.callMethod<Long>(MethodConstants.getLastStateTime)
+            return instance.getLongFieldValue(FieldConstants.mLastStateTime)
         }
 
         @JvmStatic
         @IEntityCompatMethod
         override fun getCompletedAdjSeq(@OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any): Int {
-            return instance.callMethod<Int>(MethodConstants.getCompletedAdjSeq)
+            return instance.getIntFieldValue(FieldConstants.mCompletedAdjSeq)
         }
 
         @JvmStatic
         @IEntityCompatMethod
         override fun getCached(@OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any): Boolean {
-            return instance.callMethod<Boolean>(MethodConstants.getCached)
+            return instance.getBooleanFieldValue(FieldConstants.mCached)
         }
 
         @JvmStatic
@@ -120,13 +123,13 @@ class ProcessStateRecordCompatSinceA12(
             @OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any,
             cached: Boolean,
         ) {
-            instance.callMethod(MethodConstants.setCached, cached)
+            instance.setBooleanFieldValue(FieldConstants.mCached, cached)
         }
 
         @JvmStatic
         @IEntityCompatMethod
         override fun getEmpty(@OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any): Boolean {
-            return instance.callMethod<Boolean>(MethodConstants.getEmpty)
+            return instance.getBooleanFieldValue(FieldConstants.mEmpty)
         }
 
         @JvmStatic
@@ -135,13 +138,13 @@ class ProcessStateRecordCompatSinceA12(
             @OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any,
             empty: Boolean,
         ) {
-            instance.callMethod(MethodConstants.setEmpty, empty)
+            instance.setBooleanFieldValue(FieldConstants.mEmpty, empty)
         }
 
         @JvmStatic
         @IEntityCompatMethod
         override fun getCurSchedGroup(@OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any): Int {
-            return instance.callMethod<Int>(MethodConstants.getCurSchedGroup)
+            return instance.getIntFieldValue(FieldConstants.mCurSchedGroup)
         }
 
         @JvmStatic
@@ -150,16 +153,13 @@ class ProcessStateRecordCompatSinceA12(
             @OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any,
             curSchedGroup: Int,
         ) {
-            instance.callMethod(
-                MethodConstants.setCurSchedGroup,
-                curSchedGroup
-            )
+            instance.setIntFieldValue(FieldConstants.mCurSchedGroup, curSchedGroup)
         }
 
         @JvmStatic
         @IEntityCompatMethod
         override fun getSetSchedGroup(@OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any): Int {
-            return instance.callMethod<Int>(MethodConstants.getSetSchedGroup)
+            return instance.getIntFieldValue(FieldConstants.mSetSchedGroup)
         }
 
         @JvmStatic
@@ -168,10 +168,7 @@ class ProcessStateRecordCompatSinceA12(
             @OriginalObject(classPath = ClassConstants.ProcessStateRecord) instance: Any,
             setSchedGroup: Int,
         ) {
-            instance.callMethod(
-                MethodConstants.setSetSchedGroup,
-                setSchedGroup
-            )
+            instance.setIntFieldValue(FieldConstants.mSetSchedGroup, setSchedGroup)
         }
 
         @JvmStatic

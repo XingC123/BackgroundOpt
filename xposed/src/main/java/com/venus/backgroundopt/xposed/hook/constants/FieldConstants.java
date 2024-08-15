@@ -122,4 +122,12 @@ public interface FieldConstants {
     String mPermissionManager = "mPermissionManager";
     String isolatedEntryPoint = "isolatedEntryPoint";
     String killedByAm = "killedByAm";
+    String mIsolatedEntryPoint = "mIsolatedEntryPoint";
+    String mKilledByAm = "mKilledByAm";
+    String mCurAdj = "mCurAdj";
+    String mSetAdj = "mSetAdj";
+    String mLastStateTime = "mLastStateTime";
+    String mCompletedAdjSeq = "mCompletedAdjSeq";
+    String mEmpty = "mEmpty";
+    String mSetSchedGroup = "mSetSchedGroup";
 }
