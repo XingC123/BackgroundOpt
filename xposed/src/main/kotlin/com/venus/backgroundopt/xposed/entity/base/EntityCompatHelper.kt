@@ -17,6 +17,8 @@
 
 package com.venus.backgroundopt.xposed.entity.base
 
+import com.venus.backgroundopt.common.util.getOrCreateThenInit
+import com.venus.backgroundopt.xposed.annotation.OriginalObject
 import com.venus.backgroundopt.xposed.util.callStaticMethod
 import kotlin.annotation.AnnotationRetention.BINARY
 import kotlin.annotation.AnnotationTarget.FUNCTION
@@ -36,6 +38,14 @@ interface IEntityCompatHelper<C : IEntityCompatRule, T : IEntityCompatFlag> {
      * [instanceClazz]中用来适配多版本的对象实例
      */
     val compatHelperInstance: C
+
+    fun reinitOrCreate(realInstance: T?, @OriginalObject instance: Any): T {
+        return realInstance.getOrCreateThenInit(
+            createBlock = { instanceCreator(instance) }
+        ) {
+            init(instance)
+        }
+    }
 }
 
 inline fun <R> IEntityCompatHelper<IEntityCompatRule, IEntityCompatFlag>.callStaticMethod(
@@ -66,7 +76,12 @@ interface IEntityCompatRule
 /**
  * 如果某原生对象的包装类有分版本进行适配, 则此包装类应实现此接口
  */
-interface IEntityCompatFlag
+interface IEntityCompatFlag {
+    /**
+     * 重写此方法, 以配合[IEntityCompatHelper.reinitOrCreate]。
+     */
+    fun init(@OriginalObject instance: Any) {}
+}
 
 /**
  * 被注解的方法是原生实体的适配方法
