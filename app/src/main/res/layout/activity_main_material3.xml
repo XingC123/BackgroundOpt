@@ -210,12 +210,27 @@
                     android:text="@string/getTargetAppGroupBtn"
                     android:visibility="gone" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/gotoRunningProcessesBtn"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0"
-                    android:text="@string/gotoRunningProcessesBtnText" />
+                    android:divider="@drawable/item_space_horizontal"
+                    android:orientation="horizontal"
+                    android:showDividers="middle">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/gotoRunningProcessesBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        android:text="@string/gotoRunningProcessesBtnText" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/gotoConfigureAppProcessActivityBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        android:text="@string/gotoConfigureAppProcessActivityBtn" />
+                </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/getBackgroundTasksBtn"
@@ -239,13 +254,6 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
                     android:text="@string/getManagedAdjDefalutAppsBtn" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/gotoConfigureAppProcessActivityBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0"
-                    android:text="@string/gotoConfigureAppProcessActivityBtn" />
 
                 <Button
                     android:id="@+id/configureAppByPkgNameBtn"
