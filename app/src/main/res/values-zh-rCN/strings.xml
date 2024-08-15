@@ -18,7 +18,7 @@
     <string name="configureAppProcessAppNameText">应用名</string>
     <string name="configureAppProcessItemApplyConfigureNameText">配置名</string>
     <string name="configureAppProcessItemSelectConfigBtn">选择</string>
-    <string name="gotoConfigureAppProcessActivityBtn">设置应用进程</string>
+    <string name="gotoConfigureAppProcessActivityBtn">已安装</string>
     <string name="installedAppItemAppNameText">appName</string>
     <string name="subProcessOomPolicyDialogDefaultBtn">默认</string>
     <string name="subProcessOomPolicyDialogMainProcessBtn">主进程</string>
@@ -68,14 +68,14 @@
     <string name="processInfoDialogPackageNameTip">包名:</string>
     <string name="processInfoDialogOriginalAdjTip">原始Adj:</string>
     <string name="processInfoDialogCurAdjTip">当前Adj:</string>
-    <string name="running_processes_toolbar_title">运行中的进程</string>
+    <string name="running_processes_toolbar_title">运行中</string>
     <string name="running_processes_pid_sort_menu_item">按 PID</string>
     <string name="running_processes_uid_sort_menu_item">按 UID</string>
     <string name="running_processes_name_sort_menu_item">按 名称</string>
     <string name="running_processes_user_app_category_menu_item">用户</string>
     <string name="running_processes_system_app_category_menu_item">系统</string>
     <string name="running_processes_all_app_category_menu_item">所有</string>
-    <string name="gotoRunningProcessesBtnText">运行中的进程</string>
+    <string name="gotoRunningProcessesBtnText">运行中</string>
     <string name="running_processes_searchbar_text">进程名/app名/包名</string>
     <string name="helpStr">帮助</string>
     <string name="running_processes_toolbar_help_tip_text">

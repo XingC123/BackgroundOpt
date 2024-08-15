@@ -23,7 +23,7 @@
     <string name="configureAppProcessItemProcessNameText" translatable="false">processName</string>
     <string name="configureAppProcessItemApplyConfigureNameText">configure name</string>
     <string name="configureAppProcessItemSelectConfigBtn">select</string>
-    <string name="gotoConfigureAppProcessActivityBtn">Configure app processes</string>
+    <string name="gotoConfigureAppProcessActivityBtn">Installed</string>
     <string name="installedAppItemAppNameText">appName</string>
     <string name="subProcessOomPolicyDialogDefaultBtn">Default</string>
     <string name="subProcessOomPolicyDialogMainProcessBtn">Main Process</string>
@@ -204,14 +204,14 @@
     <string name="main_activity_socket_port" translatable="false">通信端口:</string>
     <string name="settingsSecondaryMessageSender" translatable="false">次级消息发送器</string>
     <string name="settingsSecondaryMessageSenderSummary" translatable="false">重启App生效</string>
-    <string name="running_processes_toolbar_title">Running processes</string>
+    <string name="running_processes_toolbar_title">Running</string>
     <string name="running_processes_pid_sort_menu_item">By PID</string>
     <string name="running_processes_uid_sort_menu_item">By UID</string>
     <string name="running_processes_name_sort_menu_item">By NAME</string>
     <string name="running_processes_user_app_category_menu_item">User</string>
     <string name="running_processes_system_app_category_menu_item">System</string>
     <string name="running_processes_all_app_category_menu_item">All</string>
-    <string name="gotoRunningProcessesBtnText">Running processes</string>
+    <string name="gotoRunningProcessesBtnText">Running</string>
     <string name="running_processes_searchbar_text">Process name/App name/Package name</string>
     <string name="helpStr" translatable="true">Help</string>
     <string name="running_processes_toolbar_help_tip_text" translatable="true">
