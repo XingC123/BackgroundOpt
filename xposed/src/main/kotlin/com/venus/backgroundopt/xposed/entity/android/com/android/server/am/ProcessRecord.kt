@@ -25,6 +25,7 @@ import com.venus.backgroundopt.common.entity.preference.isCustomProcessAdjValid
 import com.venus.backgroundopt.common.util.OsUtils
 import com.venus.backgroundopt.common.util.PackageUtils
 import com.venus.backgroundopt.common.util.PooledInstance
+import com.venus.backgroundopt.common.util.getOrCreateThenInit
 import com.venus.backgroundopt.common.util.ifTrue
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.log.logDebug
@@ -83,10 +84,14 @@ abstract class ProcessRecord(
     lateinit var appInfo: AppInfo
 
     @JSONField(serialize = false)
-    lateinit var processStateRecord: ProcessStateRecord
+    private var _processStateRecord: ProcessStateRecord? = null
+    @get:JSONField(serialize = false)
+    val processStateRecord get() = _processStateRecord!!
 
     @JSONField(serialize = false)
-    lateinit var mWindowProcessController: WindowProcessController
+    private var _mWindowProcessController: WindowProcessController? = null
+    @get:JSONField(serialize = false)
+    val mWindowProcessController get() = _mWindowProcessController!!
 
     @get:JSONField(serialize = false)
     val mKilledByAm: Boolean get() = isKilledByAm(originalInstance)
@@ -501,12 +506,17 @@ abstract class ProcessRecord(
                 this.packageName = packageName
                 this.processName = getProcessName(processRecord)
 
-                this.processStateRecord = ProcessStateRecordHelper.instanceCreator(processRecord)
-                this.mWindowProcessController = WindowProcessController(
-                    processRecord.getObjectFieldValue(
+                this._processStateRecord = ProcessStateRecordHelper.reinitOrCreate(
+                    realInstance = this._processStateRecord,
+                    instance = processRecord
+                )
+                this._mWindowProcessController = this._mWindowProcessController.getOrCreateThenInit(
+                    createBlock = { WindowProcessController() },
+                ) {
+                    this.originalInstance = processRecord.getObjectFieldValue(
                         fieldName = FieldConstants.mWindowProcessController
                     )!!
-                )
+                }
 
                 this.mainProcess = isMainProcess(packageName, processName).ifTrue {
                     appInfo.mProcessRecord = this

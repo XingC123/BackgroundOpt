@@ -19,6 +19,7 @@ package com.venus.backgroundopt.xposed.entity.android.com.android.server.am
 
 import com.venus.backgroundopt.common.util.OsUtils
 import com.venus.backgroundopt.xposed.annotation.OriginalObject
+import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessStateRecord.ProcessStateRecordHelper.getProcessStateRecordFromProcessRecord
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.compat.ProcessStateRecordCompatSinceA12
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.compat.ProcessStateRecordCompatUntilA11
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatFlag
@@ -36,7 +37,7 @@ import com.venus.backgroundopt.xposed.util.getObjectFieldValue
  * @date 2024/7/14
  */
 abstract class ProcessStateRecord(
-    override val originalInstance: Any,
+    override var originalInstance: Any,
 ) : IEntityWrapper, IEntityCompatFlag {
     var maxAdj: Int
         get() = getMaxAdj(originalInstance)
@@ -80,6 +81,12 @@ abstract class ProcessStateRecord(
     var setSchedGroup: Int
         get() = getSetSchedGroup(originalInstance)
         set(value) = setSetSchedGroup(originalInstance, value)
+
+    override fun init(instance: Any) {
+        super.init(instance)
+
+        this.originalInstance = getProcessStateRecordFromProcessRecord(instance)
+    }
 
     object ProcessStateRecordHelper : IEntityCompatHelper<IProcessStateRecord, ProcessStateRecord> {
         override val instanceClazz: Class<out ProcessStateRecord>

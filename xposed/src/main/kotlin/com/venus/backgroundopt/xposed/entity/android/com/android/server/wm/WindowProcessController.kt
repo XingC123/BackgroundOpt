@@ -17,6 +17,7 @@
 
 package com.venus.backgroundopt.xposed.entity.android.com.android.server.wm
 
+import com.venus.backgroundopt.xposed.annotation.OriginalObject
 import com.venus.backgroundopt.xposed.entity.base.IEntityWrapper
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
 import com.venus.backgroundopt.xposed.util.getBooleanFieldValue
@@ -25,8 +26,12 @@ import com.venus.backgroundopt.xposed.util.getBooleanFieldValue
  * @author XingC
  * @date 2024/8/15
  */
-class WindowProcessController(
-    override val originalInstance: Any,
-) : IEntityWrapper {
+class WindowProcessController() : IEntityWrapper {
+    override lateinit var originalInstance: Any
+
     val mHasClientActivities get() = originalInstance.getBooleanFieldValue(FieldConstants.mHasClientActivities)
+
+    constructor(@OriginalObject instance: Any): this() {
+        this.originalInstance = instance
+    }
 }
