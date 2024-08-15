@@ -22,6 +22,7 @@ import com.venus.backgroundopt.common.util.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.concurrent.lock.lock
 import com.venus.backgroundopt.common.util.log.ILogger
+import com.venus.backgroundopt.common.util.unsafeLazy
 import com.venus.backgroundopt.xposed.core.RunningInfo
 import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessList
@@ -41,6 +42,9 @@ class OomAdjustManager(
     val runningInfo: RunningInfo,
 ) {
     private val useSimpleLmk: Boolean get() = HookCommonProperties.useSimpleLmk
+    private val processManager by unsafeLazy {
+        runningInfo.processManager
+    }
 
     private lateinit var oomAdjHandler: OomAdjHandler
     private val adjHandleActionPool = ExecutorUtils.newFixedThreadPool(
@@ -193,7 +197,7 @@ class OomAdjustManager(
         }
 
         // 内存压缩
-        runningInfo.processManager.compactProcess(
+        processManager.compactProcess(
             process,
             adjLastSet,
             adjWillSet,
