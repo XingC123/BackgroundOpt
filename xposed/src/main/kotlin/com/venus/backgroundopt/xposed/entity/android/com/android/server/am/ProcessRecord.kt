@@ -711,9 +711,9 @@ abstract class ProcessRecord(
         }
 
         @JvmStatic
-        fun isPendingFinishAttach(processRecord: Any): Boolean = processRecord.callMethod<Boolean>(
-            methodName = MethodConstants.isPendingFinishAttach
-        )
+        fun isPendingFinishAttach(processRecord: Any): Boolean {
+            return processRecord.getBooleanFieldValue(FieldConstants.mPendingFinishAttach)
+        }
 
         @JvmStatic
         fun getProcessServiceRecord(processRecord: Any): Any =
@@ -753,9 +753,9 @@ abstract class ProcessRecord(
         )
 
         @JvmStatic
-        fun getActiveInstrumentation(processRecord: Any): Any? = processRecord.callMethod(
-            methodName = MethodConstants.getActiveInstrumentation
-        )
+        fun getActiveInstrumentation(processRecord: Any): Any? {
+            return processRecord.getObjectFieldValue(FieldConstants.mInstr)
+        }
 
         @JvmStatic
         fun resetAdjHandleType(

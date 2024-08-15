@@ -130,4 +130,6 @@ public interface FieldConstants {
     String mCompletedAdjSeq = "mCompletedAdjSeq";
     String mEmpty = "mEmpty";
     String mSetSchedGroup = "mSetSchedGroup";
+    String mInstr = "mInstr";
+    String mPendingFinishAttach = "mPendingFinishAttach";
 }
