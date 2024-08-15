@@ -43,6 +43,7 @@ import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.Proce
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessStateRecord.ProcessStateRecordHelper
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.compat.ProcessRecordCompatSinceA12
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.compat.ProcessRecordCompatUntilA11
+import com.venus.backgroundopt.xposed.entity.android.com.android.server.wm.WindowProcessController
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatFlag
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatHelper
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatRule
@@ -83,6 +84,9 @@ abstract class ProcessRecord(
 
     @JSONField(serialize = false)
     lateinit var processStateRecord: ProcessStateRecord
+
+    @JSONField(serialize = false)
+    lateinit var mWindowProcessController: WindowProcessController
 
     @get:JSONField(serialize = false)
     val mKilledByAm: Boolean get() = isKilledByAm(originalInstance)
@@ -498,6 +502,11 @@ abstract class ProcessRecord(
                 this.processName = getProcessName(processRecord)
 
                 this.processStateRecord = ProcessStateRecordHelper.instanceCreator(processRecord)
+                this.mWindowProcessController = WindowProcessController(
+                    processRecord.getObjectFieldValue(
+                        fieldName = FieldConstants.mWindowProcessController
+                    )!!
+                )
 
                 this.mainProcess = isMainProcess(packageName, processName).ifTrue {
                     appInfo.mProcessRecord = this

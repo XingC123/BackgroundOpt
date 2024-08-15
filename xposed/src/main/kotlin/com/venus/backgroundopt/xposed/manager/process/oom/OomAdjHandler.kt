@@ -31,11 +31,8 @@ import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.Proce
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord.AdjHandleActionType
 import com.venus.backgroundopt.xposed.entity.self.AppInfo
 import com.venus.backgroundopt.xposed.environment.HookCommonProperties
-import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
 import com.venus.backgroundopt.xposed.manager.message.handle.getCustomMainProcessBgAdj
 import com.venus.backgroundopt.xposed.manager.message.handle.getCustomMainProcessFgAdj
-import com.venus.backgroundopt.xposed.util.getBooleanFieldValue
-import com.venus.backgroundopt.xposed.util.getObjectFieldValue
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledFuture
@@ -618,9 +615,7 @@ fun ProcessRecord.isUpgradeSubProcessLevel(): Boolean =
 fun ProcessRecord.isNeedHandleWebviewProcess(): Boolean {
     return HookCommonProperties.enableWebviewProcessProtect.value
             && this.webviewProcessProbable
-            && this.originalInstance.getObjectFieldValue(
-        fieldName = FieldConstants.mWindowProcessController
-    )?.getBooleanFieldValue(fieldName = FieldConstants.mHasClientActivities) == true
+            && this.mWindowProcessController.mHasClientActivities
 }
 
 /**
