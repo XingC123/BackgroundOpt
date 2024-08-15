@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="HomeToolbarTitle" parent="TextAppearance.Material3.HeadlineMedium">
+        <!-- 没有这个属性, android:textStyle 就不生效 -->
+        <item name="fontFamily"/>
+        <item name="android:textStyle">italic|bold</item>
+    </style>
+
+    <style name="HomeToolbarTitleSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="fontFamily"/>
+        <item name="android:textStyle">italic|bold</item>
+    </style>
+</resources>
