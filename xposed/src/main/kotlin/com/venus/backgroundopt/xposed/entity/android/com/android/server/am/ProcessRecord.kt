@@ -85,7 +85,7 @@ abstract class ProcessRecord(
     lateinit var processStateRecord: ProcessStateRecord
 
     @get:JSONField(serialize = false)
-    val mKilledByAm: Boolean get() = originalInstance.callMethod<Boolean>(MethodConstants.isKilledByAm)
+    val mKilledByAm: Boolean get() = isKilledByAm(originalInstance)
 
     // 当前ProcessRecord已记录的最大adj
     @JSONField(serialize = false)
