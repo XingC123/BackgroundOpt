@@ -30,7 +30,7 @@ import de.robv.android.xposed.XC_MethodHook
  * @author XingC
  * @date 2024/4/19
  */
-class ModuleRunningMessageHandler : MessageHandler {
+object ModuleRunningMessageHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,

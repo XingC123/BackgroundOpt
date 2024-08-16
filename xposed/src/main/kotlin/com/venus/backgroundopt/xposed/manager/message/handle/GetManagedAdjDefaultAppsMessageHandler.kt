@@ -27,7 +27,7 @@ import de.robv.android.xposed.XC_MethodHook
  * @author XingC
  * @date 2024/4/23
  */
-class GetManagedAdjDefaultAppsMessageHandler : MessageHandler {
+object GetManagedAdjDefaultAppsMessageHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,

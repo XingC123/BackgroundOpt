@@ -29,7 +29,7 @@ import de.robv.android.xposed.XC_MethodHook.MethodHookParam
  * @author XingC
  * @date 2024/7/23
  */
-class ResetAppConfigurationMessageHandler : MessageHandler {
+object ResetAppConfigurationMessageHandler : MessageHandler {
     override fun handle(runningInfo: RunningInfo, param: MethodHookParam, value: String?) {
         createResponse<AppItem>(
             param = param,

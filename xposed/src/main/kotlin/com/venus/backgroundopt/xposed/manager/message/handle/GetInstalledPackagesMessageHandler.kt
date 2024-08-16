@@ -37,7 +37,7 @@ import de.robv.android.xposed.XposedHelpers
  * @author XingC
  * @date 2023/10/2
  */
-class GetInstalledPackagesMessageHandler : MessageHandler {
+object GetInstalledPackagesMessageHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,

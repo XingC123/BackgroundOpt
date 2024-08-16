@@ -29,7 +29,7 @@ import de.robv.android.xposed.XC_MethodHook
  * @author XingC
  * @date 2023/11/3
  */
-class EnableForegroundProcTrimMemPolicyHandler : MessageHandler {
+object EnableForegroundProcTrimMemPolicyHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,

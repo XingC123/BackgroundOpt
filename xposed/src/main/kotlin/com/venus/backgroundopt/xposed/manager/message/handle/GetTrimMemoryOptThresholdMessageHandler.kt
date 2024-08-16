@@ -27,7 +27,7 @@ import de.robv.android.xposed.XC_MethodHook
  * @author XingC
  * @date 2024/2/22
  */
-class GetTrimMemoryOptThresholdMessageHandler : MessageHandler {
+object GetTrimMemoryOptThresholdMessageHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,

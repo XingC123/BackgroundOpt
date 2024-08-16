@@ -27,7 +27,7 @@ import de.robv.android.xposed.XC_MethodHook
  * @author XingC
  * @date 2024/4/26
  */
-class KeepMainProcessAliveHasActivityMessageHandler : MessageHandler {
+object KeepMainProcessAliveHasActivityMessageHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,

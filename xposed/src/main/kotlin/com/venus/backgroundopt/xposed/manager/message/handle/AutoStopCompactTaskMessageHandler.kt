@@ -26,7 +26,7 @@ import de.robv.android.xposed.XC_MethodHook
  * @author XingC
  * @date 2023/10/16
  */
-class AutoStopCompactTaskMessageHandler : MessageHandler {
+object AutoStopCompactTaskMessageHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,

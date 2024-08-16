@@ -27,7 +27,7 @@ import de.robv.android.xposed.XC_MethodHook
  * @author XingC
  * @date 2024/5/30
  */
-class ProcessRunningInfoMessageHandler : MessageHandler {
+object ProcessRunningInfoMessageHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,

@@ -29,7 +29,7 @@ import de.robv.android.xposed.XC_MethodHook
  * @author XingC
  * @date 2023/9/25
  */
-class AppCompactListMessageHandler : MessageHandler {
+object AppCompactListMessageHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,

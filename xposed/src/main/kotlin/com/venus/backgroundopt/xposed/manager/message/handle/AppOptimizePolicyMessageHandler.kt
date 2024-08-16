@@ -36,7 +36,7 @@ import de.robv.android.xposed.XC_MethodHook
  * @author XingC
  * @date 2023/11/5
  */
-class AppOptimizePolicyMessageHandler : MessageHandler {
+object AppOptimizePolicyMessageHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,

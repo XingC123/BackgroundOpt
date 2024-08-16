@@ -22,14 +22,12 @@ import android.content.Intent
 import com.venus.backgroundopt.common.environment.CommonProperties
 import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.log.ILogger
-import com.venus.backgroundopt.common.util.log.logDebug
 import com.venus.backgroundopt.common.util.log.logError
 import com.venus.backgroundopt.common.util.log.logInfo
 import com.venus.backgroundopt.common.util.message.Message
 import com.venus.backgroundopt.common.util.message.NULL_FLAG
 import com.venus.backgroundopt.common.util.parseObject
 import com.venus.backgroundopt.common.util.runCatchThrowable
-import com.venus.backgroundopt.xposed.BuildConfig
 import com.venus.backgroundopt.xposed.core.RunningInfo
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import java.io.ObjectInputStream
@@ -78,9 +76,13 @@ class DefaultModuleMessageHandler(
         if (dataIntent.type != Message.TYPE) {
             return
         }
-        val message = dataIntent.action!!.parseObject(Message::class.java)
-
-        registeredMessageHandler[message.key]?.handle(runningInfo, param, message.value)
+        runCatchThrowable {
+            val message = dataIntent.action!!.parseObject(Message::class.java)
+            handleMessage(
+                message = message,
+                methodHookParam = param
+            )
+        }
         param.result = param.result?.let { result ->
             ComponentName((result as String), NULL_FLAG)
         }
@@ -148,17 +150,13 @@ class SocketModuleMessageHandler(
                             accept.close()
                         }
                     }) {
-                        val message = objectInputStream.readObject() as Message
-                        if (BuildConfig.DEBUG) {
-                            logDebug(
-                                logStr = "模块进程接收的数据为: $message"
+                        runCatchThrowable {
+                            val message = objectInputStream.readObject() as Message
+                            handleMessage(
+                                message = message,
+                                methodHookParam = methodHookParam
                             )
                         }
-                        registeredMessageHandler[message.key]?.handle(
-                            runningInfo,
-                            methodHookParam,
-                            message.value.toString()
-                        )
                         ObjectOutputStream(accept.getOutputStream()).use { objectOutputStream ->
                             val result = methodHookParam.result as String?
                             objectOutputStream.writeObject(result)

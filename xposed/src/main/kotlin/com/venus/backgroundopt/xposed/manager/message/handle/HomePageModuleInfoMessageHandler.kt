@@ -28,7 +28,7 @@ import de.robv.android.xposed.XC_MethodHook
  * @author XingC
  * @date 2024/2/23
  */
-class HomePageModuleInfoMessageHandler : MessageHandler {
+object HomePageModuleInfoMessageHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,

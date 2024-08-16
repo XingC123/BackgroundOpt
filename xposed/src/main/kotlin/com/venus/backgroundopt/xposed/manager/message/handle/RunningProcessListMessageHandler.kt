@@ -26,7 +26,7 @@ import de.robv.android.xposed.XC_MethodHook.MethodHookParam
  * @author XingC
  * @date 2024/7/20
  */
-class RunningProcessListMessageHandler : MessageHandler {
+object RunningProcessListMessageHandler : MessageHandler {
     override fun handle(runningInfo: RunningInfo, param: MethodHookParam, value: String?) {
         createResponse<Any?>(
             param = param,

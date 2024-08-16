@@ -34,7 +34,7 @@ import de.robv.android.xposed.XC_MethodHook
  * @author XingC
  * @date 2023/9/28
  */
-class SubProcessOomConfigChangeMessageHandler : MessageHandler {
+object SubProcessOomConfigChangeMessageHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,

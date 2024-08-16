@@ -27,7 +27,7 @@ import de.robv.android.xposed.XC_MethodHook
  * @author XingC
  * @date 2024/2/4
  */
-class SimpleLmkMessageHandler : MessageHandler {
+object SimpleLmkMessageHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,

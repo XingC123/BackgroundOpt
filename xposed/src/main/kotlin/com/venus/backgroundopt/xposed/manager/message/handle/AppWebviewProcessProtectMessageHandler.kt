@@ -27,7 +27,7 @@ import de.robv.android.xposed.XC_MethodHook
  * @author XingC
  * @date 2024/2/2
  */
-class AppWebviewProcessProtectMessageHandler : MessageHandler {
+object AppWebviewProcessProtectMessageHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,

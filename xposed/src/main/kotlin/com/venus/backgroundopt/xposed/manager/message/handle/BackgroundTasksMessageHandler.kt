@@ -30,7 +30,7 @@ import de.robv.android.xposed.XC_MethodHook
  * @author XingC
  * @date 2023/9/23
  */
-class BackgroundTasksMessageHandler : MessageHandler {
+object BackgroundTasksMessageHandler : MessageHandler {
     override fun handle(
         runningInfo: RunningInfo,
         param: XC_MethodHook.MethodHookParam,
