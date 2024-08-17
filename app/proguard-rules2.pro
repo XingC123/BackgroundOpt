@@ -153,7 +153,7 @@
 # xposed                                                       #
 ################################################################
 # Hook的入口
--keep class com.venus.backgroundopt.xposed.MainHook
+-keep class com.venus.backgroundopt.xposed.point.XposedEntry
 
 # 原生实体适配规则接口
 # -keepclasseswithmembers class * implements com.venus.backgroundopt.xposed.entity.base.IEntityCompatRule
