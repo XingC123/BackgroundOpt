@@ -218,7 +218,7 @@ class AppCompactManager2(
         pid: Int,
         compactAction: Int,
     ): Int {
-        return if (cachedAppOptimizer.compactProcess(pid, compactAction)) {
+        return if (cachedAppOptimizer.compactProcessForce(pid, compactAction)) {
             ProcessCompactResultCode.success
         } else {
             ProcessCompactResultCode.problem
