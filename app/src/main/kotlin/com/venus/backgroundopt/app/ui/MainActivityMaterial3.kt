@@ -84,7 +84,8 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
             findViewById<TextView>(R.id.mainActivityModuleActiveText)?.setText(R.string.moduleActive)
             // 获取要展示的信息
             var socketPort: Int? = null
-            var socketPortText: TextView? = null
+            val socketPortText: TextView = findViewById(R.id.socket_port)
+
             IMessageSender.sendDefault<HomePageModuleInfoMessage>(
                 context = this,
                 key = MessageKeyConstants.getHomePageModuleInfo,
@@ -93,10 +94,6 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
                     homePageModuleInfoMessage.defaultMaxAdjStr
                 findViewById<TextView>(R.id.trim_mem_opt_threshold)?.text =
                     homePageModuleInfoMessage.minOptimizeRssInMBytesStr
-                socketPortText = findViewById(
-                    R.id.socket_port
-                )
-
                 socketPort = homePageModuleInfoMessage.socketPort
             }
             messageSender.init(

@@ -173,7 +173,7 @@ class MessageSender {
     fun init(
         context: Context,
         socketPort: Int?,
-        socketPortText: TextView?,
+        socketPortText: TextView,
     ) {
         executor.execute {
             var socketPortStr = "null"
@@ -190,7 +190,7 @@ class MessageSender {
             } else if (socketPort == null) {
                 logWarnAndroid("无任何消息实现~")
                 sender = NoImplMessageSender()
-                socketPortStr = "重启后生效..."
+                socketPortStr = "激活重启后生效"
             }
             // 支持socket传输
             else if (IModuleMessageHandler.isPortValid(socketPort)) {
@@ -204,7 +204,7 @@ class MessageSender {
             }
 
             (context as? Activity)?.runOnUiThread {
-                socketPortText?.text = socketPortStr
+                socketPortText.text = socketPortStr
             }
         }
     }
