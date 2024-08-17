@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.common.util.concurrent
 
+import android.os.Process
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledThreadPoolExecutor
@@ -45,23 +46,32 @@ object ExecutorUtils {
 
 class CommonThreadFactory(
     name: String? = null,
+    val mPriority: Int = Process.THREAD_PRIORITY_BACKGROUND,
 ) : ThreadFactory {
     private val threadNumber = AtomicInteger(1)
     private val factoryName = name ?: getThreadFactoryName()
 
-    override fun newThread(r: Runnable?): Thread {
-        return Thread(r, getThreadName()).apply {
-            if (isDaemon) {
-                setDaemon(false)
-            }
-            if (priority != Thread.NORM_PRIORITY) {
-                setPriority(Thread.NORM_PRIORITY)
-            }
-        }
+    override fun newThread(r: Runnable): Thread {
+        return CommonThread(
+            threadName = getThreadName(),
+            mPriority = mPriority,
+            runnable = r
+        )
     }
 
     private fun getThreadName(): String {
         return "${factoryName}-${THREAD_NAME}-${threadNumber.getAndIncrement()}"
+    }
+
+    private class CommonThread(
+        threadName: String,
+        val mPriority: Int,
+        val runnable: Runnable
+    ): Thread(threadName) {
+        override fun run() {
+            Process.setThreadPriority(mPriority)
+            runnable.run()
+        }
     }
 
     companion object {
