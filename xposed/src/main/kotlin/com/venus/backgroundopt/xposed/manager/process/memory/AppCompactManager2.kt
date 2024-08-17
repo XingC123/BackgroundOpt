@@ -19,6 +19,7 @@ package com.venus.backgroundopt.xposed.manager.process.memory
 
 import android.os.SystemClock
 import com.venus.backgroundopt.common.entity.preference.OomWorkModePref
+import com.venus.backgroundopt.common.util.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.runCatchThrowable
@@ -52,7 +53,7 @@ class AppCompactManager2(
 ) : AbstractAppOptimizeManager(PROCESS_COMPACT), ILogger {
     // App压缩处理线程池
     private val executor = ExecutorUtils.newScheduleThreadPool(
-        coreSize = 2,
+        coreSize = ConcurrentUtils.computeIntensiveTaskThreadCount,
         factoryName = "appCompactPool",
         removeOnCancelPolicy = true
     )
