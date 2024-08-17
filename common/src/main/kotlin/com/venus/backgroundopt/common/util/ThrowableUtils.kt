@@ -21,12 +21,25 @@ package com.venus.backgroundopt.common.util
  * @author XingC
  * @date 2024/2/26
  */
-@JvmOverloads
 inline fun <R> runCatchThrowable(
     defaultValue: R? = null,
     catchBlock: (Throwable) -> R? = { defaultValue },
     finallyBlock: () -> Unit = {},
-    block: () -> R
+    block: () -> R?
+): R? {
+    return try {
+        block()
+    } catch (t: Throwable) {
+        catchBlock(t)
+    } finally {
+        finallyBlock()
+    }
+}
+
+inline fun <R> runCatchThrowable(
+    catchBlock: (Throwable) -> R? = { null },
+    finallyBlock: () -> Unit = {},
+    block: () -> R?
 ): R? {
     return try {
         block()
