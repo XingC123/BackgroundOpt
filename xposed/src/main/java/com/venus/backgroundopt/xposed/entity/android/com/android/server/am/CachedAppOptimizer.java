@@ -202,7 +202,7 @@ public class CachedAppOptimizer implements ILogger, IEntityWrapper {
      * 向内存压缩节点写入的值的字节流 <br>
      * 以便在使用时不需要重复性的进行 字符->字节数组 的转换
      */
-    private final List<byte[]> compactActions = new ArrayList<>(2) {
+    private final List<byte[]> compactActions = new ArrayList<>(3) {
         /**
          * 获取压缩行为的字节数组
          * @param action 压缩行为的具体str
@@ -241,7 +241,7 @@ public class CachedAppOptimizer implements ILogger, IEntityWrapper {
      * @param compactionFlags 压缩的标识({@link #COMPACT_ACTION_FULL})
      * @return 写入了节点 -> true
      */
-    public boolean compactProcessForce(int pid, int compactionFlags) {
+    public boolean compactProcessForceCached(int pid, int compactionFlags) {
         FileOutputStream fos = compactOutputStreamMap.computeIfAbsent(pid, key -> {
             try {
                 String path = "/proc/" + pid + "/reclaim";
@@ -264,5 +264,19 @@ public class CachedAppOptimizer implements ILogger, IEntityWrapper {
             }
         }
         return false;
+    }
+
+    public boolean compactProcessForce(int pid, int compactionFlags) {
+        try(FileOutputStream fos = new FileOutputStream("/proc/" + pid + "/reclaim")) {
+            int index = switch (compactionFlags) {
+                case COMPACT_ACTION_FILE -> 1;
+                default -> 0;
+            };
+            byte[] actionBytes = compactActions.get(index);
+            fos.write(actionBytes);
+            return true;
+        } catch (Throwable ignore) {
+            return false;
+        }
     }
 }
