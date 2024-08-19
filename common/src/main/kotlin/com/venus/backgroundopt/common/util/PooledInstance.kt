@@ -33,8 +33,8 @@ class PooledInstance<F, T> @JvmOverloads constructor(
     private val filler: F,
     /* 最大缓存数量 */
     val poolMaxSize: Int = 10,
-    /* 每次填充的数量 */
-    val refillCount: Int = poolMaxSize / 2,
+    /* 每次填充时数量的上限 */
+    val refillLimit: Int = poolMaxSize / 2,
     /* 实际对象的生成器 */
     private val instanceGenerator: (F?) -> T,
 ) {
@@ -89,10 +89,7 @@ class PooledInstance<F, T> @JvmOverloads constructor(
             return
         }
 
-        val refillCount = max(
-            refillCount - size,
-            refillCount
-        )
+        val refillCount = refillLimit - size
         for (i in 0..<refillCount) {
             instanceCache.add(instanceGenerator(filler))
         }
