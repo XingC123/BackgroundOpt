@@ -473,7 +473,7 @@ abstract class ProcessRecord(
          *                                                                         *
          **************************************************************************/
         private val processRecordCache = PooledInstance(
-            poolMaxSize = 20,
+            poolMaxSize = 12,
             filler = Any(),
         ) { originalInstance ->
             ProcessRecordHelper.instanceCreator(originalInstance!!)
