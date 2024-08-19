@@ -312,7 +312,11 @@ class RunningInfo(
         /*ConcurrentUtils.execute(activityEventChangeExecutor, exceptionBlock = {throwable: Throwable ->
             logger.error("创建进程(userId: $${userId}, packageName: ${packageName}, pid: ${pid})出现错误", throwable)
         }) {*/
-        computeProcessIfAbsent(pid, proc, userId, uid, packageName)
+        addActivityEventChangeAction {
+            runCatchThrowable {
+                computeProcessIfAbsent(pid, proc, userId, uid, packageName)
+            }
+        }
         /*}*/
     }
 
