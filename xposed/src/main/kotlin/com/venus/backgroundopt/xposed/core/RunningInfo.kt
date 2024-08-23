@@ -222,8 +222,8 @@ class RunningInfo(
             )
             if (remove != null) {
                 // 从待处理列表中移除
-                activeAppGroup.remove(appInfo)
-                idleAppGroup.remove(appInfo)
+                /*activeAppGroup.remove(appInfo)
+                idleAppGroup.remove(appInfo)*/
 
                 // app被杀死
                 processManager.appDie(remove)
@@ -338,12 +338,12 @@ class RunningInfo(
      **************************************************************************/
     // 活跃分组
     // 初始容量为4.一般前台app数量不会到达这个数吧?
-    private val activeAppGroup: MutableSet<AppInfo> = Collections.newSetFromMap(
+    /*private val activeAppGroup: MutableSet<AppInfo> = Collections.newSetFromMap(
         ConcurrentHashMap(4)
     )
 
     // 后台分组
-    private val idleAppGroup: MutableSet<AppInfo> = Collections.newSetFromMap(ConcurrentHashMap())
+    private val idleAppGroup: MutableSet<AppInfo> = Collections.newSetFromMap(ConcurrentHashMap())*/
 
     private val doNothing: (AppInfo) -> Unit = {}
 
@@ -495,7 +495,7 @@ class RunningInfo(
     }
 
     private fun putIntoActiveAppGroup(appInfo: AppInfo) {
-        activeAppGroup.add(appInfo)
+        // activeAppGroup.add(appInfo)
         appInfo.appGroupEnum = AppGroupEnum.ACTIVE
 
         // 处理当前app
@@ -519,7 +519,7 @@ class RunningInfo(
     }
 
     private fun putIntoIdleAppGroup(appInfo: AppInfo) {
-        idleAppGroup.add(appInfo)
+        // idleAppGroup.add(appInfo)
         appInfo.appGroupEnum = AppGroupEnum.IDLE
 
         // 处理上个app
