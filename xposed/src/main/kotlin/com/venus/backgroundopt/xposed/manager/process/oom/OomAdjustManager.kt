@@ -23,8 +23,8 @@ import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.concurrent.lock.lock
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.unsafeLazy
+import com.venus.backgroundopt.xposed.core.AppGroupEnum
 import com.venus.backgroundopt.xposed.core.RunningInfo
-import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessList
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord.AdjHandleActionType

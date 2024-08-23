@@ -22,7 +22,7 @@ import androidx.annotation.NonNull;
 import com.venus.backgroundopt.common.util.log.ILogger;
 import com.venus.backgroundopt.xposed.BuildConfig;
 import com.venus.backgroundopt.xposed.core.RunningInfo;
-import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum;
+import com.venus.backgroundopt.xposed.core.AppGroupEnum;
 import com.venus.backgroundopt.xposed.entity.android.android.os.Process;
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ActivityManagerService;
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.CachedAppOptimizer;

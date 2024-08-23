@@ -18,7 +18,7 @@
 package com.venus.backgroundopt.xposed.manager.process.oom
 
 import com.venus.backgroundopt.common.entity.preference.OomWorkModePref
-import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum
+import com.venus.backgroundopt.xposed.core.AppGroupEnum
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
 import com.venus.backgroundopt.xposed.entity.self.AppInfo
 

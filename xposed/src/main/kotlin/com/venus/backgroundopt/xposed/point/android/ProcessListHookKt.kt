@@ -19,7 +19,7 @@ package com.venus.backgroundopt.xposed.point.android
 
 import com.venus.backgroundopt.common.util.unsafeLazy
 import com.venus.backgroundopt.xposed.core.RunningInfo
-import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum
+import com.venus.backgroundopt.xposed.core.AppGroupEnum
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
 import com.venus.backgroundopt.xposed.hook.action.afterHookAction
 import com.venus.backgroundopt.xposed.hook.action.beforeHookAction

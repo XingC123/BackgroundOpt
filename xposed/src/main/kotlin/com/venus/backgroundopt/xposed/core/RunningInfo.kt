@@ -12,8 +12,6 @@ import com.venus.backgroundopt.common.util.runCatchThrowable
 import com.venus.backgroundopt.common.util.unsafeLazy
 import com.venus.backgroundopt.xposed.BuildConfig
 import com.venus.backgroundopt.xposed.annotation.OriginalObject
-import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum.ACTIVE
-import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum.IDLE
 import com.venus.backgroundopt.xposed.entity.android.com.android.internal.util.MemInfoReader
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ActivityManagerService
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
@@ -338,14 +336,6 @@ class RunningInfo(
      * app切换待处理队列                                                          *
      *                                                                         *
      **************************************************************************/
-    enum class AppGroupEnum {
-        NONE,
-        ACTIVE,
-        TMP,
-        IDLE,
-        DEAD
-    }
-
     // 活跃分组
     // 初始容量为4.一般前台app数量不会到达这个数吧?
     private val activeAppGroup: MutableSet<AppInfo> = Collections.newSetFromMap(
@@ -437,7 +427,7 @@ class RunningInfo(
             ActivitySwitchHook.ACTIVITY_RESUMED -> {
                 // 从后台到前台 || 第一次打开app
                 val runnable = if (activityRecord == appInfo.activityRecord
-                    && appInfo.appGroupEnum != ACTIVE
+                    && appInfo.appGroupEnum != AppGroupEnum.ACTIVE
                     || appInfo.activityRecord == null
                 ) {
                     putIntoActiveAction
@@ -462,7 +452,7 @@ class RunningInfo(
                         但为了往后的兼容性, 暂时保持这样
                  */
                 if (activityRecord == appInfo.activityRecord) {
-                    if (appInfo.appGroupEnum !== IDLE || !powerManager.isInteractive) {
+                    if (appInfo.appGroupEnum !== AppGroupEnum.IDLE || !powerManager.isInteractive) {
                         handleAppSwitch(
                             activityRecord = activityRecord,
                             appInfo = appInfo,
@@ -506,7 +496,7 @@ class RunningInfo(
 
     private fun putIntoActiveAppGroup(appInfo: AppInfo) {
         activeAppGroup.add(appInfo)
-        appInfo.appGroupEnum = ACTIVE
+        appInfo.appGroupEnum = AppGroupEnum.ACTIVE
 
         // 处理当前app
         handleCurApp(appInfo)
@@ -530,7 +520,7 @@ class RunningInfo(
 
     private fun putIntoIdleAppGroup(appInfo: AppInfo) {
         idleAppGroup.add(appInfo)
-        appInfo.appGroupEnum = IDLE
+        appInfo.appGroupEnum = AppGroupEnum.IDLE
 
         // 处理上个app
         handleLastApp(appInfo)

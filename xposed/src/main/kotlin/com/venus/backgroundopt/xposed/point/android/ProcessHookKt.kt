@@ -18,8 +18,8 @@
 package com.venus.backgroundopt.xposed.point.android
 
 import com.venus.backgroundopt.xposed.BuildConfig
+import com.venus.backgroundopt.xposed.core.AppGroupEnum
 import com.venus.backgroundopt.xposed.core.RunningInfo
-import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.xposed.entity.android.android.os.Process
 import com.venus.backgroundopt.xposed.hook.base.HookPoint
 import com.venus.backgroundopt.xposed.hook.base.MethodHook

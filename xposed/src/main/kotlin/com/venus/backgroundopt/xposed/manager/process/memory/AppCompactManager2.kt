@@ -23,8 +23,8 @@ import com.venus.backgroundopt.common.util.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.runCatchThrowable
+import com.venus.backgroundopt.xposed.core.AppGroupEnum
 import com.venus.backgroundopt.xposed.core.RunningInfo
-import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.CachedAppOptimizer
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessList
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
@@ -81,7 +81,7 @@ class AppCompactManager2(
         curOomScoreAdj: Int,
         oomAdjustLevel: Int
     ) {
-        if (processRecord.appInfo.appGroupEnum != RunningInfo.AppGroupEnum.IDLE) {
+        if (processRecord.appInfo.appGroupEnum != AppGroupEnum.IDLE) {
             return
         }
         if (lastOomScoreAdj == curOomScoreAdj) {

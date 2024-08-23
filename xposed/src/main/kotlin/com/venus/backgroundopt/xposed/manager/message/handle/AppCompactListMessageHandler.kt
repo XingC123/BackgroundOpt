@@ -17,8 +17,8 @@
 
 package com.venus.backgroundopt.xposed.manager.message.handle
 
+import com.venus.backgroundopt.xposed.core.AppGroupEnum
 import com.venus.backgroundopt.xposed.core.RunningInfo
-import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.xposed.manager.message.MessageHandler
 import com.venus.backgroundopt.xposed.manager.message.createResponse
 import de.robv.android.xposed.XC_MethodHook

@@ -34,8 +34,8 @@ import com.venus.backgroundopt.common.util.nullableFilter
 import com.venus.backgroundopt.common.util.runCatchThrowable
 import com.venus.backgroundopt.xposed.BuildConfig
 import com.venus.backgroundopt.xposed.annotation.OriginalObject
+import com.venus.backgroundopt.xposed.core.AppGroupEnum
 import com.venus.backgroundopt.xposed.core.RunningInfo
-import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.xposed.entity.android.android.content.ComponentCallbacks2
 import com.venus.backgroundopt.xposed.entity.android.android.os.Process
 import com.venus.backgroundopt.xposed.entity.android.android.os.Process.PROC_NEWLINE_TERM

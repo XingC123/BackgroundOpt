@@ -27,8 +27,8 @@ import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.runCatchThrowable
 import com.venus.backgroundopt.xposed.BuildConfig
 import com.venus.backgroundopt.xposed.annotation.OriginalObject
+import com.venus.backgroundopt.xposed.core.AppGroupEnum
 import com.venus.backgroundopt.xposed.core.RunningInfo
-import com.venus.backgroundopt.xposed.core.RunningInfo.AppGroupEnum
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
 import com.venus.backgroundopt.xposed.environment.HookCommonProperties.appOptimizePolicyMap
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
