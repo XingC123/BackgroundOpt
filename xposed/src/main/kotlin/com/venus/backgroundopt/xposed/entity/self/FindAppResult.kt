@@ -39,6 +39,15 @@ class FindAppResult() {
             )
         }
     }
+
+    constructor(applicationInfo: android.content.pm.ApplicationInfo?) : this() {
+        applicationInfo?.let {
+            this.applicationInfo = ApplicationInfo(applicationInfo)
+            this.importantSystemApp = ActivityManagerService.isImportantSystemApp(
+                applicationInfo
+            )
+        }
+    }
 }
 
 inline fun FindAppResult.getOrCreateAppInfo(block: (FindAppResult) -> AppInfo): AppInfo {

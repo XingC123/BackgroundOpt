@@ -94,6 +94,10 @@ class ProcessListHookKt(
         }
 
         val proc = param.args[0]
+        val pid = param.args[1] as Int
+        runningInfo.startProcess(proc, pid)
+
+        /*val proc = param.args[0]
         val uid = ProcessRecord.getUID(proc)
         /*if (ActivityManagerService.isUnsafeUid(uid)) {
             return
@@ -102,7 +106,7 @@ class ProcessListHookKt(
         val pid = param.args[1] as Int
         val userId = ProcessRecord.getUserId(proc)
         val packageName = ProcessRecord.getPkgName(proc)
-        runningInfo.startProcess(proc, uid, userId, packageName, pid)
+        runningInfo.startProcess(proc, uid, userId, packageName, pid)*/
     }
 
     companion object {

@@ -1,5 +1,6 @@
 package com.venus.backgroundopt.xposed.core
 
+import android.content.pm.ApplicationInfo
 import android.os.PowerManager
 import com.venus.backgroundopt.common.preference.PropertyChangeListener
 import com.venus.backgroundopt.common.util.concurrent.ConcurrentUtils
@@ -82,17 +83,14 @@ class RunningInfo(
         }!!
     }
 
-    fun getFindAppResult(userId: Int, packageName: String): FindAppResult {
-        return getFindAppResult(
-            key = getNormalAppKey(userId, packageName),
-            userId = userId,
-            packageName = packageName
-        )
-    }
-
-    private fun getFindAppResult(key: String, userId: Int, packageName: String): FindAppResult {
+    private fun getFindAppResult(
+        userId: Int,
+        packageName: String,
+        key: String = getNormalAppKey(userId, packageName),
+        applicationInfo: ApplicationInfo? = null,
+    ): FindAppResult {
         return findAppResultMap.computeIfAbsent(key) { _ ->
-            activityManagerService.getFindAppResult(userId, packageName)
+            activityManagerService.getFindAppResult(userId, packageName, applicationInfo)
         }
     }
 
@@ -173,23 +171,25 @@ class RunningInfo(
      * 若 [.runningApps] 中没有此uid记录, 将进行计算创建
      *
      * @param userId      目标app对应用户id
-     * @param packageName 目标app包名
      * @param uid         目标app的uid
      * @return 生成的目标app信息
      */
-    private fun computeRunningAppIfAbsent(userId: Int, packageName: String, uid: Int): AppInfo {
+    private fun computeRunningAppIfAbsent(
+        userId: Int,
+        packageName: String,
+        uid: Int,
+        applicationInfo: ApplicationInfo,
+    ): AppInfo {
         return runningApps.computeIfAbsent(
-            getRunningAppIdentifier(
-                userId,
-                packageName
-            )
+            getRunningAppIdentifier(userId, packageName)
         ) { _: String? ->
             if (BuildConfig.DEBUG) {
                 logger.debug("创建新App记录: $packageName, uid: $uid")
             }
             getFindAppResult(
                 userId = userId,
-                packageName = packageName
+                packageName = packageName,
+                applicationInfo = applicationInfo
             ).getOrCreateAppInfo { findAppResult: FindAppResult ->
                 AppInfo.newInstance(
                     uid = uid,
@@ -271,15 +271,14 @@ class RunningInfo(
         runningProcesses[pid] = processRecord
     }
 
-    private fun computeProcessIfAbsent(
-        pid: Int,
-        @OriginalObject process: Any,
-        userId: Int,
-        uid: Int,
-        packageName: String,
-    ): ProcessRecord {
+    private fun computeProcessIfAbsent(pid: Int, @OriginalObject process: Any): ProcessRecord {
         return runningProcesses.computeIfAbsent(pid) { _: Int? ->
-            val appInfo = computeRunningAppIfAbsent(userId, packageName, uid)
+            val userId = ProcessRecord.getUserId(process)
+            val uid = ProcessRecord.getUID(process)
+            val applicationInfo = ProcessRecord.getApplicationInfo(process)
+            val packageName = applicationInfo.packageName
+
+            val appInfo = computeRunningAppIfAbsent(userId, packageName, uid, applicationInfo)
             ProcessRecord.newInstance(
                 appInfo = appInfo,
                 processRecord = process,
@@ -294,30 +293,16 @@ class RunningInfo(
     fun removeRunningProcess(pid: Int): ProcessRecord? = runningProcesses.remove(pid)
 
     /**
-     * 进程创建时的行为
+     * 进程创建
      *
      * @param proc        安卓的[ClassConstants.ProcessRecord]
-     * @param uid         uid
-     * @param userId      userId
-     * @param packageName 包名
-     * @param pid         pid
      */
-    fun startProcess(
-        @OriginalObject proc: Any,
-        uid: Int,
-        userId: Int,
-        packageName: String,
-        pid: Int,
-    ) {
-        /*ConcurrentUtils.execute(activityEventChangeExecutor, exceptionBlock = {throwable: Throwable ->
-            logger.error("创建进程(userId: $${userId}, packageName: ${packageName}, pid: ${pid})出现错误", throwable)
-        }) {*/
+    fun startProcess(@OriginalObject proc: Any, pid: Int) {
         addActivityEventChangeAction {
             runCatchThrowable {
-                computeProcessIfAbsent(pid, proc, userId, uid, packageName)
+                computeProcessIfAbsent(pid, proc)
             }
         }
-        /*}*/
     }
 
     /**

@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.venus.backgroundopt.common.util.OsUtils;
 import com.venus.backgroundopt.common.util.PackageUtils;
@@ -203,9 +204,7 @@ public class ActivityManagerService implements ILogger {
 
     private final FindAppResult notNormalAppFindAppResult = new FindAppResult();
 
-    public FindAppResult getFindAppResult(int userId, String packageName) {
-        ApplicationInfo applicationInfo = getApplicationInfo(userId, packageName);
-
+    public FindAppResult getFindAppResult(int userId, String packageName, @Nullable android.content.pm.ApplicationInfo applicationInfo) {
         if (applicationInfo == null) {
             return notNormalAppFindAppResult;
         } else {
