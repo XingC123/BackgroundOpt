@@ -101,4 +101,6 @@
     <string name="fg_adj_tip_text">前台ADJ</string>
     <string name="bg_adj_tip_text">后台ADJ</string>
     <string name="process_adj_tip_text">空 / [-1000, 1000]</string>
+    <string name="process_info_dialog_activity_count_tip">"界面数量: "</string>
+    <string name="process_info_dialog_app_running_group_tip">"内存分组: "</string>
 </resources>

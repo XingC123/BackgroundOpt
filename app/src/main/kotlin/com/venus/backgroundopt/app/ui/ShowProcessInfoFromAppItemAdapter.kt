@@ -34,6 +34,7 @@ import com.venus.backgroundopt.common.entity.message.ProcessRunningInfo
 import com.venus.backgroundopt.common.util.message.MessageKeyConstants
 import com.venus.backgroundopt.common.util.message.messageSender
 import com.venus.backgroundopt.xposed.entity.self.ProcessRecordBaseInfo
+import org.w3c.dom.Text
 
 /**
  * 尽可能使从[AppItem]中展示信息变得更容易
@@ -179,6 +180,14 @@ abstract class ShowProcessInfoFromAppItemAdapter(
                             findViewById<TextView>(
                                 R.id.curAdjText
                             )?.text = appItem.curAdj.toString()
+                            // 界面数量
+                            findViewById<TextView>(
+                                R.id.activity_count
+                            )?.text = processRunningInfo.activityCount.toString()
+                            // 内存分组
+                            findViewById<TextView>(
+                                R.id.app_running_group
+                            )?.text = processRunningInfo.appGroupEnum.name
                         },
                         titleStr = appItem.appName,
                         icon = appItem.appIcon,

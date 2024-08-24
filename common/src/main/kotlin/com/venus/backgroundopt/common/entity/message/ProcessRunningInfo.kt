@@ -18,6 +18,7 @@
 package com.venus.backgroundopt.common.entity.message
 
 import com.venus.backgroundopt.common.util.message.MessageFlag
+import com.venus.backgroundopt.xposed.core.AppGroupEnum
 
 /**
  * @author XingC
@@ -27,6 +28,8 @@ class ProcessRunningInfo: MessageFlag {
     var rssInBytes: Long = Long.MIN_VALUE
     var adj: Int = Int.MIN_VALUE
     var originalAdj: Int = Int.MIN_VALUE
+    var activityCount: Int = Int.MIN_VALUE
+    var appGroupEnum: AppGroupEnum = AppGroupEnum.NONE
 
     companion object {
         @JvmStatic

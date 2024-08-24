@@ -22,6 +22,7 @@ import android.graphics.drawable.Drawable
 import com.alibaba.fastjson2.annotation.JSONCreator
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.common.util.message.MessageFlag
+import com.venus.backgroundopt.xposed.core.AppGroupEnum
 import com.venus.backgroundopt.xposed.manager.process.AppOptimizeEnum
 import com.venus.backgroundopt.xposed.manager.process.ProcessingResult
 import java.text.Collator

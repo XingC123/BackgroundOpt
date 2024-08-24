@@ -38,10 +38,13 @@ object ProcessRunningInfoMessageHandler : MessageHandler {
             value = value
         ) { pid ->
             val processRecord = runningInfo.getRunningProcess(pid) ?: return
+            val appInfo = processRecord.appInfo
             ProcessRunningInfo().apply {
                 rssInBytes = processRecord.getCurRssInBytes()
                 adj = processRecord.getCurAdjNative()
                 originalAdj = processRecord.oomAdjScore
+                activityCount = appInfo.appActivityCount
+                appGroupEnum = appInfo.appGroupEnum
             }
         }
     }

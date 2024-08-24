@@ -239,4 +239,6 @@
     <string name="bg_adj_tip_text">Background adj</string>
     <string name="process_adj_tip_text">Null / [-1000, 1000]</string>
     <string name="home_toolbar_title" translatable="false">BackgroundOpt</string>
+    <string name="process_info_dialog_activity_count_tip">"Activity count: "</string>
+    <string name="process_info_dialog_app_running_group_tip">"Running group: "</string>
 </resources>

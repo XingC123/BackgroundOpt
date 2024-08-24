@@ -145,6 +145,44 @@
                     android:layout_height="wrap_content"
                     android:text="TextView" />
             </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="@drawable/item_space_horizontal"
+                android:showDividers="middle">
+
+                <TextView
+                    android:id="@+id/textView18"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/process_info_dialog_activity_count_tip" />
+
+                <TextView
+                    android:id="@+id/activity_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TextView" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="@drawable/item_space_horizontal"
+                android:showDividers="middle">
+
+                <TextView
+                    android:id="@+id/textView22"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/process_info_dialog_app_running_group_tip" />
+
+                <TextView
+                    android:id="@+id/app_running_group"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TextView" />
+            </TableRow>
         </TableLayout>
     </LinearLayout>
 
