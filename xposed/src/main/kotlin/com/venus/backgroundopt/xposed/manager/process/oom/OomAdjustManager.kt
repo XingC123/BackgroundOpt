@@ -20,7 +20,8 @@ package com.venus.backgroundopt.xposed.manager.process.oom
 import com.venus.backgroundopt.common.entity.preference.OomWorkModePref
 import com.venus.backgroundopt.common.util.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
-import com.venus.backgroundopt.common.util.concurrent.lock.lock
+import com.venus.backgroundopt.common.util.concurrent.lock.readLock
+import com.venus.backgroundopt.common.util.concurrent.lock.writeLock
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.unsafeLazy
 import com.venus.backgroundopt.xposed.core.AppGroupEnum
@@ -151,36 +152,40 @@ class OomAdjustManager(
 
         param.result = null
         addAdjHandleAction {
-            appInfo.lock {
-                handleSetOomAdjLocked(
+            appInfo.readLock {
+                handleAdjLocked(
                     process = process,
-                    adj = adj,
-                    appInfo = appInfo,
-                    appGroupEnum = appGroupEnum
+                    adj = adj
                 )
             }
+
+            handleAppGroupLocked(
+                appInfo = appInfo,
+                appGroupEnum = appGroupEnum,
+                mainProcess = process.mainProcess
+            )
+
+            handleProcessCompact(processRecord = process, adj = adj)
         }
     }
 
-    @JvmOverloads
-    fun handleSetOomAdjLocked(
+    private fun handleAdjLocked(
         process: ProcessRecord,
         adj: Int,
         priority: Int = ADJ_TASK_PRIORITY_NORMAL,
-        appInfo: AppInfo = process.appInfo,
-        appGroupEnum: AppGroupEnum = appInfo.appGroupEnum,
     ) {
-        val mainProcess = process.mainProcess
-        val adjLastSet = process.oomAdjScore
-        var oomAdjustLevel = OomAdjustLevel.NONE
-
         // 计算并应用adj
-        val adjWillSet = oomAdjHandler.getAdjWillSet(process, adj)
         oomAdjHandler.computeAdjAndApply(process, adj, priority)
 
         // 记录本次系统计算的分数
         process.oomAdjScore = adj
+    }
 
+    private fun handleAppGroupLocked(
+        appInfo: AppInfo,
+        appGroupEnum: AppGroupEnum,
+        mainProcess: Boolean
+    ) {
         // ProcessListHookKt.handleHandleProcessStartedLocked 执行后, 生成进程所属的appInfo
         // 但并没有将其设置内存分组。若在进程创建时就设置appInfo的内存分组, 则在某些场景下会产生额外消耗。
         // 例如, 在打开新app时, 会首先创建进程, 紧接着显示界面。分别会执行: ①ProcessListHookKt.handleHandleProcessStartedLocked
@@ -189,16 +194,26 @@ class OomAdjustManager(
         // 我们的目标是保活以及额外处理, 那么只需在①中将其放入running.runningApps, 在设置oom时就可以被管理。
         // 此时那些没有打开过页面的app就可以被设置内存分组, 相应的进行内存优化处理。
         if (appGroupEnum == AppGroupEnum.NONE && mainProcess) {
-            runningInfo.handleActivityEventChangeLocked(
-                ActivitySwitchHook.ACTIVITY_STOPPED,
-                null,
-                appInfo
-            )
+            appInfo.writeLock {
+                if (appInfo.appGroupEnum == AppGroupEnum.NONE) {
+                    runningInfo.handleActivityEventChangeLocked(
+                        ActivitySwitchHook.ACTIVITY_STOPPED,
+                        null,
+                        appInfo
+                    )
+                }
+            }
         }
+    }
+
+    private fun handleProcessCompact(processRecord: ProcessRecord, adj: Int) {
+        val adjLastSet = processRecord.oomAdjScore
+        var oomAdjustLevel = OomAdjustLevel.NONE
+        val adjWillSet = oomAdjHandler.getAdjWillSet(processRecord, adj)
 
         // 内存压缩
         processManager.compactProcess(
-            process,
+            processRecord,
             adjLastSet,
             adjWillSet,
             oomAdjustLevel

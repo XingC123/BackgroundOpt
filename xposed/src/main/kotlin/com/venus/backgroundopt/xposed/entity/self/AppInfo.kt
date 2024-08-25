@@ -22,6 +22,7 @@ import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy.MainProce
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy.MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_HAS_ACTIVITY
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy.MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_NEVER
 import com.venus.backgroundopt.common.util.concurrent.lock.LockFlag
+import com.venus.backgroundopt.common.util.concurrent.lock.ReadWriteLockFlag
 import com.venus.backgroundopt.common.util.ifTrue
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.runCatchThrowable
@@ -38,7 +39,10 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.Volatile
 
 /**
@@ -56,8 +60,8 @@ class AppInfo(
     var uid: Int,
     var userId: Int,
     var packageName: String?,
-    var findAppResult: FindAppResult,
-) : ILogger, LockFlag {
+    var findAppResult: FindAppResult
+) : ILogger, ReadWriteLockFlag {
     fun init(): AppInfo {
         _activitySwitchEventHandlingCount.set(0)
         _activityRecord.set(null)
@@ -197,7 +201,7 @@ class AppInfo(
     * 锁                                                                       *
     *                                                                         *
     **************************************************************************/
-    override val lock: ReentrantLock = ReentrantLock()
+    override val readWriteLock: ReadWriteLock = ReentrantReadWriteLock()
 
     /**
      * 该注解用以标识那些不需要被清理的字段

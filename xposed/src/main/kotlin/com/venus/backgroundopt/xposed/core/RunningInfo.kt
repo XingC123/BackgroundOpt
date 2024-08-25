@@ -5,7 +5,7 @@ import android.os.PowerManager
 import com.venus.backgroundopt.common.preference.PropertyChangeListener
 import com.venus.backgroundopt.common.util.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
-import com.venus.backgroundopt.common.util.concurrent.lock.lock
+import com.venus.backgroundopt.common.util.concurrent.lock.writeLock
 import com.venus.backgroundopt.common.util.ifNull
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.runCatchThrowable
@@ -26,7 +26,6 @@ import com.venus.backgroundopt.xposed.manager.application.DefaultApplicationMana
 import com.venus.backgroundopt.xposed.manager.message.ModuleMessageManager
 import com.venus.backgroundopt.xposed.manager.process.ProcessManager
 import com.venus.backgroundopt.xposed.point.android.function.ActivitySwitchHook
-import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import kotlin.concurrent.Volatile
@@ -388,7 +387,7 @@ class RunningInfo(
         }
         val appInfo: AppInfo = getRunningAppInfo(appKey) ?: return
 
-        appInfo.lock {
+        appInfo.writeLock {
             handleActivityEventChangeLocked(event, activityRecord, appInfo)
         }
     }

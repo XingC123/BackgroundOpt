@@ -17,6 +17,7 @@
                     
 package com.venus.backgroundopt.common.util.concurrent.lock
 
+import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReadWriteLock
 
 /**
@@ -24,12 +25,13 @@ import java.util.concurrent.locks.ReadWriteLock
  *
  * @author XingC
  */
-interface ReadWriteLockFlag {
-    fun getReadWriteLock(): ReadWriteLock
+interface ReadWriteLockFlag: LockFlag {
+    override val lock: Lock get() = readWriteLock.writeLock()
+    val readWriteLock: ReadWriteLock
 }
 
 inline fun ReadWriteLockFlag.readLock(block: () -> Unit) {
-    val readLock = getReadWriteLock().readLock()
+    val readLock = readWriteLock.readLock()
     readLock.lock()
     try {
         block()
@@ -39,7 +41,7 @@ inline fun ReadWriteLockFlag.readLock(block: () -> Unit) {
 }
 
 inline fun ReadWriteLockFlag.writeLock(block: () -> Unit) {
-    val writeLock = getReadWriteLock().writeLock()
+    val writeLock = readWriteLock.writeLock()
     writeLock.lock()
     try {
         block()
