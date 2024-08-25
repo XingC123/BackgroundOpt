@@ -6,6 +6,7 @@ import com.venus.backgroundopt.common.preference.PropertyChangeListener
 import com.venus.backgroundopt.common.util.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.concurrent.lock.writeLock
+import com.venus.backgroundopt.common.util.ifFalse
 import com.venus.backgroundopt.common.util.ifNull
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.runCatchThrowable
@@ -346,7 +347,12 @@ class RunningInfo(
 
     private val doNothing: (AppInfo) -> Unit = {}
 
-    private val putIntoActiveAction: (AppInfo) -> Unit = ::putIntoActiveAppGroup
+    private val putIntoActiveAction: (AppInfo) -> Unit = { appInfo: AppInfo ->
+        putIntoActiveAppGroup(appInfo)
+    }
+    private val putIntoIdleAction: (AppInfo) -> Unit = { appInfo: AppInfo ->
+        putIntoIdleAppGroup(appInfo)
+    }
 
     private val activityEventChangeExecutor: ExecutorService = ExecutorUtils.newFixedThreadPool(
         coreSize = ConcurrentUtils.commonTaskThreadCount,
@@ -467,6 +473,10 @@ class RunningInfo(
 
             ActivitySwitchHook.ACTIVITY_DESTROYED -> {
                 appInfo.activityDie(activityRecord!!)
+
+                appInfo.hasActivity().ifFalse {
+                    putIntoIdleAppGroup(appInfo)
+                }
             }
 
             else -> {}

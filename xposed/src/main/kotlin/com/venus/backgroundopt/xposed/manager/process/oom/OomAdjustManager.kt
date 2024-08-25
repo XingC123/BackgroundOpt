@@ -161,8 +161,7 @@ class OomAdjustManager(
 
             handleAppGroupLocked(
                 appInfo = appInfo,
-                appGroupEnum = appGroupEnum,
-                mainProcess = process.mainProcess
+                appGroupEnum = appGroupEnum
             )
 
             handleProcessCompact(processRecord = process, adj = adj)
@@ -184,7 +183,6 @@ class OomAdjustManager(
     private fun handleAppGroupLocked(
         appInfo: AppInfo,
         appGroupEnum: AppGroupEnum,
-        mainProcess: Boolean
     ) {
         // ProcessListHookKt.handleHandleProcessStartedLocked 执行后, 生成进程所属的appInfo
         // 但并没有将其设置内存分组。若在进程创建时就设置appInfo的内存分组, 则在某些场景下会产生额外消耗。
@@ -193,7 +191,7 @@ class OomAdjustManager(
         // 此时, 若在①中设置了分组, 在②中会再次设置。即: 新打开app需要连续两次appInfo的内存分组迁移, 这是不必要的。
         // 我们的目标是保活以及额外处理, 那么只需在①中将其放入running.runningApps, 在设置oom时就可以被管理。
         // 此时那些没有打开过页面的app就可以被设置内存分组, 相应的进行内存优化处理。
-        if (appGroupEnum == AppGroupEnum.NONE && mainProcess) {
+        if (appGroupEnum == AppGroupEnum.NONE /*&& mainProcess*/) {
             appInfo.writeLock {
                 if (appInfo.appGroupEnum == AppGroupEnum.NONE) {
                     runningInfo.handleActivityEventChangeLocked(
