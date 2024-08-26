@@ -320,10 +320,12 @@ class RunningInfo(
         // 移除内存压缩文件流的缓存
         activityManagerService.oomAdjuster.cachedAppOptimizer.removeCompactOutputStreams(pid)
 
-        if (isMainProcess) {
+        appInfo.processes.remove(processRecord)
+        if (appInfo.processCount == 0) {
             removeRunningApp(appInfo)
-        } else {
-            if (BuildConfig.DEBUG) {
+        }
+        if (BuildConfig.DEBUG) {
+            if (!isMainProcess) {
                 logger.debug("kill: userId: ${appInfo.userId}, packageName: ${packageName}, pid:${pid} >>> 子进程被杀")
             }
         }

@@ -531,6 +531,8 @@ abstract class ProcessRecord(
                 this.adjHandleActionType = AdjHandleActionType.OTHER
 
                 initAdjHandleType()
+            }.apply {
+                appInfo.processes.add(this)
             }
         }
 

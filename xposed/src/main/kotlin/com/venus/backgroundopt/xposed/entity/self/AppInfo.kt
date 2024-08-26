@@ -93,6 +93,9 @@ class AppInfo(
 
     val mPid: Int get() = mProcessRecord!!.pid
 
+    val processes: MutableSet<ProcessRecord> = Collections.newSetFromMap(ConcurrentHashMap())
+    val processCount get() = processes.size
+
     // 当前app在本模块内的内存分组
     @Volatile
     var appGroupEnum = AppGroupEnum.NONE

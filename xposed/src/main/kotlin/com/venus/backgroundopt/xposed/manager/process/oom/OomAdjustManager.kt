@@ -284,8 +284,7 @@ class OomAdjustManager(
                 filterNothingAdjTriggerSubprocessAdjSetAction(processRecord)
             }
         }
-        runningInfo.runningProcessList.asSequence()
-            .filter { processRecord: ProcessRecord -> processRecord.appInfo === appInfo }
+        appInfo.processes.asSequence()
             .filter { processRecord: ProcessRecord -> !processRecord.mainProcess }
             .filter(filter)
             .forEach(::triggerProcessAdjSetAction)
