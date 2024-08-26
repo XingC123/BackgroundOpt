@@ -74,6 +74,7 @@ public interface ClassConstants {
     String PackageRemovedInfo = "com.android.server.pm.PackageRemovedInfo";
     String PackageRemovedInfo_A12 = "com.android.server.pm.PackageManagerService.PackageRemovedInfo";
     String ParsedPackage = "com.android.server.pm.parsing.pkg.ParsedPackage";
+    String SystemServiceManager = "com.android.server.SystemServiceManager";
     String RoleControllerManager = "android.app.role.RoleControllerManager";
     String RemoteCallback = "android.os.RemoteCallback";
     String IApplicationThread = "android.app.IApplicationThread";

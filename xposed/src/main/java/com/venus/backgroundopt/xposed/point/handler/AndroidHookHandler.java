@@ -51,6 +51,7 @@ import com.venus.backgroundopt.xposed.point.android.function.ActivitySwitchHook;
 import com.venus.backgroundopt.xposed.point.android.function.CleanUpRemovedTaskHook;
 import com.venus.backgroundopt.xposed.point.android.function.DefaultApplicationChangeHook;
 import com.venus.backgroundopt.xposed.point.android.function.MemoryPressureHook;
+import com.venus.backgroundopt.xposed.point.android.function.StartHandleDefaultAppHook;
 
 import java.util.HashMap;
 
@@ -154,6 +155,8 @@ public class AndroidHookHandler extends PackageHook {
         new RoleManagerServiceHook(classLoader, runningInfo);
 
         new MemoryPressureHook(classLoader, runningInfo);
+
+        new StartHandleDefaultAppHook(classLoader, runningInfo);
     }
 
     private void initSystemProp() {

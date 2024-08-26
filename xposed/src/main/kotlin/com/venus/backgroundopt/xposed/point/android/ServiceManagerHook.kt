@@ -17,13 +17,8 @@
 
 package com.venus.backgroundopt.xposed.point.android
 
-import com.venus.backgroundopt.common.util.concurrent.newThreadTask
 import com.venus.backgroundopt.xposed.core.RunningInfo
 import com.venus.backgroundopt.xposed.hook.base.IHook
-import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
-import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
-import com.venus.backgroundopt.xposed.hook.constants.ServiceConstants
-import com.venus.backgroundopt.xposed.util.afterHook
 
 /**
  * @author XingC
@@ -34,24 +29,6 @@ class ServiceManagerHook(
     runningInfo: RunningInfo,
 ) : IHook(classLoader, runningInfo) {
     override fun hook() {
-        ClassConstants.ServiceManager.afterHook(
-            classLoader = classLoader,
-            methodName = MethodConstants.addService,
-            hookAllMethod = true
-        ) { param ->
-            val name = param.args[0] as String
-            /*
-             * 此方法有多个重载方法,
-             * public static void addService(String name, Class type)
-             * public static void addService(String name, IServiceCreator creator)
-             * public static void addService(String name, IBinder service)等
-             * 因此对第二个参数直接强转可能会导致ClassCastException
-             */
-            // val service = param.args[1] as IBinder
 
-            when (name) {
-                ServiceConstants.role -> newThreadTask(runningInfo::initActiveDefaultAppPackageName)
-            }
-        }
     }
 }

@@ -168,6 +168,7 @@ public interface MethodConstants {
     String modifyRawOomAdj = "modifyRawOomAdj";
     String updateUseTieredCachedAdj = "updateUseTieredCachedAdj";
     String writeLmkd = "writeLmkd";
+    String startOtherServices = "startOtherServices";
 
     /**
      * miui
