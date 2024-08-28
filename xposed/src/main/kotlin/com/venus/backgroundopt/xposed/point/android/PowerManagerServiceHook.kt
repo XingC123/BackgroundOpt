@@ -22,9 +22,11 @@ import com.venus.backgroundopt.common.util.OsUtils
 import com.venus.backgroundopt.xposed.BuildConfig
 import com.venus.backgroundopt.xposed.core.RunningInfo
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
+import com.venus.backgroundopt.xposed.entity.android.com.android.server.power.PowerManagerService.PowerManagerServiceHelper
 import com.venus.backgroundopt.xposed.hook.base.IHook
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
+import com.venus.backgroundopt.xposed.util.afterConstructorHook
 import com.venus.backgroundopt.xposed.util.afterHook
 import java.util.concurrent.ConcurrentHashMap
 
@@ -39,6 +41,15 @@ class PowerManagerServiceHook(
     val wakeLockMap = ConcurrentHashMap<IBinder, ProcessRecord>(8)
 
     override fun hook() {
+        ClassConstants.PowerManagerService.afterConstructorHook(
+            classLoader = classLoader,
+            hookAllMethod = true
+        ) { param ->
+            runningInfo.powerManagerService = PowerManagerServiceHelper.instanceCreator(
+                param.thisObject
+            )
+        }
+
         val pidParamIndex = if (OsUtils.isSOrHigher) 8 else 7
         val flagsParamIndex = if (OsUtils.isSOrHigher) 2 else 1
 

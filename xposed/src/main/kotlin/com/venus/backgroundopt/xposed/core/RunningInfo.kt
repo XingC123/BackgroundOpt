@@ -1,7 +1,6 @@
 package com.venus.backgroundopt.xposed.core
 
 import android.content.pm.ApplicationInfo
-import android.os.PowerManager
 import com.venus.backgroundopt.common.preference.PropertyChangeListener
 import com.venus.backgroundopt.common.util.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
@@ -17,6 +16,7 @@ import com.venus.backgroundopt.xposed.entity.android.com.android.internal.util.M
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ActivityManagerService
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.PackageManagerService
+import com.venus.backgroundopt.xposed.entity.android.com.android.server.power.PowerManagerService
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.wm.ActivityRecord
 import com.venus.backgroundopt.xposed.entity.self.AppInfo
 import com.venus.backgroundopt.xposed.entity.self.FindAppResult
@@ -459,7 +459,7 @@ class RunningInfo(
                         但为了往后的兼容性, 暂时保持这样
                  */
                 if (activityRecord == appInfo.activityRecord) {
-                    if (appInfo.appGroupEnum !== AppGroupEnum.IDLE || !powerManager.isInteractive) {
+                    if (appInfo.appGroupEnum !== AppGroupEnum.IDLE || !powerManagerService.isGloballyInteractiveInternal()) {
                         handleAppSwitch(
                             activityRecord = activityRecord,
                             appInfo = appInfo,
@@ -697,12 +697,12 @@ class RunningInfo(
      * 电源管理                                                                  *
      *                                                                         *
      **************************************************************************/
-    @OriginalObject(clazz = PowerManager::class)
-    private val powerManager: PowerManager by unsafeLazy {
-        activityManagerService.context.getSystemService(
-            PowerManager::class.java
-        )
-    }
+    private var _powerManagerService: PowerManagerService? = null
+    var powerManagerService: PowerManagerService
+        get() = _powerManagerService!!
+        set(value) {
+            _powerManagerService = value
+        }
 
     /* *************************************************************************
      *                                                                         *

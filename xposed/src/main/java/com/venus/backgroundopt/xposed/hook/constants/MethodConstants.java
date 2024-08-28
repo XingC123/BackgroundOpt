@@ -169,6 +169,8 @@ public interface MethodConstants {
     String updateUseTieredCachedAdj = "updateUseTieredCachedAdj";
     String writeLmkd = "writeLmkd";
     String startOtherServices = "startOtherServices";
+    String isInteractiveInternal = "isInteractiveInternal";
+    String isGloballyInteractiveInternal = "isGloballyInteractiveInternal";
 
     /**
      * miui
