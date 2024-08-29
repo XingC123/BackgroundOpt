@@ -60,7 +60,7 @@ open class ProcessRecordBaseInfo(
     lateinit var processName: String
 
     val lastProcessingResultMap =
-        ConcurrentHashMap<AppOptimizeEnum, ProcessingResult>(AppOptimizeEnum.entries.size)
+        ConcurrentHashMap<AppOptimizeEnum, ProcessingResult>(2)
 
     // 是否是webview进程
     var webviewProcess = false
