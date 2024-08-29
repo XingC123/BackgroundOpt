@@ -156,24 +156,23 @@ class OomAdjustManager(
             val adjWillSet = oomAdjHandler.getAdjWillSet(process, adj)
             var oomAdjustLevel = OomAdjustLevel.NONE
 
+            handleAppGroup(
+                appInfo = appInfo,
+                appGroupEnum = appGroupEnum
+            )
+
             appInfo.readLock {
                 handleAdjLocked(
                     process = process,
                     adjWillSet = adjWillSet
                 )
+                handleProcessCompact(
+                    processRecord = process,
+                    adjLastSet = adjLastSet,
+                    adjWillSet = adjWillSet,
+                    oomAdjustLevel = oomAdjustLevel
+                )
             }
-
-            handleAppGroupLocked(
-                appInfo = appInfo,
-                appGroupEnum = appGroupEnum
-            )
-
-            handleProcessCompact(
-                processRecord = process,
-                adjLastSet = adjLastSet,
-                adjWillSet = adjWillSet,
-                oomAdjustLevel = oomAdjustLevel
-            )
         }
     }
 
@@ -189,7 +188,7 @@ class OomAdjustManager(
         process.oomAdjScore = adjWillSet
     }
 
-    private fun handleAppGroupLocked(
+    private fun handleAppGroup(
         appInfo: AppInfo,
         appGroupEnum: AppGroupEnum,
     ) {
