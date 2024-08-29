@@ -351,8 +351,7 @@ abstract class OomAdjHandler(
         if (isHighPriorityProcess) {
             when {
                 appGroupEnum == AppGroupEnum.ACTIVE -> {
-                    checkAndSetDefaultMaxAdjIfNeed(processRecord)
-                    finalApplyAdj = ProcessRecord.DEFAULT_MAIN_ADJ
+                    finalApplyAdj = computeHighPriorityProcessAdjInActiveGroup(processRecord, adj)
                 }
 
                 else -> {
@@ -459,6 +458,14 @@ abstract class OomAdjHandler(
         return subprocessAdjMap.computeIfAbsent(adj) { _ ->
             computeMainProcessAdj(adj) + highPrioritySubprocessAdjOffset
         }
+    }
+
+    override fun computeHighPriorityProcessAdjInActiveGroup(
+        processRecord: ProcessRecord,
+        adj: Int,
+    ): Int {
+        checkAndSetDefaultMaxAdjIfNeed(processRecord)
+        return ProcessRecord.DEFAULT_MAIN_ADJ
     }
 
     companion object {

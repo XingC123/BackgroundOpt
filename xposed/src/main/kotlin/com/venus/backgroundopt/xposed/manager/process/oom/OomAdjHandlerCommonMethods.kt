@@ -125,4 +125,11 @@ abstract class OomAdjHandlerCommonMethods {
     protected open fun computeHighPrioritySubprocessAdj(adj: Int): Int {
         throw UnsupportedOperationException()
     }
+
+    protected open fun computeHighPriorityProcessAdjInActiveGroup(
+        processRecord: ProcessRecord,
+        adj: Int,
+    ): Int {
+        throw UnsupportedOperationException()
+    }
 }
