@@ -38,7 +38,6 @@ import com.venus.backgroundopt.xposed.manager.process.memory.ProcessCompactEnum.
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
 /**
@@ -49,7 +48,7 @@ import java.util.concurrent.TimeUnit
  */
 class AppCompactManager2(
     private val cachedAppOptimizer: CachedAppOptimizer,
-    private val runningInfo: RunningInfo
+    private val runningInfo: RunningInfo,
 ) : AbstractAppOptimizeManager(PROCESS_COMPACT), ILogger {
     // App压缩处理线程池
     private val executor = ExecutorUtils.newScheduleThreadPool(
@@ -79,7 +78,7 @@ class AppCompactManager2(
         processRecord: ProcessRecord,
         lastOomScoreAdj: Int,
         curOomScoreAdj: Int,
-        oomAdjustLevel: Int
+        oomAdjustLevel: Int,
     ) {
         if (processRecord.appInfo.appGroupEnum != AppGroupEnum.IDLE) {
             return
@@ -88,25 +87,33 @@ class AppCompactManager2(
             return
         }
 
-        compactProcessMap[processRecord] = executor.schedule({
-            runCatchThrowable(catchBlock = {
-                logger.error("压缩进程任务出错", it)
-            }) {
-                compactProcessImpl(
-                    processRecord = processRecord,
-                    lastOomScoreAdj = lastOomScoreAdj,
-                    curOomScoreAdj = curOomScoreAdj,
-                    oomAdjustLevel = oomAdjustLevel,
-                )
-            }
-        }, /*cachedAppOptimizer.mFreezerDebounceTimeout*/ COMPACT_TASK_DELAY, TimeUnit.MILLISECONDS)
+        compactProcessMap.compute(processRecord) { _, lastScheduledFuture ->
+            lastScheduledFuture?.cancel(true)
+            executor.schedule(
+                {
+                    runCatchThrowable(catchBlock = {
+                        logger.error("压缩进程任务出错", it)
+                    }) {
+                        compactProcessImpl(
+                            processRecord = processRecord,
+                            lastOomScoreAdj = lastOomScoreAdj,
+                            curOomScoreAdj = curOomScoreAdj,
+                            oomAdjustLevel = oomAdjustLevel,
+                        )
+                    }
+                },
+                /*cachedAppOptimizer.mFreezerDebounceTimeout*/
+                COMPACT_TASK_DELAY,
+                TimeUnit.MILLISECONDS
+            )
+        }
     }
 
     private fun compactProcessImpl(
         processRecord: ProcessRecord,
         lastOomScoreAdj: Int,
         curOomScoreAdj: Int,
-        oomAdjustLevel: Int
+        oomAdjustLevel: Int,
     ) {
         // app处于前台时不进行压缩
         if (processRecord.appInfo.appGroupEnum == AppGroupEnum.ACTIVE) {
