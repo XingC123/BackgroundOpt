@@ -17,4 +17,6 @@ annotation class OriginalMethod(
     val returnTypePath: String = "",
     val returnType: KClass<*> = Any::class,
     val since: Int = Int.MIN_VALUE,
+    val onlyVersion: IntArray = [],
+    val description: String = "",
 )

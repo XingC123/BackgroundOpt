@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 
 import com.venus.backgroundopt.common.util.OsUtils;
 import com.venus.backgroundopt.common.util.log.ILogger;
+import com.venus.backgroundopt.xposed.annotation.OriginalMethod;
 import com.venus.backgroundopt.xposed.annotation.OriginalObject;
 import com.venus.backgroundopt.xposed.annotation.OriginalObjectField;
 import com.venus.backgroundopt.xposed.entity.base.IEntityWrapper;
@@ -160,6 +161,7 @@ public class CachedAppOptimizer implements ILogger, IEntityWrapper {
         return (curAdj >= ProcessList.CACHED_APP_MIN_ADJ && curAdj <= ProcessList.CACHED_APP_MAX_ADJ);
     }
 
+    @OriginalMethod(onlyVersion = {OsUtils.T}, description = "compactApp(...)在a13加入, 该形参列表仅在a13存在")
     public boolean compactApp(ProcessRecord app, boolean force, String compactRequestType) {
         return (boolean) XposedHelpers.callMethod(
                 this.cachedAppOptimizer,
