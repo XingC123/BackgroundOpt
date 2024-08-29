@@ -102,6 +102,6 @@ ext {
     androidxPreferenceKtxVersionDependenceStr = 'androidx.preference:preference-ktx:' + androidxPreferenceKtxVersion
 
     /*kotlin反射*/
-    kotlinReflectVersion = '2.0.0'
-    kotlinReflectVersionDependenceStr = 'org.jetbrains.kotlin:kotlin-reflect:' + '2.0.0'
+    kotlinReflectVersion = '2.0.20'
+    kotlinReflectVersionDependenceStr = 'org.jetbrains.kotlin:kotlin-reflect:' + kotlinReflectVersion
 }
