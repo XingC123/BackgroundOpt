@@ -26,7 +26,7 @@ import com.venus.backgroundopt.xposed.entity.self.AppInfo
  * @date 2024/7/28
  */
 abstract class OomAdjHandlerCommonMethods {
-    protected open fun getAdjWillSet(processRecord: ProcessRecord, adj: Int): Int {
+    protected open fun getAdjToCompute(processRecord: ProcessRecord, adj: Int): Int {
         throw UnsupportedOperationException()
     }
 

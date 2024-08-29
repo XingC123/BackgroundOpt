@@ -153,7 +153,7 @@ class OomAdjustManager(
         param.result = null
         addAdjHandleAction {
             val adjLastSet = process.oomAdjScore
-            val adjWillSet = oomAdjHandler.getAdjWillSet(process, adj)
+            val adjToCompute = oomAdjHandler.getAdjToCompute(process, adj)
             var oomAdjustLevel = OomAdjustLevel.NONE
 
             handleAppGroup(
@@ -164,12 +164,12 @@ class OomAdjustManager(
             appInfo.readLock {
                 handleAdjLocked(
                     process = process,
-                    adjWillSet = adjWillSet
+                    adjToCompute = adjToCompute
                 )
                 handleProcessCompact(
                     processRecord = process,
                     adjLastSet = adjLastSet,
-                    adjWillSet = adjWillSet,
+                    adjToCompute = adjToCompute,
                     oomAdjustLevel = oomAdjustLevel
                 )
             }
@@ -178,14 +178,14 @@ class OomAdjustManager(
 
     private fun handleAdjLocked(
         process: ProcessRecord,
-        adjWillSet: Int,
+        adjToCompute: Int,
         priority: Int = ADJ_TASK_PRIORITY_NORMAL,
     ) {
         // 计算并应用adj
-        oomAdjHandler.computeAdjAndApply(process, adjWillSet, priority)
+        oomAdjHandler.computeAdjAndApply(process, adjToCompute, priority)
 
         // 记录本次系统计算的分数
-        process.oomAdjScore = adjWillSet
+        process.oomAdjScore = adjToCompute
     }
 
     private fun handleAppGroup(
@@ -214,7 +214,7 @@ class OomAdjustManager(
 
     private fun handleProcessCompact(
         processRecord: ProcessRecord,
-        adjWillSet: Int,
+        adjToCompute: Int,
         adjLastSet: Int,
         oomAdjustLevel: Int,
     ) {
@@ -222,7 +222,7 @@ class OomAdjustManager(
         processManager.compactProcess(
             processRecord,
             adjLastSet,
-            adjWillSet,
+            adjToCompute,
             oomAdjustLevel
         )
     }

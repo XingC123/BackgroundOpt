@@ -29,7 +29,7 @@ import com.venus.backgroundopt.xposed.entity.self.AppInfo
  * @date 2024/7/17
  */
 class NegativeModeOomAdjHandler: OomAdjHandler() {
-    override fun getAdjWillSet(processRecord: ProcessRecord, adj: Int): Int {
+    override fun getAdjToCompute(processRecord: ProcessRecord, adj: Int): Int {
         return adj
     }
 

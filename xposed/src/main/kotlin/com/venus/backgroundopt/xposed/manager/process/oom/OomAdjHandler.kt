@@ -143,7 +143,7 @@ abstract class OomAdjHandler(
         }
     }
 
-    public override fun getAdjWillSet(processRecord: ProcessRecord, adj: Int): Int {
+    public override fun getAdjToCompute(processRecord: ProcessRecord, adj: Int): Int {
         return processRecord.processStateRecord.curRawAdj
     }
 
