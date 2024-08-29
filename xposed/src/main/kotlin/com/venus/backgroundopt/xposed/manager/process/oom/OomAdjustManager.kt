@@ -152,7 +152,9 @@ class OomAdjustManager(
 
         param.result = null
         addAdjHandleAction {
+            val adjLastSet = process.oomAdjScore
             val adjWillSet = oomAdjHandler.getAdjWillSet(process, adj)
+            var oomAdjustLevel = OomAdjustLevel.NONE
 
             appInfo.readLock {
                 handleAdjLocked(
@@ -166,7 +168,12 @@ class OomAdjustManager(
                 appGroupEnum = appGroupEnum
             )
 
-            handleProcessCompact(processRecord = process, adjWillSet = adjWillSet)
+            handleProcessCompact(
+                processRecord = process,
+                adjLastSet = adjLastSet,
+                adjWillSet = adjWillSet,
+                oomAdjustLevel = oomAdjustLevel
+            )
         }
     }
 
@@ -206,10 +213,12 @@ class OomAdjustManager(
         }
     }
 
-    private fun handleProcessCompact(processRecord: ProcessRecord, adjWillSet: Int) {
-        val adjLastSet = processRecord.oomAdjScore
-        var oomAdjustLevel = OomAdjustLevel.NONE
-
+    private fun handleProcessCompact(
+        processRecord: ProcessRecord,
+        adjWillSet: Int,
+        adjLastSet: Int,
+        oomAdjustLevel: Int,
+    ) {
         // 内存压缩
         processManager.compactProcess(
             processRecord,
