@@ -17,6 +17,7 @@
 
 package com.venus.backgroundopt.xposed.point
 
+import com.venus.backgroundopt.common.util.log.logDebug
 import com.venus.backgroundopt.xposed.BuildConfig
 import com.venus.backgroundopt.xposed.point.handler.AndroidHookHandler
 import com.venus.backgroundopt.xposed.point.handler.PowerKeeperHookHandler
@@ -31,12 +32,23 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 class XposedEntry : IXposedHookLoadPackage {
     @Throws(Throwable::class)
     override fun handleLoadPackage(lpparam: LoadPackageParam?) {
-        when (lpparam?.packageName) {
+        when (val pkgName = lpparam?.packageName) {
             "android" -> AndroidHookHandler(lpparam)
             // miui 电量与性能
             "com.miui.powerkeeper" -> PowerKeeperHookHandler(lpparam)
             // 自己
             BuildConfig.APPLICATION_ID -> SelfHookHandler(lpparam)
+
+            else -> {
+                /*
+                 * 若hook系统框架, 此处应为"android"
+                 * 暂不考虑存在进程名为 android 的其他app的情况
+                 */
+                if (lpparam?.processName == "android") {
+                    logDebug("进程名为android, 包名为: [${pkgName}]")
+                    AndroidHookHandler(lpparam)
+                }
+            }
         }
     }
 }
