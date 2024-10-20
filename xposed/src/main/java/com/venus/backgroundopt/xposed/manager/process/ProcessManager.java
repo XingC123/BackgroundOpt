@@ -17,18 +17,21 @@
 
 package com.venus.backgroundopt.xposed.manager.process;
 
+import android.os.SystemClock;
+import android.system.Os;
+
 import androidx.annotation.NonNull;
 
 import com.venus.backgroundopt.common.util.log.ILogger;
 import com.venus.backgroundopt.xposed.BuildConfig;
-import com.venus.backgroundopt.xposed.core.RunningInfo;
 import com.venus.backgroundopt.xposed.core.AppGroupEnum;
+import com.venus.backgroundopt.xposed.core.RunningInfo;
 import com.venus.backgroundopt.xposed.entity.android.android.os.Process;
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ActivityManagerService;
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.CachedAppOptimizer;
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord;
-import com.venus.backgroundopt.xposed.entity.self.ProcessRecordBaseInfo;
 import com.venus.backgroundopt.xposed.entity.self.AppInfo;
+import com.venus.backgroundopt.xposed.entity.self.ProcessRecordBaseInfo;
 import com.venus.backgroundopt.xposed.manager.process.memory.AppCompactManager;
 import com.venus.backgroundopt.xposed.manager.process.memory.AppCompactManager2;
 import com.venus.backgroundopt.xposed.manager.process.memory.AppMemoryTrimManagerKt;
@@ -239,7 +242,8 @@ public class ProcessManager implements ILogger {
     public static boolean handleGCNoNullCheck(ProcessRecord processRecord) {
         // kill -10 pid
         try {
-            Process.sendSignal(processRecord.getPid(), SIGNAL_10);
+            // Process.sendSignal(processRecord.getPid(), SIGNAL_10);
+            Os.kill(processRecord.getPid(), SIGNAL_10);
 
             if (BuildConfig.DEBUG) {
                 ILogger.getLoggerStatic(ProcessManager.class)
@@ -276,6 +280,9 @@ public class ProcessManager implements ILogger {
 
     public void appIdle(AppInfo appInfo) {
         /*ConcurrentUtilsKt.lock(appInfo, () -> {*/
+        // 更新进入后台的时间
+        appInfo.setLastActiveTime(SystemClock.uptimeMillis());
+
         // 添加后台任务
         startBackgroundAppTrimTask(appInfo.getMProcessRecord());
         // 添加压缩任务

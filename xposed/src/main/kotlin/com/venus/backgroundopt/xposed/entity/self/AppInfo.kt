@@ -121,6 +121,8 @@ class AppInfo(
 
     val importantSystemApp: Boolean = findAppResult.importantSystemApp
 
+    var lastActiveTime: Long = Long.MIN_VALUE
+
     fun isHandlingActivitySwitch(): Boolean {
         return _activitySwitchEventHandlingCount.get() > 0
     }
