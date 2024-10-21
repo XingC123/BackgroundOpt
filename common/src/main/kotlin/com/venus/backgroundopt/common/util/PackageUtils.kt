@@ -201,7 +201,7 @@ object PackageUtils {
         val applicationInfo = packageInfo.applicationInfo
 
         return AppItem(
-            applicationInfo.loadLabel(packageManager).toString(),
+            applicationInfo!!.loadLabel(packageManager).toString(),
             packageInfo.packageName,
             applicationInfo.uid,
             applicationInfo.loadIcon(packageManager),
