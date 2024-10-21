@@ -76,8 +76,9 @@ class OomAdjusterHookNew(
         now: Long,
         nowElapsed: Long,
         oomAdjReason: Any?,
+        methodHookParamArgs: Array<Any?>,
     ) {
-        applyOomAdjLSPMethod(processRecord, now, nowElapsed, oomAdjReason)
+        applyOomAdjLSPMethod(processRecord, now, nowElapsed, oomAdjReason, methodHookParamArgs)
     }
 
     /**
@@ -98,18 +99,36 @@ class OomAdjusterHookNew(
     }
     private val applyOomAdjLSPMethod by lazy {
         if (hasOomAdjReasonField) {
-            { processRecord: Any, now: Long, nowElapsed: Long, oomAdjReason: Any? ->
-                oomAdjuster.callMethod(
-                    methodName = applyOomAdjLSPMethodName,
-                    processRecord,
-                    true,
-                    now,
-                    nowElapsed,
-                    oomAdjReason
-                )
+            if (OsUtils.isVOrHigher) {
+                { processRecord: Any, now: Long, nowElapsed: Long, oomAdjReason: Any?, methodHookParamArgs: Array<Any?> ->
+                    val doingAll =
+                        methodHookParamArgs[methodHookParamArgs.lastIndex] as? Boolean ?: false
+
+                    oomAdjuster.callMethod(
+                        methodName = applyOomAdjLSPMethodName,
+                        processRecord,
+                        doingAll,
+                        now,
+                        nowElapsed,
+                        oomAdjReason,
+                        true, /* isBatchingOomAdj */
+                    )
+                }
+            } else {
+                { processRecord: Any, now: Long, nowElapsed: Long, oomAdjReason: Any?, _: Array<Any?> ->
+                    oomAdjuster.callMethod(
+                        methodName = applyOomAdjLSPMethodName,
+                        processRecord,
+                        true,
+                        now,
+                        nowElapsed,
+                        oomAdjReason
+                    )
+                }
             }
+
         } else {
-            { processRecord: Any, now: Long, nowElapsed: Long, _: Any? ->
+            { processRecord: Any, now: Long, nowElapsed: Long, _: Any?, _: Array<Any?> ->
                 oomAdjuster.callMethod(
                     methodName = applyOomAdjLSPMethodName,
                     processRecord,
@@ -252,10 +271,12 @@ class OomAdjusterHookNew(
         classPath = ClassConstants.OomAdjuster,
         methodName = MethodConstants.updateAndTrimProcessLSP
     )
-    private fun updateAndTrimProcessLSP(param: MethodHookParam): Boolean {
+    private fun updateAndTrimProcessLSP(param: MethodHookParam): Any? {
         val now = param.args[0] as Long
         val nowElapsed = param.args[1] as Long
         val oomAdjReason = getOomAdjReason(param)
+        // 由于目前只在 applyOomAdjLSP 中使用, 因此将其延迟到执行 applyOomAdjLSP 时再获取
+        // val doingAll = param.args[param.args.lastIndex] as? Boolean ?: false
 
         val numLru = lruList.size
 
@@ -277,7 +298,8 @@ class OomAdjusterHookNew(
                         processRecord = app,
                         now = now,
                         nowElapsed = nowElapsed,
-                        oomAdjReason = oomAdjReason
+                        oomAdjReason = oomAdjReason,
+                        methodHookParamArgs = param.args,
                     )
                 }
                 // ProcessServiceRecord
@@ -326,9 +348,9 @@ class OomAdjusterHookNew(
         return updateLowMemStateLSP(now)
     }
 
-    private fun updateLowMemStateLSP(now: Long): Boolean = updateLowMemStateLSPMethod(now)
+    private fun updateLowMemStateLSP(now: Long): Any? = updateLowMemStateLSPMethod(now)
 
-    private val updateLowMemStateLSPMethod: (Long) -> Boolean = if (OsUtils.isSOrHigher) {
+    private val updateLowMemStateLSPMethod: (Long) -> Any? = if (OsUtils.isSOrHigher) {
         { now ->
             mAppProfiler.updateLowMemStateLSP(
                 numCached = 0,

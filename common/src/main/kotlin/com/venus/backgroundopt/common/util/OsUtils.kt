@@ -31,16 +31,20 @@ object OsUtils {
     const val S = Build.VERSION_CODES.S
     const val T = Build.VERSION_CODES.TIRAMISU
     const val U = Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+    const val V = Build.VERSION_CODES.VANILLA_ICE_CREAM
 
     @JvmField
-    val isR: Boolean = androidVersionCode == Build.VERSION_CODES.R
+    val isR: Boolean = androidVersionCode == R
 
     @JvmField
-    val isROrHigher: Boolean = androidVersionCode >= Build.VERSION_CODES.R
+    val isROrHigher: Boolean = androidVersionCode >= R
 
     @JvmField
-    val isSOrHigher: Boolean = androidVersionCode >= Build.VERSION_CODES.S
+    val isSOrHigher: Boolean = androidVersionCode >= S
 
     @JvmField
-    val isUOrHigher: Boolean = androidVersionCode >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+    val isUOrHigher: Boolean = androidVersionCode >= U
+
+    @JvmField
+    val isVOrHigher: Boolean = androidVersionCode >= V
 }

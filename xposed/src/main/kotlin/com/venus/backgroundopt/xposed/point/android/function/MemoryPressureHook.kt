@@ -54,11 +54,19 @@ class MemoryPressureHook(
      */
     private fun updateLowMemStateHook() {
         ClassConstants.AppProfiler.replaceHook(
-            enable = OsUtils.isSOrHigher,
+            enable = OsUtils.isSOrHigher && !OsUtils.isVOrHigher,
             classLoader = classLoader,
             methodName = MethodConstants.updateLowMemStateLSP,
             hookAllMethod = true,
         ) { false }
+
+        // A15
+        ClassConstants.AppProfiler.replaceHook(
+            enable = OsUtils.isVOrHigher,
+            classLoader = classLoader,
+            methodName = MethodConstants.updateLowMemStateLSP,
+            hookAllMethod = true,
+        ) { null }
 
         ClassConstants.ActivityManagerService.replaceHook(
             enable = OsUtils.isR,

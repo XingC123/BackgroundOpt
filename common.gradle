@@ -73,7 +73,7 @@ ext {
     suffix = generateVersionSuffix()
     releaseTime = releaseTime()
 
-    compileSdk = 34
+    compileSdk = 35
     minSdk = 30
     targetSdk = compileSdk
 

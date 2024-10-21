@@ -20,6 +20,7 @@ package com.venus.backgroundopt.xposed.entity.android.com.android.server.am
 import com.venus.backgroundopt.common.util.OsUtils
 import com.venus.backgroundopt.xposed.annotation.OriginalMethodParam
 import com.venus.backgroundopt.xposed.annotation.OriginalObject
+import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.compat.AppProfilerCompatA15
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.compat.AppProfilerCompatSinceA14
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.compat.AppProfilerCompatUntilA13
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatFlag
@@ -39,7 +40,7 @@ abstract class AppProfiler(
         numEmpty: Int,
         numTrimming: Int,
         @OriginalMethodParam(since = OsUtils.U) now: Long,
-    ): Boolean
+    ): Any?
 
     object AppProfilerHelper : IEntityCompatHelper<IAppProfiler, AppProfiler> {
         override val instanceClazz: Class<out AppProfiler>
@@ -47,8 +48,12 @@ abstract class AppProfiler(
         override val compatHelperInstance: IAppProfiler
 
         init {
-            if (OsUtils.isUOrHigher) {
+            if (OsUtils.isVOrHigher) {
                 instanceClazz = AppProfilerCompatSinceA14::class.java
+                compatHelperInstance = AppProfilerCompatA15.Companion
+                instanceCreator = ::createAppProfilerA15
+            } else if (OsUtils.isUOrHigher) {
+                instanceClazz = AppProfilerCompatA15::class.java
                 compatHelperInstance = AppProfilerCompatSinceA14.Companion
                 instanceCreator = ::createAppProfilerSinceA14
             } else {
@@ -57,6 +62,10 @@ abstract class AppProfiler(
                 instanceCreator = ::createAppProfilerUntilA13
             }
         }
+
+        @JvmStatic
+        fun createAppProfilerA15(@OriginalObject instance: Any): AppProfiler =
+            AppProfilerCompatA15(instance)
 
         @JvmStatic
         fun createAppProfilerSinceA14(@OriginalObject instance: Any): AppProfiler =
