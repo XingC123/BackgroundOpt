@@ -49,6 +49,7 @@ import com.venus.backgroundopt.xposed.point.android.SystemPropertiesHook;
 import com.venus.backgroundopt.xposed.point.android.WindowProcessControllerHook;
 import com.venus.backgroundopt.xposed.point.android.function.ActivitySwitchHook;
 import com.venus.backgroundopt.xposed.point.android.function.CleanUpRemovedTaskHook;
+import com.venus.backgroundopt.xposed.point.android.function.CurComputedAdjHook;
 import com.venus.backgroundopt.xposed.point.android.function.DefaultApplicationChangeHook;
 import com.venus.backgroundopt.xposed.point.android.function.MemoryPressureHook;
 import com.venus.backgroundopt.xposed.point.android.function.StartHandleDefaultAppHook;
@@ -157,6 +158,8 @@ public class AndroidHookHandler extends PackageHook {
         new MemoryPressureHook(classLoader, runningInfo);
 
         new StartHandleDefaultAppHook(classLoader, runningInfo);
+
+        new CurComputedAdjHook(classLoader, runningInfo);
     }
 
     private void initSystemProp() {

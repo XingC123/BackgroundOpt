@@ -88,6 +88,10 @@ abstract class ProcessStateRecord(
         this.originalInstance = getProcessStateRecordFromProcessRecord(instance)
     }
 
+    // 经计算后的adj值
+    // 未受进程 maxAdj影响的值
+    var curComputedAdj: Int = ProcessList.UNKNOWN_ADJ
+
     object ProcessStateRecordHelper : IEntityCompatHelper<IProcessStateRecord, ProcessStateRecord> {
         override val instanceClazz: Class<out ProcessStateRecord>
 

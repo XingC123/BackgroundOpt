@@ -28,6 +28,7 @@ public interface MethodConstants {
      */
     String updateActivityUsageStats = "updateActivityUsageStats";
     String computeOomAdjLSP = "computeOomAdjLSP";
+    String computeOomAdjLocked = "computeOomAdjLocked";
     String setSystemProcess = "setSystemProcess";
     String killProcessGroup = "killProcessGroup";
     String forceStopPackage = "forceStopPackage";
@@ -171,6 +172,7 @@ public interface MethodConstants {
     String startOtherServices = "startOtherServices";
     String isInteractiveInternal = "isInteractiveInternal";
     String isGloballyInteractiveInternal = "isGloballyInteractiveInternal";
+    String setIntermediateAdjLSP = "setIntermediateAdjLSP";
 
     /**
      * miui
