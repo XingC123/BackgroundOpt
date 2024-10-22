@@ -174,7 +174,7 @@
     <string name="settingsGlobalOomScoreEffectiveScopeDefaultValue" translatable="false">MAIN_PROCESS</string>
     <string name="main_activity_module_active_state_tip" translatable="false">模块激活状态:</string>
     <string name="configure_app_process_toolbar_title" translatable="false">应用进程</string>
-    <string name="main_activity_mem_opt_threshold" translatable="false">触发优化的内存阈值:</string>
+    <string name="main_activity_mem_opt_threshold" translatable="false">触发压缩的内存阈值:</string>
     <string name="main_activity_max_adj_score" translatable="false">主进程最大oom分数:</string>
     <string name="settingsGlobalOomScoreCustomValueDefaultValue" translatable="false">0</string>
     <string name="settingsOomWorkModeDefaultValue" translatable="false">1</string>

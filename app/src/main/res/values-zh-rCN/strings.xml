@@ -39,7 +39,7 @@
         \n2. 有些app长时间未打开, 而再次打开时出现Splash, 这并不一定意味着app曾被杀死。
     </string>
     <string name="showBackgroundTasksToolBarText">后台任务列表</string>
-    <string name="appItemLastProcessingResultTipText">"上次执行结果: "</string>
+    <string name="appItemLastProcessingResultTipText">"上次压缩结果: "</string>
     <string name="showAppCompactLisToolBarHelp">帮助</string>
     <string name="settingsModuleItemTitle">模块</string>
     <string name="settingsAutoStopCompactPrefText">自动停止压缩任务</string>
@@ -79,7 +79,7 @@
     <string name="running_processes_searchbar_text">进程名/app名/包名</string>
     <string name="helpStr">帮助</string>
     <string name="running_processes_toolbar_help_tip_text">
-        1. “上次执行结果”的值含义：
+        1. “上次压缩结果”的值含义：
         \n\t\t1) ✔：意味着<b>已经执行过</b>。
         \n\t\t2) ▬：意味着<b>不满足执行条件因而未执行</b>(详见：使用手册-补充说明-第4条)
         \n\t\t3) ✪：意味着<b>暂无需执行</b>
