@@ -122,8 +122,7 @@ class AppCompactManager2(
 
         // 是否进行了压缩
         var doCompact = false
-        var processCompactResultCode =
-            ProcessCompactResultCode.doNothing
+        var processCompactResultCode = ProcessCompactResultCode.doNothing
         var processCompactEnum = NONE
         val processingResult = processRecord.initLastProcessingResultIfAbsent(
             appOptimizeEnum = appOptimizeEnum,
@@ -177,8 +176,7 @@ class AppCompactManager2(
             // 检查进程是否需要进行优化
             if (!isNecessaryToOptimizeProcess(processRecord)) {
                 updateProcessLastProcessingResult(processRecord) {
-                    it.lastProcessingCode =
-                        ProcessCompactResultCode.unNecessary
+                    it.lastProcessingCode = ProcessCompactResultCode.unNecessary
                 }
 
                 /*if (BuildConfig.DEBUG) {
@@ -187,8 +185,7 @@ class AppCompactManager2(
                 return
             }
 
-            processCompactResultCode =
-                compactProcess(pid = processRecord.pid, compactAction = compactAction)
+            processCompactResultCode = compactProcess(processRecord.pid, compactAction)
             updateProcessLastProcessingResult(processRecord = processRecord) {
                 processingResult.lastProcessingCode = processCompactResultCode
                 processingResult.processCompactEnum = processCompactEnum
@@ -225,7 +222,7 @@ class AppCompactManager2(
         pid: Int,
         compactAction: Int,
     ): Int {
-        return if (cachedAppOptimizer.compactProcessForce(pid, compactAction)) {
+        return if (cachedAppOptimizer.compactProcess(pid, compactAction)) {
             ProcessCompactResultCode.success
         } else {
             ProcessCompactResultCode.problem

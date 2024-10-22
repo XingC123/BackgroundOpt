@@ -269,6 +269,7 @@ public class CachedAppOptimizer implements ILogger, IEntityWrapper {
     }
 
     public boolean compactProcessForce(int pid, int compactionFlags) {
+        // 在5.x版本的内核中没有此节点, 或选择不开启。导致无法成功压缩
         try(FileOutputStream fos = new FileOutputStream("/proc/" + pid + "/reclaim")) {
             int index = switch (compactionFlags) {
                 case COMPACT_ACTION_FILE -> 1;
