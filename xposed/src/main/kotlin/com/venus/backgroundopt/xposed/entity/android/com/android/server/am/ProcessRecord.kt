@@ -499,6 +499,8 @@ abstract class ProcessRecord(
             packageName: String = getPkgName(processRecord),
         ): ProcessRecord {
             return processRecordCache.take(processRecord) {
+                val pr = this
+
                 this.originalInstance = processRecord
 
                 this.uid = uid
@@ -508,10 +510,12 @@ abstract class ProcessRecord(
                 this.processName = getProcessName(processRecord)
 
                 this._processStateRecord = ProcessStateRecordHelper.reinitOrCreate(
-                    realInstance = this._processStateRecord,
+                    realInstance = pr._processStateRecord,
                     instance = processRecord
-                )
-                this._mWindowProcessController = this._mWindowProcessController.getOrCreateThenInit(
+                ).apply {
+                    this.processRecord = pr
+                }
+                this._mWindowProcessController = pr._mWindowProcessController.getOrCreateThenInit(
                     createBlock = { WindowProcessController() },
                 ) {
                     this.originalInstance = processRecord.getObjectFieldValue(
@@ -520,7 +524,7 @@ abstract class ProcessRecord(
                 }
 
                 this.mainProcess = isMainProcess(packageName, processName).ifTrue {
-                    appInfo.mProcessRecord = this
+                    appInfo.mProcessRecord = pr
                 }
                 this.webviewProcessProbable = isWebviewProcProbable(processRecord)
                 this.appInfo = appInfo

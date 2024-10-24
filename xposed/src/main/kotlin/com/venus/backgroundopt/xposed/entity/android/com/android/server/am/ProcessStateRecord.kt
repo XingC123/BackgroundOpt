@@ -39,6 +39,8 @@ import com.venus.backgroundopt.xposed.util.getObjectFieldValue
 abstract class ProcessStateRecord(
     override var originalInstance: Any,
 ) : IEntityWrapper, IEntityCompatFlag {
+    lateinit var processRecord: ProcessRecord
+
     var maxAdj: Int
         get() = getMaxAdj(originalInstance)
         set(value) = setMaxAdj(originalInstance, value)
@@ -90,7 +92,12 @@ abstract class ProcessStateRecord(
 
     // 经计算后的adj值
     // 未受进程 maxAdj影响的值
-    var curComputedAdj: Int = ProcessList.UNKNOWN_ADJ
+    var originalCurRawAdj: Int = ProcessList.UNKNOWN_ADJ
+    var curComputedAdj: Int
+        get() = curComputedAdjGetter(this)
+        set(value) {
+            originalCurRawAdj = value
+        }
 
     object ProcessStateRecordHelper : IEntityCompatHelper<IProcessStateRecord, ProcessStateRecord> {
         override val instanceClazz: Class<out ProcessStateRecord>
@@ -229,6 +236,9 @@ abstract class ProcessStateRecord(
         override fun getPid(instance: Any): Int {
             return ProcessStateRecordHelper.compatHelperInstance.getPid(instance)
         }
+
+        @JvmStatic
+        lateinit var curComputedAdjGetter: (ProcessStateRecord) -> Int
     }
 }
 

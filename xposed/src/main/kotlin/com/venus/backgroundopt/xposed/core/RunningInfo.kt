@@ -265,6 +265,10 @@ class RunningInfo(
 
     fun getRunningProcess(pid: Int): ProcessRecord? = runningProcesses[pid]
 
+    fun getRunningProcess(@OriginalObject process: Any): ProcessRecord? {
+        return getRunningProcess(ProcessRecord.getPid(process))
+    }
+
     private fun putIntoRunningProcesses(pid: Int, processRecord: ProcessRecord) {
         runningProcesses[pid] = processRecord
     }
