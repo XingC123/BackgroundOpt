@@ -31,10 +31,12 @@ import com.venus.backgroundopt.app.utils.UiUtils
 import com.venus.backgroundopt.app.utils.showProgressBarViewForAction
 import com.venus.backgroundopt.common.entity.AppItem
 import com.venus.backgroundopt.common.entity.message.ProcessRunningInfo
+import com.venus.backgroundopt.common.entity.userId
+import com.venus.backgroundopt.common.util.UserUtils
 import com.venus.backgroundopt.common.util.message.MessageKeyConstants
 import com.venus.backgroundopt.common.util.message.messageSender
+import com.venus.backgroundopt.common.util.unsafeLazy
 import com.venus.backgroundopt.xposed.entity.self.ProcessRecordBaseInfo
-import org.w3c.dom.Text
 
 /**
  * 尽可能使从[AppItem]中展示信息变得更容易
@@ -111,14 +113,10 @@ abstract class ShowProcessInfoFromAppItemAdapter(
                 false
             ).also { view ->
                 // 修改tip内容
-                view.findViewById<TextView>(R.id.appName)
-                    ?.setText(getTipText1ResId())
-                view.findViewById<TextView>(R.id.appItemTipText2)
-                    ?.setText(getTipText2ResId())
-                view.findViewById<TextView>(R.id.appItemTipText3)
-                    ?.setText(getTipText3ResId())
-                view.findViewById<TextView>(R.id.appItemTipText4)
-                    ?.setText(getTipText4ResId())
+                view.findViewById<TextView>(R.id.appName)?.setText(getTipText1ResId())
+                view.findViewById<TextView>(R.id.appItemTipText2)?.setText(getTipText2ResId())
+                view.findViewById<TextView>(R.id.appItemTipText3)?.setText(getTipText3ResId())
+                view.findViewById<TextView>(R.id.appItemTipText4)?.setText(getTipText4ResId())
             }
     }
 
@@ -126,6 +124,8 @@ abstract class ShowProcessInfoFromAppItemAdapter(
         holder as ShowProcessInfoFromAppItemViewHolder
         val appItem = filterAppItems[position]
         holder.appIcon.setImageDrawable(appItem.appIcon)
+        setMultiAppFlagVisible(holder.multiAppFlag, appItem)
+
         holder.appNameText.text = getText0Content(appItem)
         holder.processNameText.text = getText1Content(appItem)
         holder.appItemTasksText2.text = getText2Content(appItem)
@@ -138,6 +138,11 @@ abstract class ShowProcessInfoFromAppItemAdapter(
             appItem = appItem,
             adjComponent = holder.appItemTasksText4
         )
+    }
+
+    private fun setMultiAppFlagVisible(component: View, appItem: AppItem) {
+        val isVisible = appItem.userId != UserUtils.MAIN_USER
+        UiUtils.setComponentVisible(component, isVisible)
     }
 
     private fun setItemOnClickListener(view: View, appItem: AppItem, adjComponent: TextView) {
@@ -202,22 +207,15 @@ abstract class ShowProcessInfoFromAppItemAdapter(
         }
     }
 
-    open class ShowProcessInfoFromAppItemViewHolder(itemView: View) :
-        ShowInfoFromAppItemViewHolder(itemView) {
-        var appIcon: ImageView
-        var processNameText: TextView
-        var appNameText: TextView
-        var appItemTasksText2: TextView
-        var appItemTasksText3: TextView
-        var appItemTasksText4: TextView
-
-        init {
-            appIcon = itemView.findViewById(R.id.appItemAppIcon)
-            appNameText = itemView.findViewById(R.id.appName)
-            processNameText = itemView.findViewById(R.id.processName)
-            appItemTasksText2 = itemView.findViewById(R.id.appItemText2)
-            appItemTasksText3 = itemView.findViewById(R.id.appItemText3)
-            appItemTasksText4 = itemView.findViewById(R.id.appItemText4)
-        }
+    open class ShowProcessInfoFromAppItemViewHolder(
+        itemView: View,
+    ) : ShowInfoFromAppItemViewHolder(itemView) {
+        val appIcon: ImageView by unsafeLazy { itemView.findViewById(R.id.appIconImageView) }
+        val multiAppFlag: ImageView by unsafeLazy { itemView.findViewById(R.id.multiAppFlagImageView) }
+        val processNameText: TextView by unsafeLazy { itemView.findViewById(R.id.appName) }
+        val appNameText: TextView by unsafeLazy { itemView.findViewById(R.id.processName) }
+        val appItemTasksText2: TextView by unsafeLazy { itemView.findViewById(R.id.appItemText2) }
+        val appItemTasksText3: TextView by unsafeLazy { itemView.findViewById(R.id.appItemText3) }
+        val appItemTasksText4: TextView by unsafeLazy { itemView.findViewById(R.id.appItemText4) }
     }
 }

@@ -18,6 +18,7 @@
 package com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.compat
 
 import android.app.role.RoleManager
+import android.content.pm.PackageInfo
 import com.venus.backgroundopt.common.util.runCatchThrowable
 import com.venus.backgroundopt.xposed.annotation.OriginalObject
 import com.venus.backgroundopt.xposed.annotation.OriginalObjectField
@@ -36,16 +37,21 @@ import com.venus.backgroundopt.xposed.util.getObjectFieldValue
  * @author XingC
  * @date 2024/7/14
  */
-class PackageManagerServiceCompatSinceA12(
+open class PackageManagerServiceCompatSinceA12(
     originalInstance: Any,
 ) : PackageManagerService(originalInstance) {
     @OriginalObjectField(fieldTypeClassPath = ClassConstants.PackageManagerServiceInjector)
-    private val mInjector: Any? = originalInstance.getObjectFieldValue(FieldConstants.mInjector)
+    protected val mInjector: Any? = originalInstance.getObjectFieldValue(FieldConstants.mInjector)
 
     @OriginalObject(classPath = ClassConstants.DefaultAppProvider)
-    private val mDefaultAppProvider: Any? = mInjector?.callMethod(
+    protected val mDefaultAppProvider: Any? = mInjector?.callMethod(
         methodName = MethodConstants.getDefaultAppProvider
     )
+
+    @OriginalObjectField(fieldTypeClassPath = ClassConstants.ComputerLocked)
+    protected val mLiveComputer: Any = originalInstance.getObjectFieldValue(
+        FieldConstants.mLiveComputer
+    )!!
 
     override fun getDefaultHome(): String? {
         return runCatchThrowable {
@@ -90,6 +96,38 @@ class PackageManagerServiceCompatSinceA12(
 
     override fun getDefaultInputMethod(): String? {
         return DefaultApplicationManager.getDefaultPkgNameFromSettings(key = Settings.Secure.DEFAULT_INPUT_METHOD)
+    }
+
+    override fun getOtherUserInstalledApps(): List<PackageInfo> {
+        val packageInfos = arrayListOf<PackageInfo>()
+        mUserManager.getUserIds()
+            .filter { it != ActivityManagerService.MAIN_USER }
+            .forEach { userId ->
+                val userInstalledApps =
+                    mLiveComputer.callMethod(
+                        MethodConstants.getInstalledPackages,
+                        0,
+                        userId
+                    )!!.callMethod(
+                        MethodConstants.getList
+                    ) as List<PackageInfo>
+                packageInfos.addAll(userInstalledApps)
+            }
+
+        return packageInfos
+    }
+
+    override fun getPackageInfoAsUser(
+        packageName: String,
+        userId: Int,
+        packageInfoFlag: Int
+    ): PackageInfo? {
+        return originalInstance.callMethod<PackageInfo?>(
+            MethodConstants.getPackageInfo,
+            packageName,
+            packageInfoFlag,
+            userId
+        )
     }
 
     companion object : IPackageManagerService

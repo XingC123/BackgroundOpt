@@ -41,9 +41,11 @@ import com.venus.backgroundopt.common.entity.AppItem.AppConfiguredEnum
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy.SubProcessOomPolicyEnum
+import com.venus.backgroundopt.common.entity.userId
 import com.venus.backgroundopt.common.environment.CommonProperties
 import com.venus.backgroundopt.common.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.common.environment.constants.PreferenceNameConstants
+import com.venus.backgroundopt.common.util.KeyUtils
 import com.venus.backgroundopt.common.util.PackageUtils
 import com.venus.backgroundopt.common.util.containsIgnoreCase
 import com.venus.backgroundopt.common.util.ifTrue
@@ -269,7 +271,8 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
         var result = false
 
         appItem.appConfiguredEnumSet.clear()
-        appOptimizePolicies[packageName]?.let { appOptimizePolicy ->
+        val appKey = KeyUtils.getAppKey(appItem.userId, packageName)
+        appOptimizePolicies[appKey]?.let { appOptimizePolicy ->
             if (appOptimizePolicy.disableForegroundTrimMem != null ||
                 appOptimizePolicy.disableBackgroundTrimMem != null ||
                 appOptimizePolicy.disableBackgroundGc != null
@@ -305,23 +308,29 @@ class ShowAllInstalledAppsActivityMaterial3 : BaseActivityMaterial3() {
         var hasConfiguredSubProcessOomPolicy = false
         val appConfiguredEnumIfConfiguredSubProcessOomPolicy = AppConfiguredEnum.SubProcessOomPolicy
         // 在默认白名单
-        for (processName in CommonProperties.subProcessDefaultUpgradeSet) {
-            if (processName.containsIgnoreCase(packageName)) {
-                appItem.appConfiguredEnumSet.add(appConfiguredEnumIfConfiguredSubProcessOomPolicy)
-                hasConfiguredSubProcessOomPolicy = true
-                break
+        for (processKey in CommonProperties.subProcessDefaultUpgradeSet) {
+            val userId = KeyUtils.getUserIdFromProcessKey(processKey)
+            if (userId == appItem.userId) {
+                if (processKey.containsIgnoreCase(packageName)) {
+                    appItem.appConfiguredEnumSet.add(appConfiguredEnumIfConfiguredSubProcessOomPolicy)
+                    hasConfiguredSubProcessOomPolicy = true
+                    break
+                }
             }
         }
         if (!hasConfiguredSubProcessOomPolicy) {
             // 从本地配置查找
-            for ((subProcessName, subProcessOomPolicy) in subProcessOomPolicyMap.entries) {
-                if (subProcessName.containsIgnoreCase(packageName)) {
-                    if (subProcessOomPolicy.policyEnum != SubProcessOomPolicyEnum.DEFAULT) {
-                        appItem.appConfiguredEnumSet.add(
-                            appConfiguredEnumIfConfiguredSubProcessOomPolicy
-                        )
-                        hasConfiguredSubProcessOomPolicy = true
-                        break
+            for ((subProcessKey, subProcessOomPolicy) in subProcessOomPolicyMap.entries) {
+                val userId = KeyUtils.getUserIdFromProcessKey(subProcessKey)
+                if (userId == appItem.userId) {
+                    if (subProcessKey.containsIgnoreCase(packageName)) {
+                        if (subProcessOomPolicy.policyEnum != SubProcessOomPolicyEnum.DEFAULT) {
+                            appItem.appConfiguredEnumSet.add(
+                                appConfiguredEnumIfConfiguredSubProcessOomPolicy
+                            )
+                            hasConfiguredSubProcessOomPolicy = true
+                            break
+                        }
                     }
                 }
             }

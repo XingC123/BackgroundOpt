@@ -45,18 +45,17 @@ object AppOptimizePolicyMessageHandler : MessageHandler {
         createResponse<AppOptimizePolicyMessage>(param, value, setJsonData = true) { message ->
             var returnValue: Any? = null
 
-            val appOptimizePolicyMap = HookCommonProperties.appOptimizePolicyMap
+            val uid = message.uid
             val packageName = message.packageName
 
             when (message.messageType) {
                 AppOptimizePolicyMessage.MSG_NONE -> {}
 
                 AppOptimizePolicyMessage.MSG_CREATE_OR_GET -> {
-                    returnValue = appOptimizePolicyMap.computeIfAbsent(packageName) {
-                        AppOptimizePolicy().apply {
-                            this.packageName = packageName
-                        }
-                    }.apply {
+                    returnValue = HookCommonProperties.computeAppOptimizePolicyInMapByUid(
+                        uid = uid,
+                        packageName = packageName
+                    ).apply {
                         initMainProcessAdjManagePolicyUiText(this)
                     }
                 }
@@ -64,16 +63,16 @@ object AppOptimizePolicyMessageHandler : MessageHandler {
                 AppOptimizePolicyMessage.MSG_SAVE -> {
                     val appOptimizePolicy =
                         message.value.parseObjectFromJsonObject<AppOptimizePolicy>()!!
-                    val old = appOptimizePolicyMap[appOptimizePolicy.packageName]
+                    val old = HookCommonProperties.replaceAppOptimizePolicy(appOptimizePolicy)
 
-                    appOptimizePolicyMap[appOptimizePolicy.packageName] = appOptimizePolicy
-
-                    runningInfo.runningAppInfos.asSequence()
-                        .filter { appInfo -> appInfo.packageName == appOptimizePolicy.packageName }
-                        .forEach { appInfo -> appInfo.setAdjHandleFunction(appOptimizePolicy) }
+                    runningInfo.getRunningAppInfo(
+                        userId = appOptimizePolicy.userId,
+                        packageName = appOptimizePolicy.packageName
+                    )?.setAdjHandleFunction(appOptimizePolicy)
 
                     if (old?.enableCustomMainProcessOomScore != appOptimizePolicy.enableCustomMainProcessOomScore) {
                         ProcessRecord.resetAdjHandleType(
+                            userId = appOptimizePolicy.userId,
                             packageName = packageName
                         )
                     }

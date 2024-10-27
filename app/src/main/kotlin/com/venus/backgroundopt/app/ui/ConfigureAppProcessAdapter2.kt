@@ -26,6 +26,7 @@ import com.venus.backgroundopt.app.ui.base.RecyclerViewAdapter
 import com.venus.backgroundopt.app.ui.component.VenusListPreference
 import com.venus.backgroundopt.app.utils.getView
 import com.venus.backgroundopt.common.entity.AppItem
+import com.venus.backgroundopt.common.entity.getProcessKey
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy
 
 /**
@@ -58,7 +59,7 @@ class ConfigureAppProcessAdapter2(
         holder.processName = processName
 
         // 显示策略的名字
-        val subProcessOomPolicy = subProcessOomPolicyMap[processName]!!
+        val subProcessOomPolicy = subProcessOomPolicyMap[appItem.getProcessKey()]!!
         holder.preference.summary = subProcessOomPolicy.policyEnum.configName
 
         // 其他

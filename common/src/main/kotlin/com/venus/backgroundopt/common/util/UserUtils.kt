@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 BackgroundOpt
+ * Copyright (C) 2023-2024 BackgroundOpt
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,20 +15,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.venus.backgroundopt.common.entity.message
-
-import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy
-import com.venus.backgroundopt.common.util.UserUtils
-import com.venus.backgroundopt.common.util.message.MessageFlag
+package com.venus.backgroundopt.common.util
 
 /**
  * @author XingC
- * @date 2023/9/28
+ * @date 2024/8/30
  */
-class SubProcessOomConfigChangeMessage : MessageFlag {
-    var userId: Int = UserUtils.MAIN_USER
-    lateinit var processKey: String
-    lateinit var processName: String
-    lateinit var packageName: String
-    lateinit var subProcessOomPolicy: SubProcessOomPolicy
+object UserUtils {
+    const val MAIN_USER = 0
+    const val USER_APP_UID_START_NUM = 10000
+    const val PER_USER_RANGE = 100000
+
+    @JvmStatic
+    fun getUserId(uid: Int): Int {
+        return if (uid > USER_APP_UID_START_NUM) {
+            uid / PER_USER_RANGE
+        } else {
+            MAIN_USER
+        }
+    }
 }

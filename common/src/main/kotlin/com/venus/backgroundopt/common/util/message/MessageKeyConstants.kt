@@ -49,5 +49,7 @@ interface MessageKeyConstants {
         const val getProcessRunningInfo = "getProcessRunningInfo"
         const val RUNNING_PROCESS_LIST = "RUNNING_PROCESS_LIST"
         const val RESET_APP_CONFIGURATION = "RESET_APP_CONFIGURATION"
+        const val QUERY_OTHER_USER_INSTALLED_APPS = "QUERY_OTHER_USER_INSTALLED_APPS"
+        const val QUERY_TARGET_INSTALLED_APP = "QUERY_TARGET_INSTALLED_APP"
     }
 }

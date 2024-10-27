@@ -31,10 +31,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.app.ui.base.ShowInfoFromAppItemAdapter
 import com.venus.backgroundopt.app.ui.base.ShowInfoFromAppItemViewHolder
-import com.venus.backgroundopt.app.ui.component.NoIndexOutOfBoundsExceptionLinearLayoutManager
 import com.venus.backgroundopt.app.utils.UiUtils
 import com.venus.backgroundopt.app.utils.setTmpData
 import com.venus.backgroundopt.common.entity.AppItem
+import com.venus.backgroundopt.common.entity.userId
+import com.venus.backgroundopt.common.util.UserUtils
 import com.venus.backgroundopt.common.util.unsafeLazy
 import kotlin.math.max
 import kotlin.reflect.KMutableProperty0
@@ -115,6 +116,9 @@ class ShowAllInstalledAppsAdapter3(
         holder.appIcon.setImageDrawable(appItem.appIcon)
         holder.appName.text = appItem.appName
 
+        /*
+         * app优化策略
+         */
         setAppFlagTextVisible(
             holder.itemInstalledAppsMemTrimFlagText,
             appItem,
@@ -140,6 +144,11 @@ class ShowAllInstalledAppsAdapter3(
             appItem,
             AppItem.AppConfiguredEnum.MainProcessAdjManagePolicy
         )
+
+        /*
+         * 多开app的flag显示
+         */
+        setMultiAppFlagVisible(holder.multiAppFlag, appItem)
 
         holder.itemView.setOnClickListener { view ->
             view.context.also { context ->
@@ -169,6 +178,15 @@ class ShowAllInstalledAppsAdapter3(
             component,
             appItem.appConfiguredEnumSet.contains(appConfiguredEnum)
         )
+    }
+
+    // 多开app则显示特殊标识
+    private fun setMultiAppFlagVisible(
+        component: View,
+        appItem: AppItem,
+    ) {
+        val isVisible = appItem.userId != UserUtils.MAIN_USER
+        UiUtils.setComponentVisible(component, isVisible)
     }
 
     /* *************************************************************************
@@ -235,6 +253,7 @@ class ShowAllInstalledAppsAdapter3(
 }
 
 class ShowAllInstalledAppsViewHolder(itemView: View) : ShowInfoFromAppItemViewHolder(itemView) {
+    val multiAppFlag: ImageView by unsafeLazy { itemView.findViewById(R.id.multiAppFlagImageView) }
     val appIcon: ImageView by unsafeLazy { itemView.findViewById(R.id.appIconImageView) }
     val appName: TextView by unsafeLazy { itemView.findViewById(R.id.appNameText) }
     val itemInstalledAppsMemTrimFlagText: TextView by unsafeLazy {

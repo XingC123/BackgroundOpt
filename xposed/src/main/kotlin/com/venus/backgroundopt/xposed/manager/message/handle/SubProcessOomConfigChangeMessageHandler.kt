@@ -19,7 +19,6 @@ package com.venus.backgroundopt.xposed.manager.message.handle
 
 import com.venus.backgroundopt.common.entity.message.SubProcessOomConfigChangeMessage
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy
-import com.venus.backgroundopt.common.util.PackageUtils
 import com.venus.backgroundopt.xposed.BuildConfig
 import com.venus.backgroundopt.xposed.core.RunningInfo
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
@@ -44,20 +43,22 @@ object SubProcessOomConfigChangeMessageHandler : MessageHandler {
             param,
             value
         ) { subProcessOomConfigChangeMessage ->
+            val userId = subProcessOomConfigChangeMessage.userId
+            val processKey = subProcessOomConfigChangeMessage.processKey
             val processName = subProcessOomConfigChangeMessage.processName
+            val packageName = subProcessOomConfigChangeMessage.packageName
             // 移除或添加oom策略。在下次调整进程oom_adj_score时生效
             if (subProcessOomConfigChangeMessage.subProcessOomPolicy.policyEnum != SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT) {
-                HookCommonProperties.subProcessOomPolicyMap[processName] =
+                HookCommonProperties.replaceSubProcessOomPolicy(
                     subProcessOomConfigChangeMessage.subProcessOomPolicy
+                )
             } else {
-                HookCommonProperties.subProcessOomPolicyMap.remove(processName)
+                HookCommonProperties.removeSubProcessOomPolicy(processKey)
             }
 
             // 是否需要更改进程的adj处理策略
-            val packageName = processName.substring(
-                0, processName.indexOf(PackageUtils.processNameSeparator)
-            )
             ProcessRecord.resetAdjHandleType(
+                userId = userId,
                 packageName = packageName,
                 processName = processName
             )

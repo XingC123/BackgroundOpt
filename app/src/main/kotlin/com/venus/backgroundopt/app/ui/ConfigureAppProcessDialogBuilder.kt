@@ -31,9 +31,11 @@ import com.venus.backgroundopt.app.ui.base.ifVersionIsCompatible
 import com.venus.backgroundopt.app.utils.UiUtils
 import com.venus.backgroundopt.common.entity.AppItem
 import com.venus.backgroundopt.common.entity.AppItem.AppConfiguredEnum
+import com.venus.backgroundopt.common.entity.getProcessKey
 import com.venus.backgroundopt.common.entity.message.SubProcessOomConfigChangeMessage
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy.SubProcessOomPolicyEnum
+import com.venus.backgroundopt.common.entity.userId
 import com.venus.backgroundopt.common.environment.CommonProperties
 import com.venus.backgroundopt.common.environment.constants.PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
 import com.venus.backgroundopt.common.util.ifTrue
@@ -144,24 +146,25 @@ object ConfigureAppProcessDialogBuilder {
                     return@positiveBlock
                 }
 
+                val processKey = appItem.getProcessKey()
                 val curPolicy = subProcessOomPolicy.policyEnum
                 when (checkedRadioButtonId) {
                     defaultBtnId -> {
                         if (curPolicy != SubProcessOomPolicyEnum.DEFAULT) {
                             subProcessOomPolicy.policyEnum = SubProcessOomPolicyEnum.DEFAULT
 
-                            subProcessOomPolicyMap.remove(processName)
+                            subProcessOomPolicyMap.remove(processKey)
 
                             // 删除原有配置
                             context.prefEdit(SUB_PROCESS_OOM_POLICY, commit = true) {
                                 if (CommonProperties.subProcessDefaultUpgradeSet.contains(
-                                        processName
+                                        processKey
                                     )
                                 ) {
                                     // 白名单进程则覆盖设置
-                                    putObject(processName, subProcessOomPolicy)
+                                    putObject(processKey, subProcessOomPolicy)
                                 } else {
-                                    remove(processName)
+                                    remove(processKey)
                                 }
                             }
                         }
@@ -169,11 +172,11 @@ object ConfigureAppProcessDialogBuilder {
 
                     mainProcessBtnId -> {
                         if (curPolicy != SubProcessOomPolicyEnum.MAIN_PROCESS) {
-                            subProcessOomPolicyMap[processName] = subProcessOomPolicy
+                            subProcessOomPolicyMap[processKey] = subProcessOomPolicy
                             context.prefPut(
                                 SUB_PROCESS_OOM_POLICY,
                                 commit = true,
-                                processName,
+                                processKey,
                                 subProcessOomPolicy.apply {
                                     policyEnum =
                                         SubProcessOomPolicyEnum.MAIN_PROCESS
@@ -209,7 +212,7 @@ object ConfigureAppProcessDialogBuilder {
                         }
 
                         // 分数没问题
-                        subProcessOomPolicyMap[processName] = subProcessOomPolicy.apply {
+                        subProcessOomPolicyMap[processKey] = subProcessOomPolicy.apply {
                             policyEnum = SubProcessOomPolicyEnum.CUSTOM_ADJ
 
                             componentArray.forEachIndexed { index, component ->
@@ -222,7 +225,7 @@ object ConfigureAppProcessDialogBuilder {
                         context.prefPut(
                             SUB_PROCESS_OOM_POLICY,
                             commit = true,
-                            processName,
+                            processKey,
                             subProcessOomPolicy
                         )
                     }
@@ -246,7 +249,10 @@ object ConfigureAppProcessDialogBuilder {
                         context = context,
                         key = MessageKeyConstants.subProcessOomConfigChange,
                         value = SubProcessOomConfigChangeMessage().apply {
+                            this.userId = appItem.userId
+                            this.processKey = processKey
                             this.processName = processName
+                            this.packageName = appItem.packageName
                             this.subProcessOomPolicy = subProcessOomPolicy
                         }
                     )

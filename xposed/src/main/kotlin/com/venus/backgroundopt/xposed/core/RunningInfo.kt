@@ -16,6 +16,7 @@ import com.venus.backgroundopt.xposed.entity.android.com.android.internal.util.M
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ActivityManagerService
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.PackageManagerService
+import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.UserManagerService
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.power.PowerManagerService
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.wm.ActivityRecord
 import com.venus.backgroundopt.xposed.entity.self.AppInfo
@@ -97,10 +98,6 @@ class RunningInfo(
      */
     private fun getNormalAppKey(userId: Int, packageName: String): String {
         return getAppKey(userId, packageName)
-    }
-
-    private fun getAppKey(userId: Int, packageName: String): String {
-        return if (userId == ActivityManagerService.MAIN_USER) packageName else "$userId:$packageName"
     }
 
     /**
@@ -729,5 +726,16 @@ class RunningInfo(
 
         @JvmStatic
         fun getInstance(): RunningInfo = runningInfo
+
+        fun getAppKey(userId: Int, packageName: String): String {
+            return if (userId == ActivityManagerService.MAIN_USER) packageName else "${userId}#${packageName}"
+        }
     }
+
+    /* *************************************************************************
+     *                                                                         *
+     * UserManagerService                                                      *
+     *                                                                         *
+     **************************************************************************/
+    lateinit var userManagerService: UserManagerService
 }

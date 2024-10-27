@@ -56,10 +56,12 @@ public interface ClassConstants {
     String OomAdjuster = "com.android.server.am.OomAdjuster";
     String DeviceConfig = "android.provider.DeviceConfig";
     String PackageManagerService = "com.android.server.pm.PackageManagerService";
+    String ComputerLocked = "com.android.server.pm.ComputerLocked";
     String PackageManagerServiceInjector = "com.android.server.pm.PackageManagerServiceInjector";
     String PackageManagerServiceTestParams = "com.android.server.pm.PackageManagerServiceTestParams";
     String DefaultAppProvider = "com.android.server.pm.DefaultAppProvider";
     String PermissionManagerService = "com.android.server.pm.permission.PermissionManagerService";
+    String UserManagerService = "com.android.server.pm.UserManagerService";
     String RoleManagerService = "com.android.server.role.RoleManagerService";
     String RoleUserState = "com.android.server.role.RoleUserState";
     String SystemServer = "com.android.server.SystemServer";

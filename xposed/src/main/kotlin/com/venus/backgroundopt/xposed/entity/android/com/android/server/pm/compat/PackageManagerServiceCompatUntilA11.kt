@@ -18,6 +18,7 @@
 package com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.compat
 
 import android.app.role.RoleManager
+import android.content.pm.PackageInfo
 import com.venus.backgroundopt.common.util.runCatchThrowable
 import com.venus.backgroundopt.xposed.annotation.OriginalObjectField
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ActivityManagerService
@@ -86,6 +87,36 @@ class PackageManagerServiceCompatUntilA11(
 
     override fun getDefaultInputMethod(): String? {
         return DefaultApplicationManager.getDefaultPkgNameFromSettings(key = Settings.Secure.DEFAULT_INPUT_METHOD)
+    }
+
+    override fun getOtherUserInstalledApps(): List<PackageInfo> {
+        val packageInfos = arrayListOf<PackageInfo>()
+
+        mUserManager.getUserIds()
+            .filter { it != ActivityManagerService.MAIN_USER }
+            .forEach { userId ->
+                val userInstalledApps = originalInstance.callMethod(
+                    MethodConstants.getInstalledPackages,
+                    0,
+                    userId
+                )!!.callMethod(MethodConstants.getList) as List<PackageInfo>
+                packageInfos.addAll(userInstalledApps)
+            }
+
+        return packageInfos
+    }
+
+    override fun getPackageInfoAsUser(
+        packageName: String,
+        userId: Int,
+        packageInfoFlag: Int
+    ): PackageInfo? {
+        return originalInstance.callMethod<PackageInfo?>(
+            MethodConstants.getPackageInfo,
+            packageName,
+            packageInfoFlag,
+            userId
+        )
     }
 
     companion object : IPackageManagerService

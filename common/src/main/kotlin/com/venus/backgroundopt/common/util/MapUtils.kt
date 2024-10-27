@@ -43,11 +43,20 @@ inline fun <K, reified E> MutableMap<K, E>.fill(from: Map<K, *>): MutableMap<K, 
 
 inline fun <reified E> convertValueToTargetType(
     map: Map<String, *>,
-    enableConcurrent: Boolean = false
+    enableConcurrent: Boolean = false,
 ): MutableMap<String, E> {
     return if (enableConcurrent) {
         ConcurrentHashMap<String, E>().fill(map)
     } else {
         hashMapOf<String, E>().fill(map)
     }
+}
+
+fun <K, V> MutableMap<K, V>.replace(key: K, new: V?): V? {
+    var oldV: V? = null
+    this.compute(key) { _, old ->
+        oldV = old
+        new
+    }
+    return oldV
 }

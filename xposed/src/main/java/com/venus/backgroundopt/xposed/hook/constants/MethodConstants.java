@@ -173,6 +173,9 @@ public interface MethodConstants {
     String isInteractiveInternal = "isInteractiveInternal";
     String isGloballyInteractiveInternal = "isGloballyInteractiveInternal";
     String setIntermediateAdjLSP = "setIntermediateAdjLSP";
+    String getUserIds = "getUserIds";
+    String getList = "getList";
+    String getPackageInfo = "getPackageInfo";
 
     /**
      * miui

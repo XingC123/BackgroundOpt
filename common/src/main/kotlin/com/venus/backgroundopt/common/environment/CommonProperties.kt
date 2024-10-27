@@ -31,7 +31,10 @@ object CommonProperties {
         return false
     }
 
-    // 默认白名单
+    /**
+     * 默认白名单。
+     * 值为 userId#processName
+     */
     val subProcessDefaultUpgradeSet: Set<String> by lazy {
         setOf(
             "com.tencent.mobileqq:MSF", /* qq */
@@ -41,5 +44,5 @@ object CommonProperties {
 
     // 模块后端版本
     @JvmStatic
-    var moduleVersionCode:Int? = null
+    var moduleVersionCode:Int = Int.MIN_VALUE
 }

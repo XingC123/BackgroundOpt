@@ -21,7 +21,6 @@ import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy.MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_ALWAYS
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy.MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_HAS_ACTIVITY
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy.MainProcessAdjManagePolicy.MAIN_PROC_ADJ_MANAGE_NEVER
-import com.venus.backgroundopt.common.util.concurrent.lock.LockFlag
 import com.venus.backgroundopt.common.util.concurrent.lock.ReadWriteLockFlag
 import com.venus.backgroundopt.common.util.ifTrue
 import com.venus.backgroundopt.common.util.log.ILogger
@@ -31,7 +30,7 @@ import com.venus.backgroundopt.xposed.annotation.OriginalObject
 import com.venus.backgroundopt.xposed.core.AppGroupEnum
 import com.venus.backgroundopt.xposed.core.RunningInfo
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
-import com.venus.backgroundopt.xposed.environment.HookCommonProperties.appOptimizePolicyMap
+import com.venus.backgroundopt.xposed.environment.HookCommonProperties
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.manager.application.DefaultApplicationManager.Companion.isDefaultAppPkgName
 import java.util.Collections
@@ -39,9 +38,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReadWriteLock
-import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.Volatile
 
@@ -60,7 +57,7 @@ class AppInfo(
     var uid: Int,
     var userId: Int,
     var packageName: String?,
-    var findAppResult: FindAppResult
+    var findAppResult: FindAppResult,
 ) : ILogger, ReadWriteLockFlag {
     fun init(): AppInfo {
         _activitySwitchEventHandlingCount.set(0)
@@ -163,7 +160,12 @@ class AppInfo(
     fun shouldHandleAdj(): Boolean = adjHandleFunction(this)
 
     fun setAdjHandleFunction() {
-        setAdjHandleFunction(appOptimizePolicyMap[packageName])
+        setAdjHandleFunction(
+            HookCommonProperties.getAppOptimizePolicy(
+                userId = userId,
+                packageName = packageName!!
+            )
+        )
     }
 
     fun setAdjHandleFunction(appOptimizePolicy: AppOptimizePolicy?) {

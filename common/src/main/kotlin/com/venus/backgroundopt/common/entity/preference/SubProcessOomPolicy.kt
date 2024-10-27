@@ -19,6 +19,7 @@ package com.venus.backgroundopt.common.entity.preference
 
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy.SubProcessOomPolicyEnum
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy.SubProcessOomPolicyEnum.DEFAULT
+import com.venus.backgroundopt.common.util.UserUtils
 import com.venus.backgroundopt.common.util.message.MessageFlag
 import com.venus.backgroundopt.xposed.entity.self.ProcessAdjConstants
 
@@ -33,6 +34,10 @@ class SubProcessOomPolicy : MessageFlag, JsonPreferenceFlag {
 
     var targetFgAdj: Int = Int.MIN_VALUE
     var targetBgAdj: Int = Int.MIN_VALUE
+
+    lateinit var processName: String
+    lateinit var packageName: String
+    var userId: Int = UserUtils.MAIN_USER
 
     enum class SubProcessOomPolicyEnum(val configCode: Int, val configName: String) {
         DEFAULT(1, "默认"),

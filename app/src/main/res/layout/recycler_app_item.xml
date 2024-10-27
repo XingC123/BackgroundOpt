@@ -11,6 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/layout_content_space_horizontal"
         android:layout_marginVertical="@dimen/layout_content_space_vertical"
+        android:baselineAligned="false"
         android:divider="@drawable/item_space_horizontal"
         android:gravity="center_vertical"
         android:orientation="horizontal"
@@ -20,12 +21,11 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
-            android:id="@+id/appItemAppIcon"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            android:layout_weight="0"
-            android:src="@mipmap/ic_launcher" />
+        <include
+            layout="@layout/component_appicon"
+            android:layout_width="57dp"
+            android:layout_height="57dp"
+            android:layout_weight="0" />
 
         <LinearLayout
             android:layout_width="match_parent"

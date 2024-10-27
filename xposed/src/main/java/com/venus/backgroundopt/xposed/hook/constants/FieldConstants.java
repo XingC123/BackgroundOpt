@@ -132,4 +132,5 @@ public interface FieldConstants {
     String mSetSchedGroup = "mSetSchedGroup";
     String mInstr = "mInstr";
     String mPendingFinishAttach = "mPendingFinishAttach";
+    String mLiveComputer = "mLiveComputer";
 }

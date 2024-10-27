@@ -29,8 +29,11 @@ import com.venus.backgroundopt.common.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.common.environment.constants.PreferenceKeyConstants
 import com.venus.backgroundopt.common.environment.constants.PreferenceNameConstants
 import com.venus.backgroundopt.common.preference.PropertyValueWrapper
+import com.venus.backgroundopt.common.util.KeyUtils
+import com.venus.backgroundopt.common.util.UserUtils
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.log.logInfo
+import com.venus.backgroundopt.xposed.core.RunningInfo
 import com.venus.backgroundopt.xposed.util.preference.PreferencesUtil
 import com.venus.backgroundopt.xposed.util.preference.PreferencesUtil.prefAll
 import java.util.concurrent.ConcurrentHashMap
@@ -46,11 +49,12 @@ object HookCommonProperties : ILogger {
 
     // 子进程oom策略映射表
     val subProcessOomPolicyMap: MutableMap<String, SubProcessOomPolicy> by lazy {
-        (prefAll(PreferenceNameConstants.SUB_PROCESS_OOM_POLICY)
-            ?: ConcurrentHashMap<String, SubProcessOomPolicy>()).apply {
-            subProcessDefaultUpgradeSet.forEach { processName ->
-                if (!this.containsKey(processName)) {
-                    this[processName] = SubProcessOomPolicy().apply {
+        (prefAll(
+            PreferenceNameConstants.SUB_PROCESS_OOM_POLICY
+        ) ?: ConcurrentHashMap<String, SubProcessOomPolicy>()).apply {
+            subProcessDefaultUpgradeSet.forEach { processKey ->
+                if (!this.containsKey(processKey)) {
+                    this[processKey] = SubProcessOomPolicy().apply {
                         policyEnum = SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
                     }
                 }
@@ -58,22 +62,70 @@ object HookCommonProperties : ILogger {
         }
     }
 
-    fun getUpgradeSubProcessNames(): Set<String> {
-        return HashSet<String>().apply {
-            subProcessOomPolicyMap.forEach { (processName, policy) ->
-                if (policy.policyEnum == SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS) {
-                    add(processName)
-                }
-            }
+    /**
+     * 以给定的[userId]和[processName], 从[subProcessOomPolicyMap]中获取[SubProcessOomPolicy]
+     */
+    @JvmStatic
+    fun getSubProcessOomPolicy(userId: Int, processName: String): SubProcessOomPolicy? {
+        return subProcessOomPolicyMap[KeyUtils.getProcessKey(userId, processName)]
+    }
+
+    /**
+     * 从[subProcessOomPolicyMap]中替换[userId]和[processName]指向的值, 并返回旧值
+     */
+    @JvmStatic
+    fun replaceSubProcessOomPolicy(
+        subProcessOomPolicy: SubProcessOomPolicy,
+        userId: Int = subProcessOomPolicy.userId,
+        processName: String = subProcessOomPolicy.processName,
+    ): SubProcessOomPolicy? {
+        return subProcessOomPolicyMap.replace(
+            KeyUtils.getProcessKey(userId, processName),
+            subProcessOomPolicy
+        )
+    }
+
+    /**
+     * 从[subProcessOomPolicyMap]中移除[userId]和[processName]指向的值
+     */
+    @JvmStatic
+    fun removeSubProcessOomPolicy(userId: Int, processName: String): SubProcessOomPolicy? {
+        return removeSubProcessOomPolicy(KeyUtils.getProcessKey(userId, processName))
+    }
+
+    @JvmStatic
+    fun removeSubProcessOomPolicy(userId: Int, processNames: Collection<String>) {
+        processNames.forEach { processName ->
+            removeSubProcessOomPolicy(userId, processName)
         }
     }
 
-    fun isUpgradeSubProcessLevel(processName: String): Boolean {
-        return subProcessOomPolicyMap[processName]?.let {
+    @JvmStatic
+    fun removeSubProcessOomPolicy(key: String): SubProcessOomPolicy? {
+        return subProcessOomPolicyMap.remove(key)
+    }
+
+    @JvmStatic
+    fun getUpgradeSubProcessNames(): Set<String> {
+        return subProcessOomPolicyMap.values.asSequence()
+            .filter { policy->
+                policy.policyEnum == SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS
+            }
+            .map { policy->
+                policy.processName
+            }
+            .toSet()
+        
+    }
+
+    @JvmStatic
+    fun isUpgradeSubProcessLevel(userId: Int, processName: String): Boolean {
+        val processKey = KeyUtils.getProcessKey(userId, processName)
+        return subProcessOomPolicyMap[processKey]?.let {
             when (it.policyEnum) {
                 SubProcessOomPolicy.SubProcessOomPolicyEnum.MAIN_PROCESS,
                 SubProcessOomPolicy.SubProcessOomPolicyEnum.CUSTOM_ADJ,
-                -> true
+                    -> true
 
                 else -> false
             }
@@ -158,7 +210,7 @@ object HookCommonProperties : ILogger {
      *                                                                         *
      **************************************************************************/
     /**
-     * app优化策略<packageName, [AppOptimizePolicy]>
+     * app优化策略<[RunningInfo.getAppKey], [AppOptimizePolicy]>
      */
     val appOptimizePolicyMap: MutableMap<String, AppOptimizePolicy> by lazy {
         (prefAll(PreferenceNameConstants.APP_OPTIMIZE_POLICY)
@@ -167,18 +219,102 @@ object HookCommonProperties : ILogger {
         }
     }
 
+    /**
+     * 根据[userId]和[packageName]查找[AppOptimizePolicy]
+     */
+    @JvmStatic
+    fun getAppOptimizePolicy(userId: Int, packageName: String): AppOptimizePolicy? {
+        return appOptimizePolicyMap[RunningInfo.getAppKey(userId, packageName)]
+    }
+
+    @JvmStatic
+    fun getAppOptimizePolicyByUid(uid: Int, packageName: String): AppOptimizePolicy? {
+        val userId = UserUtils.getUserId(uid)
+        return getAppOptimizePolicy(userId, packageName)
+    }
+
+    /**
+     * 从[appOptimizePolicyMap]中移除匹配的[AppOptimizePolicy]
+     */
+    @JvmStatic
+    fun removeAppOptimizePolicy(key: String): AppOptimizePolicy? {
+        return appOptimizePolicyMap.remove(key)
+    }
+
+    @JvmStatic
+    fun removeAppOptimizePolicy(userId: Int, packageName: String): AppOptimizePolicy? {
+        return removeAppOptimizePolicy(RunningInfo.getAppKey(userId, packageName))
+    }
+
+    @JvmStatic
+    fun removeAppOptimizePolicyByUid(uid: Int, packageName: String): AppOptimizePolicy? {
+        val userId = UserUtils.getUserId(uid)
+        return removeAppOptimizePolicy(userId, packageName)
+    }
+
+    /**
+     * 以给定的[appOptimizePolicy]替换[appOptimizePolicyMap]中的值
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun replaceAppOptimizePolicy(
+        appOptimizePolicy: AppOptimizePolicy,
+        userId: Int = appOptimizePolicy.userId,
+        packageName: String = appOptimizePolicy.packageName,
+    ): AppOptimizePolicy? {
+        val key = RunningInfo.getAppKey(userId, packageName)
+        return appOptimizePolicyMap.replace(key, appOptimizePolicy)
+    }
+
+    /**
+     * 对[appOptimizePolicyMap]应用 [MutableMap.compute]
+     */
+    @JvmStatic
+    fun appOptimizePolicyMapComputeAction(
+        appOptimizePolicy: AppOptimizePolicy,
+        block: (String, AppOptimizePolicy?) -> AppOptimizePolicy,
+    ) {
+        appOptimizePolicyMapComputeAction(
+            userId = appOptimizePolicy.userId,
+            packageName = appOptimizePolicy.packageName,
+            block
+        )
+    }
+
+    @JvmStatic
+    fun appOptimizePolicyMapComputeAction(
+        userId: Int,
+        packageName: String,
+        block: (String, AppOptimizePolicy?) -> AppOptimizePolicy,
+    ) {
+        appOptimizePolicyMap.compute(RunningInfo.getAppKey(userId, packageName), block)
+    }
+
+    /**
+     * 根据[userId]和[packageName]计算出[AppOptimizePolicy]
+     */
     @JvmStatic
     fun computeAppOptimizePolicy(userId: Int, packageName: String): AppOptimizePolicy {
         return AppOptimizePolicy().apply {
+            this.userId = userId
             this.packageName = packageName
         }
     }
 
+    /**
+     * 根据[userId]和[packageName]对[appOptimizePolicyMap]使用 [MutableMap.computeIfAbsent]
+     */
     @JvmStatic
     fun computeAppOptimizePolicyInMap(userId: Int, packageName: String): AppOptimizePolicy {
-        return appOptimizePolicyMap.computeIfAbsent(packageName) {
+        return appOptimizePolicyMap.computeIfAbsent(RunningInfo.getAppKey(userId, packageName)) {
             computeAppOptimizePolicy(userId = userId, packageName = packageName)
         }
+    }
+
+    @JvmStatic
+    fun computeAppOptimizePolicyInMapByUid(uid: Int, packageName: String): AppOptimizePolicy {
+        val userId = UserUtils.getUserId(uid)
+        return computeAppOptimizePolicyInMap(userId, packageName)
     }
 
     @JvmStatic

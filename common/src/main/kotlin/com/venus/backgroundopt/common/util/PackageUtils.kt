@@ -25,8 +25,11 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Build
 import com.venus.backgroundopt.common.entity.AppItem
+import com.venus.backgroundopt.common.entity.message.QueryInstalledAppParam
 import com.venus.backgroundopt.common.environment.CommonProperties
 import com.venus.backgroundopt.common.util.log.logErrorAndroid
+import com.venus.backgroundopt.common.util.message.MessageKeyConstants
+import com.venus.backgroundopt.common.util.message.messageSender
 import com.venus.backgroundopt.xposed.entity.self.ProcessRecordBaseInfo
 
 /**
@@ -67,6 +70,38 @@ object PackageUtils {
 
     const val PACKAGE_INFO_FLAG = 0 // or PackageManager.GET_ACTIVITIES
 //    PackageManager.MATCH_UNINSTALLED_PACKAGES or PackageManager.GET_ACTIVITIES    // 在某些系统可能存在获取不到app的情况
+
+    /**
+     * 根据给定信息获取[PackageInfo]
+     */
+    private fun getPackageInfoAsUser(
+        packageManager: PackageManager,
+        packageName: String,
+        userId: Int = UserUtils.MAIN_USER,
+        packageInfoFlag: Int = PACKAGE_INFO_FLAG,
+    ): PackageInfo? {
+        return if (userId == UserUtils.MAIN_USER) {
+            getPackageInfo(packageManager, packageName, packageInfoFlag)
+        } else {
+            getPackageInfoAsUser(packageName, userId, packageInfoFlag)
+        }
+    }
+
+    private fun getPackageInfoAsUser(
+        packageName: String,
+        userId: Int = UserUtils.MAIN_USER,
+        packageInfoFlag: Int = PACKAGE_INFO_FLAG,
+    ): PackageInfo? {
+        return messageSender.send(
+            type = PackageInfo::class.java,
+            key = MessageKeyConstants.QUERY_TARGET_INSTALLED_APP,
+            value = QueryInstalledAppParam().apply {
+                this.userId = userId
+                this.packageName = packageName
+                this.packageInfoFlag = packageInfoFlag
+            }
+        )
+    }
 
     private fun getPackageInfo(
         packageManager: PackageManager,
@@ -132,8 +167,10 @@ object PackageUtils {
                     ).apply {
                         pid = processRecordBaseInfo.pid
                         processName = processRecordBaseInfo.processName
-                        fullQualifiedProcessName =
-                            absoluteProcessName(packageName, processRecordBaseInfo.processName)
+                        fullQualifiedProcessName = absoluteProcessName(
+                            packageName,
+                            processRecordBaseInfo.processName
+                        )
                         oomAdjScore = processRecordBaseInfo.oomAdjScore
                         curAdj = processRecordBaseInfo.curAdj
                         rssInBytes = processRecordBaseInfo.rssInBytes
@@ -180,32 +217,35 @@ object PackageUtils {
         listOf(CommonProperties.PACKAGE_NAME)
     )[0]
 
-    private fun getAppItemForConfiguration(
-        packageInfo: PackageInfo,
-        packageManager: PackageManager,
-    ): AppItem {
-        return getAppItemForConfiguration(
-            packageName = packageInfo.packageName,
-            packageManager = packageManager
-        )!!
-    }
-
-    fun getAppItemForConfiguration(
+    fun getAppItemByPackageName(
         packageName: String,
         packageManager: PackageManager,
+        userId: Int = UserUtils.MAIN_USER,
     ): AppItem? {
-        val packageInfo = getPackageInfo(
+        return getPackageInfoAsUser(
+            packageManager = packageManager,
             packageName = packageName,
-            packageManager = packageManager
-        ) ?: return null
+            userId = userId,
+        )?.let { packageInfo ->
+            packageInfoMapToAppItem(
+                packageInfo, packageManager
+            )
+        }
+    }
+
+    /**
+     * 从[PackageInfo]映射为[AppItem]
+     */
+    @JvmStatic
+    fun packageInfoMapToAppItem(packageInfo: PackageInfo, packageManager: PackageManager): AppItem {
         val applicationInfo = packageInfo.applicationInfo
 
         return AppItem(
-            applicationInfo!!.loadLabel(packageManager).toString(),
-            packageInfo.packageName,
-            applicationInfo.uid,
-            applicationInfo.loadIcon(packageManager),
-            packageInfo
+            appName = applicationInfo!!.loadLabel(packageManager).toString(),
+            packageName = packageInfo.packageName,
+            uid = applicationInfo.uid,
+            appIcon = applicationInfo.loadIcon(packageManager),
+            packageInfo = packageInfo
         ).apply {
             versionName = packageInfo.versionName
             longVersionCode = packageInfo.longVersionCode
@@ -231,11 +271,17 @@ object PackageUtils {
             packageManager.getInstalledPackages(PACKAGE_INFO_FLAG)
         }
 
+        // 获取多开的app
+        val otherUserInstalledApps = messageSender.send(
+            key = MessageKeyConstants.QUERY_OTHER_USER_INSTALLED_APPS
+        )!!.parseArray(PackageInfo::class.java)
+        packageInfos.addAll(otherUserInstalledApps)
+
         return packageInfos.asSequence()
             .filterNotNull()
             .nullableFilter(filter)
             .map { packageInfo ->
-                getAppItemForConfiguration(packageInfo, packageManager)
+                packageInfoMapToAppItem(packageInfo, packageManager)
             }
             .toMutableList()
     }

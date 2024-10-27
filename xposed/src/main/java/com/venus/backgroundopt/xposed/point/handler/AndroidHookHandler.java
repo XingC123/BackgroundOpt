@@ -46,6 +46,7 @@ import com.venus.backgroundopt.xposed.point.android.RecentTasksHook;
 import com.venus.backgroundopt.xposed.point.android.RoleManagerServiceHook;
 import com.venus.backgroundopt.xposed.point.android.ServiceManagerHook;
 import com.venus.backgroundopt.xposed.point.android.SystemPropertiesHook;
+import com.venus.backgroundopt.xposed.point.android.UserManagerServiceHook;
 import com.venus.backgroundopt.xposed.point.android.WindowProcessControllerHook;
 import com.venus.backgroundopt.xposed.point.android.function.ActivitySwitchHook;
 import com.venus.backgroundopt.xposed.point.android.function.CleanUpRemovedTaskHook;
@@ -160,6 +161,8 @@ public class AndroidHookHandler extends PackageHook {
         new StartHandleDefaultAppHook(classLoader, runningInfo);
 
         new CurComputedAdjHook(classLoader, runningInfo);
+
+        new UserManagerServiceHook(classLoader, runningInfo);
     }
 
     private void initSystemProp() {

@@ -20,6 +20,7 @@ package com.venus.backgroundopt.common.entity.message
 import com.alibaba.fastjson2.annotation.JSONField
 import com.venus.backgroundopt.common.entity.preference.JsonPreferenceFlag
 import com.venus.backgroundopt.common.environment.PreferenceDefaultValue
+import com.venus.backgroundopt.common.util.UserUtils
 import com.venus.backgroundopt.common.util.message.MessageFlag
 
 /**
@@ -27,6 +28,7 @@ import com.venus.backgroundopt.common.util.message.MessageFlag
  * @date 2023/11/5
  */
 class AppOptimizePolicy : MessageFlag, JsonPreferenceFlag {
+    var userId: Int = UserUtils.MAIN_USER
     lateinit var packageName: String
 
     @Deprecated(
@@ -111,6 +113,22 @@ class AppOptimizePolicy : MessageFlag, JsonPreferenceFlag {
         MAIN_PROC_ADJ_MANAGE_NEVER(1, "从不"),
         MAIN_PROC_ADJ_MANAGE_HAS_ACTIVITY(2, "拥有界面"),
         MAIN_PROC_ADJ_MANAGE_ALWAYS(3, "强制"),
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is AppOptimizePolicy) return false
+
+        if (userId != other.userId) return false
+        if (packageName != other.packageName) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = userId
+        result = 31 * result + packageName.hashCode()
+        return result
     }
 }
 

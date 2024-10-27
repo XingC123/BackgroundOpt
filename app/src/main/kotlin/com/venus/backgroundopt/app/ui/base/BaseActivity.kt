@@ -22,14 +22,14 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import com.venus.backgroundopt.app.utils.UiUtils
+import com.venus.backgroundopt.app.utils.showProgressBarViewForAction
 import com.venus.backgroundopt.common.entity.message.ModuleRunningMessage
 import com.venus.backgroundopt.common.environment.CommonProperties
 import com.venus.backgroundopt.common.util.ifFalse
 import com.venus.backgroundopt.common.util.message.MessageKeyConstants
 import com.venus.backgroundopt.common.util.message.sendMessage
 import com.venus.backgroundopt.common.util.runCatchThrowable
-import com.venus.backgroundopt.app.utils.UiUtils
-import com.venus.backgroundopt.app.utils.showProgressBarViewForAction
 
 /**
  * @author XingC
@@ -147,19 +147,7 @@ inline fun BaseActivity.ifVersionIsCompatible(
 ) {
     // 检查版本是否匹配
     showProgressBarViewForAction(text = "版本校验中...") {
-        val versionCode = CommonProperties.moduleVersionCode ?: run {
-            val returnVersionCode = runCatchThrowable {
-                sendMessage<ModuleRunningMessage>(
-                    key = MessageKeyConstants.moduleRunning,
-                    value = ModuleRunningMessage().apply {
-                        messageType = ModuleRunningMessage.MODULE_VERSION_CODE
-                    }
-                )
-            }?.value as? Int ?: Int.MIN_VALUE
-            CommonProperties.moduleVersionCode = returnVersionCode
-
-            returnVersionCode
-        }
+        val versionCode = CommonProperties.moduleVersionCode
 
         if (versionCode < 0 && isNeedModuleRunning) {
             moduleNotRunningBlock?.invoke(this, versionCode) ?: run {

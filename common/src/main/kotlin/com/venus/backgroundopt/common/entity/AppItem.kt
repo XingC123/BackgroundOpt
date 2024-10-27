@@ -21,8 +21,9 @@ import android.content.pm.PackageInfo
 import android.graphics.drawable.Drawable
 import com.alibaba.fastjson2.annotation.JSONCreator
 import com.alibaba.fastjson2.annotation.JSONField
+import com.venus.backgroundopt.common.util.KeyUtils
+import com.venus.backgroundopt.common.util.UserUtils
 import com.venus.backgroundopt.common.util.message.MessageFlag
-import com.venus.backgroundopt.xposed.core.AppGroupEnum
 import com.venus.backgroundopt.xposed.manager.process.AppOptimizeEnum
 import com.venus.backgroundopt.xposed.manager.process.ProcessingResult
 import java.text.Collator
@@ -92,7 +93,7 @@ class AppItem @JSONCreator constructor() : MessageFlag {
         packageName: String,
         uid: Int,
         appIcon: Drawable,
-        packageInfo: PackageInfo
+        packageInfo: PackageInfo,
     ) : this(packageName) {
         this.appName = appName
         this.uid = uid
@@ -167,3 +168,7 @@ class AppItem @JSONCreator constructor() : MessageFlag {
             get() = Comparator { o1, o2 -> o1.uid - o2.uid }
     }
 }
+
+val AppItem.userId get() = UserUtils.getUserId(this.uid)
+
+fun AppItem.getProcessKey(): String = KeyUtils.getProcessKeyByUid(this.uid, this.packageName)

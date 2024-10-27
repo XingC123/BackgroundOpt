@@ -174,6 +174,7 @@ class MessageSender {
         context: Context,
         socketPort: Int?,
         socketPortText: TextView,
+        initBlock: () -> Unit
     ) {
         executor.execute {
             var socketPortStr = "null"
@@ -206,6 +207,9 @@ class MessageSender {
             (context as? Activity)?.runOnUiThread {
                 socketPortText.text = socketPortStr
             }
+
+            // 执行自定义代码块
+            initBlock()
         }
     }
 

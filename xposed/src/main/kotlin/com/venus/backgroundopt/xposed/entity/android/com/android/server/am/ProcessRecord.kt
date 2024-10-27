@@ -337,13 +337,19 @@ abstract class ProcessRecord(
         if (isHighPriorityProcessByBasicProperty()) {
             if (mainProcess) {
                 // 是否配置自定义主进程
-                val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[packageName]
+                val appOptimizePolicy = HookCommonProperties.getAppOptimizePolicy(
+                    userId = userId,
+                    packageName = packageName
+                )
                 appOptimizePolicy.isCustomMainProcessAdjValid().ifTrue {
                     adjHandleActionType = AdjHandleActionType.CUSTOM_MAIN_PROCESS
                     return
                 }
             } else {
-                val subProcessOomPolicy = HookCommonProperties.subProcessOomPolicyMap[processName]
+                val subProcessOomPolicy = HookCommonProperties.getSubProcessOomPolicy(
+                    userId = userId,
+                    processName = processName
+                )
                 subProcessOomPolicy.isCustomProcessAdjValid().ifTrue {
                     adjHandleActionType = AdjHandleActionType.CUSTOM_SUBPROCESS
                     return
@@ -769,11 +775,13 @@ abstract class ProcessRecord(
 
         @JvmStatic
         fun resetAdjHandleType(
+            userIdFilter: ((ProcessRecord) -> Boolean)? = null,
             packageNameFilter: ((ProcessRecord) -> Boolean)? = null,
             processNameFilter: ((ProcessRecord) -> Boolean)? = null,
         ) {
             val runningInfo = RunningInfo.getInstance()
             runningInfo.runningProcessList.asSequence()
+                .nullableFilter(userIdFilter)
                 .nullableFilter(packageNameFilter)
                 .nullableFilter(processNameFilter)
                 .forEach { processRecord ->
@@ -782,12 +790,15 @@ abstract class ProcessRecord(
         }
 
         @JvmStatic
-        fun resetAdjHandleType(packageName: String, processName: String? = null) {
+        fun resetAdjHandleType(userId: Int, packageName: String, processName: String? = null) {
             if (BuildConfig.DEBUG) {
                 logDebug("重新计算adj处理策略: packageName: ${packageName}, processName: ${processName}")
             }
 
             resetAdjHandleType(
+                userIdFilter = {processRecord ->
+                    processRecord.userId == userId
+                },
                 packageNameFilter = { processRecord ->
                     processRecord.packageName == packageName
                 },

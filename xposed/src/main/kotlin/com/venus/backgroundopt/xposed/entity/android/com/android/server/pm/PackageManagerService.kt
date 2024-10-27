@@ -17,8 +17,11 @@
 
 package com.venus.backgroundopt.xposed.entity.android.com.android.server.pm
 
+import android.content.pm.PackageInfo
 import com.venus.backgroundopt.common.util.OsUtils
 import com.venus.backgroundopt.xposed.annotation.OriginalObject
+import com.venus.backgroundopt.xposed.core.RunningInfo
+import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.compat.PackageManagerServiceCompatA13
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.compat.PackageManagerServiceCompatSinceA12
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.compat.PackageManagerServiceCompatUntilA11
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatFlag
@@ -37,6 +40,8 @@ abstract class PackageManagerService(
     @OriginalObject(classPath = ClassConstants.PackageManagerService)
     final override val originalInstance: Any,
 ) : IEntityWrapper, IEntityCompatFlag {
+    val mUserManager: UserManagerService = RunningInfo.getInstance().userManagerService
+
     abstract fun getDefaultHome(): String?
 
     abstract fun getDefaultBrowser(): String?
@@ -49,6 +54,14 @@ abstract class PackageManagerService(
 
     abstract fun getDefaultInputMethod(): String?
 
+    abstract fun getOtherUserInstalledApps(): List<PackageInfo>
+
+    abstract fun getPackageInfoAsUser(
+        packageName: String,
+        userId: Int,
+        packageInfoFlag: Int,
+    ): PackageInfo?
+
     object PackageManagerServiceHelper :
         IEntityCompatHelper<IPackageManagerService, PackageManagerService> {
         override val instanceClazz: Class<out PackageManagerService>
@@ -56,7 +69,11 @@ abstract class PackageManagerService(
         override val compatHelperInstance: IPackageManagerService
 
         init {
-            if (OsUtils.isSOrHigher) {
+            if (OsUtils.isTOrHigher) {
+                instanceClazz = PackageManagerServiceCompatA13::class.java
+                compatHelperInstance = PackageManagerServiceCompatA13.Companion
+                instanceCreator = ::createPackageManagerServiceA13
+            } else if (OsUtils.isSOrHigher) {
                 instanceClazz = PackageManagerServiceCompatSinceA12::class.java
                 compatHelperInstance = PackageManagerServiceCompatSinceA12.Companion
                 instanceCreator = ::createPackageManagerServiceSinceA12
@@ -66,6 +83,9 @@ abstract class PackageManagerService(
                 instanceCreator = ::createPackageManagerServiceUntilA11
             }
         }
+
+        private fun createPackageManagerServiceA13(@OriginalObject instance: Any): PackageManagerService =
+            PackageManagerServiceCompatA13(instance)
 
         private fun createPackageManagerServiceSinceA12(@OriginalObject instance: Any): PackageManagerService =
             PackageManagerServiceCompatSinceA12(instance)

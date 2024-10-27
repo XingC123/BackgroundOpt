@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 BackgroundOpt
+ * Copyright (C) 2023-2024 BackgroundOpt
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -17,40 +17,29 @@
 
 package com.venus.backgroundopt.xposed.manager.message.handle
 
-import com.venus.backgroundopt.common.entity.AppItem
-import com.venus.backgroundopt.common.entity.message.ResetAppConfigurationMessage
-import com.venus.backgroundopt.common.entity.userId
+import com.venus.backgroundopt.common.entity.message.QueryInstalledAppParam
 import com.venus.backgroundopt.xposed.core.RunningInfo
-import com.venus.backgroundopt.xposed.environment.HookCommonProperties
 import com.venus.backgroundopt.xposed.manager.message.MessageHandler
-import com.venus.backgroundopt.xposed.manager.message.createResponse
+import com.venus.backgroundopt.xposed.manager.message.createJsonResponse
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
- * 重置app配置
+ * 根据给定的值, 查询匹配的app
  *
  * @author XingC
- * @date 2024/7/23
+ * @date 2024/10/26
  */
-object ResetAppConfigurationMessageHandler : MessageHandler {
+object QueryTargetInstalledAppMessageHandler : MessageHandler {
     override fun handle(runningInfo: RunningInfo, param: MethodHookParam, value: String?) {
-        createResponse<AppItem>(
+        createJsonResponse<QueryInstalledAppParam>(
             param = param,
-            value = value,
-            setJsonData = true
-        ) { appItem ->
-            val userId = appItem.userId
-            val uid = appItem.uid
-            val packageName = appItem.packageName
-
-            // 删除应用配置
-            HookCommonProperties.removeAppOptimizePolicyByUid(uid, packageName)
-            // 删除进程配置
-            HookCommonProperties.removeSubProcessOomPolicy(userId, appItem.processes)
-
-            ResetAppConfigurationMessage().apply {
-                code = ResetAppConfigurationMessage.RESET_SUCCESS
-            }
+            value = value
+        ) { queryParam: QueryInstalledAppParam ->
+            runningInfo.packageManagerService?.getPackageInfoAsUser(
+                packageName = queryParam.packageName,
+                userId = queryParam.userId,
+                packageInfoFlag = queryParam.packageInfoFlag
+            )
         }
     }
 }

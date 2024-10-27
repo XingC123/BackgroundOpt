@@ -39,6 +39,8 @@ import com.venus.backgroundopt.xposed.manager.message.handle.KeepMainProcessAliv
 import com.venus.backgroundopt.xposed.manager.message.handle.KillAfterRemoveTaskMessageHandler
 import com.venus.backgroundopt.xposed.manager.message.handle.ModuleRunningMessageHandler
 import com.venus.backgroundopt.xposed.manager.message.handle.ProcessRunningInfoMessageHandler
+import com.venus.backgroundopt.xposed.manager.message.handle.QueryOtherUserInstalledAppsMessageHandler
+import com.venus.backgroundopt.xposed.manager.message.handle.QueryTargetInstalledAppMessageHandler
 import com.venus.backgroundopt.xposed.manager.message.handle.ResetAppConfigurationMessageHandler
 import com.venus.backgroundopt.xposed.manager.message.handle.RunningAppInfoMessageHandler
 import com.venus.backgroundopt.xposed.manager.message.handle.RunningProcessListMessageHandler
@@ -61,7 +63,17 @@ fun ModuleMessageHandler.handleMessage(
     }
 
     // 已注册的消息处理器
-    val messageHandler = when (message.key) {
+    val messageHandler = getMessageHandler(message)
+
+    messageHandler?.handle(
+        runningInfo = runningInfo,
+        param = methodHookParam,
+        value = message.value.toString()
+    )
+}
+
+private fun getMessageHandler(message: Message): MessageHandler? {
+    return when (message.key) {
         MessageKeyConstants.getRunningAppInfo -> RunningAppInfoMessageHandler
         MessageKeyConstants.getBackgroundTasks -> BackgroundTasksMessageHandler
         MessageKeyConstants.getAppCompactList -> AppCompactListMessageHandler
@@ -85,12 +97,8 @@ fun ModuleMessageHandler.handleMessage(
         MessageKeyConstants.getProcessRunningInfo -> ProcessRunningInfoMessageHandler
         MessageKeyConstants.RUNNING_PROCESS_LIST -> RunningProcessListMessageHandler
         MessageKeyConstants.RESET_APP_CONFIGURATION -> ResetAppConfigurationMessageHandler
+        MessageKeyConstants.QUERY_OTHER_USER_INSTALLED_APPS -> QueryOtherUserInstalledAppsMessageHandler
+        MessageKeyConstants.QUERY_TARGET_INSTALLED_APP -> QueryTargetInstalledAppMessageHandler
         else -> null
     }
-
-    messageHandler?.handle(
-        runningInfo = runningInfo,
-        param = methodHookParam,
-        value = message.value.toString()
-    )
 }

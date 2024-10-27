@@ -42,15 +42,18 @@ import com.venus.backgroundopt.app.utils.getTmpData
 import com.venus.backgroundopt.app.utils.showProgressBarViewForAction
 import com.venus.backgroundopt.common.entity.AppItem
 import com.venus.backgroundopt.common.entity.AppItem.AppConfiguredEnum
+import com.venus.backgroundopt.common.entity.getProcessKey
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicy.MainProcessAdjManagePolicy
 import com.venus.backgroundopt.common.entity.message.AppOptimizePolicyMessage
 import com.venus.backgroundopt.common.entity.message.ResetAppConfigurationMessage
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy
 import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy.SubProcessOomPolicyEnum
+import com.venus.backgroundopt.common.entity.userId
 import com.venus.backgroundopt.common.environment.CommonProperties
 import com.venus.backgroundopt.common.environment.PreferenceDefaultValue
 import com.venus.backgroundopt.common.environment.constants.PreferenceNameConstants
+import com.venus.backgroundopt.common.util.KeyUtils
 import com.venus.backgroundopt.common.util.PackageUtils
 import com.venus.backgroundopt.common.util.equalsIgnoreCase
 import com.venus.backgroundopt.common.util.ifFalse
@@ -130,9 +133,7 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
         /*
             app优化策略
          */
-        val curPackageName = appItem.packageName
-        // 获取本地配置
-        val appOptimizePolicy = getAppOptimizePolicy(curPackageName)
+        val appOptimizePolicy = getAppOptimizePolicy()
 
         // 设置基本数据
         runOnUiThread {
@@ -331,14 +332,19 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                 continue
             }
 
+            val processKey = appItem.getProcessKey()
             val subProcessOomPolicy = prefValue<SubProcessOomPolicy>(
                 PreferenceNameConstants.SUB_PROCESS_OOM_POLICY,
-                processName
+                processKey
             ) ?: run {
                 // 不存在
                 SubProcessOomPolicy().apply {
+                    this.userId = appItem.userId
+                    this.packageName = appItem.packageName
+                    this.processName = processName
+
                     // 当前进程是否在默认白名单
-                    if (CommonProperties.subProcessDefaultUpgradeSet.contains(processName)) {
+                    if (CommonProperties.subProcessDefaultUpgradeSet.contains(processKey)) {
                         this.policyEnum = SubProcessOomPolicyEnum.MAIN_PROCESS
 
                         // 保存到本地
@@ -347,7 +353,7 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                 }
             }
 
-            subProcessOomPolicyMap[processName] = subProcessOomPolicy
+            subProcessOomPolicyMap[processKey] = subProcessOomPolicy
         }
 
         // 设置view
@@ -547,12 +553,12 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
         }
     }
 
-    private fun getAppOptimizePolicy(packageName: String): AppOptimizePolicy {
+    private fun getAppOptimizePolicy(): AppOptimizePolicy {
         return sendMessage<AppOptimizePolicy>(
             key = MessageKeyConstants.appOptimizePolicy,
             AppOptimizePolicyMessage().apply {
                 this.uid = appItem.uid
-                this.packageName = packageName
+                this.packageName = appItem.packageName
 
                 messageType = AppOptimizePolicyMessage.MSG_CREATE_OR_GET
             }
@@ -649,8 +655,8 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
             context.prefPut(
                 PreferenceNameConstants.APP_OPTIMIZE_POLICY,
                 commit = true,
-                appOptimizePolicy.packageName,
-                appOptimizePolicy
+                key = KeyUtils.getAppKey(appOptimizePolicy.userId, appOptimizePolicy.packageName),
+                value = appOptimizePolicy
             )
         }
     }

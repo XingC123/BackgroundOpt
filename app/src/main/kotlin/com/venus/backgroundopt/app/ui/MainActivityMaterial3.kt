@@ -19,7 +19,6 @@ package com.venus.backgroundopt.app.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.InputType
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
@@ -27,18 +26,21 @@ import com.google.android.material.textfield.TextInputEditText
 import com.venus.backgroundopt.R
 import com.venus.backgroundopt.app.ui.base.BaseActivityMaterial3
 import com.venus.backgroundopt.app.ui.base.ifVersionIsCompatible
+import com.venus.backgroundopt.app.ui.base.sendMessage
 import com.venus.backgroundopt.app.ui.widget.QueryInfoDialog
 import com.venus.backgroundopt.app.utils.UiUtils
 import com.venus.backgroundopt.app.utils.findViewById
 import com.venus.backgroundopt.app.utils.setTmpData
 import com.venus.backgroundopt.app.utils.showProgressBarViewForAction
 import com.venus.backgroundopt.common.entity.message.HomePageModuleInfoMessage
+import com.venus.backgroundopt.common.entity.message.ModuleRunningMessage
 import com.venus.backgroundopt.common.environment.CommonProperties
 import com.venus.backgroundopt.common.util.PackageUtils
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.message.IMessageSender
 import com.venus.backgroundopt.common.util.message.MessageKeyConstants
 import com.venus.backgroundopt.common.util.message.messageSender
+import com.venus.backgroundopt.common.util.runCatchThrowable
 
 
 class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
@@ -100,7 +102,18 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
                 context = this,
                 socketPort = socketPort,
                 socketPortText = socketPortText
-            )
+            ) {
+                // 获取后端版本
+                val returnVersionCode = runCatchThrowable {
+                    sendMessage<ModuleRunningMessage>(
+                        key = MessageKeyConstants.moduleRunning,
+                        value = ModuleRunningMessage().apply {
+                            messageType = ModuleRunningMessage.MODULE_VERSION_CODE
+                        }
+                    )
+                }?.value as? Int ?: (Int.MIN_VALUE + 1)
+                CommonProperties.moduleVersionCode = returnVersionCode
+            }
         }
 
         // 查询运行中app的信息
@@ -156,8 +169,9 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
         /*
          * 转去设置应用进程页面
          */
-        val versionForConfiguringApp = 204
-        val isForcibleForConfiguringApp = false
+        val versionForConfiguringApp = 210
+        val isForcibleForConfiguringApp =
+            CommonProperties.moduleVersionCode < versionForConfiguringApp
         val isNeedModuleRunningForConfiguringApp = true
 
         findViewById<Button>(
@@ -188,15 +202,17 @@ class MainActivityMaterial3 : BaseActivityMaterial3(), ILogger {
                         titleResId = R.string.configure_app_by_pkg_name_btn,
                         viewResId = R.layout.query_info,
                         viewBlock = {
-                            val editText = findViewById<TextInputEditText>(R.id.queryInfoEditText).apply {
-                                // 提示文本
-                                setHint(R.string.package_name)
-                            }
+                            val editText =
+                                findViewById<TextInputEditText>(R.id.queryInfoEditText).apply {
+                                    // 提示文本
+                                    setHint(R.string.package_name)
+                                }
+
                             // 设置按钮点击事件
                             findViewById<Button>(R.id.doQueryBtn)?.setOnClickListener doQueryBtn@{ _ ->
-                                val appItem = PackageUtils.getAppItemForConfiguration(
+                                val appItem = PackageUtils.getAppItemByPackageName(
                                     packageName = editText.text?.trim().toString(),
-                                    packageManager = packageManager
+                                    packageManager = packageManager,
                                 ) ?: run {
                                     findViewById<TextView>(R.id.queryResultText).setText(R.string.app_not_exist_tip)
                                     return@doQueryBtn

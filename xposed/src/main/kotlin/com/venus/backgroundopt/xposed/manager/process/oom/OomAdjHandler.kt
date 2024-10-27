@@ -250,7 +250,10 @@ abstract class OomAdjHandler(
         isUserSpaceAdj: Boolean,
         isHighPriorityProcess: Boolean,
     ): Int {
-        val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[processRecord.packageName]
+        val appOptimizePolicy = HookCommonProperties.getAppOptimizePolicy(
+            userId = processRecord.userId,
+            packageName = processRecord.packageName
+        )
         val appInfo = processRecord.appInfo
         val appGroupEnum = appInfo.appGroupEnum
         val possibleAdj = when (appGroupEnum) {
@@ -281,8 +284,10 @@ abstract class OomAdjHandler(
         isUserSpaceAdj: Boolean,
         isHighPriorityProcess: Boolean,
     ): Int {
-        val subProcessOomPolicy =
-            HookCommonProperties.subProcessOomPolicyMap[processRecord.processName]
+        val subProcessOomPolicy = HookCommonProperties.getSubProcessOomPolicy(
+            userId = processRecord.userId,
+            processName = processRecord.processName
+        )
         val appInfo = processRecord.appInfo
         val appGroupEnum = appInfo.appGroupEnum
         val possibleAdj = when (appGroupEnum) {
@@ -612,7 +617,7 @@ class MainAndSubProcessGlobalOomScoreAdjHandler : GlobalOomScoreAdjHandler() {
  * @return Boolean 升级 -> true
  */
 fun ProcessRecord.isUpgradeSubProcessLevel(): Boolean =
-    HookCommonProperties.isUpgradeSubProcessLevel(processName)
+    HookCommonProperties.isUpgradeSubProcessLevel(userId, processName)
 
 /**
  * 是否需要处理webview进程

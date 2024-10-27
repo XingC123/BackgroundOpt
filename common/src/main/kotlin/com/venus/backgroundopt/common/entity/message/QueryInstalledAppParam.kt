@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 BackgroundOpt
+ * Copyright (C) 2023-2024 BackgroundOpt
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -17,18 +17,16 @@
 
 package com.venus.backgroundopt.common.entity.message
 
-import com.venus.backgroundopt.common.entity.preference.SubProcessOomPolicy
+import com.venus.backgroundopt.common.util.PackageUtils
 import com.venus.backgroundopt.common.util.UserUtils
 import com.venus.backgroundopt.common.util.message.MessageFlag
 
 /**
  * @author XingC
- * @date 2023/9/28
+ * @date 2024/10/26
  */
-class SubProcessOomConfigChangeMessage : MessageFlag {
+class QueryInstalledAppParam: MessageFlag {
     var userId: Int = UserUtils.MAIN_USER
-    lateinit var processKey: String
-    lateinit var processName: String
     lateinit var packageName: String
-    lateinit var subProcessOomPolicy: SubProcessOomPolicy
+    var packageInfoFlag: Int = PackageUtils.PACKAGE_INFO_FLAG
 }

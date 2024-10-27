@@ -299,7 +299,10 @@ class AppMemoryTrimManagerKt(
         block: (AppOptimizePolicy?) -> Unit,
     ) {
         // 获取优化操作
-        val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[processRecord.packageName]
+        val appOptimizePolicy = HookCommonProperties.getAppOptimizePolicy(
+            userId = processRecord.userId,
+            packageName = processRecord.packageName
+        )
 
         if (isNecessaryToOptimizeProcess(processRecord)) {
             block(appOptimizePolicy)

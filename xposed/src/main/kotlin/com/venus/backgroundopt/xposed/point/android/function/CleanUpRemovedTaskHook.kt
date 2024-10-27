@@ -126,7 +126,10 @@ class CleanUpRemovedTaskHook(
                 } ?: return@beforeHook
             val userId = taskInstance.getIntFieldValue(fieldName = FieldConstants.mUserId)
             val appInfo = runningInfo.getRunningAppInfo(userId, packageName) ?: return@beforeHook
-            val appOptimizePolicy = HookCommonProperties.appOptimizePolicyMap[appInfo.packageName]
+            val appOptimizePolicy = HookCommonProperties.getAppOptimizePolicy(
+                userId = userId,
+                packageName = packageName
+            )
             val globalOomScorePolicy = HookCommonProperties.globalOomScorePolicy.value
 
             if (appOptimizePolicy?.enableCustomMainProcessOomScore == true) {
