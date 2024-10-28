@@ -41,9 +41,8 @@ abstract class OomAdjuster(
     final override val originalInstance: Any,
     classLoader: ClassLoader = RunningInfo.getInstance().classLoader,
 ) : IEntityWrapper, IEntityCompatFlag {
-    val cachedAppOptimizer: CachedAppOptimizer = CachedAppOptimizer(
-        originalInstance.getObjectFieldValue(FieldConstants.mCachedAppOptimizer),
-        classLoader
+    val cachedAppOptimizer: CachedAppOptimizer = CachedAppOptimizerHelper.instanceCreator(
+        originalInstance.getObjectFieldValue(FieldConstants.mCachedAppOptimizer)!!
     )
 
     fun updateAppUidRecLSP(@OriginalObject processRecord: Any) {

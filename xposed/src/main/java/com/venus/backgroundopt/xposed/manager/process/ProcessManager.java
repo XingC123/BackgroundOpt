@@ -28,7 +28,6 @@ import com.venus.backgroundopt.xposed.core.AppGroupEnum;
 import com.venus.backgroundopt.xposed.core.RunningInfo;
 import com.venus.backgroundopt.xposed.entity.android.android.os.Process;
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ActivityManagerService;
-import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.CachedAppOptimizer;
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord;
 import com.venus.backgroundopt.xposed.entity.self.AppInfo;
 import com.venus.backgroundopt.xposed.entity.self.ProcessRecordBaseInfo;

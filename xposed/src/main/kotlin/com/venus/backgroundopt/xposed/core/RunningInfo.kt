@@ -318,8 +318,6 @@ class RunningInfo(
 
         // 移除进程记录
         removeRunningProcess(pid)
-        // 移除内存压缩文件流的缓存
-        activityManagerService.oomAdjuster.cachedAppOptimizer.removeCompactOutputStreams(pid)
 
         appInfo.processes.remove(processRecord)
         if (appInfo.processCount == 0) {
