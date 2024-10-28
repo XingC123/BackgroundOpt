@@ -146,7 +146,7 @@ object ConfigureAppProcessDialogBuilder {
                     return@positiveBlock
                 }
 
-                val processKey = appItem.getProcessKey()
+                val processKey = appItem.getProcessKey(processName)
                 val curPolicy = subProcessOomPolicy.policyEnum
                 when (checkedRadioButtonId) {
                     defaultBtnId -> {

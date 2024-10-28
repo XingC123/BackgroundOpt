@@ -59,7 +59,7 @@ class ConfigureAppProcessAdapter2(
         holder.processName = processName
 
         // 显示策略的名字
-        val subProcessOomPolicy = subProcessOomPolicyMap[appItem.getProcessKey()]!!
+        val subProcessOomPolicy = subProcessOomPolicyMap[appItem.getProcessKey(processName)]!!
         holder.preference.summary = subProcessOomPolicy.policyEnum.configName
 
         // 其他

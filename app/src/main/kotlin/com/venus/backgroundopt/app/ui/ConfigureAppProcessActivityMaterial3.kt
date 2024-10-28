@@ -332,7 +332,7 @@ class ConfigureAppProcessActivityMaterial3 : BaseActivityMaterial3() {
                 continue
             }
 
-            val processKey = appItem.getProcessKey()
+            val processKey = appItem.getProcessKey(processName)
             val subProcessOomPolicy = prefValue<SubProcessOomPolicy>(
                 PreferenceNameConstants.SUB_PROCESS_OOM_POLICY,
                 processKey

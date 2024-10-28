@@ -171,4 +171,5 @@ class AppItem @JSONCreator constructor() : MessageFlag {
 
 val AppItem.userId get() = UserUtils.getUserId(this.uid)
 
-fun AppItem.getProcessKey(): String = KeyUtils.getProcessKeyByUid(this.uid, this.packageName)
+fun AppItem.getProcessKey(processName: String): String =
+    KeyUtils.getProcessKeyByUid(this.uid, processName)
