@@ -172,6 +172,8 @@ public class CachedAppOptimizer implements ILogger, IEntityWrapper {
         );
     }
 
+    private final Object processCompactLock = new Object();
+
     /**
      * Compacts a process or app
      *
@@ -181,16 +183,23 @@ public class CachedAppOptimizer implements ILogger, IEntityWrapper {
      * @return true if success, false if has problem
      */
     public boolean compactProcess(int pid, int compactionFlags) {
-        try {
-            XposedHelpers.callStaticMethod(
-                    getCachedAppOptimizerClass(),
-                    MethodConstants.compactProcess,
-                    pid,
-                    compactionFlags
-            );
-            return true;
-        } catch (Throwable t) {
-            return false;
+        /*
+         * native层的 compactProcess(int pid, VmaToAdviseFunc vmaToAdviseFunc) 方法注释提到:
+         * Not thread safe. We reuse vectors so we assume this is called only on one thread at most.
+         * 因此我们加个锁, 仅允许单个线程执行操作。
+         */
+        synchronized (processCompactLock) {
+            try {
+                XposedHelpers.callStaticMethod(
+                        getCachedAppOptimizerClass(),
+                        MethodConstants.compactProcess,
+                        pid,
+                        compactionFlags
+                );
+                return true;
+            } catch (Throwable t) {
+                return false;
+            }
         }
     }
 
@@ -270,7 +279,7 @@ public class CachedAppOptimizer implements ILogger, IEntityWrapper {
 
     public boolean compactProcessForce(int pid, int compactionFlags) {
         // 在5.x版本的内核中没有此节点, 或选择不开启。导致无法成功压缩
-        try(FileOutputStream fos = new FileOutputStream("/proc/" + pid + "/reclaim")) {
+        try (FileOutputStream fos = new FileOutputStream("/proc/" + pid + "/reclaim")) {
             int index = switch (compactionFlags) {
                 case COMPACT_ACTION_FILE -> 1;
                 default -> 0;
