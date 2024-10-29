@@ -287,8 +287,9 @@ public class ProcessManager implements ILogger {
         // 添加压缩任务
         // addCompactProcess(appInfo);
 
-        oomAdjustManager.triggerMainProcessAdjSetAction(appInfo);
-        oomAdjustManager.triggerSubprocessAdjSetActionByHighPriorityAndCustomAdj(appInfo);
+        /*oomAdjustManager.triggerMainProcessAdjSetAction(appInfo);
+        oomAdjustManager.triggerSubprocessAdjSetActionByHighPriorityAndCustomAdj(appInfo);*/
+        oomAdjustManager.recomputeProcessAdj(appInfo);
             /*return null;
         });*/
     }

@@ -52,7 +52,7 @@ inline fun <reified E> convertValueToTargetType(
     }
 }
 
-fun <K, V> MutableMap<K, V>.replace(key: K, new: V?): V? {
+fun <K, V> MutableMap<K, V>.replaceValue(key: K, new: V?): V? {
     var oldV: V? = null
     this.compute(key) { _, old ->
         oldV = old

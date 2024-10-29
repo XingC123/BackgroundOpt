@@ -33,6 +33,7 @@ import com.venus.backgroundopt.common.util.KeyUtils
 import com.venus.backgroundopt.common.util.UserUtils
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.log.logInfo
+import com.venus.backgroundopt.common.util.replaceValue
 import com.venus.backgroundopt.xposed.core.RunningInfo
 import com.venus.backgroundopt.xposed.util.preference.PreferencesUtil
 import com.venus.backgroundopt.xposed.util.preference.PreferencesUtil.prefAll
@@ -79,7 +80,7 @@ object HookCommonProperties : ILogger {
         userId: Int = subProcessOomPolicy.userId,
         processName: String = subProcessOomPolicy.processName,
     ): SubProcessOomPolicy? {
-        return subProcessOomPolicyMap.replace(
+        return subProcessOomPolicyMap.replaceValue(
             KeyUtils.getProcessKey(userId, processName),
             subProcessOomPolicy
         )

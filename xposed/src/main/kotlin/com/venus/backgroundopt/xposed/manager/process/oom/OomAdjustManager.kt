@@ -246,6 +246,10 @@ class OomAdjustManager(
         )
     }
 
+    fun recomputeProcessAdj(appInfo: AppInfo) {
+        appInfo.processes.forEach(::triggerProcessAdjSetAction)
+    }
+
     fun triggerMainProcessAdjSetAction(appInfo: AppInfo) {
         // 若配置了自定义主进程, 则主动触发一次
         appInfo.mProcessRecord?.let { processRecord: ProcessRecord ->
