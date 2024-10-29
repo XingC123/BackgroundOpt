@@ -25,6 +25,7 @@ import com.venus.backgroundopt.common.util.clamp
 import com.venus.backgroundopt.common.util.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.log.logInfo
+import com.venus.backgroundopt.common.util.replaceValue
 import com.venus.backgroundopt.xposed.core.AppGroupEnum
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessList
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
@@ -80,10 +81,11 @@ abstract class OomAdjHandler(
         block: () -> Unit,
     ) {
         adjTaskMap.compute(processRecord) { _, lastScheduledFuture ->
-            val lastTaskPriority = adjTaskPriorityMap[processRecord]
+            val lastTaskPriority = adjTaskPriorityMap.replaceValue(processRecord, priority)
             if (lastTaskPriority == null || priority >= lastTaskPriority) {
                 lastScheduledFuture?.cancel(true)
                 scheduleAdjTask {
+                    adjTaskPriorityMap.remove(processRecord)
                     adjTaskMap.remove(processRecord)
                     block()
                 }
