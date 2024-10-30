@@ -63,8 +63,8 @@ abstract class OomAdjHandler(
         removeOnCancelPolicy = true
     )
 
-    private val adjTaskMap = ConcurrentHashMap<ProcessRecord, ScheduledFuture<*>>(4, 1.5F)
-    private val adjTaskPriorityMap = HashMap<ProcessRecord, Int>(4, 1.5F)
+    private val adjTaskMap = ConcurrentHashMap<ProcessRecord, ScheduledFuture<*>>()
+    private val adjTaskPriorityMap = HashMap<ProcessRecord, Int>()
 
     private val taskDelay: Long = 3L
     private val taskDelayTimeUnit: TimeUnit = TimeUnit.SECONDS
