@@ -24,8 +24,9 @@ import com.venus.backgroundopt.common.entity.preference.getCustomFgAdj
 import com.venus.backgroundopt.common.util.clamp
 import com.venus.backgroundopt.common.util.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
+import com.venus.backgroundopt.common.util.ifFalse
+import com.venus.backgroundopt.common.util.lock
 import com.venus.backgroundopt.common.util.log.logInfo
-import com.venus.backgroundopt.common.util.replaceValue
 import com.venus.backgroundopt.xposed.core.AppGroupEnum
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessList
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
@@ -64,7 +65,7 @@ abstract class OomAdjHandler(
     )
 
     private val adjTaskMap = ConcurrentHashMap<ProcessRecord, ScheduledFuture<*>>()
-    private val adjTaskPriorityMap = HashMap<ProcessRecord, Int>()
+    private val adjTaskPriorityMap = ConcurrentHashMap<ProcessRecord, Int>()
 
     private val taskDelay: Long = 3L
     private val taskDelayTimeUnit: TimeUnit = TimeUnit.SECONDS
@@ -81,17 +82,36 @@ abstract class OomAdjHandler(
         block: () -> Unit,
     ) {
         adjTaskMap.compute(processRecord) { _, lastScheduledFuture ->
-            val lastTaskPriority = adjTaskPriorityMap.replaceValue(processRecord, priority)
-            if (lastTaskPriority == null || priority >= lastTaskPriority) {
-                lastScheduledFuture?.cancel(true)
-                scheduleAdjTask {
-                    adjTaskPriorityMap.remove(processRecord)
-                    adjTaskMap.remove(processRecord)
-                    block()
+            var submitFuture: ScheduledFuture<*>? = null
+            adjTaskPriorityMap.compute(processRecord) { _, lastTaskPriority ->
+                if (lastTaskPriority == null || priority >= lastTaskPriority) {
+                    lastScheduledFuture?.cancel(true)
+                    submitFuture = scheduleAdjTask {
+                        var isCancelled = false
+                        adjTaskMap.lock(processRecord) {
+                            isCancelled = lastScheduledFuture?.isCancelled == true
+                            /*
+                             * 任务没有被取消, 正常执行。
+                             * 若任务被取消, 说明有新任务添加。那么map内缓存的结果会交给新任务来移除。
+                             * 移除操作应在锁内进行。
+                             */
+                            isCancelled.ifFalse {
+                                adjTaskPriorityMap.remove(processRecord)
+                                adjTaskMap.remove(processRecord)
+                            }
+                        }
+                        isCancelled.ifFalse {
+                            block()
+                        }
+                    }
+                    priority
+                } else {
+                    submitFuture = lastScheduledFuture
+                    lastTaskPriority
                 }
-            } else {
-                lastScheduledFuture
+
             }
+            submitFuture
         }
     }
 

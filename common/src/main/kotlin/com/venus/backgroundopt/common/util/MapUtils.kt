@@ -19,6 +19,7 @@ package com.venus.backgroundopt.common.util
 
 import com.alibaba.fastjson2.JSON
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 
 /**
  * @author XingC
@@ -59,4 +60,14 @@ fun <K, V> MutableMap<K, V>.replaceValue(key: K, new: V?): V? {
         new
     }
     return oldV
+}
+
+/**
+ * 由于该锁是通过并发map的 [ConcurrentMap.compute]方法实现, 因此应尽量避免在[block]中执行耗时任务
+ */
+fun <K, V> ConcurrentMap<K, V>.lock(key: K, block: ((V?) -> Unit)? = null) {
+    compute(key) { _, v ->
+        block?.invoke(v)
+        v
+    }
 }
