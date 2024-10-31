@@ -539,7 +539,7 @@ private class CachedByteBufferThreadFactory : ThreadFactory {
         const val THREAD_NAME = "CachedByteBufferThread"
 
         @JvmStatic
-        val threadLocalMap = ConcurrentHashMap<Thread, ThreadLocal<ByteBuffer>>(4, 1.5F)
+        val threadLocalMap = ConcurrentHashMap<Thread, ThreadLocal<ByteBuffer>>()
     }
 }
 
