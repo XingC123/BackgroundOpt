@@ -90,15 +90,9 @@ abstract class OomAdjHandler(
                         var isCancelled = false
                         adjTaskMap.lock(processRecord) {
                             isCancelled = lastScheduledFuture?.isCancelled == true
-                            /*
-                             * 任务没有被取消, 正常执行。
-                             * 若任务被取消, 说明有新任务添加。那么map内缓存的结果会交给新任务来移除。
-                             * 移除操作应在锁内进行。
-                             */
-                            isCancelled.ifFalse {
-                                adjTaskPriorityMap.remove(processRecord)
-                                adjTaskMap.remove(processRecord)
-                            }
+                            // 移除记录
+                            adjTaskPriorityMap.remove(processRecord)
+                            adjTaskMap.remove(processRecord)
                         }
                         isCancelled.ifFalse {
                             block()
