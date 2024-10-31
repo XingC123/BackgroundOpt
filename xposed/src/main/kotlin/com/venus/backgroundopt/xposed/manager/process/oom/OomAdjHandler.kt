@@ -35,6 +35,7 @@ import com.venus.backgroundopt.xposed.entity.self.AppInfo
 import com.venus.backgroundopt.xposed.environment.HookCommonProperties
 import com.venus.backgroundopt.xposed.manager.message.handle.getCustomMainProcessBgAdj
 import com.venus.backgroundopt.xposed.manager.message.handle.getCustomMainProcessFgAdj
+import java.lang.Thread.UncaughtExceptionHandler
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledFuture
@@ -514,6 +515,7 @@ abstract class OomAdjHandler(
 
 private class CachedByteBufferThreadFactory : ThreadFactory {
     private val threadNumber = AtomicInteger(1)
+    private val exceptionHandler = ExceptionHandler()
 
     override fun newThread(r: Runnable?): Thread {
         return Thread(r, generateThreadName()).apply {
@@ -523,6 +525,7 @@ private class CachedByteBufferThreadFactory : ThreadFactory {
             if (priority != Thread.NORM_PRIORITY) {
                 setPriority(Thread.NORM_PRIORITY)
             }
+            uncaughtExceptionHandler = exceptionHandler
 
             threadLocalMap[this] = object : ThreadLocal<ByteBuffer>() {
                 override fun initialValue(): ByteBuffer = ProcessList.getByteBufferUsedToWriteLmkd()
@@ -532,6 +535,12 @@ private class CachedByteBufferThreadFactory : ThreadFactory {
 
     private fun generateThreadName(): String {
         return "${THREAD_FACTORY_NAME}-${THREAD_NAME}-${threadNumber.getAndIncrement()}"
+    }
+
+    private class ExceptionHandler: UncaughtExceptionHandler {
+        override fun uncaughtException(t: Thread, e: Throwable) {
+            threadLocalMap.remove(t)
+        }
     }
 
     companion object {
