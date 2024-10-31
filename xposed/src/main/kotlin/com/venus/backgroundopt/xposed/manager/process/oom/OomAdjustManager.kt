@@ -246,8 +246,16 @@ class OomAdjustManager(
         )
     }
 
-    fun recomputeProcessAdj(appInfo: AppInfo) {
-        appInfo.processes.forEach(::triggerProcessAdjSetAction)
+    private fun computeBackgroundProcessAdj(processRecord: ProcessRecord) {
+        computeAdjAndApply(
+            processRecord = processRecord,
+            adj = ProcessList.PREVIOUS_APP_ADJ,
+            priority = OomAdjHandler.ADJ_TASK_PRIORITY_LOWER
+        )
+    }
+
+    fun computeBackgroundProcessAdj(appInfo: AppInfo) {
+        appInfo.processes.forEach(this::computeBackgroundProcessAdj)
     }
 
     fun triggerMainProcessAdjSetAction(appInfo: AppInfo) {

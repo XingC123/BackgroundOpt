@@ -289,7 +289,7 @@ public class ProcessManager implements ILogger {
 
         /*oomAdjustManager.triggerMainProcessAdjSetAction(appInfo);
         oomAdjustManager.triggerSubprocessAdjSetActionByHighPriorityAndCustomAdj(appInfo);*/
-        oomAdjustManager.recomputeProcessAdj(appInfo);
+        oomAdjustManager.computeBackgroundProcessAdj(appInfo);
             /*return null;
         });*/
     }
