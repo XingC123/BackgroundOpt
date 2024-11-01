@@ -18,7 +18,10 @@
 package com.venus.backgroundopt.xposed.point.android
 
 import com.venus.backgroundopt.common.util.containsIgnoreCase
+import com.venus.backgroundopt.common.util.ifFalse
+import com.venus.backgroundopt.common.util.ifTrue
 import com.venus.backgroundopt.xposed.core.RunningInfo
+import com.venus.backgroundopt.xposed.entity.android.android.app.ApplicationExitInfo
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
 import com.venus.backgroundopt.xposed.hook.base.IHook
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
@@ -46,6 +49,14 @@ class ProcessRecordHook(
         // "swap low and too many cached",
     )
 
+    val dontKillSubReason = setOf(
+        ApplicationExitInfo.SUBREASON_TOO_MANY_CACHED,
+        ApplicationExitInfo.SUBREASON_TRIM_EMPTY,
+        ApplicationExitInfo.SUBREASON_TOO_MANY_EMPTY,
+        ApplicationExitInfo.SUBREASON_ISOLATED_NOT_NEEDED,
+        ApplicationExitInfo.SUBREASON_SDK_SANDBOX_NOT_NEEDED,
+    )
+
     private fun isReasonInDontKillReasons(reason: String): Boolean {
         dontKillReasons.forEach { predefinedReason ->
             if (reason.containsIgnoreCase(predefinedReason)) {
@@ -57,6 +68,7 @@ class ProcessRecordHook(
 
     override fun hook() {
         ClassConstants.ProcessRecord.beforeHook(
+            enable = false,
             classLoader = classLoader,
             methodName = MethodConstants.killLocked,
             hookAllMethod = true,
@@ -71,6 +83,23 @@ class ProcessRecordHook(
             if (isReasonInDontKillReasons(reason = reason)) {
                 param.result = null
 //                logger.info("阻止杀死 -> 包名: ${processRecord.packageName}, 原因: ${reason}, ")
+            }
+        }
+
+        ClassConstants.ProcessRecord.beforeHook(
+            classLoader = classLoader,
+            methodName = MethodConstants.killLocked,
+            hookAllMethod = true,
+        ) { param ->
+            val process = param.thisObject
+            val processRecord = runningInfo.getRunningProcess(process) ?: return@beforeHook
+            processRecord.isHighPriorityProcess().ifFalse {
+                return@beforeHook
+            }
+
+            val subReason = param.args[2]
+            dontKillSubReason.contains(subReason).ifTrue {
+                param.result = null
             }
         }
     }

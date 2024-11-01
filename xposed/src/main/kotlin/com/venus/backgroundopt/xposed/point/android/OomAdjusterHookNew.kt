@@ -215,6 +215,7 @@ class OomAdjusterHookNew(
             hookAllMethod = true,
         ) { it.args[2] = 0 }*/
         ClassConstants.OomAdjuster.replaceHook(
+            enable = false,
             classLoader = classLoader,
             methodName = MethodConstants.updateAndTrimProcessLSP,
             hookAllMethod = true,
