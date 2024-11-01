@@ -41,6 +41,8 @@ public interface ComponentCallbacks2 {
      * Level for {@link #onTrimMemory(int)}: the process is nearing the end
      * of the background LRU list, and if more memory isn't found soon it will
      * be killed.
+     *
+     * # @deprecated # Apps are not notified of this level since API level 34
      */
     @OriginalObjectField(objectClassPath = ClassConstants.ComponentCallbacks2, fieldName = "TRIM_MEMORY_COMPLETE")
     public static final int TRIM_MEMORY_COMPLETE = ComponentCallbacks2Constants.TRIM_MEMORY_COMPLETE;
@@ -51,6 +53,8 @@ public interface ComponentCallbacks2 {
      * Level for {@link #onTrimMemory(int)}: the process is around the middle
      * of the background LRU list; freeing memory can help the system keep
      * other processes running later in the list for better overall performance.
+     *
+     * # @deprecated # Apps are not notified of this level since API level 34
      */
     @OriginalObjectField(objectClassPath = ClassConstants.ComponentCallbacks2, fieldName = "TRIM_MEMORY_MODERATE")
     public static final int TRIM_MEMORY_MODERATE = ComponentCallbacks2Constants.TRIM_MEMORY_MODERATE;
@@ -97,6 +101,8 @@ public interface ComponentCallbacks2 {
      * will happen after this is {@link #onLowMemory()} called to report that
      * nothing at all can be kept in the background, a situation that can start
      * to notably impact the user.
+     *
+     * # @deprecated # Apps are not notified of this level since API level 34
      */
     @OriginalObjectField(objectClassPath = ClassConstants.ComponentCallbacks2, fieldName = "TRIM_MEMORY_RUNNING_CRITICAL")
     public static final int TRIM_MEMORY_RUNNING_CRITICAL = ComponentCallbacks2Constants.TRIM_MEMORY_RUNNING_CRITICAL;
@@ -108,6 +114,8 @@ public interface ComponentCallbacks2 {
      * background process, but the device is running low on memory.
      * Your running process should free up unneeded resources to allow that
      * memory to be used elsewhere.
+     *
+     * # @deprecated # Apps are not notified of this level since API level 34
      */
     @OriginalObjectField(objectClassPath = ClassConstants.ComponentCallbacks2, fieldName = "TRIM_MEMORY_RUNNING_LOW")
     public static final int TRIM_MEMORY_RUNNING_LOW = ComponentCallbacks2Constants.TRIM_MEMORY_RUNNING_LOW;
@@ -119,6 +127,8 @@ public interface ComponentCallbacks2 {
      * background process, but the device is running moderately low on memory.
      * Your running process may want to release some unneeded resources for
      * use elsewhere.
+     *
+     * # @deprecated # Apps are not notified of this level since API level 34
      */
     @OriginalObjectField(objectClassPath = ClassConstants.ComponentCallbacks2, fieldName = "TRIM_MEMORY_RUNNING_MODERATE")
     public static final int TRIM_MEMORY_RUNNING_MODERATE = ComponentCallbacks2Constants.TRIM_MEMORY_RUNNING_MODERATE;
