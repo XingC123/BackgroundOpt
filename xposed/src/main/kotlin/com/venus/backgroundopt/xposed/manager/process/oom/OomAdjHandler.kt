@@ -90,7 +90,7 @@ abstract class OomAdjHandler(
                     submitFuture = scheduleAdjTask {
                         var isCancelled = false
                         adjTaskMap.lock(processRecord) {
-                            isCancelled = lastScheduledFuture?.isCancelled == true
+                            isCancelled = submitFuture?.isCancelled == true
                             // 移除记录
                             adjTaskPriorityMap.remove(processRecord)
                             adjTaskMap.remove(processRecord)
