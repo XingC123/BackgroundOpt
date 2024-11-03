@@ -17,6 +17,7 @@
 
 package com.venus.backgroundopt.xposed.point.android
 
+import com.venus.backgroundopt.common.util.OsUtils
 import com.venus.backgroundopt.common.util.containsIgnoreCase
 import com.venus.backgroundopt.common.util.ifFalse
 import com.venus.backgroundopt.common.util.ifTrue
@@ -88,7 +89,11 @@ class ProcessRecordHook(
 
         ClassConstants.ProcessRecord.beforeHook(
             classLoader = classLoader,
-            methodName = MethodConstants.killLocked,
+            methodName = if (OsUtils.isSOrHigher) {
+                MethodConstants.killLocked
+            } else {
+                MethodConstants.kill
+            },
             hookAllMethod = true,
         ) { param ->
             val process = param.thisObject
