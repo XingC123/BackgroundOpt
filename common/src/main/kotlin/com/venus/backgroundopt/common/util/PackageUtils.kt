@@ -272,10 +272,12 @@ object PackageUtils {
         }
 
         // 获取多开的app
-        val otherUserInstalledApps = messageSender.send(
-            key = MessageKeyConstants.QUERY_OTHER_USER_INSTALLED_APPS
-        )!!.parseArray(PackageInfo::class.java)
-        packageInfos.addAll(otherUserInstalledApps)
+        runCatchThrowable {
+            val otherUserInstalledApps = messageSender.send(
+                key = MessageKeyConstants.QUERY_OTHER_USER_INSTALLED_APPS
+            )!!.parseArray(PackageInfo::class.java)
+            packageInfos.addAll(otherUserInstalledApps)
+        }
 
         return packageInfos.asSequence()
             .filterNotNull()
