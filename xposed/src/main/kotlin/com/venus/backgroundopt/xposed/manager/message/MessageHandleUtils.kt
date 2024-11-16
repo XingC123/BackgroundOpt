@@ -93,7 +93,7 @@ inline fun <reified E> createResponse(
         }
     } catch (t: Throwable) {
         logError(
-            logStr = "响应对象创建错误。errorMsg: $errorMsg",
+            logStr = "响应对象创建错误。errorMsg: $errorMsg, 错误信息: ${t.message}",
             t = t
         )
     }
