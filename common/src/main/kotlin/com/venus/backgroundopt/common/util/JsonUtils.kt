@@ -19,6 +19,8 @@ package com.venus.backgroundopt.common.util
 
 import com.alibaba.fastjson2.JSON
 import com.alibaba.fastjson2.JSONObject
+import com.alibaba.fastjson2.filter.PropertyFilter
+
 
 /**
  * @author XingC
@@ -26,7 +28,22 @@ import com.alibaba.fastjson2.JSONObject
  */
 class JsonUtils
 
-fun Any.toJsonString(): String = JSON.toJSONString(this)
+fun Any.toJsonString(): String {
+    return JSON.toJSONString(this, object : PropertyFilter {
+        override fun apply(obj: Any?, name: String?, value: Any?): Boolean {
+            /*
+             * 若将被序列化的类中有自引用(字段或方法)会导致栈溢出(循环引用问题暂不用考虑), 从而无法成功序列化。
+             * 出问题的地方:
+             * 序列化 android.content.pm.ApplicationInfo,
+             * 其中有方法:
+             * public ApplicationInfo getApplicationInfo() {
+             *     return this;
+             * }
+             */
+            return obj != value
+        }
+    })
+}
 
 fun <E> String.parseObject(clazz: Class<E>): E = JSON.parseObject(this, clazz)
 
