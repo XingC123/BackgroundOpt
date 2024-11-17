@@ -87,6 +87,38 @@ class ProcessRecordHook(
             }
         }
 
+        val subReasonParamIndex: Int
+        val killParamArg: Array<Any>
+
+        if (OsUtils.isTOrHigher) {
+            subReasonParamIndex = 3
+            killParamArg = if (OsUtils.isT) {
+                arrayOf(
+                    String::class.java,
+                    String::class.java,
+                    Int::class.java,
+                    Int::class.java,
+                    Boolean::class.java,
+                )
+            } else {
+                arrayOf(
+                    String::class.java,
+                    String::class.java,
+                    Int::class.java,
+                    Int::class.java,
+                    Boolean::class.java,
+                    Boolean::class.java,
+                )
+            }
+        } else {
+            subReasonParamIndex = 2
+            killParamArg = arrayOf(
+                String::class.java,
+                Int::class.java,
+                Int::class.java,
+                Boolean::class.java,
+            )
+        }
         ClassConstants.ProcessRecord.beforeHook(
             classLoader = classLoader,
             methodName = if (OsUtils.isSOrHigher) {
@@ -94,7 +126,7 @@ class ProcessRecordHook(
             } else {
                 MethodConstants.kill
             },
-            hookAllMethod = true,
+            paramTypes = killParamArg
         ) { param ->
             val process = param.thisObject
             val processRecord = runningInfo.getRunningProcess(process) ?: return@beforeHook
@@ -102,7 +134,7 @@ class ProcessRecordHook(
                 return@beforeHook
             }
 
-            val subReason = param.args[2]
+            val subReason = param.args[subReasonParamIndex]
             dontKillSubReason.contains(subReason).ifTrue {
                 param.result = null
             }

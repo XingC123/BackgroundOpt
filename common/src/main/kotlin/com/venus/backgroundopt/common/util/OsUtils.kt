@@ -37,6 +37,9 @@ object OsUtils {
     val isR: Boolean = androidVersionCode == R
 
     @JvmField
+    val isT: Boolean = androidVersionCode == T
+
+    @JvmField
     val isROrHigher: Boolean = androidVersionCode >= R
 
     @JvmField
