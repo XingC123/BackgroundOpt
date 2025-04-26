@@ -333,7 +333,7 @@ abstract class ProcessRecord(
     var adjHandleActionType: Int = AdjHandleActionType.OTHER
 
     private fun initAdjHandleType() {
-        var adjHandleActionType = AdjHandleActionType.OTHER
+        var adjHandleActionType = AdjHandleActionType.DO_NOTHING
 
         // 高优先级进程
         if (isHighPriorityProcessByBasicProperty()) {
@@ -357,8 +357,12 @@ abstract class ProcessRecord(
             }
         }
         // 开启了全局OOM
-        else if (HookCommonProperties.globalOomScorePolicy.value.enabled) {
-            adjHandleActionType = AdjHandleActionType.GLOBAL_OOM_ADJ
+        if (adjHandleActionType == AdjHandleActionType.DO_NOTHING) {
+            adjHandleActionType = if (HookCommonProperties.globalOomScorePolicy.value.enabled) {
+                AdjHandleActionType.GLOBAL_OOM_ADJ
+            } else {
+                AdjHandleActionType.OTHER
+            }
         }
 
         this.adjHandleActionType = adjHandleActionType
