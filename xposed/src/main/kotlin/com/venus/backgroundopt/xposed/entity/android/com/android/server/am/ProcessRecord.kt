@@ -333,6 +333,8 @@ abstract class ProcessRecord(
     var adjHandleActionType: Int = AdjHandleActionType.OTHER
 
     private fun initAdjHandleType() {
+        var adjHandleActionType = AdjHandleActionType.OTHER
+
         // 高优先级进程
         if (isHighPriorityProcessByBasicProperty()) {
             if (mainProcess) {
@@ -343,7 +345,6 @@ abstract class ProcessRecord(
                 )
                 appOptimizePolicy.isCustomMainProcessAdjValid().ifTrue {
                     adjHandleActionType = AdjHandleActionType.CUSTOM_MAIN_PROCESS
-                    return
                 }
             } else {
                 val subProcessOomPolicy = HookCommonProperties.getSubProcessOomPolicy(
@@ -352,17 +353,15 @@ abstract class ProcessRecord(
                 )
                 subProcessOomPolicy.isCustomProcessAdjValid().ifTrue {
                     adjHandleActionType = AdjHandleActionType.CUSTOM_SUBPROCESS
-                    return
                 }
             }
-            // 是否开启了全局oom
-            if (HookCommonProperties.globalOomScorePolicy.value.enabled) {
-                adjHandleActionType = AdjHandleActionType.GLOBAL_OOM_ADJ
-                return
-            }
+        }
+        // 开启了全局OOM
+        else if (HookCommonProperties.globalOomScorePolicy.value.enabled) {
+            adjHandleActionType = AdjHandleActionType.GLOBAL_OOM_ADJ
         }
 
-        adjHandleActionType = AdjHandleActionType.OTHER
+        this.adjHandleActionType = adjHandleActionType
     }
 
     fun resetAdjHandleType() {
