@@ -29,7 +29,7 @@ import com.alibaba.fastjson2.filter.PropertyFilter
 class JsonUtils
 
 fun Any.toJsonString(): String {
-    return JSON.toJSONString(this, object : PropertyFilter {
+    return JSON.toJSONString(this/*, object : PropertyFilter {
         override fun apply(obj: Any?, name: String?, value: Any?): Boolean {
             /*
              * 若将被序列化的类中有自引用(字段或方法)会导致栈溢出(循环引用问题暂不用考虑), 从而无法成功序列化。
@@ -42,7 +42,7 @@ fun Any.toJsonString(): String {
              */
             return obj != value
         }
-    })
+    }*/)
 }
 
 fun <E> String.parseObject(clazz: Class<E>): E = JSON.parseObject(this, clazz)

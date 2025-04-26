@@ -88,7 +88,7 @@ ext {
     xposedSourceDependenceStr = 'de.robv.android.xposed:api:' + xposedApiVersion + ':sources'
 
     /* fastjson */
-    fastjsonVersion = '2.0.52.android5'
+    fastjsonVersion = '2.0.57.android8'
     fastjsonVersionDependenceStr = 'com.alibaba.fastjson2:fastjson2:' + fastjsonVersion
 
     jsonDependenceStr = fastjsonVersionDependenceStr
