@@ -182,6 +182,40 @@ abstract class OomAdjHandler(
         }
     }
 
+    fun computeAdjAndBatchApply(
+        processList: List<ProcessRecord>,
+        afterOomSetBlock: (process: ProcessRecord, adjToCompute: Int) -> Unit
+    ) {
+        if (processList.isEmpty()) return
+
+        val LMK_PROCS_PRIO = ProcessList.LMK_PROCS_PRIO.toInt()
+        var buf = ByteBuffer.allocate(ProcessList.MAX_OOM_ADJ_BATCH_LENGTH)
+        var total_procs_in_buf = 0
+        buf.putInt(LMK_PROCS_PRIO)
+        for (processRecord in processList) {
+            val pid = processRecord.pid
+            val adj = processRecord.processStateRecord.curAdj
+            val uid = processRecord.uid
+            val adjToCompute = getAdjToCompute(processRecord, adj)
+
+            if (pid <= 0 || adjToCompute == ProcessList.UNKNOWN_ADJ) continue
+            if (total_procs_in_buf >= ProcessList.MAX_PROCS_PRIO_PACKET_SIZE) {
+                ProcessList.writeLmkd(buf, null)
+                buf.clear()
+                total_procs_in_buf = 0
+                buf = ByteBuffer.allocate(ProcessList.MAX_OOM_ADJ_BATCH_LENGTH)
+                buf.putInt(LMK_PROCS_PRIO)
+            }
+            buf.putInt(pid)
+            buf.putInt(uid)
+            buf.putInt(computeAdj(processRecord, adjToCompute))
+            buf.putInt(0)  // Default proc type to PROC_TYPE_APP
+            total_procs_in_buf++
+            afterOomSetBlock(processRecord, adjToCompute)
+        }
+        ProcessList.writeLmkd(buf, null)
+    }
+
     /**
      * 应用给定的adj
      */

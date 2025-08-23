@@ -19,7 +19,6 @@ package com.venus.backgroundopt.xposed.point.android.function
 
 import com.venus.backgroundopt.xposed.annotation.FunctionHook
 import com.venus.backgroundopt.xposed.core.RunningInfo
-import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessList
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessStateRecord
 import com.venus.backgroundopt.xposed.hook.base.IHook
@@ -52,16 +51,14 @@ class CurComputedAdjHook(classLoader: ClassLoader, runningInfo: RunningInfo) :
                 hookAllMethod = true
             ) { param ->
                 val app = param.args[0]
-                setRawAdj(app)
+                val adj = param.args[1] as Int
+                setRawAdj(app, adj)
             }
 
             ProcessStateRecord.curComputedAdjGetter = { processStateRecord ->
                 val curRawAdj = processStateRecord.curRawAdj
                 if (curRawAdj == processStateRecord.processRecord.recordMaxAdj) {
-                    processStateRecord.originalCurRawAdj.also {
-                        // 重置标识
-                        processStateRecord.originalCurRawAdj = ProcessList.UNKNOWN_ADJ
-                    }
+                    processStateRecord.originalCurRawAdj
                 } else {
                     curRawAdj
                 }
@@ -76,12 +73,9 @@ class CurComputedAdjHook(classLoader: ClassLoader, runningInfo: RunningInfo) :
     /**
      * 从 [runningInfo]中, 根据[process]找到包装后的[ProcessRecord], 并记录当前的 curRawAdj
      */
-    private fun setRawAdj(process: Any): Boolean {
+    private fun setRawAdj(process: Any, adj: Int): Boolean {
         val processRecord = runningInfo.getRunningProcess(process) ?: return false
-
-        val processStateRecord = processRecord.processStateRecord
-        processStateRecord.curComputedAdj = processStateRecord.curRawAdj
-
+        processRecord.processStateRecord.curComputedAdj = adj
         return true
     }
 }

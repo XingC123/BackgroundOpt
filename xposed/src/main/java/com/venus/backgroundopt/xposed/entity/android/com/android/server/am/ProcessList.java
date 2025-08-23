@@ -216,6 +216,18 @@ public class ProcessList implements ILogger {
     public static final byte LMK_KILL_OCCURRED = 8; // Msg to subscribed clients on kill occurred event
     @OriginalObjectField
     public static final byte LMK_STATE_CHANGED = 9; // Msg to subscribed clients on state changed
+    @OriginalObjectField
+    static final byte LMK_BOOT_COMPLETED = 10;
+    @OriginalObjectField
+    public static final byte LMK_PROCS_PRIO = 11;  // Batch option for LMK_PROCPRIO
+
+    // The max size for PROCS_PRIO cmd in LMKD
+    @OriginalObjectField
+    public static final int MAX_PROCS_PRIO_PACKET_SIZE = 3;
+
+    // (4 bytes per field * 4 fields * 3 processes per batch) + 4 bytes for the LMKD cmd
+    @OriginalObjectField
+    public static final int MAX_OOM_ADJ_BATCH_LENGTH = ((4 * 4) * MAX_PROCS_PRIO_PACKET_SIZE) + 4;
 
     private static Class<?> processListClazz;
 

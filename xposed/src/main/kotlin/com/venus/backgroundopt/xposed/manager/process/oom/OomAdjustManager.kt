@@ -22,6 +22,7 @@ import com.venus.backgroundopt.common.util.concurrent.ConcurrentUtils
 import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import com.venus.backgroundopt.common.util.concurrent.lock.readLock
 import com.venus.backgroundopt.common.util.concurrent.lock.writeLock
+import com.venus.backgroundopt.common.util.ifTrue
 import com.venus.backgroundopt.common.util.log.ILogger
 import com.venus.backgroundopt.common.util.unsafeLazy
 import com.venus.backgroundopt.xposed.core.AppGroupEnum
@@ -77,6 +78,7 @@ class OomAdjustManager(
             }
 
             OomWorkModePref.MODE_NEGATIVE -> NegativeModeOomAdjHandler()
+            6 -> SimpleModeOomAdjHandler()
             else -> {
                 StrictSecondaryModeOomAdjHandler()
             }
@@ -118,74 +120,104 @@ class OomAdjustManager(
         return oomAdjHandler.computeHighPrioritySubprocessAdj(adj)
     }
 
-    fun handleSetOomAdj(param: MethodHookParam) {
-        val pid = param.args[0] as Int
-        // 获取当前进程对象
-        val process = runningInfo.getRunningProcess(pid) ?: return
-        val appInfo = process.appInfo
+    /**
+     * 在设置adj之前进行检查
+     */
+    private fun checkBeforeSetAdj(pid: Int): ProcessRecord? {
+        val processRecord = runningInfo.getRunningProcess(pid) ?: return null
+        val appInfo = processRecord.appInfo
         val appGroupEnum = appInfo.appGroupEnum
-
         // app已死亡
         if (appGroupEnum == AppGroupEnum.DEAD) {
-            return
+            return null
         }
-
-        // 本次要设置的adj
-        val adj = param.args[2] as Int
-
-        val globalOomScorePolicy = HookCommonProperties.globalOomScorePolicy.value
-        if (!globalOomScorePolicy.enabled) {
-            // 若app未进入后台, 则不进行设置
-            /*if (appInfo.appGroupEnum !in processedAppGroup) {
-                return
-            }*/
+        val enableGlobalOom = HookCommonProperties.globalOomScorePolicy.value.enabled
+        if (!enableGlobalOom) {
             when (appGroupEnum) {
                 AppGroupEnum.NONE, AppGroupEnum.ACTIVE, AppGroupEnum.IDLE -> {
                     // 将会被处理
                 }
 
                 else -> {
-                    return
+                    return null
                 }
             }
         }
+        return processRecord
+    }
+
+    fun handleSetOomAdj(param: MethodHookParam) {
+        val process = checkBeforeSetAdj(param.args[0] as Int) ?: return
 
         param.result = null
+        val adj = param.args[2] as Int
         addAdjHandleAction {
             val adjLastSet = process.oomAdjScore
             val adjToCompute = oomAdjHandler.getAdjToCompute(process, adj)
-            var oomAdjustLevel = OomAdjustLevel.NONE
 
             handleAppGroup(
-                appInfo = appInfo,
-                appGroupEnum = appGroupEnum
+                appInfo = process.appInfo,
+                appGroupEnum = process.appInfo.appGroupEnum
             )
 
-            appInfo.readLock {
-                handleAdjLocked(
-                    process = process,
-                    adjToCompute = adjToCompute
+            process.appInfo.readLock {
+                // 计算并应用adj
+                oomAdjHandler.computeAdjAndApply(
+                    processRecord = process,
+                    adj = adjToCompute,
+                    priority = ADJ_TASK_PRIORITY_NORMAL
                 )
+                // 记录本次系统计算的分数
+                process.oomAdjScore = adjToCompute
+
                 handleProcessCompact(
                     processRecord = process,
                     adjLastSet = adjLastSet,
-                    adjToCompute = adjToCompute,
-                    oomAdjustLevel = oomAdjustLevel
+                    adjToCompute = adjToCompute
                 )
             }
         }
     }
 
-    private fun handleAdjLocked(
-        process: ProcessRecord,
-        adjToCompute: Int,
-        priority: Int = ADJ_TASK_PRIORITY_NORMAL,
-    ) {
-        // 计算并应用adj
-        oomAdjHandler.computeAdjAndApply(process, adjToCompute, priority)
+    fun handleBatchSetOomAdj(param: MethodHookParam) {
+        val processList = param.args[0] as List<Any>
+        processList.isEmpty().ifTrue {
+            return
+        }
 
-        // 记录本次系统计算的分数
-        process.oomAdjScore = adjToCompute
+        val validProcessList = arrayListOf<ProcessRecord>()
+        for ((index) in processList.withIndex()) {
+            val p = processList[index]
+            val process = checkBeforeSetAdj(ProcessRecord.getPid(p)) ?: continue
+            validProcessList.add(process)
+        }
+
+        validProcessList.isEmpty().ifTrue {
+            return
+        }
+        param.result = null
+
+        addAdjHandleAction {
+            oomAdjHandler.computeAdjAndBatchApply(
+                processList = validProcessList,
+                afterOomSetBlock = { process, adjToCompute ->
+                    handleAppGroup(
+                        appInfo = process.appInfo,
+                        appGroupEnum = process.appInfo.appGroupEnum
+                    )
+                    process.appInfo.readLock {
+                        val adjLastSet = process.oomAdjScore
+                        // 记录本次系统计算的分数
+                        process.oomAdjScore = adjToCompute
+
+                        handleProcessCompact(
+                            processRecord = process,
+                            adjLastSet = adjLastSet,
+                            adjToCompute = adjToCompute
+                        )
+                    }
+                })
+        }
     }
 
     private fun handleAppGroup(
@@ -216,7 +248,7 @@ class OomAdjustManager(
         processRecord: ProcessRecord,
         adjToCompute: Int,
         adjLastSet: Int,
-        oomAdjustLevel: Int,
+        oomAdjustLevel: Int = OomAdjustLevel.NONE,
     ) {
         // 内存压缩
         processManager.compactProcess(

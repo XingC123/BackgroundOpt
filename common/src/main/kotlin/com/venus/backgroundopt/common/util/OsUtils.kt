@@ -33,6 +33,8 @@ object OsUtils {
     const val U = Build.VERSION_CODES.UPSIDE_DOWN_CAKE
     const val V = Build.VERSION_CODES.VANILLA_ICE_CREAM
 
+    const val W = Build.VERSION_CODES.BAKLAVA
+
     @JvmField
     val isR: Boolean = androidVersionCode == R
 
@@ -53,4 +55,7 @@ object OsUtils {
 
     @JvmField
     val isVOrHigher: Boolean = androidVersionCode >= V
+
+    @JvmField
+    val isWOrHigher: Boolean = androidVersionCode >= W
 }

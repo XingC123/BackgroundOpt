@@ -33,6 +33,7 @@ public interface MethodConstants {
     String killProcessGroup = "killProcessGroup";
     String forceStopPackage = "forceStopPackage";
     String setOomAdj = "setOomAdj";
+    String batchSetOomAdj = "batchSetOomAdj";
     String setCurAdj = "setCurAdj";
     String applyOomAdjLocked = "applyOomAdjLocked";
     String updateOomAdjLocked = "updateOomAdjLocked";

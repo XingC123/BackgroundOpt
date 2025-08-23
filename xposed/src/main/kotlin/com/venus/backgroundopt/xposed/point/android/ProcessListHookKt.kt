@@ -17,17 +17,13 @@
 
 package com.venus.backgroundopt.xposed.point.android
 
-import com.venus.backgroundopt.common.util.unsafeLazy
-import com.venus.backgroundopt.xposed.core.RunningInfo
 import com.venus.backgroundopt.xposed.core.AppGroupEnum
-import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
+import com.venus.backgroundopt.xposed.core.RunningInfo
 import com.venus.backgroundopt.xposed.hook.action.afterHookAction
-import com.venus.backgroundopt.xposed.hook.action.beforeHookAction
 import com.venus.backgroundopt.xposed.hook.base.HookPoint
 import com.venus.backgroundopt.xposed.hook.base.MethodHook
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
-import com.venus.backgroundopt.xposed.manager.process.oom.OomAdjustManager
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 /**
@@ -38,24 +34,8 @@ class ProcessListHookKt(
     classLoader: ClassLoader,
     hookInfo: RunningInfo,
 ) : MethodHook(classLoader, hookInfo) {
-    private val oomAdjustManager: OomAdjustManager by unsafeLazy {
-        runningInfo.processManager.oomAdjustManager
-    }
-
     override fun getHookPoint(): Array<HookPoint> {
         return arrayOf(
-            HookPoint(
-                ClassConstants.ProcessList,
-                MethodConstants.setOomAdj,
-                arrayOf(
-                    beforeHookAction { handleSetOomAdj(it) }
-                ),
-                Int::class.javaPrimitiveType,   // pid
-                Int::class.javaPrimitiveType,   // uid
-                Int::class.javaPrimitiveType,    // oom_adj_score
-                // 三星设备这里会多一个int型参数
-                // 所以索性直接hook名为此的所有方法
-            ).setHookAllMatchedMethod(true),
             /*generateMatchedMethodHookPoint(
                 true,
                 ClassConstants.ProcessList,
@@ -77,10 +57,6 @@ class ProcessListHookKt(
                 Boolean::class.javaPrimitiveType,   // procAttached
             ),
         )
-    }
-
-    private fun handleSetOomAdj(param: MethodHookParam) {
-        oomAdjustManager.handleSetOomAdj(param)
     }
 
     /* *************************************************************************

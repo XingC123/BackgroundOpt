@@ -53,6 +53,7 @@ import com.venus.backgroundopt.xposed.point.android.function.CleanUpRemovedTaskH
 import com.venus.backgroundopt.xposed.point.android.function.CurComputedAdjHook;
 import com.venus.backgroundopt.xposed.point.android.function.DefaultApplicationChangeHook;
 import com.venus.backgroundopt.xposed.point.android.function.MemoryPressureHook;
+import com.venus.backgroundopt.xposed.point.android.function.OomAdjustHook;
 import com.venus.backgroundopt.xposed.point.android.function.StartHandleDefaultAppHook;
 
 import java.util.HashMap;
@@ -163,6 +164,8 @@ public class AndroidHookHandler extends PackageHook {
         new CurComputedAdjHook(classLoader, runningInfo);
 
         new UserManagerServiceHook(classLoader, runningInfo);
+
+        new OomAdjustHook(classLoader, runningInfo);
     }
 
     private void initSystemProp() {
