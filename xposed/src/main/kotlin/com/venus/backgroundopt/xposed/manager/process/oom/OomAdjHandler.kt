@@ -466,7 +466,8 @@ abstract class OomAdjHandler(
         adj: Int,
         appInfo: AppInfo,
     ): Int {
-        return if (processRecord.mainProcess) {
+        // 大多数国内 app 的 webview 崩溃也会直接导致 app 崩溃, 因此一视同仁
+        return if (processRecord.mainProcess || processRecord.webviewProcessProbable) {
             computeMainProcessAdj(adj)
         } else {
             computeHighPrioritySubprocessAdj(adj)
