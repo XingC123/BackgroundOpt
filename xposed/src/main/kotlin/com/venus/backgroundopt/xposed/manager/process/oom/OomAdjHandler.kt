@@ -35,7 +35,7 @@ import com.venus.backgroundopt.xposed.entity.self.AppInfo
 import com.venus.backgroundopt.xposed.environment.HookCommonProperties
 import com.venus.backgroundopt.xposed.manager.message.handle.getCustomMainProcessBgAdj
 import com.venus.backgroundopt.xposed.manager.message.handle.getCustomMainProcessFgAdj
-import java.lang.Thread.UncaughtExceptionHandler
+import com.venus.backgroundopt.xposed.manager.process.oom.CachedByteBufferThreadFactory.Companion.byteBufferThreadLocal
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledFuture
@@ -65,8 +65,9 @@ abstract class OomAdjHandler(
         removeOnCancelPolicy = true
     )
 
-    private val adjTaskMap = ConcurrentHashMap<ProcessRecord, ScheduledFuture<*>>()
-    private val adjTaskPriorityMap = ConcurrentHashMap<ProcessRecord, Int>()
+    // <Pid, 任务>
+    private val adjTaskMap = ConcurrentHashMap<Int, ScheduledFuture<*>>()
+    private val adjTaskPriorityMap = ConcurrentHashMap<Int, Int>()
 
     private val taskDelay: Long = 3L
     private val taskDelayTimeUnit: TimeUnit = TimeUnit.SECONDS
@@ -82,18 +83,19 @@ abstract class OomAdjHandler(
         priority: Int = ADJ_TASK_PRIORITY_NORMAL,
         block: () -> Unit,
     ) {
-        adjTaskMap.compute(processRecord) { _, lastScheduledFuture ->
+        val pid = processRecord.pid
+        adjTaskMap.compute(pid) { _, lastScheduledFuture ->
             var submitFuture: ScheduledFuture<*>? = null
-            adjTaskPriorityMap.compute(processRecord) { _, lastTaskPriority ->
+            adjTaskPriorityMap.compute(pid) { _, lastTaskPriority ->
                 if (lastTaskPriority == null || priority >= lastTaskPriority) {
                     lastScheduledFuture?.cancel(true)
                     submitFuture = scheduleAdjTask {
                         var isCancelled = false
-                        adjTaskMap.lock(processRecord) {
+                        adjTaskMap.lock(pid) {
                             isCancelled = submitFuture?.isCancelled == true
                             // 移除记录
-                            adjTaskPriorityMap.remove(processRecord)
-                            adjTaskMap.remove(processRecord)
+                            adjTaskPriorityMap.remove(pid)
+                            adjTaskMap.remove(pid)
                         }
                         isCancelled.ifFalse {
                             block()
@@ -119,8 +121,6 @@ abstract class OomAdjHandler(
      * ADJ计算与应用                                                             *
      *                                                                         *
      **************************************************************************/
-    private val threadLocalMap = CachedByteBufferThreadFactory.threadLocalMap
-
     protected val highPriorityProcessNotHasActivityAdjMap = ConcurrentHashMap<Int, Int>(4)
     protected val mainProcessAdjMap = ConcurrentHashMap<Int, Int>(4)
     protected val highPrioritySubprocessAdjMap = ConcurrentHashMap<Int, Int>(4)
@@ -190,10 +190,12 @@ abstract class OomAdjHandler(
     }
 
     protected fun applyAdjUseCachedByteBuffer(pid: Int, uid: Int, adj: Int) {
-        val threadLocal = threadLocalMap[Thread.currentThread()]!!
-        val byteBuffer = threadLocal.get()!!
-        ProcessList.writeLmkd(byteBuffer, pid, uid, adj)
-        byteBuffer.clear()
+        val byteBuffer = byteBufferThreadLocal.get()!!
+        try {
+            ProcessList.writeLmkd(byteBuffer, pid, uid, adj)
+        } finally {
+            byteBuffer.clear()
+        }
     }
 
     protected fun checkAndApplyAdjUseCachedByteBuffer(
@@ -453,9 +455,10 @@ abstract class OomAdjHandler(
     }
 
     private fun computeHighPriorityProcessAdjNotHasActivity(curAdj: Int): Int {
-        return highPriorityProcessNotHasActivityAdjMap.computeIfAbsent(curAdj) { _ ->
+        /*return highPriorityProcessNotHasActivityAdjMap.computeIfAbsent(curAdj) { _ ->
             max(curAdj, ProcessRecord.SUB_PROC_ADJ)
-        }
+        }*/
+        return max(curAdj, ProcessRecord.SUB_PROC_ADJ)
     }
 
     override fun computeHighPriorityProcessPossibleAdj(
@@ -515,7 +518,6 @@ abstract class OomAdjHandler(
 
 private class CachedByteBufferThreadFactory : ThreadFactory {
     private val threadNumber = AtomicInteger(1)
-    private val exceptionHandler = ExceptionHandler()
 
     override fun newThread(r: Runnable?): Thread {
         return Thread(r, generateThreadName()).apply {
@@ -525,11 +527,6 @@ private class CachedByteBufferThreadFactory : ThreadFactory {
             if (priority != Thread.NORM_PRIORITY) {
                 setPriority(Thread.NORM_PRIORITY)
             }
-            uncaughtExceptionHandler = exceptionHandler
-
-            threadLocalMap[this] = object : ThreadLocal<ByteBuffer>() {
-                override fun initialValue(): ByteBuffer = ProcessList.getByteBufferUsedToWriteLmkd()
-            }
         }
     }
 
@@ -537,18 +534,14 @@ private class CachedByteBufferThreadFactory : ThreadFactory {
         return "${THREAD_FACTORY_NAME}-${THREAD_NAME}-${threadNumber.getAndIncrement()}"
     }
 
-    private class ExceptionHandler: UncaughtExceptionHandler {
-        override fun uncaughtException(t: Thread, e: Throwable) {
-            threadLocalMap.remove(t)
-        }
-    }
-
     companion object {
         const val THREAD_FACTORY_NAME = "CachedByteBufferThreadFactory"
         const val THREAD_NAME = "CachedByteBufferThread"
 
         @JvmStatic
-        val threadLocalMap = ConcurrentHashMap<Thread, ThreadLocal<ByteBuffer>>()
+        val byteBufferThreadLocal = object : ThreadLocal<ByteBuffer>() {
+            override fun initialValue(): ByteBuffer = ProcessList.getByteBufferUsedToWriteLmkd()
+        }
     }
 }
 

@@ -19,6 +19,7 @@ package com.venus.backgroundopt.xposed.point.android.function
 
 import com.venus.backgroundopt.xposed.annotation.FunctionHook
 import com.venus.backgroundopt.xposed.core.RunningInfo
+import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessList
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessRecord
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ProcessStateRecord
 import com.venus.backgroundopt.xposed.hook.base.IHook
@@ -57,7 +58,10 @@ class CurComputedAdjHook(classLoader: ClassLoader, runningInfo: RunningInfo) :
             ProcessStateRecord.curComputedAdjGetter = { processStateRecord ->
                 val curRawAdj = processStateRecord.curRawAdj
                 if (curRawAdj == processStateRecord.processRecord.recordMaxAdj) {
-                    processStateRecord.originalCurRawAdj
+                    processStateRecord.originalCurRawAdj.also {
+                        // 重置标识
+                        processStateRecord.originalCurRawAdj = ProcessList.UNKNOWN_ADJ
+                    }
                 } else {
                     curRawAdj
                 }

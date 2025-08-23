@@ -177,11 +177,12 @@ class RunningInfo(
     ): AppInfo {
         return runningApps.computeIfAbsent(
             getRunningAppIdentifier(userId, packageName)
-        ) { _: String? ->
+        ) { key: String ->
             if (BuildConfig.DEBUG) {
                 logger.debug("创建新App记录: $packageName, uid: $uid")
             }
             getFindAppResult(
+                key = key,
                 userId = userId,
                 packageName = packageName,
                 applicationInfo = applicationInfo

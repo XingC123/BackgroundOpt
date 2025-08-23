@@ -509,6 +509,7 @@ abstract class ProcessRecord(
         ): ProcessRecord {
             return processRecordCache.take(processRecord) {
                 val pr = this
+                val processName = getProcessName(processRecord)
 
                 this.originalInstance = processRecord
 
@@ -516,7 +517,7 @@ abstract class ProcessRecord(
                 this.userId = userId
                 this.pid = pid
                 this.packageName = packageName
-                this.processName = getProcessName(processRecord)
+                this.processName = processName
 
                 this._processStateRecord = ProcessStateRecordHelper.reinitOrCreate(
                     realInstance = pr._processStateRecord,
@@ -535,7 +536,7 @@ abstract class ProcessRecord(
                 this.mainProcess = isMainProcess(packageName, processName).ifTrue {
                     appInfo.mProcessRecord = pr
                 }
-                this.webviewProcessProbable = isWebviewProcProbable(processRecord)
+                this.webviewProcessProbable = isWebviewProcProbable(processName)
                 this.appInfo = appInfo
 
                 // 一些状态的重置
@@ -690,7 +691,12 @@ abstract class ProcessRecord(
 
         @JvmStatic
         fun isWebviewProcProbable(@OriginalObject processRecord: Any): Boolean {
-            return webviewProcessNameMap.computeIfAbsent(getProcessName(processRecord)) { processName ->
+            return isWebviewProcProbable(getProcessName(processRecord))
+        }
+
+        @JvmStatic
+        fun isWebviewProcProbable(processName: String): Boolean {
+            return webviewProcessNameMap.computeIfAbsent(processName) { processName ->
                 // 该方案会匹配到: sandboxed_privilege_process
                 /*val index = processName.lastIndexOf("sandbox", ignoreCase = true)
                 val index2 = processName.lastIndexOf("process", ignoreCase = true)
