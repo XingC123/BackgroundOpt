@@ -24,12 +24,12 @@ import com.venus.backgroundopt.xposed.hook.base.IHook
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
-import com.venus.backgroundopt.xposed.util.afterHook
-import com.venus.backgroundopt.xposed.util.beforeHook
-import com.venus.backgroundopt.xposed.util.findClassIfExists
-import com.venus.backgroundopt.xposed.util.getLongFieldValue
-import com.venus.backgroundopt.xposed.util.replaceHook
-import com.venus.backgroundopt.xposed.util.setStaticObjectFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.afterHook
+import com.venus.backgroundopt.xposed.util.reflect.beforeHook
+import com.venus.backgroundopt.xposed.util.reflect.findClassIfExists
+import com.venus.backgroundopt.xposed.util.reflect.getLongFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.replaceHook
+import com.venus.backgroundopt.xposed.util.reflect.setStaticObjectFieldValue
 
 /**
  * @author XingC

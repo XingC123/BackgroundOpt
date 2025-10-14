@@ -22,7 +22,7 @@ import androidx.annotation.NonNull;
 import com.venus.backgroundopt.xposed.annotation.OriginalObject;
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants;
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants;
-import com.venus.backgroundopt.xposed.util.XposedUtilsKt;
+import com.venus.backgroundopt.xposed.util.reflect.ReflectUtilsKt;
 
 /**
  * 封装了 {@link ClassConstants#ProcessCachedOptimizerRecord}
@@ -39,7 +39,7 @@ public class ProcessCachedOptimizerRecord {
     }
 
     public void setReqCompactAction(int reqCompactAction) {
-        XposedUtilsKt.callMethod(
+        ReflectUtilsKt.callMethod(
                 this.processCachedOptimizerRecord,
                 MethodConstants.setReqCompactAction,
                 reqCompactAction
@@ -53,6 +53,6 @@ public class ProcessCachedOptimizerRecord {
 
     @OriginalObject(classPath = ClassConstants.ProcessCachedOptimizerRecord)
     public static boolean isFreezeExempt(@NonNull @OriginalObject Object instance) {
-        return (boolean) XposedUtilsKt.callMethod(instance, MethodConstants.isFreezeExempt);
+        return (boolean) ReflectUtilsKt.callMethod(instance, MethodConstants.isFreezeExempt);
     }
 }

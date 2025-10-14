@@ -26,7 +26,7 @@ import com.venus.backgroundopt.xposed.hook.base.action.BeforeHookAction;
 import com.venus.backgroundopt.xposed.hook.base.action.DoNotingHookAction;
 import com.venus.backgroundopt.xposed.hook.base.action.HookAction;
 import com.venus.backgroundopt.xposed.hook.base.action.ReplacementHookAction;
-import com.venus.backgroundopt.xposed.util.XposedUtilsKt;
+import com.venus.backgroundopt.xposed.util.reflect.ReflectUtilsKt;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -166,7 +166,7 @@ public class HookPoint implements ILogger {
                     try {
                         hookAction.execute(param);
                     } catch (Throwable throwable) {
-                        XposedUtilsKt.printAfterAppearException(className, methodName, throwable);
+                        ReflectUtilsKt.printAfterAppearException(className, methodName, throwable);
                     }
                 }
             };
@@ -177,7 +177,7 @@ public class HookPoint implements ILogger {
                     try {
                         hookAction.execute(param);
                     } catch (Throwable throwable) {
-                        XposedUtilsKt.printAfterAppearException(className, methodName, throwable);
+                        ReflectUtilsKt.printAfterAppearException(className, methodName, throwable);
                     }
                 }
             };
@@ -188,7 +188,7 @@ public class HookPoint implements ILogger {
                     try {
                         return hookAction.execute(methodHookParam);
                     } catch (Throwable throwable) {
-                        XposedUtilsKt.printAfterAppearException(className, methodName, throwable);
+                        ReflectUtilsKt.printAfterAppearException(className, methodName, throwable);
                         return null;
                     }
                 }

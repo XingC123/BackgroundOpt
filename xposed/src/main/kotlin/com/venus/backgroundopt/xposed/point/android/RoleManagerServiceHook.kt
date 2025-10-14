@@ -23,7 +23,7 @@ import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.compa
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.role.RoleManagerService
 import com.venus.backgroundopt.xposed.hook.base.IHook
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
-import com.venus.backgroundopt.xposed.util.afterConstructorHook
+import com.venus.backgroundopt.xposed.util.reflect.afterConstructorHook
 
 /**
  * @author XingC

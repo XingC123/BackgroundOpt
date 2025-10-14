@@ -26,8 +26,8 @@ import com.venus.backgroundopt.xposed.entity.android.com.android.server.power.Po
 import com.venus.backgroundopt.xposed.hook.base.IHook
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
-import com.venus.backgroundopt.xposed.util.afterConstructorHook
-import com.venus.backgroundopt.xposed.util.afterHook
+import com.venus.backgroundopt.xposed.util.reflect.afterConstructorHook
+import com.venus.backgroundopt.xposed.util.reflect.afterHook
 import java.util.concurrent.ConcurrentHashMap
 
 /**

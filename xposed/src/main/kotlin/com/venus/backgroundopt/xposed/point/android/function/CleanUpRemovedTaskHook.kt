@@ -32,11 +32,11 @@ import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
 import com.venus.backgroundopt.xposed.hook.constants.HookTagConstants
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
-import com.venus.backgroundopt.xposed.util.afterHook
-import com.venus.backgroundopt.xposed.util.beforeHook
-import com.venus.backgroundopt.xposed.util.callMethod
-import com.venus.backgroundopt.xposed.util.getIntFieldValue
-import com.venus.backgroundopt.xposed.util.getObjectFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.afterHook
+import com.venus.backgroundopt.xposed.util.reflect.beforeHook
+import com.venus.backgroundopt.xposed.util.reflect.callMethod
+import com.venus.backgroundopt.xposed.util.reflect.getIntFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.getObjectFieldValue
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 

@@ -21,7 +21,7 @@ import com.venus.backgroundopt.xposed.annotation.OriginalMethod
 import com.venus.backgroundopt.xposed.entity.base.IEntityWrapper
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
-import com.venus.backgroundopt.xposed.util.callMethod
+import com.venus.backgroundopt.xposed.util.reflect.callMethod
 
 /**
  * 封装了[ClassConstants.RoleManagerService]

@@ -24,11 +24,11 @@ import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.Proce
 import com.venus.backgroundopt.xposed.entity.base.IEntityCompatMethod
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
-import com.venus.backgroundopt.xposed.util.getBooleanFieldValue
-import com.venus.backgroundopt.xposed.util.getIntFieldValue
-import com.venus.backgroundopt.xposed.util.getLongFieldValue
-import com.venus.backgroundopt.xposed.util.setBooleanFieldValue
-import com.venus.backgroundopt.xposed.util.setIntFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.getBooleanFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.getIntFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.getLongFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.setBooleanFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.setIntFieldValue
 
 /**
  * @author XingC

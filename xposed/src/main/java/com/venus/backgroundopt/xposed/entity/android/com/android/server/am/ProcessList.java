@@ -28,7 +28,7 @@ import com.venus.backgroundopt.xposed.entity.self.ProcessAdjConstants;
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants;
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants;
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants;
-import com.venus.backgroundopt.xposed.util.XposedUtilsKt;
+import com.venus.backgroundopt.xposed.util.reflect.ReflectUtilsKt;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -238,7 +238,7 @@ public class ProcessList implements ILogger {
 
     public static void initProcessListClazz() {
         ClassLoader classLoader = RunningInfo.getInstance().getClassLoader();
-        processListClazz = XposedUtilsKt.findClass(
+        processListClazz = ReflectUtilsKt.findClass(
                 ClassConstants.ProcessList,
                 classLoader
         );
@@ -277,7 +277,7 @@ public class ProcessList implements ILogger {
     @OriginalMethod
     @SuppressWarnings("all")
     public static boolean writeLmkd(ByteBuffer buf, ByteBuffer repl) {
-        return (boolean) XposedUtilsKt.callStaticMethod(
+        return (boolean) ReflectUtilsKt.callStaticMethod(
                 processListClazz,
                 MethodConstants.writeLmkd,
                 writeLmkdParamTypes,

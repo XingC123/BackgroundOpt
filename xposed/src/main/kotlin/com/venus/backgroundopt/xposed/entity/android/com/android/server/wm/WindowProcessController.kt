@@ -20,7 +20,7 @@ package com.venus.backgroundopt.xposed.entity.android.com.android.server.wm
 import com.venus.backgroundopt.xposed.annotation.OriginalObject
 import com.venus.backgroundopt.xposed.entity.base.IEntityWrapper
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
-import com.venus.backgroundopt.xposed.util.getBooleanFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.getBooleanFieldValue
 
 /**
  * @author XingC

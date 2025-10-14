@@ -20,7 +20,7 @@ package com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.comp
 import android.content.pm.PackageInfo
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.pm.IPackageManagerService
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
-import com.venus.backgroundopt.xposed.util.callMethod
+import com.venus.backgroundopt.xposed.util.reflect.callMethod
 
 /**
  * @author XingC

@@ -23,9 +23,9 @@ import com.venus.backgroundopt.xposed.annotation.OriginalObjectField
 import com.venus.backgroundopt.xposed.core.RunningInfo
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
-import com.venus.backgroundopt.xposed.util.findClass
-import com.venus.backgroundopt.xposed.util.getStaticBooleanFieldValue
-import com.venus.backgroundopt.xposed.util.getStaticIntFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.findClass
+import com.venus.backgroundopt.xposed.util.reflect.getStaticBooleanFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.getStaticIntFieldValue
 
 /**
  * @author XingC

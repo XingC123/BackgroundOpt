@@ -17,8 +17,9 @@
 
 package com.venus.backgroundopt.xposed.entity.android.com.android.server.pm
 
+import android.provider.Settings
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
-import com.venus.backgroundopt.xposed.util.getStaticStringFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.getStaticStringFieldValue
 
 /**
  * @author XingC
@@ -28,14 +29,14 @@ class Settings {
     class Secure {
         companion object {
             @JvmField
-            val ASSISTANT = android.provider.Settings.Secure::class.java.getStaticStringFieldValue(
+            val ASSISTANT = Settings.Secure::class.java.getStaticStringFieldValue(
                 fieldName = FieldConstants.ASSISTANT,
                 defaultValue = "-1"
             )
 
             @JvmField
             val DEFAULT_INPUT_METHOD =
-                android.provider.Settings.Secure::class.java.getStaticStringFieldValue(
+                Settings.Secure::class.java.getStaticStringFieldValue(
                     fieldName = FieldConstants.DEFAULT_INPUT_METHOD,
                     defaultValue = "-1"
                 )

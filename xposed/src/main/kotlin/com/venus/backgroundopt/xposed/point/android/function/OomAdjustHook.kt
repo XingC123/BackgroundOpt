@@ -25,7 +25,7 @@ import com.venus.backgroundopt.xposed.hook.base.IHook
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
 import com.venus.backgroundopt.xposed.manager.process.oom.OomAdjustManager
-import com.venus.backgroundopt.xposed.util.beforeHook
+import com.venus.backgroundopt.xposed.util.reflect.beforeHook
 import kotlin.getValue
 
 /**

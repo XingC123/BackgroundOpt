@@ -36,7 +36,7 @@ import com.venus.backgroundopt.xposed.entity.self.FindAppResult;
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants;
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants;
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants;
-import com.venus.backgroundopt.xposed.util.XposedUtilsKt;
+import com.venus.backgroundopt.xposed.util.reflect.ReflectUtilsKt;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -85,7 +85,7 @@ public class ActivityManagerService implements ILogger {
         } else {
             this.mProcLock = activityManagerService;
         }
-        this.activityManagerConstants = new ActivityManagerConstants(XposedUtilsKt.getObjectFieldValue(activityManagerService, FieldConstants.mConstants, null));
+        this.activityManagerConstants = new ActivityManagerConstants(ReflectUtilsKt.getObjectFieldValue(activityManagerService, FieldConstants.mConstants, null));
 
         this.runningInfo = runningInfo;
 
@@ -142,7 +142,7 @@ public class ActivityManagerService implements ILogger {
 
     @OriginalObject
     public static Object getAppProfiler() {
-        return XposedUtilsKt.getObjectFieldValue(
+        return ReflectUtilsKt.getObjectFieldValue(
                 RunningInfo.getInstance().getActivityManagerService().activityManagerService,
                 FieldConstants.mAppProfiler,
                 null
@@ -281,7 +281,7 @@ public class ActivityManagerService implements ILogger {
 
     @OriginalMethod(classPath = ClassConstants.ActivityManagerService, methodName = MethodConstants.forceStopPackage)
     public void forceStopPackage(String packageName, int userId) {
-        XposedUtilsKt.callMethod(activityManagerService, MethodConstants.forceStopPackage, packageName, userId);
+        ReflectUtilsKt.callMethod(activityManagerService, MethodConstants.forceStopPackage, packageName, userId);
     }
 
     /**

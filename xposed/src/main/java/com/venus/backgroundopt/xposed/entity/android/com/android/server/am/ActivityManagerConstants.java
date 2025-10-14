@@ -29,7 +29,7 @@ import com.venus.backgroundopt.xposed.annotation.OriginalObjectField;
 import com.venus.backgroundopt.xposed.entity.base.IEntityWrapper;
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants;
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants;
-import com.venus.backgroundopt.xposed.util.XposedUtilsKt;
+import com.venus.backgroundopt.xposed.util.reflect.ReflectUtilsKt;
 
 /**
  * 封装了 {@link ClassConstants#ActivityManagerConstants}
@@ -80,12 +80,12 @@ public class ActivityManagerConstants implements IEntityWrapper, ILogger {
             return;
         }
 
-        XposedUtilsKt.setBooleanFieldValue(
+        ReflectUtilsKt.setBooleanFieldValue(
                 originalInstance,
                 FieldConstants.USE_TIERED_CACHED_ADJ,
                 true
         );
-        boolean USE_TIERED_CACHED_ADJ = XposedUtilsKt.getBooleanFieldValue(
+        boolean USE_TIERED_CACHED_ADJ = ReflectUtilsKt.getBooleanFieldValue(
                 originalInstance,
                 FieldConstants.USE_TIERED_CACHED_ADJ
         );

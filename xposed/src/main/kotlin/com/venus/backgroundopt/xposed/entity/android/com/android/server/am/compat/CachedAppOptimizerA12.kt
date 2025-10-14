@@ -23,7 +23,7 @@ import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.Cache
 import com.venus.backgroundopt.xposed.entity.android.com.android.server.am.ICachedAppOptimizer
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
-import com.venus.backgroundopt.xposed.util.callMethod
+import com.venus.backgroundopt.xposed.util.reflect.callMethod
 import de.robv.android.xposed.XposedHelpers
 
 /**

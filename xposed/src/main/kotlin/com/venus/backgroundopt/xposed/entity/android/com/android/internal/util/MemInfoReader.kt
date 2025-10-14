@@ -22,9 +22,9 @@ import com.venus.backgroundopt.common.util.log.logInfo
 import com.venus.backgroundopt.xposed.core.RunningInfo
 import com.venus.backgroundopt.xposed.entity.base.IEntityWrapper
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
-import com.venus.backgroundopt.xposed.util.callMethod
-import com.venus.backgroundopt.xposed.util.findClass
-import com.venus.backgroundopt.xposed.util.newInstanceXp
+import com.venus.backgroundopt.xposed.util.reflect.callMethod
+import com.venus.backgroundopt.xposed.util.reflect.findClass
+import com.venus.backgroundopt.xposed.util.reflect.newInstanceXp
 
 /**
  * @author XingC

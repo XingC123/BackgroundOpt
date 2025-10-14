@@ -19,7 +19,7 @@ package com.venus.backgroundopt.xposed.entity.base
 
 import com.venus.backgroundopt.common.util.getOrCreateThenInit
 import com.venus.backgroundopt.xposed.annotation.OriginalObject
-import com.venus.backgroundopt.xposed.util.callStaticMethod
+import com.venus.backgroundopt.xposed.util.reflect.callStaticMethod
 import kotlin.annotation.AnnotationRetention.BINARY
 import kotlin.annotation.AnnotationTarget.FUNCTION
 import kotlin.reflect.KFunction

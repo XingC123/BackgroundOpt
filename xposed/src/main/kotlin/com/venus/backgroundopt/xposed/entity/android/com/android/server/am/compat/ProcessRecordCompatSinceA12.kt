@@ -24,11 +24,11 @@ import com.venus.backgroundopt.xposed.entity.base.IEntityCompatMethod
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
-import com.venus.backgroundopt.xposed.util.callMethod
-import com.venus.backgroundopt.xposed.util.getBooleanFieldValue
-import com.venus.backgroundopt.xposed.util.getIntFieldValue
-import com.venus.backgroundopt.xposed.util.getObjectFieldValue
-import com.venus.backgroundopt.xposed.util.getStringFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.callMethod
+import com.venus.backgroundopt.xposed.util.reflect.getBooleanFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.getIntFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.getObjectFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.getStringFieldValue
 
 /**
  * @author XingC

@@ -32,7 +32,7 @@ import com.venus.backgroundopt.xposed.entity.base.IEntityCompatRule
 import com.venus.backgroundopt.xposed.entity.base.IEntityWrapper
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
-import com.venus.backgroundopt.xposed.util.findClass
+import com.venus.backgroundopt.xposed.util.reflect.findClass
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import kotlin.concurrent.Volatile

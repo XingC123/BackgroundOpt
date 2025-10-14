@@ -24,10 +24,10 @@ import com.venus.backgroundopt.xposed.hook.base.IHook
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.FieldConstants
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
-import com.venus.backgroundopt.xposed.util.afterConstructorHook
-import com.venus.backgroundopt.xposed.util.beforeHook
-import com.venus.backgroundopt.xposed.util.replaceHook
-import com.venus.backgroundopt.xposed.util.setIntFieldValue
+import com.venus.backgroundopt.xposed.util.reflect.afterConstructorHook
+import com.venus.backgroundopt.xposed.util.reflect.beforeHook
+import com.venus.backgroundopt.xposed.util.reflect.replaceHook
+import com.venus.backgroundopt.xposed.util.reflect.setIntFieldValue
 
 /**
  * @author XingC

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.venus.backgroundopt.xposed.util
+package com.venus.backgroundopt.xposed.util.reflect
 
 import com.venus.backgroundopt.common.util.log.logError
 import com.venus.backgroundopt.common.util.runCatchThrowable
@@ -31,7 +31,7 @@ import de.robv.android.xposed.XposedHelpers
  * @author XingC
  * @date 2023/10/17
  */
-class XposedUtils
+class ReflectUtils
 
 fun String.newInstance(classLoader: ClassLoader, vararg args: Any?): Any? {
     return XposedHelpers.findClass(this, classLoader)?.let { clazz ->
@@ -63,11 +63,17 @@ fun Class<*>.newInstanceXp(paramTypes: Array<out Class<*>>, vararg args: Any?): 
  *                                                                         *
  **************************************************************************/
 fun Class<*>.getStaticObjectFieldValue(fieldName: String, defaultValue: Any? = null): Any? {
-    return XposedHelpers.getStaticObjectField(this, fieldName) ?: defaultValue
+    return ReflectHelper.findField(
+        instanceClass = this,
+        fieldName = fieldName
+    ).get(null) ?: defaultValue
 }
 
 fun Class<*>.setStaticObjectFieldValue(fieldName: String, value: Any?) {
-    XposedHelpers.setStaticObjectField(this, fieldName, value)
+    ReflectHelper.findField(
+        instanceClass = this,
+        fieldName = fieldName
+    ).set(null, value)
 }
 
 fun Class<*>.getStaticStringFieldValue(fieldName: String, defaultValue: String?): String? {
@@ -79,35 +85,59 @@ fun Class<*>.setStaticStringFieldValue(fieldName: String, value: String?) {
 }
 
 fun Class<*>.getStaticIntFieldValue(fieldName: String): Int {
-    return XposedHelpers.getStaticIntField(this, fieldName)
+    return ReflectHelper.findField(
+        instanceClass = this,
+        fieldName = fieldName
+    ).getInt(null)
 }
 
 fun Class<*>.setStaticIntFieldValue(fieldName: String, value: Int) {
-    XposedHelpers.setStaticIntField(this, fieldName, value)
+    ReflectHelper.findField(
+        instanceClass = this,
+        fieldName = fieldName
+    ).setInt(null, value)
 }
 
 fun Class<*>.getStaticLongFieldValue(fieldName: String): Long {
-    return XposedHelpers.getStaticLongField(this, fieldName)
+    return ReflectHelper.findField(
+        instanceClass = this,
+        fieldName = fieldName
+    ).getLong(null)
 }
 
 fun Class<*>.setStaticLongFieldValue(fieldName: String, value: Long) {
-    XposedHelpers.setStaticLongField(this, fieldName, value)
+    ReflectHelper.findField(
+        instanceClass = this,
+        fieldName = fieldName
+    ).setLong(null, value)
 }
 
 fun Class<*>.getStaticDoubleFieldValue(fieldName: String): Double {
-    return XposedHelpers.getStaticDoubleField(this, fieldName)
+    return ReflectHelper.findField(
+        instanceClass = this,
+        fieldName = fieldName
+    ).getDouble(null)
 }
 
 fun Class<*>.setStaticDoubleFieldValue(fieldName: String, value: Double) {
-    XposedHelpers.setStaticDoubleField(this, fieldName, value)
+    ReflectHelper.findField(
+        instanceClass = this,
+        fieldName = fieldName
+    ).setDouble(null, value)
 }
 
 fun Class<*>.getStaticBooleanFieldValue(fieldName: String): Boolean {
-    return XposedHelpers.getStaticBooleanField(this, fieldName)
+    return ReflectHelper.findField(
+        instanceClass = this,
+        fieldName = fieldName
+    ).getBoolean(null)
 }
 
 fun Class<*>.setStaticBooleanFieldValue(fieldName: String, value: Boolean) {
-    XposedHelpers.setStaticBooleanField(this, fieldName, value)
+    ReflectHelper.findField(
+        instanceClass = this,
+        fieldName = fieldName
+    ).setBoolean(null, value)
 }
 
 /* *************************************************************************
@@ -116,11 +146,17 @@ fun Class<*>.setStaticBooleanFieldValue(fieldName: String, value: Boolean) {
  *                                                                         *
  **************************************************************************/
 fun Any.getObjectFieldValue(fieldName: String, defaultValue: Any? = null): Any? {
-    return XposedHelpers.getObjectField(this, fieldName) ?: defaultValue
+    return ReflectHelper.findField(
+        instanceClass = this.javaClass,
+        fieldName = fieldName
+    ).get(this) ?: defaultValue
 }
 
 fun Any.setObjectFieldValue(fieldName: String, value: Any?) {
-    XposedHelpers.setObjectField(this, fieldName, value)
+    ReflectHelper.findField(
+        instanceClass = this.javaClass,
+        fieldName = fieldName
+    ).set(this, value)
 }
 
 fun Any.getStringFieldValue(fieldName: String, defaultValue: String?): String? {
@@ -132,35 +168,59 @@ fun Any.setStringFieldValue(fieldName: String, value: String?) {
 }
 
 fun Any.getIntFieldValue(fieldName: String): Int {
-    return XposedHelpers.getIntField(this, fieldName)
+    return ReflectHelper.findField(
+        instanceClass = this.javaClass,
+        fieldName = fieldName
+    ).getInt(this)
 }
 
 fun Any.setIntFieldValue(fieldName: String, value: Int) {
-    XposedHelpers.setIntField(this, fieldName, value)
+    ReflectHelper.findField(
+        instanceClass = this.javaClass,
+        fieldName = fieldName
+    ).setInt(this, value)
 }
 
 fun Any.getLongFieldValue(fieldName: String): Long {
-    return XposedHelpers.getLongField(this, fieldName)
+    return ReflectHelper.findField(
+        instanceClass = this.javaClass,
+        fieldName = fieldName
+    ).getLong(this)
 }
 
 fun Any.setLongFieldValue(fieldName: String, value: Long) {
-    XposedHelpers.setLongField(this, fieldName, value)
+    ReflectHelper.findField(
+        instanceClass = this.javaClass,
+        fieldName = fieldName
+    ).setLong(this, value)
 }
 
 fun Any.getDoubleFieldValue(fieldName: String): Double {
-    return XposedHelpers.getDoubleField(this, fieldName)
+    return ReflectHelper.findField(
+        instanceClass = this.javaClass,
+        fieldName = fieldName
+    ).getDouble(this)
 }
 
 fun Any.setDoubleFieldValue(fieldName: String, value: Double) {
-    XposedHelpers.setDoubleField(this, fieldName, value)
+    ReflectHelper.findField(
+        instanceClass = this.javaClass,
+        fieldName = fieldName
+    ).setDouble(this, value)
 }
 
 fun Any.getBooleanFieldValue(fieldName: String): Boolean {
-    return XposedHelpers.getBooleanField(this, fieldName)
+    return ReflectHelper.findField(
+        instanceClass = this.javaClass,
+        fieldName = fieldName
+    ).getBoolean(this)
 }
 
 fun Any.setBooleanFieldValue(fieldName: String, value: Boolean) {
-    XposedHelpers.setBooleanField(this, fieldName, value)
+    ReflectHelper.findField(
+        instanceClass = this.javaClass,
+        fieldName = fieldName
+    ).setBoolean(this, value)
 }
 
 /* *************************************************************************
@@ -169,7 +229,11 @@ fun Any.setBooleanFieldValue(fieldName: String, value: Boolean) {
  *                                                                         *
  **************************************************************************/
 fun Any.callMethod(methodName: String, vararg args: Any?): Any? {
-    return XposedHelpers.callMethod(this, methodName, *args)
+    return ReflectHelper.findMethodBestMatch(
+        instanceClass = this.javaClass,
+        methodName = methodName,
+        paramTypes = XposedHelpers.getParameterTypes(*args)
+    ).invoke(this, *args)
 }
 
 @JvmName("callMethodWithType")
@@ -179,7 +243,11 @@ fun <R> Any.callMethod(methodName: String, vararg args: Any?): R {
 }
 
 fun Any.callMethod(methodName: String, paramTypes: Array<out Class<*>>, vararg args: Any?): Any? {
-    return XposedHelpers.callMethod(this, methodName, paramTypes, *args)
+    return ReflectHelper.findMethodBestMatch(
+        instanceClass = this.javaClass,
+        methodName = methodName,
+        paramTypes = paramTypes
+    ).invoke(this, *args)
 }
 
 @JvmName("callMethodWithType")
@@ -193,7 +261,11 @@ fun <R> Any.callMethod(methodName: String, paramTypes: Array<out Class<*>>, vara
 }
 
 fun Class<*>.callStaticMethod(methodName: String, vararg args: Any?): Any? {
-    return XposedHelpers.callStaticMethod(this, methodName, *args)
+    return ReflectHelper.findMethodBestMatch(
+        instanceClass = this,
+        methodName = methodName,
+        paramTypes = XposedHelpers.getParameterTypes(*args)
+    ).invoke(null, *args)
 }
 
 @JvmName("callStaticMethodWithType")
@@ -207,7 +279,11 @@ fun Class<*>.callStaticMethod(
     paramTypes: Array<out Class<*>>,
     vararg args: Any?
 ): Any? {
-    return XposedHelpers.callStaticMethod(this, methodName, paramTypes, *args)
+    return ReflectHelper.findMethodBestMatch(
+        instanceClass = this,
+        methodName = methodName,
+        paramTypes = paramTypes
+    ).invoke(null, *args)
 }
 
 @JvmName("callStaticMethodWithType")
