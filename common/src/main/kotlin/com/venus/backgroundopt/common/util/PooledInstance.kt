@@ -17,9 +17,10 @@
 
 package com.venus.backgroundopt.common.util
 
+import com.venus.backgroundopt.common.util.concurrent.ExecutorUtils
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.min
 
 /**
  * 池化的实例
@@ -39,10 +40,10 @@ class PooledInstance<F, T> @JvmOverloads constructor(
     /* 实际对象的生成器 */
     private val instanceGenerator: (F?) -> T,
 ) {
-    /*private val executor = ExecutorUtils.newFixedThreadPool(
+    private val executor = ExecutorUtils.newFixedThreadPool(
         coreSize = 1,
-        factoryName = "PooledInstancePool"
-    )*/
+        factoryName = "PooledInstanceAsyncRefillPool"
+    )
     private val instanceCache = ConcurrentLinkedQueue<T>().apply {
         // 初始填充
         repeat(poolMaxSize) {
@@ -50,7 +51,14 @@ class PooledInstance<F, T> @JvmOverloads constructor(
         }
     }
     private val cacheSize = AtomicInteger(poolMaxSize)
-    private val isWriting = AtomicBoolean(false)
+
+    init {
+        require(poolMaxSize > 0) { "poolMaxSize must greater than 0" }
+        require(refillLimit > 0) { "refillLimit must greater than 0" }
+        require(poolMaxSize >= refillLimit) {
+            "poolMaxSize($poolMaxSize) must greater than or equal to refillLimit($refillLimit)"
+        }
+    }
 
     /**
      * 从[instanceCache]拿取[T], 并做初始化操作[initBlock]。[data]将作为参数传递给[instanceGenerator]
@@ -58,13 +66,7 @@ class PooledInstance<F, T> @JvmOverloads constructor(
     fun take(data: F? = null, initBlock: T.() -> Unit): T {
         val obj = instanceCache.poll()?.also { cacheSize.decrementAndGet() } ?: run {
             instanceGenerator(data).also {
-                isWriting.compareAndSet(false, true).ifTrue {
-                    try {
-                        refillToCache()
-                    } finally {
-                        isWriting.set(false)
-                    }
-                }
+                asyncRefill()
             }
         }
 
@@ -86,15 +88,20 @@ class PooledInstance<F, T> @JvmOverloads constructor(
     }
 
     /**
+     * 异步填充
+     */
+    private fun asyncRefill() = executor.execute(this::refillToCache)
+
+    /**
      * 向[instanceCache]中添加[T]缓存
      */
     private fun refillToCache() {
-        val size = cacheSize.get()
-        if (size >= poolMaxSize) {
+        val currentSize = cacheSize.get()
+        if (currentSize >= poolMaxSize) {
             return
         }
 
-        val refillCount = refillLimit - size
+        val refillCount = min(refillLimit, poolMaxSize - currentSize)
         repeat(refillCount) {
             instanceCache.offer(instanceGenerator(filler))
         }
