@@ -38,9 +38,7 @@ import com.venus.backgroundopt.xposed.hook.constants.FieldConstants;
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants;
 import com.venus.backgroundopt.xposed.util.reflect.ReflectUtilsKt;
 
-import java.lang.reflect.InvocationTargetException;
-
-import de.robv.android.xposed.XposedHelpers;
+import java.util.Objects;
 
 /**
  * 封装了{@link ClassConstants#ActivityManagerService}
@@ -75,17 +73,26 @@ public class ActivityManagerService implements ILogger {
     ) {
         this.activityManagerService = activityManagerService;
         this.processList = new ProcessList(
-                XposedHelpers.getObjectField(activityManagerService, FieldConstants.mProcessList),
-                this);
-        this.context = (Context) XposedHelpers.getObjectField(activityManagerService, FieldConstants.mContext);
-        this.oomAdjuster = OomAdjuster.newInstance(XposedHelpers.getObjectField(activityManagerService, FieldConstants.mOomAdjuster));
-        this.mPidsSelfLocked = XposedHelpers.getObjectField(activityManagerService, FieldConstants.mPidsSelfLocked);
+                ReflectUtilsKt.getObjectFieldValue(activityManagerService, FieldConstants.mProcessList),
+                this
+        );
+        this.context = (Context) ReflectUtilsKt.getObjectFieldValue(activityManagerService, FieldConstants.mContext);
+        this.oomAdjuster = OomAdjuster.newInstance(
+                Objects.requireNonNull(
+                        ReflectUtilsKt.getObjectFieldValue(activityManagerService, FieldConstants.mOomAdjuster)
+                )
+        );
+        this.mPidsSelfLocked = ReflectUtilsKt.getObjectFieldValue(activityManagerService, FieldConstants.mPidsSelfLocked);
         if (OsUtils.isSOrHigher) {
-            this.mProcLock = XposedHelpers.getObjectField(activityManagerService, FieldConstants.mProcLock);
+            this.mProcLock = ReflectUtilsKt.getObjectFieldValue(activityManagerService, FieldConstants.mProcLock);
         } else {
             this.mProcLock = activityManagerService;
         }
-        this.activityManagerConstants = new ActivityManagerConstants(ReflectUtilsKt.getObjectFieldValue(activityManagerService, FieldConstants.mConstants, null));
+        this.activityManagerConstants = new ActivityManagerConstants(
+                Objects.requireNonNull(
+                        ReflectUtilsKt.getObjectFieldValue(activityManagerService, FieldConstants.mConstants)
+                )
+        );
 
         this.runningInfo = runningInfo;
 
@@ -190,7 +197,7 @@ public class ActivityManagerService implements ILogger {
         try {
             PackageManager packageManager = getPackageManager();
             android.content.pm.ApplicationInfo applicationInfoAsUser =
-                    (android.content.pm.ApplicationInfo) XposedHelpers.callMethod(
+                    (android.content.pm.ApplicationInfo) ReflectUtilsKt.callMethod(
                             packageManager, MethodConstants.getApplicationInfoAsUser,
                             packageName, PackageManager.MATCH_UNINSTALLED_PACKAGES, userId);
             if (applicationInfoAsUser != null) {
@@ -264,15 +271,15 @@ public class ActivityManagerService implements ILogger {
             return true;
         }
         try {
-            return (boolean) XposedHelpers.findMethodBestMatch(clazz, MethodConstants.isAppForeground, uid).invoke(activityManagerService, uid);
-        } catch (IllegalAccessException | InvocationTargetException e) {
+            return ReflectUtilsKt.callMethodWithType(activityManagerService, MethodConstants.isAppForeground, uid);
+        } catch (Exception e) {
             getLogger().error("call isAppForeground method error");
         }
         return true;
     }
 
     public boolean isAppForeground(int uid) {
-        return (boolean) XposedHelpers.callMethod(
+        return ReflectUtilsKt.callMethodWithType(
                 activityManagerService,
                 MethodConstants.isAppForeground,
                 uid
