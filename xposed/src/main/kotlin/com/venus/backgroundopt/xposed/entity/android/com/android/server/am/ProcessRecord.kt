@@ -301,10 +301,10 @@ abstract class ProcessRecord(
     fun hasWakeLock(): Boolean = wakeLockCount > 0
 
     /* *************************************************************************
-   *                                                                         *
-   * adj处理方式                                                               *
-   *                                                                         *
-   **************************************************************************/
+     *                                                                         *
+     * adj处理方式                                                               *
+     *                                                                         *
+     **************************************************************************/
     object AdjHandleActionType {
         const val DO_NOTHING = 0
         const val CUSTOM_MAIN_PROCESS = 1
@@ -518,6 +518,8 @@ abstract class ProcessRecord(
                 this.pid = pid
                 this.packageName = packageName
                 this.processName = processName
+
+                computeHashCode()
 
                 this._processStateRecord = ProcessStateRecordHelper.reinitOrCreate(
                     realInstance = pr._processStateRecord,

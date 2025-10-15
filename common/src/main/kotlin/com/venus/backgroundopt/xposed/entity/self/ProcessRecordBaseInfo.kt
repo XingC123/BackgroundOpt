@@ -30,7 +30,9 @@ open class ProcessRecordBaseInfo(
     var uid: Int = Int.MIN_VALUE,
     var pid: Int = Int.MIN_VALUE,
     var userId: Int = 0,
-): MessageFlag {
+) : MessageFlag {
+    private var hashCode: Int = 0
+
     /**
      * 系统设置的oom_score_adj
      */
@@ -59,8 +61,7 @@ open class ProcessRecordBaseInfo(
     lateinit var packageName: String
     lateinit var processName: String
 
-    val lastProcessingResultMap =
-        ConcurrentHashMap<AppOptimizeEnum, ProcessingResult>(2)
+    val lastProcessingResultMap = ConcurrentHashMap<AppOptimizeEnum, ProcessingResult>(2)
 
     // 是否是webview进程
     var webviewProcess = false
@@ -75,22 +76,29 @@ open class ProcessRecordBaseInfo(
         }
     }
 
+    /**
+     * 计算 hashCode
+     */
+    protected fun computeHashCode() {
+        var result = pid
+        result = 31 * result + userId
+        result = 31 * result + packageName.hashCode()
+
+        this.hashCode = result
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ProcessRecordBaseInfo) return false
 
         if (pid != other.pid) return false
         if (userId != other.userId) return false
+        if (packageName != other.packageName) return false
 
         return true
     }
 
-    override fun hashCode(): Int {
-        var result = pid
-        result = 31 * result + userId
-        return result
-    }
-
+    override fun hashCode(): Int = this.hashCode
 
     companion object {
         /**
