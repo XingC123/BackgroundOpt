@@ -39,6 +39,7 @@ object ReflectHelper {
     /**
      * 精确查找方法（XposedHelpers.findMethodExact的提取版本）
      */
+    @JvmStatic
     @Throws(NoSuchMethodException::class)
     fun findMethodExact(
         clazz: Class<*>,
@@ -53,6 +54,7 @@ object ReflectHelper {
     /**
      * 最佳匹配查找方法（XposedHelpers.findMethodBestMatch的提取版本）
      */
+    @JvmStatic
     fun findMethodBestMatch(
         instanceClass: Class<*>,
         methodName: String,
@@ -321,6 +323,7 @@ object ReflectHelper {
         return sb.toString()
     }
 
+    @JvmStatic
     fun findField(
         instanceClass: Class<*>,
         fieldName: String

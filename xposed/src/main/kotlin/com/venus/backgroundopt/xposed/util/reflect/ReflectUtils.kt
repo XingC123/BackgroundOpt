@@ -62,6 +62,7 @@ fun Class<*>.newInstanceXp(paramTypes: Array<out Class<*>>, vararg args: Any?): 
  * 获取/设置类字段值                                                          *
  *                                                                         *
  **************************************************************************/
+@JvmOverloads
 fun Class<*>.getStaticObjectFieldValue(fieldName: String, defaultValue: Any? = null): Any? {
     return ReflectHelper.findField(
         instanceClass = this,
@@ -145,6 +146,7 @@ fun Class<*>.setStaticBooleanFieldValue(fieldName: String, value: Boolean) {
  * 获取/设置对象字段值                                                         *
  *                                                                         *
  **************************************************************************/
+@JvmOverloads
 fun Any.getObjectFieldValue(fieldName: String, defaultValue: Any? = null): Any? {
     return ReflectHelper.findField(
         instanceClass = this.javaClass,
