@@ -19,6 +19,7 @@ package com.venus.backgroundopt.xposed.point.android
 
 import com.venus.backgroundopt.common.util.OsUtils
 import com.venus.backgroundopt.xposed.core.RunningInfo
+import com.venus.backgroundopt.xposed.environment.HookCommonProperties
 import com.venus.backgroundopt.xposed.hook.base.IHook
 import com.venus.backgroundopt.xposed.hook.constants.ClassConstants
 import com.venus.backgroundopt.xposed.hook.constants.MethodConstants
@@ -35,12 +36,26 @@ class AppProfilerHook(
     override fun enableHook(): Boolean = OsUtils.isSOrHigher
 
     override fun hook() {
+        val isEnableMemTrim = computeIsEnableMemTrimTask()
+
         // 本模块的内存回收替代
         // 此句在A12及以上存在
+        // 若启用了模块的内存回收, 则会禁用系统的内存回收
+        logger.info("[${if (isEnableMemTrim) "禁用" else "启用"}] 系统内存回收策略")
         ClassConstants.AppProfiler.beforeHook(
+            enable = isEnableMemTrim,
             classLoader = classLoader,
             methodName = MethodConstants.trimMemoryUiHiddenIfNecessaryLSP,
             hookAllMethod = true
         ) { it.result = null }
+    }
+
+    /**
+     * 计算是否开启了内存回收任务
+     */
+    private fun computeIsEnableMemTrimTask(): Boolean {
+        val isEnabledForegroundProcTrimMem = HookCommonProperties.isEnableForegroundProcTrimMem()
+        val isEnabledBackgroundProcTrimMem = HookCommonProperties.isEnableBackgroundProcTrimMem()
+        return isEnabledForegroundProcTrimMem or isEnabledBackgroundProcTrimMem
     }
 }
