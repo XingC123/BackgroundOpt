@@ -65,9 +65,8 @@ abstract class OomAdjHandler(
         removeOnCancelPolicy = true
     )
 
-    // <Pid, 任务>
-    private val adjTaskMap = ConcurrentHashMap<Int, ScheduledFuture<*>>()
-    private val adjTaskPriorityMap = ConcurrentHashMap<Int, Int>()
+    private val adjTaskMap = ConcurrentHashMap<ProcessRecord, ScheduledFuture<*>>()
+    private val adjTaskPriorityMap = ConcurrentHashMap<ProcessRecord, Int>()
 
     private val taskDelay: Long = 3L
     private val taskDelayTimeUnit: TimeUnit = TimeUnit.SECONDS
@@ -83,19 +82,18 @@ abstract class OomAdjHandler(
         priority: Int = ADJ_TASK_PRIORITY_NORMAL,
         block: () -> Unit,
     ) {
-        val pid = processRecord.pid
-        adjTaskMap.compute(pid) { _, lastScheduledFuture ->
+        adjTaskMap.compute(processRecord) { _, lastScheduledFuture ->
             var submitFuture: ScheduledFuture<*>? = null
-            adjTaskPriorityMap.compute(pid) { _, lastTaskPriority ->
+            adjTaskPriorityMap.compute(processRecord) { _, lastTaskPriority ->
                 if (lastTaskPriority == null || priority >= lastTaskPriority) {
                     lastScheduledFuture?.cancel(true)
                     submitFuture = scheduleAdjTask {
                         var isCancelled = false
-                        adjTaskMap.lock(pid) {
+                        adjTaskMap.lock(processRecord) {
                             isCancelled = submitFuture?.isCancelled == true
                             // 移除记录
-                            adjTaskPriorityMap.remove(pid)
-                            adjTaskMap.remove(pid)
+                            adjTaskPriorityMap.remove(processRecord)
+                            adjTaskMap.remove(processRecord)
                         }
                         isCancelled.ifFalse {
                             block()
@@ -121,10 +119,14 @@ abstract class OomAdjHandler(
      * ADJ计算与应用                                                             *
      *                                                                         *
      **************************************************************************/
-    protected val highPriorityProcessNotHasActivityAdjMap = ConcurrentHashMap<Int, Int>(4)
-    protected val mainProcessAdjMap = ConcurrentHashMap<Int, Int>(4)
-    protected val highPrioritySubprocessAdjMap = ConcurrentHashMap<Int, Int>(4)
-    protected val subprocessAdjMap = ConcurrentHashMap<Int, Int>(4)
+    protected val highPriorityProcessNotHasActivityAdjCache = ShortArray(ADJ_CACHE_SIZE) {
+        UNINITIALIZED_VALUE
+    }
+    protected val mainProcessAdjCache = ShortArray(ADJ_CACHE_SIZE) { UNINITIALIZED_VALUE }
+    protected val highPrioritySubprocessAdjCache = ShortArray(ADJ_CACHE_SIZE) {
+        UNINITIALIZED_VALUE
+    }
+    protected val subprocessAdjCache = ShortArray(ADJ_CACHE_SIZE) { UNINITIALIZED_VALUE }
 
     @Volatile
     private var globalOomScorePolicy = HookCommonProperties.globalOomScorePolicy.value
@@ -489,7 +491,7 @@ abstract class OomAdjHandler(
     }
 
     private fun computeHighPriorityProcessAdjNotHasActivity(curAdj: Int): Int {
-        /*return highPriorityProcessNotHasActivityAdjMap.computeIfAbsent(curAdj) { _ ->
+        /*return highPriorityProcessNotHasActivityAdjCache.computeIfAbsent(curAdj) { _ ->
             max(curAdj, ProcessRecord.SUB_PROC_ADJ)
         }*/
         return max(curAdj, ProcessRecord.SUB_PROC_ADJ)
@@ -509,15 +511,33 @@ abstract class OomAdjHandler(
     }
 
     override fun computeMainProcessAdj(adj: Int): Int {
-        return mainProcessAdjMap.computeIfAbsent(adj) { _ ->
-            clamp(adj / adjConvertFactor, userProcessMinAdj, userProcessMaxAdj)
+        val index = adj + ADJ_OFFSET
+        val cachedAdj = mainProcessAdjCache[index]
+        if (index in 0 until ADJ_CACHE_SIZE) {
+            if (cachedAdj != UNINITIALIZED_VALUE) {
+                return cachedAdj.toInt()
+            }
+            val computed = clamp(adj / adjConvertFactor, userProcessMinAdj, userProcessMaxAdj)
+            mainProcessAdjCache[index] = computed.toShort()
+            return computed
         }
+
+        return clamp(adj / adjConvertFactor, userProcessMinAdj, userProcessMaxAdj)
     }
 
     public override fun computeHighPrioritySubprocessAdj(adj: Int): Int {
-        return subprocessAdjMap.computeIfAbsent(adj) { _ ->
-            computeMainProcessAdj(adj) + highPrioritySubprocessAdjOffset
+        val index = adj + ADJ_OFFSET
+        val cachedAdj = subprocessAdjCache[index]
+        if (index in 0 until ADJ_CACHE_SIZE) {
+            if (cachedAdj != UNINITIALIZED_VALUE) {
+                return cachedAdj.toInt()
+            }
+            val computed = computeMainProcessAdj(adj) + highPrioritySubprocessAdjOffset
+            subprocessAdjCache[index] = computed.toShort()
+            return computed
         }
+
+        return computeMainProcessAdj(adj) + highPrioritySubprocessAdjOffset
     }
 
     override fun computeHighPriorityProcessAdjInActiveGroup(
@@ -529,6 +549,12 @@ abstract class OomAdjHandler(
     }
 
     companion object {
+        private const val MIN_ADJ = ProcessList.NATIVE_ADJ
+        private const val MAX_ADJ = ProcessList.UNKNOWN_ADJ
+        private const val ADJ_CACHE_SIZE = MAX_ADJ - MIN_ADJ + 1
+        private const val ADJ_OFFSET = -MIN_ADJ
+        private const val UNINITIALIZED_VALUE = Short.MIN_VALUE
+
         /**
          * adj设置任务的优先级。
          *
