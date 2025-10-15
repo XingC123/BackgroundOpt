@@ -232,7 +232,7 @@ fun Any.callMethod(methodName: String, vararg args: Any?): Any? {
     return ReflectHelper.findMethodBestMatch(
         instanceClass = this.javaClass,
         methodName = methodName,
-        paramTypes = XposedHelpers.getParameterTypes(*args)
+        paramTypes = ReflectHelper.getParameterTypes(*args)
     ).invoke(this, *args)
 }
 
@@ -264,7 +264,7 @@ fun Class<*>.callStaticMethod(methodName: String, vararg args: Any?): Any? {
     return ReflectHelper.findMethodBestMatch(
         instanceClass = this,
         methodName = methodName,
-        paramTypes = XposedHelpers.getParameterTypes(*args)
+        paramTypes = ReflectHelper.getParameterTypes(*args)
     ).invoke(null, *args)
 }
 

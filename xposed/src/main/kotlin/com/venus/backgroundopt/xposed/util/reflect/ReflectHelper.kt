@@ -39,10 +39,11 @@ object ReflectHelper {
     /**
      * 精确查找方法（XposedHelpers.findMethodExact的提取版本）
      */
+    @Throws(NoSuchMethodException::class)
     fun findMethodExact(
         clazz: Class<*>,
         methodName: String,
-        vararg parameterTypes: Class<*>
+        vararg parameterTypes: Class<*>?
     ): Method {
         return clazz.getDeclaredMethod(methodName, *parameterTypes).apply {
             isAccessible = true
@@ -55,7 +56,7 @@ object ReflectHelper {
     fun findMethodBestMatch(
         instanceClass: Class<*>,
         methodName: String,
-        vararg paramTypes: Class<*>
+        vararg paramTypes: Class<*>?
     ): Method {
         val cacheKey = MethodPropertyCacheKey(
             instanceClass = instanceClass,
@@ -80,7 +81,9 @@ object ReflectHelper {
         var clz = instanceClass
         var considerPrivateMethods = true
         do {
-            for (method in clz.getDeclaredMethods()) {
+            val methods = clz.getDeclaredMethods()
+            for (i in methods.indices) {
+                val method = methods[i]
                 // don't consider private methods of superclasses
                 if (!considerPrivateMethods && Modifier.isPrivate(method.modifiers)) continue
 
@@ -257,7 +260,9 @@ object ReflectHelper {
     }
 
     private fun isAssignableFromInterface(src: Class<*>, dest: Class<*>): Boolean {
-        for (interfaceClass in src.interfaces) {
+        val interfaces = src.interfaces
+        for (i in interfaces.indices) {
+            val interfaceClass = interfaces[i]
             if (interfaceClass == dest || isAssignableFromInterface(interfaceClass, dest)) {
                 return true
             }
@@ -291,6 +296,17 @@ object ReflectHelper {
             Boolean::class.javaPrimitiveType -> java.lang.Boolean::class.java
             else -> cls
         }
+    }
+
+    /**
+     * Returns an array with the classes of the given objects.
+     */
+    fun getParameterTypes(vararg args: Any?): Array<out Class<*>?> {
+        val clazzes = arrayOfNulls<Class<*>>(args.size)
+        for (i in args.indices) {
+            clazzes[i] = if (args[i] != null) args[i]!!.javaClass else null
+        }
+        return clazzes
     }
 
     private fun getParametersString(parameterTypes: Array<out Class<*>>): String {

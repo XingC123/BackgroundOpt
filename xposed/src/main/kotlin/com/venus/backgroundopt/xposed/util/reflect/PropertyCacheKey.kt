@@ -17,8 +17,6 @@
 
 package com.venus.backgroundopt.xposed.util.reflect
 
-import kotlin.properties.Delegates
-
 /**
  * @author XingC
  * @date 2025/10/12
@@ -32,7 +30,7 @@ abstract class PropertyCacheKey(
  * 方法缓存 key
  */
 class MethodPropertyCacheKey(
-    val paramTypes: Array<out Class<*>>?,
+    val paramTypes: Array<out Class<*>?>?,
     instanceClass: Class<*>,
     propertyName: String
 ) : PropertyCacheKey(
@@ -47,7 +45,7 @@ class MethodPropertyCacheKey(
     private fun computeHashCode(
         instanceClass: Class<*>,
         propertyName: String,
-        parameterTypes: Array<out Class<*>>?
+        parameterTypes: Array<out Class<*>?>?
     ): Int {
         var result = instanceClass.hashCode()
         result = 31 * result + propertyName.hashCode()
@@ -82,14 +80,10 @@ class FieldPropertyCacheKey(
 ) : PropertyCacheKey(
     instanceClass, propertyName
 ) {
-    var hashCode by Delegates.notNull<Int>()
-
-    init {
-        hashCode = computeHashCode(
-            instanceClass = instanceClass,
-            propertyName = propertyName,
-        )
-    }
+    val hashCode = computeHashCode(
+        instanceClass = instanceClass,
+        propertyName = propertyName,
+    )
 
     private fun computeHashCode(
         instanceClass: Class<*>,
