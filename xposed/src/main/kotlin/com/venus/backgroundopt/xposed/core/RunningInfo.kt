@@ -697,12 +697,7 @@ class RunningInfo(
      * 电源管理                                                                  *
      *                                                                         *
      **************************************************************************/
-    private var _powerManagerService: PowerManagerService? = null
-    var powerManagerService: PowerManagerService
-        get() = _powerManagerService!!
-        set(value) {
-            _powerManagerService = value
-        }
+    lateinit var powerManagerService: PowerManagerService
 
     /* *************************************************************************
      *                                                                         *
